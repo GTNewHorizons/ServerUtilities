@@ -1,11 +1,11 @@
-def version_mod = version_mods;
+def project_dir = "/home/jason/dev/mc/ftb/FTB-Utilities"
 
 buildscript {
     repositories {
         mavenCentral()
         maven {
-            name = "forge"
-            url = "http://files.minecraftforge.net/maven"
+            name = "gt"
+            url = "https://gregtech.overminddl1.com/"
         }
         maven {
             name = "sonatype"
@@ -18,17 +18,29 @@ buildscript {
 }
 
 apply plugin: 'forge'
+apply plugin: 'idea'
 apply plugin: 'curseforge'
 
-version = version_mc + "-" + version_mod
+file "build.properties" withReader {
+    def prop = new Properties()
+    prop.load(it)
+    ext.config = new ConfigSlurper().parse prop
+}
+
+//def version_mod = version_mods;
+def version_mc = "${config.version_mc}"
+def version_mod = "${config.version_mc}-${config.version_mod}"
 group = "latmod.ftbu"
 archivesBaseName = "FTBUtilities"
-sourceCompatibility = JavaVersion.VERSION_1_7
-targetCompatibility = JavaVersion.VERSION_1_7
+
+sourceCompatibility = targetCompatibility = "1.8"
+compileJava {
+    sourceCompatibility = targetCompatibility = "1.8"
+}
 
 minecraft {
-    version = version_mc + "-" + version_forge
-    runDir = mcp_run_dir
+    version = "${config.version_mc}-${config.version_forge}"
+    runDir = "run"
 
     replace "@VERSION@", version_mod
     replaceIn "FTBUFinals.java"
@@ -36,7 +48,7 @@ minecraft {
 
 dependencies {
     compile fileTree(dir: "eclipse/mods", include: '*.jar')
-    compile files(project_dir + "/Exported/FTBLib-" + version_mc + "-" + version_mods + "-dev.jar")
+    compile files(project_dir + "/Exported/FTBLib-" + version_mc + "-" + version_mod + "-dev.jar")
 }
 
 sourceSets {
@@ -47,6 +59,7 @@ sourceSets {
         resources {
             srcDir project_dir + archivesBaseName + "/src/main/resources"
         }
+        output.resourcesDir = output.classesDir
     }
 }
 

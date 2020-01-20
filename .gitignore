@@ -1,0 +1,8 @@
+build/*
+run/*
+.gradle/*
+*.ipr
+*.iml
+*.iws
+.idea/**
+Exported/*
