@@ -11,6 +11,7 @@ import ftb.utils.net.MessageLMWorldUpdate;
 import ftb.utils.world.claims.ClaimedChunks;
 import latmod.lib.*;
 import latmod.lib.util.Phase;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
@@ -58,7 +59,13 @@ public class LMWorldServer extends LMWorld // LMWorldClient
 	{
 		if(o instanceof FakePlayer) return new LMFakeServerPlayer(this, (FakePlayer) o);
 		LMPlayer p = super.getPlayer(o);
-		return (p == null) ? null : p.toPlayerMP();
+		if (p == null) {
+			return null;
+		}
+		LMPlayerServer mp = p.toPlayerMP();
+		if (o instanceof EntityPlayerMP)
+			mp.setPlayer((EntityPlayerMP) o);
+		return mp;
 	}
 	
 	public void load(JsonObject group, Phase p)
