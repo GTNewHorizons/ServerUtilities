@@ -1,0 +1,5 @@
+// Add your dependencies here
+
+dependencies {
+    compile 'com.github.GTNewHorizons:FTB-Library:1.0.18.4:dev'
+}

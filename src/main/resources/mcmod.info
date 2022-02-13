@@ -1,20 +1,22 @@
-[
 {
-  "modid": "FTBU",
-  "name": "FTBUtilities",
-  "description": "FTBUtilities",
-  "version": "${version}",
-  "url": "http://minecraft.curseforge.com/projects/ftb-utilities",
-  "updateUrl": "",
-  "authorList": [
-    "LatvianModder"
-  ],
-  "credits": "",
-  "logoFile": "assets/ftbu/textures/logo.png",
-  "screenshots": [
-  ],
-  "parent":"",
-  "dependencies": [
-  ]
+  "modListVersion": 2,
+  "modList": [{
+    "modid": "${modId}",
+    "name": "${modName}",
+    "description": "FTB Utilities - GTNH",
+    "version": "${modVersion}",
+    "mcversion": "${minecraftVersion}",
+    "url": "https://feed-the-beast.com",
+    "updateUrl": "",
+    "authorList": [
+      "LatvianModder"
+    ],
+    "credits": "GTNH",
+    "logoFile": "assets/ftbu/textures/logo.png",
+    "screenshots": [],
+    "parent": "",
+    "requiredMods": ["FTBL"],
+    "dependencies": ["FTBL", "Baubles", "Waila"],
+    "useDependencyInformation": true
+  }]
 }
-]
