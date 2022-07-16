@@ -42,10 +42,6 @@ public class Backups
 		World w = FTBLib.getServerWorld();
 		if(w == null) return false;
 		
-		IChatComponent c = FTBU.mod.chatComponent("cmd.backup_start", ics.getCommandSenderName());
-		c.getChatStyle().setColor(EnumChatFormatting.LIGHT_PURPLE);
-		BroadcastSender.inst.addChatMessage(c);
-		
 		nextBackup = LMUtils.millis() + FTBUConfigBackups.backupMillis();
 		
 		if(auto && FTBUConfigBackups.need_online_players.getAsBoolean())
@@ -53,7 +49,11 @@ public class Backups
 			if(!FTBLib.hasOnlinePlayers() && !hadPlayer) return true;
 			hadPlayer = false;
 		}
-		
+
+		IChatComponent c = FTBU.mod.chatComponent("cmd.backup_start", ics.getCommandSenderName());
+		c.getChatStyle().setColor(EnumChatFormatting.LIGHT_PURPLE);
+		BroadcastSender.inst.addChatMessage(c);
+
 		try
 		{
 			new CommandSaveOff().processCommand(FTBLib.getServer(), new String[0]);
