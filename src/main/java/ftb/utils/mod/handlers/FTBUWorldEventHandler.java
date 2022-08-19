@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import ftb.lib.LMNBTUtils;
 import ftb.utils.api.EventLMWorldServer;
+import ftb.utils.mod.FTBU;
 import ftb.utils.mod.config.FTBUConfigGeneral;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.ClaimedChunks;
@@ -17,6 +18,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.WorldServer;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class FTBUWorldEventHandler // FTBLIntegration
@@ -25,6 +28,19 @@ public class FTBUWorldEventHandler // FTBLIntegration
 	public void worldLoaded(net.minecraftforge.event.world.WorldEvent.Load e)
 	{
 		if(e.world instanceof WorldServer) FTBUChunkEventHandler.instance.markDirty(e.world);
+		
+		// Move /world/latmod/LMPlayers.txt to /world/LatMod/LMPlayers.txt
+		try {
+	        Path worldPath = e.world.getSaveHandler().getWorldDirectory().toPath();
+	        Path oldFile = worldPath.resolve("latmod").resolve("LMPlayers.txt");
+	        Path newFile = worldPath.resolve("LatMod").resolve("LMPlayers.txt");
+	        if(oldFile.toFile().exists() && !newFile.toFile().exists()) {
+                FTBU.logger.info("Attempting to move " + oldFile + " to " + newFile);
+	            Files.move(oldFile, newFile);
+	        }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 	}
 	
 	@SubscribeEvent
@@ -70,7 +86,7 @@ public class FTBUWorldEventHandler // FTBLIntegration
 					l.add(sb.toString());
 				}
 				
-				LMFileUtils.save(new File(e.world.getSaveHandler().getWorldDirectory(), "latmod/LMPlayers.txt"), l);
+				LMFileUtils.save(new File(LMWorldServer.inst.latmodFolder, "LMPlayers.txt"), l);
 			}
 			catch(Exception ex)
 			{
