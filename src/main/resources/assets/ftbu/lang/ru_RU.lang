@@ -1,0 +1,95 @@
+#Buttons
+ftbu.label.friend=Друг
+ftbu.label.pfriend=Заявка отправлена
+ftbu.label.joined=Присоединился %s назад
+ftbu.label.last_seen=Был виден последний раз %s назад
+ftbu.label.deaths=Смертей: %s
+ftbu.button.block_security=Безопасность блока
+ftbu.label.cchunks_count=Заприваченные чанки: %s
+ftbu.label.lchunks_count=Загруженные чанки: %s
+
+#ClientConfig
+client_config.ftbu=FTB Utilities
+client_config.ftbu.render_badges=Показывать значки
+client_config.ftbu.sort_friends_az=Сортировать друзей A-Z
+client_config.ftbu.loaded_chunks_space_key=Используйте Пробел для загруженных чанков
+
+client_config.ftbu_guide=FTB Utilities: руководство
+client_config.ftbu_guide.unicode=Использовать Unicode
+client_config.ftbu_guide.text_color=Цвет текста
+client_config.ftbu_guide.bg_color=Цвет фона
+client_config.ftbu_guide.transparency=Прозрачность
+
+ftbu.player_setting.chat_links=Ссылки в чате
+ftbu.player_setting.render_badge=Показывать мой значок
+ftbu.player_setting.explosions=Взрывы в заприваченных чанках
+ftbu.player_setting.security_level=Уровень безопасности в заприваченных чанках
+ftbu.player_setting.fake_players=Разрешить действия Fake Player в заприваченных чанках
+
+#PlayerActions
+player_action.ftbu.guide=Руководство
+player_action.ftbu.server_info=Информация о сервере
+player_action.ftbu.claimed_chunks=Заприваченные чанки
+player_action.ftbu.trade=Обмен
+player_action.ftbu.notes=Записки
+player_action.ftbu.add_friend=Добавить друга
+player_action.ftbu.rem_friend=Удалить из друзей
+player_action.ftbu.deny_friend=Отклонить запрос
+player_action.ftbu.mail=Почта
+
+#Misc
+ftbu.label.new_friends=Новые заявки в друзья!
+ftbu.label.new_friends_click=Принять все заявки в друзья
+ftbu.server_restart=Сервер перезапустится через %s
+ftbu.commands=Комманды
+ftbu.my_permissions=Мои разрешения
+
+ftbu.cmd.warp_set=Варп '%s' установлен!
+ftbu.cmd.warp_del=Варп '%s' удалён!
+ftbu.cmd.warp_not_set=Неизвестный варп: '%s'!
+ftbu.cmd.warp_tp=Телепортирован к '%s'!
+
+ftbu.cmd.home_set=Дом '%s' установлен!
+ftbu.cmd.home_del=Дом '%s' удалён!
+ftbu.cmd.home_not_set=Неизвестный дом: '%s'!
+ftbu.cmd.home_cross_dim=Вы не можете телепортироваться между измерениями!
+ftbu.cmd.home_limit=Вы не можете устанавливать больше домов!
+
+ftbu.cmd.no_dp=Вы можете вернуться только один раз!
+ftbu.cmd.timer_backup=Следующий Backup: %s
+ftbu.cmd.timer_restart=Следующий рестарт: %s
+ftbu.cmd.spawn_tp=Телепортирован на спавн
+ftbu.cmd.ftb_gamemode=Режим игры: %s
+ftbu.cmd.world_difficulty=Сложность: %s
+
+ftbu.cmd.backup_start=Резервное копирование сервера началось!
+ftbu.cmd.backup_stop=Резервное копирование сервера завершено!
+ftbu.cmd.backup_end_1=Резервное копирование сервера заняло %s!
+ftbu.cmd.backup_end_2=Резервное копирование сервера заняло %s! (%s)
+ftbu.cmd.backup_fail=Не удалось сохранить мир! (%s)
+ftbu.cmd.backup_manual_launch=%s запустил резервное копирование!
+ftbu.cmd.backup_already_running=Резервное копирование уже проводится!
+ftbu.cmd.backup_not_running=Резервное копирование не запущено!
+ftbu.cmd.backup_size=Текущий размер мира: %s, общий размер резервных копий: %s
+
+ftbu.button.claims_unclaim_all=Расприватить все чанки
+ftbu.button.claims_unclaim_all_dim=Расприватить все чанки в %s
+ftbu.button.claims_unclaim_all_q=Расприватить все чанки?
+ftbu.button.claims_unclaim_all_dim_q=Расприватить все чанки в %s?
+ftbu.label.claims_invalid_dim=Приватить чанки в этом измерении запрещено
+
+ftbu.top.title=Топы сервера
+ftbu.top.first_joined=Первый вход
+ftbu.top.last_seen=Последний вход
+ftbu.top.time_played=Общее время сыграно
+ftbu.top.deaths=Смертей
+ftbu.top.deaths_ph=Смертей в час
+
+#Chunktypes
+ftbu.chunktype.unloaded=Чанк не загружен
+ftbu.chunktype.spawn=Зона спавна
+ftbu.chunktype.world_border=Граница мира
+ftbu.chunktype.world_border.warning=Вы достигли границы мира!
+ftbu.chunktype.wilderness=Дикая местность
+ftbu.chunktype.claimed=Заприваченная зона
+ftbu.chunktype.chunkloaded=Загруженная зона

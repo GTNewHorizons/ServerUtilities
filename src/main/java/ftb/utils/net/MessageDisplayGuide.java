@@ -9,27 +9,27 @@ import ftb.utils.mod.client.gui.guide.GuiGuide;
 import latmod.lib.ByteCount;
 import latmod.lib.json.JsonElementIO;
 
-public class MessageDisplayGuide extends MessageFTBU
-{
-	public MessageDisplayGuide() { super(ByteCount.INT); }
-	
-	public MessageDisplayGuide(GuidePage file)
-	{
-		this();
-		file.cleanup();
-		io.writeUTF(file.getID());
-		JsonElementIO.write(io, file.getSerializableElement());
-	}
-	
-	public LMNetworkWrapper getWrapper()
-	{ return FTBUNetHandler.NET_INFO; }
-	
-	@SideOnly(Side.CLIENT)
-	public IMessage onMessage(MessageContext ctx)
-	{
-		GuidePage file = new GuidePage(io.readUTF());
-		file.func_152753_a(JsonElementIO.read(io));
-		FTBLibClient.openGui(new GuiGuide(null, file));
-		return null;
-	}
+public class MessageDisplayGuide extends MessageFTBU {
+    public MessageDisplayGuide() {
+        super(ByteCount.INT);
+    }
+
+    public MessageDisplayGuide(GuidePage file) {
+        this();
+        file.cleanup();
+        io.writeUTF(file.getID());
+        JsonElementIO.write(io, file.getSerializableElement());
+    }
+
+    public LMNetworkWrapper getWrapper() {
+        return FTBUNetHandler.NET_INFO;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public IMessage onMessage(MessageContext ctx) {
+        GuidePage file = new GuidePage(io.readUTF());
+        file.func_152753_a(JsonElementIO.read(io));
+        FTBLibClient.openGui(new GuiGuide(null, file));
+        return null;
+    }
 }
