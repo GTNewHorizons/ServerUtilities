@@ -1,19 +1,24 @@
 package ftb.utils.world;
 
-import ftb.lib.*;
-import ftb.utils.mod.FTBU;
-import ftb.utils.mod.config.FTBUConfigBackups;
 import java.io.File;
 import java.util.Arrays;
+
 import latmod.lib.*;
+
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.server.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
+
 import org.apache.logging.log4j.*;
 
+import ftb.lib.*;
+import ftb.utils.mod.FTBU;
+import ftb.utils.mod.config.FTBUConfigBackups;
+
 public class Backups {
+
     public static final Logger logger = LogManager.getLogger("FTBU Backups");
 
     public static File backupsFolder;
@@ -22,8 +27,7 @@ public class Backups {
     public static boolean hadPlayer = false;
 
     public static void init() {
-        backupsFolder = FTBUConfigBackups.folder.getAsString().isEmpty()
-                ? new File(FTBLib.folderMinecraft, "/backups/")
+        backupsFolder = FTBUConfigBackups.folder.getAsString().isEmpty() ? new File(FTBLib.folderMinecraft, "/backups/")
                 : new File(FTBUConfigBackups.folder.getAsString());
         if (!backupsFolder.exists()) backupsFolder.mkdirs();
         thread = null;

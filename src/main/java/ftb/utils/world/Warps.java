@@ -1,12 +1,16 @@
 package ftb.utils.world;
 
-import com.google.gson.*;
-import ftb.lib.*;
 import java.util.*;
+
 import latmod.lib.LMJsonUtils;
+
 import net.minecraft.nbt.NBTTagCompound;
 
+import com.google.gson.*;
+import ftb.lib.*;
+
 public class Warps {
+
     private final HashMap<String, BlockDimPos> warps = new HashMap<>();
 
     public void readFromNBT(NBTTagCompound tag, String s) {
@@ -34,21 +38,20 @@ public class Warps {
 
         JsonObject g1 = g.get(s).getAsJsonObject();
 
-        if (g1 != null)
-            for (Map.Entry<String, JsonElement> e : g1.entrySet()) {
-                if (e.getValue().isJsonArray()) {
-                    set(e.getKey(), new BlockDimPos(LMJsonUtils.fromIntArray(e.getValue())));
-                } else {
-                    JsonObject o = e.getValue().getAsJsonObject();
-                    set(
-                            e.getKey(),
-                            new BlockDimPos(
-                                    o.get("x").getAsInt(),
-                                    o.get("y").getAsInt(),
-                                    o.get("z").getAsInt(),
-                                    o.get("dim").getAsInt()));
-                }
+        if (g1 != null) for (Map.Entry<String, JsonElement> e : g1.entrySet()) {
+            if (e.getValue().isJsonArray()) {
+                set(e.getKey(), new BlockDimPos(LMJsonUtils.fromIntArray(e.getValue())));
+            } else {
+                JsonObject o = e.getValue().getAsJsonObject();
+                set(
+                        e.getKey(),
+                        new BlockDimPos(
+                                o.get("x").getAsInt(),
+                                o.get("y").getAsInt(),
+                                o.get("z").getAsInt(),
+                                o.get("dim").getAsInt()));
             }
+        }
     }
 
     public void writeToJson(JsonObject g, String s) {

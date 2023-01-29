@@ -1,5 +1,7 @@
 package ftb.utils.mod.client;
 
+import net.minecraftforge.client.ClientCommandHandler;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.EventBusHelper;
 import ftb.lib.api.config.*;
@@ -9,11 +11,11 @@ import ftb.utils.mod.*;
 import ftb.utils.mod.client.gui.guide.ClientSettings;
 import ftb.utils.mod.cmd.CmdMath;
 import ftb.utils.world.*;
-import net.minecraftforge.client.ClientCommandHandler;
 
 @SideOnly(Side.CLIENT)
 public class FTBUClient extends FTBUCommon // FTBLibModClient
 {
+
     public static final ConfigEntryBool render_badges = new ConfigEntryBool("render_badges", true);
 
     public static final ConfigEntryBool sort_friends_az = new ConfigEntryBool("sort_friends_az", false);

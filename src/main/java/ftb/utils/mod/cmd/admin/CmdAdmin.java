@@ -4,6 +4,7 @@ import ftb.lib.api.cmd.*;
 import ftb.utils.mod.config.FTBUConfigCmd;
 
 public class CmdAdmin extends CommandSubLM {
+
     public CmdAdmin() {
         super(FTBUConfigCmd.name_admin.getAsString(), CommandLevel.OP);
         // add(new CmdPlayerLM());

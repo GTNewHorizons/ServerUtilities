@@ -1,15 +1,18 @@
 package ftb.utils.mod;
 
+import latmod.lib.*;
+
+import net.minecraft.util.*;
+
 import ftb.lib.*;
 import ftb.utils.badges.ServerBadges;
 import ftb.utils.mod.cmd.admin.CmdRestart;
 import ftb.utils.mod.config.*;
 import ftb.utils.mod.handlers.FTBUChunkEventHandler;
 import ftb.utils.world.Backups;
-import latmod.lib.*;
-import net.minecraft.util.*;
 
 public class FTBUTicks {
+
     public static long nextChunkloaderUpdate = 0L;
 
     private static long startMillis = 0L;
@@ -46,8 +49,7 @@ public class FTBUTicks {
                 if (msg != null && !lastRestartMessage.equals(msg)) {
                     lastRestartMessage = msg;
 
-                    if (secondsLeft <= 10
-                            || secondsLeft == 30
+                    if (secondsLeft <= 10 || secondsLeft == 30
                             || secondsLeft == 60
                             || secondsLeft == 300
                             || secondsLeft == 600

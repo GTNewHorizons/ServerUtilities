@@ -1,14 +1,16 @@
 package ftb.utils.api;
 
+import java.util.*;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.utils.world.*;
-import java.util.*;
 
 /**
  * Created by LatvianModder on 23.03.2016.<br>
  * Designed for soft dependencies
  */
 public class FriendsAPI {
+
     /**
      * Only server side! By default this value should be true, if the API is not present
      */

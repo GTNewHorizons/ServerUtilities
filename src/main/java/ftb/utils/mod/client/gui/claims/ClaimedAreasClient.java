@@ -1,13 +1,15 @@
 package ftb.utils.mod.client.gui.claims;
 
+import java.util.*;
+
+import latmod.lib.Bits;
 import cpw.mods.fml.relauncher.*;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.*;
-import java.util.*;
-import latmod.lib.Bits;
 
 @SideOnly(Side.CLIENT)
 public class ClaimedAreasClient {
+
     private static final HashMap<Long, Integer> chunks = new HashMap<>();
     private static int lastDimension = 0;
 
@@ -30,9 +32,8 @@ public class ClaimedAreasClient {
             clear();
         }
 
-        for (int z = 0; z < sz; z++)
-            for (int x = 0; x < sx; x++)
-                chunks.put(Bits.intsToLong(x + chunkX, z + chunkZ), Integer.valueOf(types[x + z * sx]));
+        for (int z = 0; z < sz; z++) for (int x = 0; x < sx; x++)
+            chunks.put(Bits.intsToLong(x + chunkX, z + chunkZ), Integer.valueOf(types[x + z * sx]));
     }
 
     public static void getMessage(int x, int z, List<String> l, boolean shift) {
@@ -42,8 +43,7 @@ public class ClaimedAreasClient {
         if (typeE != null) {
             if (typeE.isClaimed()) {
                 LMPlayerClient owner = LMWorldClient.inst.getPlayer(type);
-                if (owner != null)
-                    l.add(typeE.getChatColor(owner) + owner.getProfile().getName());
+                if (owner != null) l.add(typeE.getChatColor(owner) + owner.getProfile().getName());
             } else l.add(typeE.getChatColor(null) + typeE.getIDS());
         }
     }

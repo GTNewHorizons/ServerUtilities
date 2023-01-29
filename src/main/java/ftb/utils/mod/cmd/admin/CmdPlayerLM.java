@@ -1,19 +1,24 @@
 package ftb.utils.mod.cmd.admin;
 
-import com.mojang.authlib.GameProfile;
-import ftb.lib.*;
-import ftb.lib.api.cmd.*;
-import ftb.lib.api.item.StringIDInvLoader;
-import ftb.utils.world.*;
 import java.io.File;
 import java.util.UUID;
+
 import latmod.lib.*;
+
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
 
+import com.mojang.authlib.GameProfile;
+
+import ftb.lib.*;
+import ftb.lib.api.cmd.*;
+import ftb.lib.api.item.StringIDInvLoader;
+import ftb.utils.world.*;
+
 public class CmdPlayerLM extends CommandSubLM {
+
     public CmdPlayerLM() {
         super("player_lm", CommandLevel.OP);
 
@@ -24,6 +29,7 @@ public class CmdPlayerLM extends CommandSubLM {
     }
 
     public static class CmdAddFake extends CommandLM {
+
         public CmdAddFake(String s) {
             super(s, CommandLevel.OP);
         }
@@ -45,8 +51,10 @@ public class CmdPlayerLM extends CommandSubLM {
             if (LMWorldServer.inst.getPlayer(id) != null || LMWorldServer.inst.getPlayer(args[1]) != null)
                 return error(new ChatComponentText("Player already exists!"));
 
-            LMPlayerServer p =
-                    new LMPlayerServer(LMWorldServer.inst, LMPlayerServer.nextPlayerID(), new GameProfile(id, args[1]));
+            LMPlayerServer p = new LMPlayerServer(
+                    LMWorldServer.inst,
+                    LMPlayerServer.nextPlayerID(),
+                    new GameProfile(id, args[1]));
             LMWorldServer.inst.playerMap.put(p.getPlayerID(), p);
             p.refreshStats();
 
@@ -55,6 +63,7 @@ public class CmdPlayerLM extends CommandSubLM {
     }
 
     public static class CmdDelete extends CommandLM {
+
         public CmdDelete(String s) {
             super(s, CommandLevel.OP);
         }
@@ -77,6 +86,7 @@ public class CmdPlayerLM extends CommandSubLM {
     }
 
     public static class CmdLoadInv extends CommandLM {
+
         public CmdLoadInv(String s) {
             super(s, CommandLevel.OP);
         }
@@ -98,8 +108,8 @@ public class CmdPlayerLM extends CommandSubLM {
                 EntityPlayerMP ep = p.getPlayer();
                 String filename = ep.getCommandSenderName();
                 if (args.length == 2) filename = "custom/" + args[1];
-                NBTTagCompound tag =
-                        LMNBTUtils.readMap(new File(FTBLib.folderLocal, "ftbu/playerinvs/" + filename + ".dat"));
+                NBTTagCompound tag = LMNBTUtils
+                        .readMap(new File(FTBLib.folderLocal, "ftbu/playerinvs/" + filename + ".dat"));
 
                 StringIDInvLoader.readInvFromNBT(ep.inventory, tag, "Inventory");
 
@@ -115,6 +125,7 @@ public class CmdPlayerLM extends CommandSubLM {
     }
 
     public static class CmdSaveInv extends CommandLM {
+
         public CmdSaveInv(String s) {
             super(s, CommandLevel.OP);
         }
@@ -143,7 +154,8 @@ public class CmdPlayerLM extends CommandSubLM {
                 String filename = ep.getCommandSenderName();
                 if (args.length == 2) filename = "custom/" + args[1];
                 LMNBTUtils.writeMap(
-                        LMFileUtils.newFile(new File(FTBLib.folderLocal, "ftbu/playerinvs/" + filename + ".dat")), tag);
+                        LMFileUtils.newFile(new File(FTBLib.folderLocal, "ftbu/playerinvs/" + filename + ".dat")),
+                        tag);
             } catch (Exception e) {
                 if (FTBLib.DEV_ENV) e.printStackTrace();
                 return error(new ChatComponentText("Failed to save inventory!"));

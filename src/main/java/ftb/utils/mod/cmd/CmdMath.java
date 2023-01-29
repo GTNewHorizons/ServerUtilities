@@ -1,12 +1,16 @@
 package ftb.utils.mod.cmd;
 
-import ftb.lib.api.cmd.*;
 import javax.script.*;
+
 import latmod.lib.LMStringUtils;
+
 import net.minecraft.command.*;
 import net.minecraft.util.*;
 
+import ftb.lib.api.cmd.*;
+
 public class CmdMath extends CommandLM {
+
     private static Boolean hasEngine = null;
     private static ScriptEngine engine = null;
 

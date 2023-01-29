@@ -1,17 +1,19 @@
 package ftb.utils.world.ranks;
 
-import ftb.lib.PrivacyLevel;
-import ftb.lib.api.config.*;
 import java.util.Collections;
+
 import latmod.lib.IntList;
 import latmod.lib.annotations.*;
 import latmod.lib.util.EnumEnabled;
+import ftb.lib.PrivacyLevel;
+import ftb.lib.api.config.*;
 
 public class RankConfig {
+
     public final ConfigGroup custom = new ConfigGroup("custom_config");
 
     @NumberBounds(min = 0, max = 30000)
-    @Info({"Max amount of chunks that player can claim", "0 - Disabled"})
+    @Info({ "Max amount of chunks that player can claim", "0 - Disabled" })
     public final ConfigEntryInt max_claims = new ConfigEntryInt("max_claims", 100);
 
     @NumberBounds(min = 0, max = 30000)
@@ -22,34 +24,41 @@ public class RankConfig {
     public final ConfigEntryBool cross_dim_homes = new ConfigEntryBool("cross_dim_homes", true);
 
     @Flags(Flags.SYNC)
-    @Info({
-        "'-' - Player setting",
-        "'disabled' - Explosions will never happen in claimed chunks\", \"'enabled' - Explosions will always happen in claimed chunks"
-    })
-    public final ConfigEntryEnum<EnumEnabled> forced_explosions =
-            new ConfigEntryEnum<>("forced_explosions", EnumEnabled.VALUES, null, true);
+    @Info({ "'-' - Player setting",
+            "'disabled' - Explosions will never happen in claimed chunks\", \"'enabled' - Explosions will always happen in claimed chunks" })
+    public final ConfigEntryEnum<EnumEnabled> forced_explosions = new ConfigEntryEnum<>(
+            "forced_explosions",
+            EnumEnabled.VALUES,
+            null,
+            true);
 
     @Flags(Flags.SYNC)
     @Info({})
-    public final ConfigEntryEnum<PrivacyLevel> forced_chunk_security =
-            new ConfigEntryEnum<>("forced_chunk_security", PrivacyLevel.VALUES_3, null, true);
+    public final ConfigEntryEnum<PrivacyLevel> forced_chunk_security = new ConfigEntryEnum<>(
+            "forced_chunk_security",
+            PrivacyLevel.VALUES_3,
+            null,
+            true);
 
     @Info("Block IDs that you can break in claimed chunks")
-    public final ConfigEntryStringList break_whitelist =
-            new ConfigEntryStringList("break_whitelist", Collections.singletonList("OpenBlocks:grave"));
+    public final ConfigEntryStringList break_whitelist = new ConfigEntryStringList(
+            "break_whitelist",
+            Collections.singletonList("OpenBlocks:grave"));
 
     @Flags(Flags.SYNC)
     @Info("Dimensions where players can't claim")
-    public final ConfigEntryIntList dimension_blacklist =
-            new ConfigEntryIntList("dimension_blacklist", IntList.asList());
+    public final ConfigEntryIntList dimension_blacklist = new ConfigEntryIntList(
+            "dimension_blacklist",
+            IntList.asList());
 
     @Flags(Flags.SYNC)
     @Info("Allow creative players access protected chests / chunks")
-    public final ConfigEntryBool allow_creative_interact_secure =
-            new ConfigEntryBool("allow_creative_interact_secure", false);
+    public final ConfigEntryBool allow_creative_interact_secure = new ConfigEntryBool(
+            "allow_creative_interact_secure",
+            false);
 
     @NumberBounds(min = 0, max = 30000)
-    @Info({"Max amount of chunks that player can chunkload", "0 - Disabled"})
+    @Info({ "Max amount of chunks that player can chunkload", "0 - Disabled" })
     public final ConfigEntryInt max_loaded_chunks = new ConfigEntryInt("max_loaded_chunks", 50);
 
     @Info("If set to false, players won't be able to see others Rank in FriendsGUI")

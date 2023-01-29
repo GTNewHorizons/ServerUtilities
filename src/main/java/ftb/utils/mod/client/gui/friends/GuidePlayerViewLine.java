@@ -1,23 +1,26 @@
 package ftb.utils.mod.client.gui.friends;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.*;
+
+import org.lwjgl.input.Mouse;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.api.client.*;
 import ftb.utils.api.guide.GuidePage;
 import ftb.utils.api.guide.lines.GuideTextLine;
 import ftb.utils.mod.client.gui.guide.*;
 import ftb.utils.world.LMPlayerClient;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.AbstractClientPlayer;
-import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.*;
-import org.lwjgl.input.Mouse;
 
 /**
  * Created by LatvianModder on 23.03.2016.
  */
 @SideOnly(Side.CLIENT)
 public class GuidePlayerViewLine extends GuideTextLine {
+
     public final LMPlayerClient playerLM;
 
     public GuidePlayerViewLine(GuidePage c, LMPlayerClient p) {
@@ -31,6 +34,7 @@ public class GuidePlayerViewLine extends GuideTextLine {
     }
 
     public class ButtonGuidePlayerView extends ButtonGuideTextLine {
+
         private Player player;
 
         public ButtonGuidePlayerView(GuiGuide g, GuidePlayerViewLine w) {
@@ -89,6 +93,7 @@ public class GuidePlayerViewLine extends GuideTextLine {
         }
 
         public class Player extends AbstractClientPlayer {
+
             public Player(LMPlayerClient p) {
                 super(Minecraft.getMinecraft().theWorld, p.getProfile());
             }

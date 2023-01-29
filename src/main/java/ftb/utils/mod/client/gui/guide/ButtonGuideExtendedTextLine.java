@@ -1,17 +1,20 @@
 package ftb.utils.mod.client.gui.guide;
 
+import java.util.*;
+
+import net.minecraft.util.IChatComponent;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.api.client.GlStateManager;
 import ftb.lib.api.gui.GuiLM;
 import ftb.utils.api.guide.lines.GuideExtendedTextLine;
-import java.util.*;
-import net.minecraft.util.IChatComponent;
 
 /**
  * Created by LatvianModder on 04.03.2016.
  */
 @SideOnly(Side.CLIENT)
 public class ButtonGuideExtendedTextLine extends ButtonGuideTextLine {
+
     public final GuideExtendedTextLine line;
     public List<String> hover;
 

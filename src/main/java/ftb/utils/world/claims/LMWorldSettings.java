@@ -1,12 +1,16 @@
 package ftb.utils.world.claims;
 
-import com.google.gson.*;
-import ftb.lib.api.config.ConfigEntryBool;
-import ftb.utils.world.LMWorld;
 import java.util.HashMap;
+
 import latmod.lib.ByteIOStream;
 
+import com.google.gson.*;
+
+import ftb.lib.api.config.ConfigEntryBool;
+import ftb.utils.world.LMWorld;
+
 public class LMWorldSettings {
+
     public final LMWorld world;
     public final ConfigEntryBool border_enabled;
     public final WorldBorder worldBorder0;

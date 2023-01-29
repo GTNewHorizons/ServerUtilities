@@ -1,7 +1,19 @@
 package ftb.utils.world;
 
+import java.io.File;
+import java.util.*;
+
+import latmod.lib.*;
+import latmod.lib.util.Phase;
+
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.FakePlayer;
+
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
+
 import cpw.mods.fml.relauncher.Side;
 import ftb.lib.*;
 import ftb.lib.api.config.ConfigGroup;
@@ -9,17 +21,10 @@ import ftb.utils.api.EventLMPlayerServer;
 import ftb.utils.mod.handlers.FTBUChunkEventHandler;
 import ftb.utils.net.MessageLMWorldUpdate;
 import ftb.utils.world.claims.ClaimedChunks;
-import java.io.File;
-import java.util.*;
-import latmod.lib.*;
-import latmod.lib.util.Phase;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.FakePlayer;
 
 public class LMWorldServer extends LMWorld // LMWorldClient
 {
+
     public static LMWorldServer inst = null;
 
     public final File latmodFolder;
@@ -138,7 +143,9 @@ public class LMWorldServer extends LMWorld // LMWorldClient
             int id = Integer.parseInt(e.getKey());
             NBTTagCompound tag1 = e.getValue();
             LMPlayerServer p = new LMPlayerServer(
-                    this, id, new GameProfile(LMUtils.fromString(tag1.getString("UUID")), tag1.getString("Name")));
+                    this,
+                    id,
+                    new GameProfile(LMUtils.fromString(tag1.getString("UUID")), tag1.getString("Name")));
             p.readFromServer(tag1);
             playerMap.put(p.getPlayerID(), p);
         }
@@ -160,15 +167,14 @@ public class LMWorldServer extends LMWorld // LMWorldClient
 
     public String[] getAllPlayerNames(Boolean online) {
         if (online == null) return new String[0];
-        List<LMPlayerServer> list =
-                (online == Boolean.TRUE) ? getAllOnlinePlayers() : LMListUtils.clone(playerMap.values());
+        List<LMPlayerServer> list = (online == Boolean.TRUE) ? getAllOnlinePlayers()
+                : LMListUtils.clone(playerMap.values());
 
         Collections.sort(list, new Comparator<LMPlayerServer>() {
+
             public int compare(LMPlayerServer o1, LMPlayerServer o2) {
                 if (o1.isOnline() == o2.isOnline())
-                    return o1.getProfile()
-                            .getName()
-                            .compareToIgnoreCase(o2.getProfile().getName());
+                    return o1.getProfile().getName().compareToIgnoreCase(o2.getProfile().getName());
                 return Boolean.compare(o2.isOnline(), o1.isOnline());
             }
         });

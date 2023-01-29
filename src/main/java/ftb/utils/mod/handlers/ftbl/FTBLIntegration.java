@@ -1,6 +1,20 @@
 package ftb.utils.mod.handlers.ftbl;
 
+import java.io.File;
+
+import latmod.lib.*;
+import latmod.lib.util.Phase;
+
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.*;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.player.*;
+
 import com.google.gson.JsonElement;
+
 import ftb.lib.*;
 import ftb.lib.api.*;
 import ftb.lib.api.friends.ILMPlayer;
@@ -16,19 +30,10 @@ import ftb.utils.net.*;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.ClaimedChunks;
 import ftb.utils.world.ranks.Ranks;
-import java.io.File;
-import latmod.lib.*;
-import latmod.lib.util.Phase;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.*;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.entity.player.*;
 
 public class FTBLIntegration implements FTBUIntegration // FTBLIntegrationClient
 {
+
     private static boolean first_login, send_all;
 
     public void onReloaded(EventFTBReload e) {
@@ -170,6 +175,7 @@ public class FTBLIntegration implements FTBUIntegration // FTBLIntegrationClient
         else if (!ClaimedChunks.canPlayerInteract(
                 e.entityPlayer,
                 new ChunkCoordinates(e.x, e.y, e.z),
-                e.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK)) e.setCanceled(true);
+                e.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK))
+            e.setCanceled(true);
     }
 }

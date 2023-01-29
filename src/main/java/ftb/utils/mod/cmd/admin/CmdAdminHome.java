@@ -1,14 +1,17 @@
 package ftb.utils.mod.cmd.admin;
 
+import latmod.lib.LMStringUtils;
+
+import net.minecraft.command.*;
+import net.minecraft.util.*;
+
 import ftb.lib.*;
 import ftb.lib.api.cmd.*;
 import ftb.utils.mod.FTBU;
 import ftb.utils.world.LMPlayerServer;
-import latmod.lib.LMStringUtils;
-import net.minecraft.command.*;
-import net.minecraft.util.*;
 
 public class CmdAdminHome extends CommandSubLM {
+
     public CmdAdminHome() {
         super("home", CommandLevel.OP);
     }
@@ -23,7 +26,7 @@ public class CmdAdminHome extends CommandSubLM {
     }
 
     public String[] getTabStrings(ICommandSender ics, String args[], int i) throws CommandException {
-        if (i == 1) return new String[] {"list", "tp", "remove"};
+        if (i == 1) return new String[] { "list", "tp", "remove" };
         return super.getTabStrings(ics, args, i);
     }
 

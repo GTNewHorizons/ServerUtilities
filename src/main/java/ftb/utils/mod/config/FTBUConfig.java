@@ -1,12 +1,14 @@
 package ftb.utils.mod.config;
 
+import java.io.File;
+
 import ftb.lib.FTBLib;
 import ftb.lib.api.config.*;
 import ftb.utils.world.ranks.Ranks;
-import java.io.File;
 
 public class FTBUConfig // FTBU
- {
+{
+
     public static final ConfigFile configFile = new ConfigFile("ftbu");
 
     public static void load() {

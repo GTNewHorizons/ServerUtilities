@@ -1,15 +1,17 @@
 package ftb.utils.mod.cmd;
 
+import net.minecraft.command.*;
+import net.minecraft.util.IChatComponent;
+
 import ftb.lib.*;
 import ftb.lib.api.cmd.*;
 import ftb.utils.world.*;
-import net.minecraft.command.*;
-import net.minecraft.util.IChatComponent;
 
 /**
  * Created by LatvianModder on 14.01.2016.
  */
 public class CmdLMPlayerSettings extends CommandSubLM {
+
     public CmdLMPlayerSettings() {
         super("lmplayer_settings", CommandLevel.ALL);
         add(new CmdSettingBool("chat_links", PersonalSettings.CHAT_LINKS));
@@ -20,6 +22,7 @@ public class CmdLMPlayerSettings extends CommandSubLM {
     }
 
     public static class CmdSettingBool extends CommandLM {
+
         public final byte flag;
 
         public CmdSettingBool(String s, byte f) {
@@ -28,7 +31,7 @@ public class CmdLMPlayerSettings extends CommandSubLM {
         }
 
         public String[] getTabStrings(ICommandSender ics, String args[], int i) throws CommandException {
-            if (i == 0) return new String[] {"true", "false"};
+            if (i == 0) return new String[] { "true", "false" };
             return null;
         }
 
@@ -44,6 +47,7 @@ public class CmdLMPlayerSettings extends CommandSubLM {
     }
 
     public static class CmdBlockSecurity extends CommandLM {
+
         public CmdBlockSecurity(String s) {
             super(s, CommandLevel.ALL);
         }
@@ -74,12 +78,13 @@ public class CmdLMPlayerSettings extends CommandSubLM {
     }
 
     public static class CmdRenderBadge extends CommandLM {
+
         public CmdRenderBadge(String s) {
             super(s, CommandLevel.ALL);
         }
 
         public String[] getTabStrings(ICommandSender ics, String args[], int i) throws CommandException {
-            if (i == 0) return new String[] {"true", "false"};
+            if (i == 0) return new String[] { "true", "false" };
             return null;
         }
 

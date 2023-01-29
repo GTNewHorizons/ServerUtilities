@@ -1,5 +1,7 @@
 package ftb.utils.mod.client.gui.friends;
 
+import java.util.List;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.api.PlayerAction;
 import ftb.lib.api.client.*;
@@ -8,13 +10,13 @@ import ftb.utils.api.guide.GuidePage;
 import ftb.utils.api.guide.lines.GuideTextLine;
 import ftb.utils.mod.client.gui.guide.*;
 import ftb.utils.world.*;
-import java.util.List;
 
 /**
  * Created by LatvianModder on 23.03.2016.
  */
 @SideOnly(Side.CLIENT)
 public class GuidePlayerActionLine extends GuideTextLine {
+
     public final LMPlayerClient playerLM;
     public final PlayerAction action;
 
@@ -30,6 +32,7 @@ public class GuidePlayerActionLine extends GuideTextLine {
     }
 
     public class ButtonGuidePlayerAction extends ButtonGuideTextLine {
+
         public ButtonGuidePlayerAction(GuiGuide g, GuidePlayerActionLine w) {
             super(g, null);
             height = 18;

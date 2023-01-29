@@ -1,12 +1,14 @@
 package ftb.utils.mod.cmd;
 
-import ftb.lib.api.cmd.*;
-import ftb.utils.mod.FTBU;
-import ftb.utils.world.LMPlayerServer;
 import net.minecraft.command.*;
 import net.minecraft.util.IChatComponent;
 
+import ftb.lib.api.cmd.*;
+import ftb.utils.mod.FTBU;
+import ftb.utils.world.LMPlayerServer;
+
 public class CmdDelHome extends CommandLM {
+
     public CmdDelHome() {
         super("delhome", CommandLevel.ALL);
     }

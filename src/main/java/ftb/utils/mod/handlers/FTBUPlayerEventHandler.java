@@ -1,5 +1,17 @@
 package ftb.utils.mod.handlers;
 
+import latmod.lib.MathHelperLM;
+import latmod.lib.util.Pos2I;
+
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.monster.IMob;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.*;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.event.entity.EntityEvent;
+import net.minecraftforge.event.entity.living.*;
+
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import ftb.lib.*;
@@ -10,18 +22,9 @@ import ftb.utils.mod.config.FTBUConfigGeneral;
 import ftb.utils.net.*;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.*;
-import latmod.lib.MathHelperLM;
-import latmod.lib.util.Pos2I;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.*;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.event.entity.living.*;
 
 public class FTBUPlayerEventHandler {
+
     @SubscribeEvent
     public void playerLoggedOut(PlayerEvent.PlayerLoggedOutEvent e) {
         if (e.player instanceof EntityPlayerMP) playerLoggedOut((EntityPlayerMP) e.player);
@@ -116,19 +119,18 @@ public class FTBUPlayerEventHandler {
 
         if (entity != null && (entity instanceof EntityPlayerMP || entity instanceof IMob)) {
             if (entity instanceof FakePlayer) return;
-            else if (entity instanceof EntityPlayerMP
-                    && LMWorldServer.inst.getPlayer(entity).allowInteractSecure()) return;
+            else if (entity instanceof EntityPlayerMP && LMWorldServer.inst.getPlayer(entity).allowInteractSecure())
+                return;
 
             int cx = MathHelperLM.chunk(e.entity.posX);
             int cz = MathHelperLM.chunk(e.entity.posZ);
 
             if ((FTBUConfigGeneral.safe_spawn.getAsBoolean() && ClaimedChunks.isInSpawn(dim, cx, cz)))
                 e.setCanceled(true);
-            /*else
-            {
-            	ClaimedChunk c = Claims.get(dim, cx, cz);
-            	if(c != null && c.claims.settings.isSafe()) e.setCanceled(true);
-            }*/
+            /*
+             * else { ClaimedChunk c = Claims.get(dim, cx, cz); if(c != null && c.claims.settings.isSafe())
+             * e.setCanceled(true); }
+             */
         }
     }
 }

@@ -1,10 +1,12 @@
 package ftb.utils.world;
 
-import com.mojang.authlib.GameProfile;
-import ftb.lib.LMNBTUtils;
 import latmod.lib.ByteIOStream;
 
+import com.mojang.authlib.GameProfile;
+import ftb.lib.LMNBTUtils;
+
 public class LMPlayerClientSelf extends LMPlayerClient {
+
     private final PersonalSettings settings;
     public int claimedChunks;
     public int loadedChunks;
@@ -26,7 +28,7 @@ public class LMPlayerClientSelf extends LMPlayerClient {
     }
 
     public void readFromNet(ByteIOStream io, boolean self) // LMPlayerServer
-            {
+    {
         super.readFromNet(io, self);
 
         if (self) {

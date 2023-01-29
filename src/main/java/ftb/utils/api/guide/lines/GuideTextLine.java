@@ -1,15 +1,18 @@
 package ftb.utils.api.guide.lines;
 
+import net.minecraft.util.*;
+
 import com.google.gson.*;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.utils.api.guide.GuidePage;
 import ftb.utils.mod.client.gui.guide.*;
-import net.minecraft.util.*;
 
 /**
  * Created by LatvianModder on 20.03.2016.
  */
 public class GuideTextLine implements IJsonSerializable {
+
     public static GuideTextLine get(GuidePage c, JsonElement e) {
         if (e == null || e.isJsonNull()) return null;
         else if (e.isJsonPrimitive()) {

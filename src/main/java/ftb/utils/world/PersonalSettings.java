@@ -1,10 +1,13 @@
 package ftb.utils.world;
 
-import ftb.lib.PrivacyLevel;
 import latmod.lib.*;
+
 import net.minecraft.nbt.NBTTagCompound;
 
+import ftb.lib.PrivacyLevel;
+
 public class PersonalSettings {
+
     public static final byte CHAT_LINKS = 0;
     public static final byte EXPLOSIONS = 1;
     public static final byte FAKE_PLAYERS = 2;

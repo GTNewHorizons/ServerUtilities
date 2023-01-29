@@ -1,10 +1,11 @@
 package ftb.utils.api;
 
+import latmod.lib.util.Phase;
 import ftb.lib.api.EventLM;
 import ftb.utils.world.LMWorldServer;
-import latmod.lib.util.Phase;
 
 public class EventLMWorldServer extends EventLM {
+
     public final LMWorldServer world;
 
     public EventLMWorldServer(LMWorldServer w) {
@@ -12,6 +13,7 @@ public class EventLMWorldServer extends EventLM {
     }
 
     public static class Loaded extends EventLMWorldServer {
+
         public final Phase phase;
 
         public Loaded(LMWorldServer w, Phase p) {
@@ -21,6 +23,7 @@ public class EventLMWorldServer extends EventLM {
     }
 
     public static class Saved extends EventLMWorldServer {
+
         public Saved(LMWorldServer w) {
             super(w);
         }

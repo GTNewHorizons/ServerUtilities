@@ -1,6 +1,18 @@
 package ftb.utils.world;
 
+import java.util.*;
+
+import latmod.lib.*;
+
+import net.minecraft.command.*;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.stats.StatisticsFile;
+import net.minecraft.util.*;
+import net.minecraftforge.common.util.*;
+
 import com.mojang.authlib.GameProfile;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.*;
 import ftb.lib.api.item.StringIDInvLoader;
@@ -12,17 +24,10 @@ import ftb.utils.mod.handlers.FTBUChunkEventHandler;
 import ftb.utils.net.*;
 import ftb.utils.world.claims.*;
 import ftb.utils.world.ranks.*;
-import java.util.*;
-import latmod.lib.*;
-import net.minecraft.command.*;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.stats.StatisticsFile;
-import net.minecraft.util.*;
-import net.minecraftforge.common.util.*;
 
 public class LMPlayerServer extends LMPlayer // LMPlayerClient
 {
+
     public static int lastPlayerID = 0;
 
     public static final int nextPlayerID() {
@@ -261,8 +266,7 @@ public class LMPlayerServer extends LMPlayer // LMPlayerClient
             ArrayList<String> requests = new ArrayList<>();
 
             for (LMPlayerServer p : world.playerMap.values()) {
-                if (p.isFriendRaw(this) && !isFriendRaw(p))
-                    requests.add(p.getProfile().getName());
+                if (p.isFriendRaw(this) && !isFriendRaw(p)) requests.add(p.getProfile().getName());
             }
 
             if (requests.size() > 0) {
@@ -295,9 +299,9 @@ public class LMPlayerServer extends LMPlayer // LMPlayerClient
         if (getClaimedChunks() >= max) return;
 
         ChunkType t = world.claimedChunks.getType(dim, cx, cz);
-        if (!t.isClaimed()
-                && t.isChunkOwner(this)
-                && world.claimedChunks.put(new ClaimedChunk(getPlayerID(), dim, cx, cz))) sendUpdate();
+        if (!t.isClaimed() && t.isChunkOwner(this)
+                && world.claimedChunks.put(new ClaimedChunk(getPlayerID(), dim, cx, cz)))
+            sendUpdate();
     }
 
     public void unclaimChunk(int dim, int cx, int cz) {
@@ -366,10 +370,7 @@ public class LMPlayerServer extends LMPlayer // LMPlayerClient
 
     public StatisticsFile getStatFile(boolean force) {
         if (isOnline()) return getPlayer().func_147099_x();
-        return force
-                ? FTBLib.getServer()
-                        .getConfigurationManager()
-                        .func_152602_a(new FakePlayer(FTBLib.getServerWorld(), getProfile()))
-                : null;
+        return force ? FTBLib.getServer().getConfigurationManager()
+                .func_152602_a(new FakePlayer(FTBLib.getServerWorld(), getProfile())) : null;
     }
 }

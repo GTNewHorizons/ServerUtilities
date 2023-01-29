@@ -1,13 +1,16 @@
 package ftb.utils.api;
 
-import cpw.mods.fml.relauncher.Side;
-import ftb.utils.world.*;
 import java.util.List;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 
+import cpw.mods.fml.relauncher.Side;
+import ftb.utils.world.*;
+
 public abstract class EventLMPlayerServer extends EventLMPlayer // LMPlayerClientEvent
 {
+
     public final LMPlayerServer player;
 
     public EventLMPlayerServer(LMPlayerServer p) {
@@ -25,24 +28,28 @@ public abstract class EventLMPlayerServer extends EventLMPlayer // LMPlayerClien
     // Events //
 
     public static class UpdateSent extends EventLMPlayerServer {
+
         public UpdateSent(LMPlayerServer p) {
             super(p);
         }
     }
 
     public static class DataLoaded extends EventLMPlayerServer {
+
         public DataLoaded(LMPlayerServer p) {
             super(p);
         }
     }
 
     public static class DataSaved extends EventLMPlayerServer {
+
         public DataSaved(LMPlayerServer p) {
             super(p);
         }
     }
 
     public static class LoggedIn extends EventLMPlayerServer {
+
         public final EntityPlayerMP playerMP;
         public final boolean firstTime;
 
@@ -54,6 +61,7 @@ public abstract class EventLMPlayerServer extends EventLMPlayer // LMPlayerClien
     }
 
     public static class LoggedOut extends EventLMPlayerServer {
+
         public final EntityPlayerMP playerMP;
 
         public LoggedOut(LMPlayerServer p, EntityPlayerMP ep) {
@@ -63,6 +71,7 @@ public abstract class EventLMPlayerServer extends EventLMPlayer // LMPlayerClien
     }
 
     public static class CustomInfo extends EventLMPlayerServer {
+
         public final List<IChatComponent> info;
 
         public CustomInfo(LMPlayerServer p, List<IChatComponent> l) {

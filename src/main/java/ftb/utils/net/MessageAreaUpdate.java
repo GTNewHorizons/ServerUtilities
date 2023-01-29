@@ -1,5 +1,6 @@
 package ftb.utils.net;
 
+import latmod.lib.*;
 import cpw.mods.fml.common.network.simpleimpl.*;
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.BlockDimPos;
@@ -7,9 +8,9 @@ import ftb.lib.api.net.LMNetworkWrapper;
 import ftb.utils.mod.client.gui.claims.ClaimedAreasClient;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.ChunkType;
-import latmod.lib.*;
 
 public class MessageAreaUpdate extends MessageFTBU {
+
     public MessageAreaUpdate() {
         super(ByteCount.INT);
     }
@@ -25,15 +26,13 @@ public class MessageAreaUpdate extends MessageFTBU {
         io.writeByte(sx);
         io.writeByte(sz);
 
-        for (int z1 = z; z1 < z + sz; z1++)
-            for (int x1 = x; x1 < x + sx; x1++) {
-                ChunkType type = LMWorldServer.inst.claimedChunks.getType(d, x1, z1);
-                if (type instanceof ChunkType.PlayerClaimed
-                        && type.isChunkOwner(p)
-                        && LMWorldServer.inst.claimedChunks.getChunk(d, x1, z1).isChunkloaded)
-                    type = ChunkType.LOADED_SELF;
-                io.writeInt(type.ID);
-            }
+        for (int z1 = z; z1 < z + sz; z1++) for (int x1 = x; x1 < x + sx; x1++) {
+            ChunkType type = LMWorldServer.inst.claimedChunks.getType(d, x1, z1);
+            if (type instanceof ChunkType.PlayerClaimed && type.isChunkOwner(p)
+                    && LMWorldServer.inst.claimedChunks.getChunk(d, x1, z1).isChunkloaded)
+                type = ChunkType.LOADED_SELF;
+            io.writeInt(type.ID);
+        }
     }
 
     public MessageAreaUpdate(LMPlayerServer p, BlockDimPos pos, int sx, int sz) {

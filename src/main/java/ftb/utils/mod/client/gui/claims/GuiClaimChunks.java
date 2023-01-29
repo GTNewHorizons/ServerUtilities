@@ -1,5 +1,18 @@
 package ftb.utils.mod.client.gui.claims;
 
+import java.nio.ByteBuffer;
+import java.util.*;
+
+import latmod.lib.MathHelperLM;
+
+import net.minecraft.client.gui.*;
+import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
+
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.*;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.TextureCoords;
 import ftb.lib.api.FTBLibLang;
@@ -11,19 +24,11 @@ import ftb.utils.mod.client.FTBUClient;
 import ftb.utils.net.*;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.ChunkType;
-import java.nio.ByteBuffer;
-import java.util.*;
-import latmod.lib.MathHelperLM;
-import net.minecraft.client.gui.*;
-import net.minecraft.client.renderer.texture.TextureUtil;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ResourceLocation;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.*;
 
 @SideOnly(Side.CLIENT)
 public class GuiClaimChunks extends GuiLM implements GuiYesNoCallback // implements IClientActionGui
 {
+
     public static final int tiles_tex = 16;
     public static final int tiles_gui = 15;
     public static final double UV = (double) tiles_gui / (double) tiles_tex;
@@ -77,6 +82,7 @@ public class GuiClaimChunks extends GuiLM implements GuiYesNoCallback // impleme
         currentDim = FTBLibClient.getDim();
 
         buttonClose = new ButtonLM(this, 0, 0, 16, 16) {
+
             public void onButtonPressed(int b) {
                 FTBLibClient.playClickSound();
                 gui.close(null);
@@ -84,6 +90,7 @@ public class GuiClaimChunks extends GuiLM implements GuiYesNoCallback // impleme
         };
 
         buttonRefresh = new ButtonLM(this, 0, 16, 16, 16) {
+
             public void onButtonPressed(int b) {
                 thread = new ThreadReloadArea(mc.theWorld, GuiClaimChunks.this);
                 thread.start();
@@ -96,10 +103,10 @@ public class GuiClaimChunks extends GuiLM implements GuiYesNoCallback // impleme
         buttonRefresh.title = FTBLibLang.button_refresh.format();
 
         buttonUnclaimAll = new ButtonLM(this, 0, 32, 16, 16) {
+
             public void onButtonPressed(int b) {
                 FTBLibClient.playClickSound();
-                String s = isShiftKeyDown()
-                        ? FTBU.mod.translate("button.claims_unclaim_all_q")
+                String s = isShiftKeyDown() ? FTBU.mod.translate("button.claims_unclaim_all_q")
                         : FTBU.mod.translate(
                                 "button.claims_unclaim_all_dim_q",
                                 FTBLibClient.mc.theWorld.provider.getDimensionName());
@@ -108,13 +115,15 @@ public class GuiClaimChunks extends GuiLM implements GuiYesNoCallback // impleme
 
             public void addMouseOverText(List<String> l) {
                 if (isShiftKeyDown()) l.add(FTBU.mod.translate("button.claims_unclaim_all"));
-                else
-                    l.add(FTBU.mod.translate(
-                            "button.claims_unclaim_all_dim", FTBLibClient.mc.theWorld.provider.getDimensionName()));
+                else l.add(
+                        FTBU.mod.translate(
+                                "button.claims_unclaim_all_dim",
+                                FTBLibClient.mc.theWorld.provider.getDimensionName()));
             }
         };
 
         panelButtons = new PanelLM(this, 0, 0, 16, 0) {
+
             public void addWidgets() {
                 add(buttonClose);
                 add(buttonRefresh);
@@ -212,8 +221,8 @@ public class GuiClaimChunks extends GuiLM implements GuiYesNoCallback // impleme
     }
 
     public void drawText(List<String> l) {
-        String s =
-                FTBU.mod.translate("label.cchunks_count", (playerLM.claimedChunks + " / " + playerLM.maxClaimedChunks));
+        String s = FTBU.mod
+                .translate("label.cchunks_count", (playerLM.claimedChunks + " / " + playerLM.maxClaimedChunks));
         fontRendererObj.drawString(s, width - fontRendererObj.getStringWidth(s) - 4, height - 12, 0xFFFFFFFF);
         s = FTBU.mod.translate("label.lchunks_count", (playerLM.loadedChunks + " / " + playerLM.maxLoadedChunks));
         fontRendererObj.drawString(s, width - fontRendererObj.getStringWidth(s) - 4, height - 24, 0xFFFFFFFF);
@@ -231,33 +240,32 @@ public class GuiClaimChunks extends GuiLM implements GuiYesNoCallback // impleme
     public void renderMinimap() {
         FTBLibClient.setTexture(tex_area);
 
-        for (int y = 0; y < tiles_gui; y++)
-            for (int x = 0; x < tiles_gui; x++) {
-                int cx = x + startX;
-                int cy = y + startY;
+        for (int y = 0; y < tiles_gui; y++) for (int x = 0; x < tiles_gui; x++) {
+            int cx = x + startX;
+            int cy = y + startY;
 
-                ChunkType type = getType(cx, cy);
-                if (type.drawGrid()) {
-                    boolean a = type.equals(getType(cx, cy - 1));
-                    boolean b = type.equals(getType(cx + 1, cy));
-                    boolean c = type.equals(getType(cx, cy + 1));
-                    boolean d = type.equals(getType(cx - 1, cy));
+            ChunkType type = getType(cx, cy);
+            if (type.drawGrid()) {
+                boolean a = type.equals(getType(cx, cy - 1));
+                boolean b = type.equals(getType(cx + 1, cy));
+                boolean c = type.equals(getType(cx, cy + 1));
+                boolean d = type.equals(getType(cx - 1, cy));
 
-                    TextureCoords tc = tex_area_coords[a ? 1 : 0][b ? 1 : 0][c ? 1 : 0][d ? 1 : 0];
+                TextureCoords tc = tex_area_coords[a ? 1 : 0][b ? 1 : 0][c ? 1 : 0][d ? 1 : 0];
 
-                    FTBLibClient.setGLColor(type.getAreaColor(playerLM), 255);
-                    GuiLM.drawTexturedRectD(
-                            mainPanel.posX + x * 16,
-                            mainPanel.posY + y * 16,
-                            zLevel,
-                            16,
-                            16,
-                            tc.minU,
-                            tc.minV,
-                            tc.maxU,
-                            tc.maxV);
-                }
+                FTBLibClient.setGLColor(type.getAreaColor(playerLM), 255);
+                GuiLM.drawTexturedRectD(
+                        mainPanel.posX + x * 16,
+                        mainPanel.posY + y * 16,
+                        zLevel,
+                        16,
+                        16,
+                        tc.minU,
+                        tc.minV,
+                        tc.maxU,
+                        tc.maxV);
             }
+        }
 
         if (!FTBLibClient.mc.theWorld.playerEntities.isEmpty()) {
             ArrayList<EntityPlayer> list = new ArrayList<>();
@@ -296,12 +304,12 @@ public class GuiClaimChunks extends GuiLM implements GuiYesNoCallback // impleme
     public void confirmClicked(boolean set, int id) {
         if (set && adminToken == 0L) {
             new MessageClaimChunk(
-                            GuiClaimChunks.this.currentDim,
-                            GuiClaimChunks.this.adminToken,
-                            0,
-                            0,
-                            (id == 1) ? MessageClaimChunk.ID_UNCLAIM_ALL_DIMS : MessageClaimChunk.ID_UNCLAIM_ALL)
-                    .sendToServer();
+                    GuiClaimChunks.this.currentDim,
+                    GuiClaimChunks.this.adminToken,
+                    0,
+                    0,
+                    (id == 1) ? MessageClaimChunk.ID_UNCLAIM_ALL_DIMS : MessageClaimChunk.ID_UNCLAIM_ALL)
+                            .sendToServer();
             new MessageAreaRequest(startX, startY, tiles_gui, tiles_gui).sendToServer();
         }
 
@@ -310,6 +318,7 @@ public class GuiClaimChunks extends GuiLM implements GuiYesNoCallback // impleme
     }
 
     public static class MapButton extends ButtonLM {
+
         public final GuiClaimChunks gui;
         public final int chunkX, chunkY;
 
@@ -325,18 +334,15 @@ public class GuiClaimChunks extends GuiLM implements GuiYesNoCallback // impleme
         public void onButtonPressed(int b) {
             if (gui.panelButtons.mouseOver()) return;
             if (gui.adminToken != 0L && b == 0) return;
-            boolean ctrl = FTBUClient.loaded_chunks_space_key.getAsBoolean()
-                    ? Keyboard.isKeyDown(Keyboard.KEY_SPACE)
+            boolean ctrl = FTBUClient.loaded_chunks_space_key.getAsBoolean() ? Keyboard.isKeyDown(Keyboard.KEY_SPACE)
                     : isCtrlKeyDown();
             new MessageClaimChunk(
-                            gui.currentDim,
-                            gui.adminToken,
-                            chunkX,
-                            chunkY,
-                            (b == 0)
-                                    ? (ctrl ? MessageClaimChunk.ID_LOAD : MessageClaimChunk.ID_CLAIM)
-                                    : (ctrl ? MessageClaimChunk.ID_UNLOAD : MessageClaimChunk.ID_UNCLAIM))
-                    .sendToServer();
+                    gui.currentDim,
+                    gui.adminToken,
+                    chunkX,
+                    chunkY,
+                    (b == 0) ? (ctrl ? MessageClaimChunk.ID_LOAD : MessageClaimChunk.ID_CLAIM)
+                            : (ctrl ? MessageClaimChunk.ID_UNLOAD : MessageClaimChunk.ID_UNCLAIM)).sendToServer();
             FTBLibClient.playClickSound();
         }
 

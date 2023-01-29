@@ -1,18 +1,23 @@
 package ftb.utils.badges;
 
+import java.io.File;
+import java.util.*;
+
+import latmod.lib.*;
+import latmod.lib.net.*;
+import latmod.lib.util.Phase;
+
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import com.google.gson.*;
+
 import ftb.lib.FTBLib;
 import ftb.utils.mod.FTBU;
 import ftb.utils.net.MessageUpdateBadges;
 import ftb.utils.world.*;
-import java.io.File;
-import java.util.*;
-import latmod.lib.*;
-import latmod.lib.net.*;
-import latmod.lib.util.Phase;
-import net.minecraft.entity.player.EntityPlayerMP;
 
 public class ServerBadges {
+
     private static final Map<String, Badge> map = new HashMap<>();
     private static final Map<UUID, Badge> uuid = new HashMap<>();
 
@@ -25,6 +30,7 @@ public class ServerBadges {
     }
 
     public static class ThreadReloadBadges extends Thread {
+
         public boolean isDone = false;
 
         public void run() {
@@ -37,8 +43,9 @@ public class ServerBadges {
             JsonElement global = null, local = null;
 
             try {
-                LMURLConnection connection =
-                        new LMURLConnection(RequestMethod.SIMPLE_GET, "http://pastebin.com/raw/Mu8McdDR");
+                LMURLConnection connection = new LMURLConnection(
+                        RequestMethod.SIMPLE_GET,
+                        "http://pastebin.com/raw/Mu8McdDR");
                 global = connection.connect().asJson();
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -117,8 +124,7 @@ public class ServerBadges {
                 b = map.get(rank);
                 if (b != null) return b;
             }
-        } catch (Exception ex) {
-        }
+        } catch (Exception ex) {}
 
         return Badge.emptyBadge;
     }

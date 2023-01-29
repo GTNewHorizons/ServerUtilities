@@ -1,12 +1,14 @@
 package ftb.utils.mod.cmd.admin;
 
-import ftb.lib.api.cmd.*;
-import ftb.utils.world.*;
-import ftb.utils.world.claims.ClaimedChunk;
 import net.minecraft.command.*;
 import net.minecraft.util.*;
 
+import ftb.lib.api.cmd.*;
+import ftb.utils.world.*;
+import ftb.utils.world.claims.ClaimedChunk;
+
 public class CmdUnloadAll extends CommandLM {
+
     public CmdUnloadAll() {
         super("unload_all", CommandLevel.OP);
     }
@@ -24,8 +26,7 @@ public class CmdUnloadAll extends CommandLM {
 
         if (args[0].equals("@a")) {
             for (ClaimedChunk c : LMWorldServer.inst.claimedChunks.getAllChunks()) c.isChunkloaded = false;
-            for (LMPlayer p : LMWorldServer.inst.getAllOnlinePlayers())
-                p.toPlayerMP().sendUpdate();
+            for (LMPlayer p : LMWorldServer.inst.getAllOnlinePlayers()) p.toPlayerMP().sendUpdate();
             return new ChatComponentText("Unloaded all chunks");
         }
 

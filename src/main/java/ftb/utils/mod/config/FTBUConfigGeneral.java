@@ -1,22 +1,19 @@
 package ftb.utils.mod.config;
 
-import cpw.mods.fml.relauncher.Side;
-import ftb.lib.api.config.*;
 import java.util.*;
+
 import latmod.lib.annotations.*;
+
 import net.minecraft.entity.*;
 
+import cpw.mods.fml.relauncher.Side;
+import ftb.lib.api.config.*;
+
 public class FTBUConfigGeneral {
+
     @NumberBounds(min = 0D, max = 720D)
-    @Info({
-        "Server will automatically shut down after X hours",
-        "0 - Disabled",
-        "0.5 - 30 minutes",
-        "1 - 1 Hour",
-        "24 - 1 Day",
-        "168 - 1 Week",
-        "720 - 1 Month"
-    })
+    @Info({ "Server will automatically shut down after X hours", "0 - Disabled", "0.5 - 30 minutes", "1 - 1 Hour",
+            "24 - 1 Day", "168 - 1 Week", "720 - 1 Month" })
     public static final ConfigEntryDouble restart_timer = new ConfigEntryDouble("restart_timer", 0D);
 
     @Info("If set to true, explosions and hostile mobs in spawn area will be disabled")
@@ -53,19 +50,10 @@ public class FTBUConfigGeneral {
         }
 
         /*
-        blockedItemsL.removeAll();
-
-        list = blockedItems.get();
-
-        if(list != null && list.length > 0)
-        {
-        	for(String s : list)
-        	{
-        		ItemStack is = ItemStackTypeAdapter.parseItem(s);
-        		if(is != null && !LMInvUtils.isAir(is.getItem())) blockedItemsL.add(is);
-        	}
-        }
-        */
+         * blockedItemsL.removeAll(); list = blockedItems.get(); if(list != null && list.length > 0) { for(String s :
+         * list) { ItemStack is = ItemStackTypeAdapter.parseItem(s); if(is != null && !LMInvUtils.isAir(is.getItem()))
+         * blockedItemsL.add(is); } }
+         */
     }
 
     public static boolean isEntityBanned(Class<?> c) {

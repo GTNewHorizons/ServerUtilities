@@ -1,15 +1,18 @@
 package ftb.utils.mod.client.gui.guide;
 
+import latmod.lib.LMColor;
+
+import net.minecraft.util.ResourceLocation;
+
 import ftb.lib.TextureCoords;
 import ftb.lib.api.client.*;
 import ftb.lib.api.gui.*;
 import ftb.lib.api.gui.widgets.*;
 import ftb.utils.api.guide.*;
 import ftb.utils.api.guide.lines.GuideTextLine;
-import latmod.lib.LMColor;
-import net.minecraft.util.ResourceLocation;
 
 public class GuiGuide extends GuiLM implements IClientActionGui {
+
     public static final ResourceLocation tex = new ResourceLocation("ftbu", "textures/gui/guide.png");
     public static final TextureCoords tex_slider = new TextureCoords(tex, 0, 30, 12, 18, 64, 64);
     public static final TextureCoords tex_back = new TextureCoords(tex, 13, 30, 14, 11, 64, 64);
@@ -56,6 +59,7 @@ public class GuiGuide extends GuiLM implements IClientActionGui {
         selectedPage = page;
 
         sliderPages = new SliderLM(this, 0, 0, tex_slider.widthI(), 0, tex_slider.heightI()) {
+
             public boolean canMouseScroll() {
                 return gui.mouse().x < panelWidth;
             }
@@ -68,6 +72,7 @@ public class GuiGuide extends GuiLM implements IClientActionGui {
         sliderPages.isVertical = true;
 
         sliderText = new SliderLM(this, 0, 0, tex_slider.widthI(), 0, tex_slider.heightI()) {
+
             public boolean canMouseScroll() {
                 return gui.mouse().x > panelWidth;
             }
@@ -80,6 +85,7 @@ public class GuiGuide extends GuiLM implements IClientActionGui {
         sliderText.isVertical = true;
 
         buttonBack = new ButtonLM(this, 0, 0, tex_back.widthI(), tex_back.heightI()) {
+
             public void onButtonPressed(int b) {
                 FTBLibClient.playClickSound();
 
@@ -102,6 +108,7 @@ public class GuiGuide extends GuiLM implements IClientActionGui {
         };
 
         panelPages = new PanelLM(this, 0, 0, 0, 0) {
+
             public void addWidgets() {
                 height = 0;
 
@@ -117,6 +124,7 @@ public class GuiGuide extends GuiLM implements IClientActionGui {
         };
 
         panelText = new PanelLM(this, 0, 0, 0, 0) {
+
             public void addWidgets() {
                 for (WidgetLM w : panelPages.widgets) {
                     ((ButtonGuidePage) w).updateTitle();
@@ -128,8 +136,7 @@ public class GuiGuide extends GuiLM implements IClientActionGui {
                 fontRendererObj.setUnicodeFlag(useUnicodeFont);
 
                 for (GuideTextLine line : selectedPage.text) {
-                    ButtonGuideTextLine l = line == null
-                            ? new ButtonGuideTextLine(GuiGuide.this, null)
+                    ButtonGuideTextLine l = line == null ? new ButtonGuideTextLine(GuiGuide.this, null)
                             : line.createWidget(GuiGuide.this);
 
                     if (l != null && l.height > 0) {
@@ -226,7 +233,11 @@ public class GuiGuide extends GuiLM implements IClientActionGui {
         GlStateManager.color(1F, 1F, 1F, 1F);
 
         renderFilling(
-                panelWidth, 0, mainPanel.width - panelWidth, mainPanel.height, ClientSettings.transparency.getAsInt());
+                panelWidth,
+                0,
+                mainPanel.width - panelWidth,
+                mainPanel.height,
+                ClientSettings.transparency.getAsInt());
         renderFilling(0, 36, panelWidth, mainPanel.height - 32, 255);
 
         boolean uni = fontRendererObj.getUnicodeFlag();
@@ -251,8 +262,8 @@ public class GuiGuide extends GuiLM implements IClientActionGui {
         buttonBack.render((parentGui == null) ? tex_close : tex_back);
 
         GlStateManager.color(1F, 1F, 1F, 1F);
-        fontRendererObj.drawString(
-                pageTitle, buttonBack.getAX() + buttonBack.width + 5, mainPanel.posY + 14, colorText);
+        fontRendererObj
+                .drawString(pageTitle, buttonBack.getAX() + buttonBack.width + 5, mainPanel.posY + 14, colorText);
     }
 
     public void drawDefaultBackground() {}

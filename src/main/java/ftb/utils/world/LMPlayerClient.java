@@ -1,18 +1,23 @@
 package ftb.utils.world;
 
+import java.util.*;
+
+import latmod.lib.*;
+
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.util.*;
+
 import com.mojang.authlib.GameProfile;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.LMNBTUtils;
 import ftb.lib.api.client.FTBLibClient;
 import ftb.utils.api.EventLMPlayerClient;
-import java.util.*;
-import latmod.lib.*;
-import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.util.*;
 
 @SideOnly(Side.CLIENT)
 public class LMPlayerClient extends LMPlayer // LMPlayerServer // LMPlayerClientSelf
 {
+
     public final LMWorldClient world;
     public final List<String> clientInfo;
     public boolean isOnline;

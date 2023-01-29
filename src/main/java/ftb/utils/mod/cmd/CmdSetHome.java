@@ -1,13 +1,15 @@
 package ftb.utils.mod.cmd;
 
-import ftb.lib.api.cmd.*;
-import ftb.utils.mod.FTBU;
-import ftb.utils.world.LMPlayerServer;
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 
+import ftb.lib.api.cmd.*;
+import ftb.utils.mod.FTBU;
+import ftb.utils.world.LMPlayerServer;
+
 public class CmdSetHome extends CommandLM {
+
     public CmdSetHome() {
         super("sethome", CommandLevel.ALL);
     }

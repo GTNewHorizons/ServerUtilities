@@ -1,15 +1,18 @@
 package ftb.utils.mod.client.gui.guide;
 
+import java.util.List;
+
+import net.minecraft.util.*;
+
 import ftb.lib.api.client.FTBLibClient;
 import ftb.lib.api.gui.widgets.ButtonLM;
 import ftb.utils.api.guide.GuidePage;
-import java.util.List;
-import net.minecraft.util.*;
 
 /**
  * Created by LatvianModder on 04.03.2016.
  */
 public class ButtonGuidePage extends ButtonLM {
+
     public final GuiGuide guiGuide;
     public final GuidePage page;
     public String hover;
@@ -52,11 +55,10 @@ public class ButtonGuidePage extends ButtonLM {
         int ay = getAY();
         if (ay < -height || ay > guiGuide.mainPanel.height) return;
         int ax = getAX();
-        guiGuide.getFontRenderer()
-                .drawString(
-                        mouseOver(ax, ay) ? (EnumChatFormatting.UNDERLINE + title) : title,
-                        ax + 1,
-                        ay + 1,
-                        guiGuide.colorText);
+        guiGuide.getFontRenderer().drawString(
+                mouseOver(ax, ay) ? (EnumChatFormatting.UNDERLINE + title) : title,
+                ax + 1,
+                ay + 1,
+                guiGuide.colorText);
     }
 }

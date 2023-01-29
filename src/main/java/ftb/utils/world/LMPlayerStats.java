@@ -1,13 +1,17 @@
 package ftb.utils.world;
 
-import ftb.utils.mod.FTBU;
 import java.util.List;
+
 import latmod.lib.*;
+
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.*;
 import net.minecraft.util.*;
 
+import ftb.utils.mod.FTBU;
+
 public class LMPlayerStats {
+
     public int deaths;
     public long firstJoined;
     public long lastSeen;
@@ -32,9 +36,9 @@ public class LMPlayerStats {
         if (firstJoined > 0L)
             info.add(FTBU.mod.chatComponent("label.joined", LMStringUtils.getTimeString(ms - firstJoined)));
         if (deaths > 0) info.add(FTBU.mod.chatComponent("label.deaths", String.valueOf(deaths)));
-        if (timePlayed > 0L)
-            info.add(new ChatComponentTranslation("stat.playOneMinute")
-                    .appendSibling(new ChatComponentText(": " + LMStringUtils.getTimeString(timePlayed))));
+        if (timePlayed > 0L) info.add(
+                new ChatComponentTranslation("stat.playOneMinute")
+                        .appendSibling(new ChatComponentText(": " + LMStringUtils.getTimeString(timePlayed))));
     }
 
     public void readFromNBT(NBTTagCompound tag) {

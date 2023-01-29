@@ -1,12 +1,15 @@
 package ftb.utils.world;
 
-import ftb.utils.world.ranks.*;
 import java.util.List;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.util.FakePlayer;
 
+import ftb.utils.world.ranks.*;
+
 public class LMFakeServerPlayer extends LMPlayerServer {
+
     public final FakePlayer fakePlayer;
 
     public LMFakeServerPlayer(LMWorldServer w, FakePlayer fp) {

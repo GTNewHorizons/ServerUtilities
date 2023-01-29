@@ -1,5 +1,14 @@
 package ftb.utils.mod.handlers.ftbl;
 
+import latmod.lib.*;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+
+import org.lwjgl.opengl.GL11;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.api.*;
 import ftb.lib.api.client.*;
@@ -12,17 +21,13 @@ import ftb.utils.badges.ClientBadges;
 import ftb.utils.mod.client.gui.claims.ClaimedAreasClient;
 import ftb.utils.world.LMWorldClient;
 import ftb.utils.world.claims.WorldBorder;
-import latmod.lib.*;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import org.lwjgl.opengl.GL11;
 
 @SideOnly(Side.CLIENT)
 public class FTBLIntegrationClient extends FTBLIntegration {
-    public static final ResourceLocation world_border_tex =
-            new ResourceLocation("ftbu", "textures/map/world_border.png");
+
+    public static final ResourceLocation world_border_tex = new ResourceLocation(
+            "ftbu",
+            "textures/map/world_border.png");
     private static final CubeRenderer worldBorderRenderer = new CubeRenderer();
 
     public void onReloaded(EventFTBReload e) {
@@ -53,8 +58,7 @@ public class FTBLIntegrationClient extends FTBLIntegration {
     }
 
     public boolean hasClientWorld() {
-        return LMWorldClient.inst != null
-                && LMWorldClient.inst.clientPlayerID > 0
+        return LMWorldClient.inst != null && LMWorldClient.inst.clientPlayerID > 0
                 && LMWorldClient.inst.clientPlayer != null;
     }
 

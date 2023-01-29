@@ -1,15 +1,19 @@
 package ftb.utils.world;
 
-import ftb.lib.BroadcastSender;
-import ftb.utils.mod.FTBU;
-import ftb.utils.mod.config.FTBUConfigBackups;
 import java.io.*;
 import java.util.List;
 import java.util.zip.*;
+
 import latmod.lib.*;
+
 import net.minecraft.util.*;
 
+import ftb.lib.BroadcastSender;
+import ftb.utils.mod.FTBU;
+import ftb.utils.mod.config.FTBUConfigBackups;
+
 public class ThreadBackup extends Thread {
+
     private File src0;
     public boolean isDone = false;
 
@@ -61,9 +65,9 @@ public class ThreadBackup extends Thread {
                 for (int i = 0; i < allFiles; i++) {
                     File file = files.get(i);
                     String filePath = file.getAbsolutePath();
-                    ZipEntry ze = new ZipEntry(src.getName()
-                            + File.separator
-                            + filePath.substring(src.getAbsolutePath().length() + 1, filePath.length()));
+                    ZipEntry ze = new ZipEntry(
+                            src.getName() + File.separator
+                                    + filePath.substring(src.getAbsolutePath().length() + 1, filePath.length()));
 
                     long millis = LMUtils.millis();
 
@@ -91,8 +95,11 @@ public class ThreadBackup extends Thread {
 
                 zos.close();
 
-                Backups.logger.info("Done compressing in " + getDoneTime(start) + " seconds ("
-                        + LMFileUtils.getSizeS(dstFile) + ")!");
+                Backups.logger.info(
+                        "Done compressing in " + getDoneTime(start)
+                                + " seconds ("
+                                + LMFileUtils.getSizeS(dstFile)
+                                + ")!");
             } else {
                 out.append(src.getName());
                 dstFile = new File(Backups.backupsFolder, out.toString());

@@ -1,12 +1,14 @@
 package ftb.utils.badges;
 
-import ftb.utils.net.MessageRequestBadge;
 import java.util.*;
+
+import ftb.utils.net.MessageRequestBadge;
 
 /**
  * Created by LatvianModder on 07.01.2016.
  */
 public class ClientBadges {
+
     private static final Map<String, Badge> map = new HashMap<>();
     private static final Map<UUID, Badge> playerBadges = new HashMap<>();
 

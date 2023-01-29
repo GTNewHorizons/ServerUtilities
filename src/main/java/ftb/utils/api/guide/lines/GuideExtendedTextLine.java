@@ -1,20 +1,24 @@
 package ftb.utils.api.guide.lines;
 
+import java.util.*;
+
+import net.minecraft.event.*;
+import net.minecraft.util.IChatComponent;
+
 import com.google.gson.*;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.JsonHelper;
 import ftb.lib.api.client.FTBLibClient;
 import ftb.lib.api.notification.ClickAction;
 import ftb.utils.api.guide.GuidePage;
 import ftb.utils.mod.client.gui.guide.*;
-import java.util.*;
-import net.minecraft.event.*;
-import net.minecraft.util.IChatComponent;
 
 /**
  * Created by LatvianModder on 20.03.2016.
  */
 public class GuideExtendedTextLine extends GuideTextLine {
+
     protected IChatComponent text;
     private ClickAction clickAction;
     private List<IChatComponent> hover;

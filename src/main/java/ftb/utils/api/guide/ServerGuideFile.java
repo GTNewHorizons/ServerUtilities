@@ -1,6 +1,15 @@
 package ftb.utils.api.guide;
 
+import java.io.File;
+import java.util.*;
+
+import latmod.lib.*;
+
+import net.minecraft.command.ICommand;
+import net.minecraft.util.*;
+
 import com.google.gson.JsonPrimitive;
+
 import ftb.lib.*;
 import ftb.lib.api.cmd.ICustomCommandInfo;
 import ftb.lib.api.notification.*;
@@ -8,16 +17,13 @@ import ftb.utils.api.guide.lines.GuideExtendedTextLine;
 import ftb.utils.mod.*;
 import ftb.utils.mod.config.*;
 import ftb.utils.world.*;
-import java.io.File;
-import java.util.*;
-import latmod.lib.*;
-import net.minecraft.command.ICommand;
-import net.minecraft.util.*;
 
 public class ServerGuideFile extends GuidePage {
+
     public static class CachedInfo {
-        public static final GuidePage main =
-                new GuidePage("server_info").setTitle(new ChatComponentTranslation("player_action.ftbu.server_info"));
+
+        public static final GuidePage main = new GuidePage("server_info")
+                .setTitle(new ChatComponentTranslation("player_action.ftbu.server_info"));
         public static GuidePage categoryServer;
 
         public static void reload() {
@@ -75,28 +81,26 @@ public class ServerGuideFile extends GuidePage {
             p.refreshStats();
         }
 
-        if (FTBUConfigGeneral.restart_timer.getAsDouble() > 0D)
-            println(FTBU.mod.chatComponent(
-                    "cmd.timer_restart", LMStringUtils.getTimeString(FTBUTicks.restartMillis - LMUtils.millis())));
+        if (FTBUConfigGeneral.restart_timer.getAsDouble() > 0D) println(
+                FTBU.mod.chatComponent(
+                        "cmd.timer_restart",
+                        LMStringUtils.getTimeString(FTBUTicks.restartMillis - LMUtils.millis())));
 
-        if (FTBUConfigBackups.enabled.getAsBoolean())
-            println(FTBU.mod.chatComponent(
-                    "cmd.timer_backup", LMStringUtils.getTimeString(Backups.nextBackup - LMUtils.millis())));
+        if (FTBUConfigBackups.enabled.getAsBoolean()) println(
+                FTBU.mod.chatComponent(
+                        "cmd.timer_backup",
+                        LMStringUtils.getTimeString(Backups.nextBackup - LMUtils.millis())));
 
-        if (FTBUConfigGeneral.server_info_difficulty.getAsBoolean())
-            println(FTBU.mod.chatComponent(
-                    "cmd.world_difficulty",
-                    LMStringUtils.firstUppercase(pself.getPlayer()
-                            .worldObj
-                            .difficultySetting
-                            .toString()
-                            .toLowerCase())));
+        if (FTBUConfigGeneral.server_info_difficulty.getAsBoolean()) println(
+                FTBU.mod.chatComponent(
+                        "cmd.world_difficulty",
+                        LMStringUtils.firstUppercase(
+                                pself.getPlayer().worldObj.difficultySetting.toString().toLowerCase())));
 
-        if (FTBUConfigGeneral.server_info_mode.getAsBoolean())
-            println(FTBU.mod.chatComponent(
-                    "cmd.ftb_gamemode",
-                    LMStringUtils.firstUppercase(
-                            FTBWorld.server.getMode().toString().toLowerCase())));
+        if (FTBUConfigGeneral.server_info_mode.getAsBoolean()) println(
+                FTBU.mod.chatComponent(
+                        "cmd.ftb_gamemode",
+                        LMStringUtils.firstUppercase(FTBWorld.server.getMode().toString().toLowerCase())));
 
         if (FTBUConfigTops.first_joined.getAsBoolean()) addTop(Top.first_joined);
         if (FTBUConfigTops.deaths.getAsBoolean()) addTop(Top.deaths);
@@ -116,10 +120,9 @@ public class ServerGuideFile extends GuidePage {
 
                     @SuppressWarnings("unchecked")
                     List<String> al = c.getCommandAliases();
-                    if (al != null && !al.isEmpty())
-                        for (String s : al) {
-                            cat.printlnText('/' + s);
-                        }
+                    if (al != null && !al.isEmpty()) for (String s : al) {
+                        cat.printlnText('/' + s);
+                    }
 
                     if (c instanceof ICustomCommandInfo) {
                         List<IChatComponent> list = new ArrayList<>();

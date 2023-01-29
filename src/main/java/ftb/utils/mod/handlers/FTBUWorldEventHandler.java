@@ -1,19 +1,13 @@
 package ftb.utils.mod.handlers;
 
-import com.google.gson.JsonObject;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import ftb.lib.LMNBTUtils;
-import ftb.utils.api.EventLMWorldServer;
-import ftb.utils.mod.FTBU;
-import ftb.utils.mod.config.FTBUConfigGeneral;
-import ftb.utils.world.*;
-import ftb.utils.world.claims.ClaimedChunks;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+
 import latmod.lib.*;
 import latmod.lib.util.Phase;
+
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.passive.EntityChicken;
@@ -21,8 +15,19 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.WorldServer;
 
+import com.google.gson.JsonObject;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import ftb.lib.LMNBTUtils;
+import ftb.utils.api.EventLMWorldServer;
+import ftb.utils.mod.FTBU;
+import ftb.utils.mod.config.FTBUConfigGeneral;
+import ftb.utils.world.*;
+import ftb.utils.world.claims.ClaimedChunks;
+
 public class FTBUWorldEventHandler // FTBLIntegration
- {
+{
+
     @SubscribeEvent
     public void worldLoaded(net.minecraftforge.event.world.WorldEvent.Load e) {
         if (e.world instanceof WorldServer) FTBUChunkEventHandler.instance.markDirty(e.world);

@@ -1,19 +1,23 @@
 package ftb.utils.mod.client.gui.friends;
 
+import java.util.*;
+
+import latmod.lib.LMColor;
+
+import net.minecraft.util.ChatComponentText;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.api.friends.*;
 import ftb.utils.api.guide.GuidePage;
 import ftb.utils.mod.client.FTBUClient;
 import ftb.utils.world.*;
-import java.util.*;
-import latmod.lib.LMColor;
-import net.minecraft.util.ChatComponentText;
 
 /**
  * Created by LatvianModder on 23.03.2016.
  */
 @SideOnly(Side.CLIENT)
 public class GuideFriendsGUI extends GuidePage {
+
     public GuideFriendsGUI() {
         super("friends_gui");
         setTitle(new ChatComponentText("FriendsGUI"));

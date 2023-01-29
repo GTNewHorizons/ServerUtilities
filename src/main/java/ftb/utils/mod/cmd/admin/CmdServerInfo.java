@@ -1,10 +1,9 @@
 package ftb.utils.mod.cmd.admin;
 
-import com.google.common.collect.ImmutableSetMultimap;
-import ftb.lib.api.cmd.*;
-import ftb.utils.api.guide.GuidePage;
 import java.util.*;
+
 import latmod.lib.IntList;
+
 import net.minecraft.command.*;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EntityList;
@@ -13,7 +12,13 @@ import net.minecraft.util.*;
 import net.minecraft.world.*;
 import net.minecraftforge.common.*;
 
+import com.google.common.collect.ImmutableSetMultimap;
+
+import ftb.lib.api.cmd.*;
+import ftb.utils.api.guide.GuidePage;
+
 public class CmdServerInfo extends CommandLM {
+
     public CmdServerInfo() {
         super("server_info", CommandLevel.OP);
     }
@@ -43,8 +48,8 @@ public class CmdServerInfo extends CommandLM {
         page = file.getSub("loaded_chunks").setTitle(new ChatComponentText("Loaded Chunks")); // LANG
 
         for (WorldServer w : DimensionManager.getWorlds()) {
-            ImmutableSetMultimap<ChunkCoordIntPair, ForgeChunkManager.Ticket> map =
-                    ForgeChunkManager.getPersistentChunksFor(w);
+            ImmutableSetMultimap<ChunkCoordIntPair, ForgeChunkManager.Ticket> map = ForgeChunkManager
+                    .getPersistentChunksFor(w);
 
             Map<String, List<ChunkCoordIntPair>> chunksMap = new HashMap<>();
 
@@ -58,9 +63,14 @@ public class CmdServerInfo extends CommandLM {
 
             for (Map.Entry<String, List<ChunkCoordIntPair>> e1 : chunksMap.entrySet()) {
                 GuidePage mod = dim.getSub(e1.getKey() + " [" + e1.getValue().size() + "]");
-                for (ChunkCoordIntPair c : e1.getValue())
-                    mod.printlnText(c.chunkXPos + ", " + c.chunkZPos + " [ " + c.getCenterXPos() + ", "
-                            + c.getCenterZPosition() + " ]");
+                for (ChunkCoordIntPair c : e1.getValue()) mod.printlnText(
+                        c.chunkXPos + ", "
+                                + c.chunkZPos
+                                + " [ "
+                                + c.getCenterXPos()
+                                + ", "
+                                + c.getCenterZPosition()
+                                + " ]");
             }
         }
 

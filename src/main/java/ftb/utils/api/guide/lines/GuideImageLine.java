@@ -1,22 +1,28 @@
 package ftb.utils.api.guide.lines;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import javax.imageio.ImageIO;
+
+import latmod.lib.LMUtils;
+
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.util.ResourceLocation;
+
 import com.google.gson.*;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.*;
 import ftb.lib.api.client.FTBLibClient;
 import ftb.utils.api.guide.GuidePage;
 import ftb.utils.mod.client.gui.guide.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import javax.imageio.ImageIO;
-import latmod.lib.LMUtils;
-import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.util.ResourceLocation;
 
 /**
  * Created by LatvianModder on 23.03.2016.
  */
 public class GuideImageLine extends GuideExtendedTextLine {
+
     private String imageURL;
     private TextureCoords texture;
     private double displayW, displayH, displayS;
@@ -37,8 +43,7 @@ public class GuideImageLine extends GuideExtendedTextLine {
             File file = new File(FTBLib.folderModpack, "images/" + imageURL);
             if (FTBLib.DEV_ENV) FTBLib.dev_logger.info("Loading Guide image: " + file.getAbsolutePath());
             BufferedImage img = ImageIO.read(file);
-            ResourceLocation tex = FTBLibClient.mc
-                    .getTextureManager()
+            ResourceLocation tex = FTBLibClient.mc.getTextureManager()
                     .getDynamicTextureLocation("ftbu_guide/" + imageURL, new DynamicTexture(img));
             texture = new TextureCoords(tex, 0D, 0D, img.getWidth(), img.getHeight(), img.getWidth(), img.getHeight());
         } catch (Exception e) {
@@ -52,15 +57,11 @@ public class GuideImageLine extends GuideExtendedTextLine {
     public TextureCoords getDisplayImage() {
         TextureCoords img = getImage();
         if (img == null) return null;
-        double w = (displayW > 0D)
-                ? displayW
-                : (displayS == 0D
-                        ? texture.width
+        double w = (displayW > 0D) ? displayW
+                : (displayS == 0D ? texture.width
                         : (displayS > 0D ? texture.width * displayS : ((double) texture.width / -displayS)));
-        double h = (displayH > 0D)
-                ? displayH
-                : (displayS == 0D
-                        ? texture.height
+        double h = (displayH > 0D) ? displayH
+                : (displayS == 0D ? texture.height
                         : (displayS > 0D ? texture.height * displayS : ((double) texture.height / -displayS)));
         return new TextureCoords(texture.texture, 0D, 0D, w, h, w, h);
     }

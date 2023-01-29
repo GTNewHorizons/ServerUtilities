@@ -1,27 +1,30 @@
 package ftb.utils.mod.config;
 
-import com.google.gson.*;
-import ftb.lib.JsonHelper;
-import ftb.lib.api.config.ConfigEntryCustom;
-import ftb.lib.api.item.ItemStackSerializer;
 import java.util.*;
+
 import latmod.lib.annotations.Info;
+
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
 
+import com.google.gson.*;
+
+import ftb.lib.JsonHelper;
+import ftb.lib.api.config.ConfigEntryCustom;
+import ftb.lib.api.item.ItemStackSerializer;
+
 public class FTBUConfigLogin {
+
     @Info("Message of the day. This will be displayed when player joins the server")
     public static final ConfigEntryChatComponentList motd = new ConfigEntryChatComponentList("motd");
 
-    @Info({
-        "Items to give player when he first joins the server",
-        "Format: StringID Size Metadata",
-        "Does not support NBT yet"
-    })
+    @Info({ "Items to give player when he first joins the server", "Format: StringID Size Metadata",
+            "Does not support NBT yet" })
     public static final ConfigEntryItemStackList starting_items = new ConfigEntryItemStackList("starting_items");
 
     public static class ConfigEntryChatComponentList extends ConfigEntryCustom {
+
         public final List<IChatComponent> components;
 
         public ConfigEntryChatComponentList(String id) {
@@ -56,6 +59,7 @@ public class FTBUConfigLogin {
     }
 
     public static class ConfigEntryItemStackList extends ConfigEntryCustom {
+
         public final List<ItemStack> items;
 
         public ConfigEntryItemStackList(String id) {

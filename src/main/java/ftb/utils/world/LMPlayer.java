@@ -1,15 +1,20 @@
 package ftb.utils.world;
 
-import com.mojang.authlib.GameProfile;
-import cpw.mods.fml.relauncher.*;
-import ftb.lib.api.friends.ILMPlayer;
 import java.util.*;
+
 import latmod.lib.*;
+
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
+import com.mojang.authlib.GameProfile;
+
+import cpw.mods.fml.relauncher.*;
+import ftb.lib.api.friends.ILMPlayer;
+
 public abstract class LMPlayer implements ILMPlayer, Comparable<ILMPlayer> // LMPlayerServer // LMPlayerClient
 {
+
     private final int playerID;
     private GameProfile gameProfile;
 

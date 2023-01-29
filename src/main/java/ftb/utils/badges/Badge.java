@@ -1,15 +1,19 @@
 package ftb.utils.badges;
 
-import cpw.mods.fml.relauncher.*;
-import ftb.lib.api.client.*;
-import ftb.lib.api.gui.GuiLM;
 import latmod.lib.util.FinalIDObject;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+
 import org.lwjgl.opengl.GL11;
 
+import cpw.mods.fml.relauncher.*;
+import ftb.lib.api.client.*;
+import ftb.lib.api.gui.GuiLM;
+
 public class Badge extends FinalIDObject {
+
     public static final ResourceLocation defTex = new ResourceLocation("ftbu", "textures/failed_badge.png");
     public static final Badge emptyBadge = new Badge("-", null);
 

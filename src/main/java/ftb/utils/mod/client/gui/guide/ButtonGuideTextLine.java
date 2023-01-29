@@ -1,18 +1,21 @@
 package ftb.utils.mod.client.gui.guide;
 
+import java.util.List;
+
+import net.minecraft.util.IChatComponent;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.api.client.GlStateManager;
 import ftb.lib.api.gui.GuiLM;
 import ftb.lib.api.gui.widgets.ButtonLM;
 import ftb.utils.api.guide.lines.GuideTextLine;
-import java.util.List;
-import net.minecraft.util.IChatComponent;
 
 /**
  * Created by LatvianModder on 04.03.2016.
  */
 @SideOnly(Side.CLIENT)
 public class ButtonGuideTextLine extends ButtonLM {
+
     public final GuiGuide guiGuide;
     public List<String> text;
 

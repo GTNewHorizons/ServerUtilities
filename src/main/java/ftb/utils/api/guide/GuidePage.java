@@ -1,29 +1,33 @@
 package ftb.utils.api.guide;
 
+import java.io.File;
+import java.util.*;
+
+import latmod.lib.*;
+import latmod.lib.util.FinalIDObject;
+
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.*;
+import net.minecraftforge.common.util.FakePlayer;
+
 import com.google.gson.*;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.JsonHelper;
 import ftb.lib.api.gui.IClientActionGui;
 import ftb.utils.api.guide.lines.*;
 import ftb.utils.mod.client.gui.guide.*;
 import ftb.utils.net.MessageDisplayGuide;
-import java.io.File;
-import java.util.*;
-import latmod.lib.*;
-import latmod.lib.util.FinalIDObject;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.*;
-import net.minecraftforge.common.util.FakePlayer;
 
 public class GuidePage extends FinalIDObject implements IJsonSerializable, IClientActionGui // GuideFile
 {
-    private static final RemoveFilter<Map.Entry<String, GuidePage>> cleanupFilter =
-            new RemoveFilter<Map.Entry<String, GuidePage>>() {
-                public boolean remove(Map.Entry<String, GuidePage> entry) {
-                    return entry.getValue().childPages.isEmpty()
-                            && entry.getValue().getUnformattedText().trim().isEmpty();
-                }
-            };
+
+    private static final RemoveFilter<Map.Entry<String, GuidePage>> cleanupFilter = new RemoveFilter<Map.Entry<String, GuidePage>>() {
+
+        public boolean remove(Map.Entry<String, GuidePage> entry) {
+            return entry.getValue().childPages.isEmpty() && entry.getValue().getUnformattedText().trim().isEmpty();
+        }
+    };
 
     public GuidePage parent = null;
     private IChatComponent title;
@@ -112,6 +116,7 @@ public class GuidePage extends FinalIDObject implements IJsonSerializable, IClie
 
     public void sortAll() {
         LMMapUtils.sortMap(childPages, new Comparator<Map.Entry<String, GuidePage>>() {
+
             public int compare(Map.Entry<String, GuidePage> o1, Map.Entry<String, GuidePage> o2) {
                 return o1.getValue().compareTo(o2.getValue());
             }

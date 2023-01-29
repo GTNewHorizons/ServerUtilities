@@ -1,15 +1,18 @@
 package ftb.utils.mod.cmd;
 
-import ftb.lib.*;
-import ftb.lib.api.cmd.*;
-import ftb.utils.mod.FTBU;
-import ftb.utils.world.LMPlayerServer;
 import latmod.lib.LMStringUtils;
+
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.*;
 
+import ftb.lib.*;
+import ftb.lib.api.cmd.*;
+import ftb.utils.mod.FTBU;
+import ftb.utils.world.LMPlayerServer;
+
 public class CmdHome extends CommandLM {
+
     public CmdHome() {
         super("home", CommandLevel.ALL);
     }
@@ -30,8 +33,8 @@ public class CmdHome extends CommandLM {
 
         if (args[0].equals("list")) {
             String[] list = p.homes.list();
-            ics.addChatMessage(new ChatComponentText(
-                    list.length + " / " + p.getRank().config.max_homes.getAsInt() + ": "));
+            ics.addChatMessage(
+                    new ChatComponentText(list.length + " / " + p.getRank().config.max_homes.getAsInt() + ": "));
             return (list.length == 0) ? null : new ChatComponentText(LMStringUtils.strip(list));
         }
 

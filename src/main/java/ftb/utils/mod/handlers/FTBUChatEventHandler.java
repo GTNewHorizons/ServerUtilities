@@ -1,15 +1,18 @@
 package ftb.utils.mod.handlers;
 
+import java.util.ArrayList;
+
+import net.minecraft.event.*;
+import net.minecraft.util.*;
+
 import cpw.mods.fml.common.eventhandler.*;
 import ftb.lib.FTBLib;
 import ftb.lib.api.ServerTickCallback;
 import ftb.utils.world.*;
-import java.util.ArrayList;
-import net.minecraft.event.*;
-import net.minecraft.util.*;
 
 public class FTBUChatEventHandler {
-    private static final String[] LINK_PREFIXES = {"http://", "https://"};
+
+    private static final String[] LINK_PREFIXES = { "http://", "https://" };
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onChatEvent(net.minecraftforge.event.ServerChatEvent e) {
@@ -39,6 +42,7 @@ public class FTBUChatEventHandler {
             line.getChatStyle().setColor(EnumChatFormatting.GOLD);
 
             FTBLib.addCallback(new ServerTickCallback() {
+
                 public void onCallback() {
                     for (LMPlayer p : LMWorldServer.inst.getAllOnlinePlayers()) {
                         if (p.getSettings().get(PersonalSettings.CHAT_LINKS)) FTBLib.printChat(p.getPlayer(), line);

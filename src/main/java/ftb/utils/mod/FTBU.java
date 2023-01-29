@@ -1,5 +1,11 @@
 package ftb.utils.mod;
 
+import java.util.Map;
+
+import net.minecraft.entity.player.EntityPlayerMP;
+
+import org.apache.logging.log4j.*;
+
 import cpw.mods.fml.common.*;
 import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.NetworkCheckHandler;
@@ -12,9 +18,6 @@ import ftb.utils.mod.handlers.*;
 import ftb.utils.mod.handlers.ftbl.FTBLIntegration;
 import ftb.utils.net.FTBUNetHandler;
 import ftb.utils.world.Backups;
-import java.util.Map;
-import net.minecraft.entity.player.EntityPlayerMP;
-import org.apache.logging.log4j.*;
 
 @Mod(
         modid = FTBUFinals.MOD_ID,
@@ -23,6 +26,7 @@ import org.apache.logging.log4j.*;
         dependencies = FTBUFinals.MOD_DEP,
         acceptedMinecraftVersions = "1.7.10")
 public class FTBU {
+
     @Mod.Instance(FTBUFinals.MOD_ID)
     public static FTBU inst;
 

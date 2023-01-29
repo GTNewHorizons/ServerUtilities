@@ -1,19 +1,24 @@
 package ftb.utils.world.claims;
 
-import com.google.gson.*;
-import ftb.lib.*;
-import ftb.lib.api.item.LMInvUtils;
-import ftb.utils.mod.config.FTBUConfigGeneral;
-import ftb.utils.world.*;
 import java.util.*;
+
 import latmod.lib.*;
 import latmod.lib.util.EnumEnabled;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.*;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 
+import com.google.gson.*;
+
+import ftb.lib.*;
+import ftb.lib.api.item.LMInvUtils;
+import ftb.utils.mod.config.FTBUConfigGeneral;
+import ftb.utils.world.*;
+
 public class ClaimedChunks {
+
     public final Map<Integer, Map<Long, ClaimedChunk>> chunks;
 
     public ClaimedChunks() {
@@ -61,8 +66,7 @@ public class ClaimedChunks {
 
             Map<Long, ClaimedChunk> map = new HashMap<>();
 
-            for (Map.Entry<String, JsonElement> e1 :
-                    e.getValue().getAsJsonObject().entrySet()) {
+            for (Map.Entry<String, JsonElement> e1 : e.getValue().getAsJsonObject().entrySet()) {
                 try {
                     LMPlayerServer p = LMWorldServer.inst.getPlayer(LMUtils.fromString(e1.getKey()));
 
@@ -230,11 +234,9 @@ public class ClaimedChunks {
         else if (LMWorldServer.inst.settings.getWB(ep.dimension).isOutsideD(pos.posX, pos.posZ)) return false;
 
         if (leftClick) {
-            if (p.getRank()
-                    .config
-                    .break_whitelist
-                    .getAsStringList()
-                    .contains(LMInvUtils.getRegName(ep.worldObj.getBlock(pos.posX, pos.posY, pos.posZ)))) return true;
+            if (p.getRank().config.break_whitelist.getAsStringList()
+                    .contains(LMInvUtils.getRegName(ep.worldObj.getBlock(pos.posX, pos.posY, pos.posZ))))
+                return true;
         }
 
         ChunkType type = LMWorldServer.inst.claimedChunks.getTypeD(ep.dimension, pos);

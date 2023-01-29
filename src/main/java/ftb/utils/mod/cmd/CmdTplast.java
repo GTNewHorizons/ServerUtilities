@@ -1,14 +1,16 @@
 package ftb.utils.mod.cmd;
 
-import ftb.lib.*;
-import ftb.lib.api.cmd.*;
-import ftb.utils.mod.FTBU;
-import ftb.utils.world.LMPlayerServer;
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.*;
 
+import ftb.lib.*;
+import ftb.lib.api.cmd.*;
+import ftb.utils.mod.FTBU;
+import ftb.utils.world.LMPlayerServer;
+
 public class CmdTplast extends CommandLM {
+
     public CmdTplast() {
         super("tpl", CommandLevel.OP);
     }

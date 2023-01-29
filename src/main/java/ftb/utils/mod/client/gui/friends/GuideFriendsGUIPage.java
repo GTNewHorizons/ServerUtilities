@@ -14,6 +14,7 @@ import ftb.utils.world.*;
  */
 @SideOnly(Side.CLIENT)
 public class GuideFriendsGUIPage extends GuidePage {
+
     public final LMPlayerClient playerLM;
 
     public GuideFriendsGUIPage(LMPlayerClient p) {
@@ -32,18 +33,15 @@ public class GuideFriendsGUIPage extends GuidePage {
             text.add(null);
         }
 
-        for (PlayerAction a : PlayerActionRegistry.getPlayerActions(
-                PlayerAction.Type.OTHER, LMWorldClient.inst.clientPlayer, playerLM, true, true)) {
+        for (PlayerAction a : PlayerActionRegistry
+                .getPlayerActions(PlayerAction.Type.OTHER, LMWorldClient.inst.clientPlayer, playerLM, true, true)) {
             text.add(new GuidePlayerActionLine(this, playerLM, a));
         }
 
         /*
-        if(LMWorldClient.inst.clientPlayer.isFriend(playerLM))
-        {
-        	text.add(null);
-        	text.add(new GuidePlayerInventoryLine(this, playerLM));
-        }
-        */
+         * if(LMWorldClient.inst.clientPlayer.isFriend(playerLM)) { text.add(null); text.add(new
+         * GuidePlayerInventoryLine(this, playerLM)); }
+         */
     }
 
     public ButtonGuidePage createButton(GuiGuide gui) {
@@ -51,6 +49,7 @@ public class GuideFriendsGUIPage extends GuidePage {
     }
 
     private class Button extends ButtonGuidePage {
+
         public Button(GuiGuide g, GuideFriendsGUIPage p) {
             super(g, p);
             height = 20;

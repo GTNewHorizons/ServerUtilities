@@ -1,18 +1,22 @@
 package ftb.utils.world;
 
+import java.util.*;
+
+import latmod.lib.LMUtils;
+
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.FakePlayer;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.FTBLib;
 import ftb.lib.api.config.ConfigGroup;
 import ftb.utils.mod.FTBU;
 import ftb.utils.world.claims.LMWorldSettings;
-import java.util.*;
-import latmod.lib.LMUtils;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.FakePlayer;
 
 public abstract class LMWorld // FTBWorld
- {
+{
+
     public static LMWorld getWorld(Side s) {
         if (s.isServer()) return LMWorldServer.inst;
         return FTBU.proxy.getClientWorldLM();

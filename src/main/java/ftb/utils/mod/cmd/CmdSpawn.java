@@ -1,14 +1,16 @@
 package ftb.utils.mod.cmd;
 
-import ftb.lib.*;
-import ftb.lib.api.cmd.*;
-import ftb.utils.mod.FTBU;
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.*;
 import net.minecraft.world.World;
 
+import ftb.lib.*;
+import ftb.lib.api.cmd.*;
+import ftb.utils.mod.FTBU;
+
 public class CmdSpawn extends CommandLM {
+
     public CmdSpawn() {
         super("spawn", CommandLevel.ALL);
     }

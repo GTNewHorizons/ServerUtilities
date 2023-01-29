@@ -1,13 +1,14 @@
 package ftb.utils.net;
 
+import latmod.lib.ByteCount;
 import cpw.mods.fml.common.network.simpleimpl.*;
 import ftb.lib.LMAccessToken;
 import ftb.lib.api.net.LMNetworkWrapper;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.ClaimedChunk;
-import latmod.lib.ByteCount;
 
 public class MessageClaimChunk extends MessageFTBU {
+
     public static final int ID_CLAIM = 0;
     public static final int ID_UNCLAIM = 1;
     public static final int ID_UNCLAIM_ALL = 2;

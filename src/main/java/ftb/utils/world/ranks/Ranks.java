@@ -1,11 +1,14 @@
 package ftb.utils.world.ranks;
 
-import ftb.lib.api.config.*;
-import ftb.utils.world.LMPlayerServer;
 import java.util.*;
+
 import net.minecraft.util.EnumChatFormatting;
 
+import ftb.lib.api.config.*;
+import ftb.utils.world.LMPlayerServer;
+
 public class Ranks {
+
     public static final Rank PLAYER = new Rank("Player");
     public static final Rank ADMIN = new Rank("Admin");
 
@@ -32,10 +35,9 @@ public class Ranks {
 
     public static void load(ConfigFile file) {
         /*
-        file = new ConfigFile("ranks", new File(FTBLib.folderLocal, "ftbu/ranks.json"));
-        file.add(default_rank);
-        file.add(ranks_group);
-        */
+         * file = new ConfigFile("ranks", new File(FTBLib.folderLocal, "ftbu/ranks.json")); file.add(default_rank);
+         * file.add(ranks_group);
+         */
 
         Ranks.ADMIN.setDefaults();
         Ranks.ADMIN.color.set(EnumChatFormatting.DARK_GREEN);
@@ -54,16 +56,9 @@ public class Ranks {
         playerMap.clear();
 
         /*
-        file.load();
-
-        if(ranks_group.entryMap.isEmpty())
-        {
-        	ConfigGroup def_player = new ConfigGroup("Player");
-        	def_player.addAll(Rank.class, PLAYER, true);
-        }
-
-        saveRanks();
-        */
+         * file.load(); if(ranks_group.entryMap.isEmpty()) { ConfigGroup def_player = new ConfigGroup("Player");
+         * def_player.addAll(Rank.class, PLAYER, true); } saveRanks();
+         */
     }
 
     public static void saveRanks() {

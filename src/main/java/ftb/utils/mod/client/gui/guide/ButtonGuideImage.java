@@ -11,6 +11,7 @@ import ftb.utils.api.guide.lines.GuideImageLine;
  */
 @SideOnly(Side.CLIENT)
 public class ButtonGuideImage extends ButtonGuideExtendedTextLine {
+
     public TextureCoords texture;
 
     public ButtonGuideImage(GuiGuide g, GuideImageLine l) {

@@ -1,11 +1,13 @@
 package ftb.utils.mod.cmd.admin;
 
-import ftb.lib.api.cmd.*;
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 
+import ftb.lib.api.cmd.*;
+
 public class CmdInvseeEnderchest extends CommandLM {
+
     public CmdInvseeEnderchest() {
         super("invsee_enderchest", CommandLevel.OP);
     }

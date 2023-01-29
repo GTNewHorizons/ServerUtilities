@@ -1,15 +1,19 @@
 package ftb.utils.api.guide;
 
+import java.io.File;
+import java.util.Arrays;
+
+import latmod.lib.LMFileUtils;
+
+import net.minecraft.util.ChatComponentTranslation;
+
 import ftb.lib.FTBLib;
 import ftb.lib.api.*;
 import ftb.utils.mod.FTBU;
 import ftb.utils.mod.client.gui.guide.GuiGuide;
-import java.io.File;
-import java.util.Arrays;
-import latmod.lib.LMFileUtils;
-import net.minecraft.util.ChatComponentTranslation;
 
 public class ClientGuideFile extends GuidePage {
+
     public static final ClientGuideFile instance = new ClientGuideFile("ClientConfig");
 
     public ClientGuideFile(String id) {

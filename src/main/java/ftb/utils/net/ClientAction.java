@@ -1,17 +1,21 @@
 package ftb.utils.net;
 
-import ftb.utils.api.guide.ServerGuideFile;
-import ftb.utils.world.*;
 import java.util.HashMap;
 
+import ftb.utils.api.guide.ServerGuideFile;
+import ftb.utils.world.*;
+
 public abstract class ClientAction {
+
     public static final ClientAction NULL = new ClientAction() {
+
         public boolean onAction(int extra, LMPlayerServer owner) {
             return false;
         }
     };
 
     public static final ClientAction ADD_FRIEND = new ClientAction() {
+
         public boolean onAction(int extra, LMPlayerServer owner) {
             if (extra > 0) {
                 LMPlayerServer p = owner.world.getPlayer(extra);
@@ -39,6 +43,7 @@ public abstract class ClientAction {
     };
 
     public static final ClientAction REM_FRIEND = new ClientAction() {
+
         public boolean onAction(int extra, LMPlayerServer owner) {
             LMPlayerServer p = owner.world.getPlayer(extra);
             if (p == null || p.equalsPlayer(owner)) return false;
@@ -55,6 +60,7 @@ public abstract class ClientAction {
     };
 
     public static final ClientAction DENY_FRIEND = new ClientAction() {
+
         public boolean onAction(int extra, LMPlayerServer owner) {
             LMPlayerServer p = owner.world.getPlayer(extra);
             if (p == null || p.equalsPlayer(owner)) return false;
@@ -70,6 +76,7 @@ public abstract class ClientAction {
     };
 
     public static final ClientAction REQUEST_PLAYER_INFO = new ClientAction() {
+
         public boolean onAction(int extra, LMPlayerServer owner) {
             new MessageLMPlayerInfo(owner, extra).sendTo(owner.getPlayer());
             return false;
@@ -77,6 +84,7 @@ public abstract class ClientAction {
     };
 
     public static final ClientAction REQUEST_SERVER_INFO = new ClientAction() {
+
         public boolean onAction(int extra, LMPlayerServer owner) {
             new ServerGuideFile(owner).displayGuide(owner.getPlayer());
             return false;
@@ -84,6 +92,7 @@ public abstract class ClientAction {
     };
 
     public static final ClientAction REQUEST_SELF_UPDATE = new ClientAction() {
+
         public boolean onAction(int extra, LMPlayerServer owner) {
             new MessageLMPlayerUpdate(owner, true).sendTo(owner.getPlayer());
             return false;
@@ -91,6 +100,7 @@ public abstract class ClientAction {
     };
 
     public static final ClientAction BUTTON_RENDER_BADGE = new ClientAction() {
+
         public boolean onAction(int extra, LMPlayerServer owner) {
             owner.renderBadge = extra == 1;
             return true;
@@ -98,6 +108,7 @@ public abstract class ClientAction {
     };
 
     public static final ClientAction BUTTON_CHAT_LINKS = new ClientAction() {
+
         public boolean onAction(int extra, LMPlayerServer owner) {
             owner.getSettings().set(PersonalSettings.CHAT_LINKS, extra == 1);
             return true;

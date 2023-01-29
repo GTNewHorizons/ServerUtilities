@@ -1,12 +1,14 @@
 package ftb.utils.mod.cmd.admin;
 
-import ftb.lib.api.cmd.*;
-import ftb.utils.mod.cmd.InvSeeInventory;
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 
+import ftb.lib.api.cmd.*;
+import ftb.utils.mod.cmd.InvSeeInventory;
+
 public class CmdInvsee extends CommandLM {
+
     public CmdInvsee() {
         super("invsee", CommandLevel.OP);
     }

@@ -1,15 +1,21 @@
 package ftb.utils.world.ranks;
 
-import ftb.lib.FTBLib;
-import ftb.lib.api.config.*;
 import latmod.lib.IntList;
 import latmod.lib.util.FinalIDObject;
+
 import net.minecraft.util.EnumChatFormatting;
 
+import ftb.lib.FTBLib;
+import ftb.lib.api.config.*;
+
 public class Rank extends FinalIDObject {
+
     public final ConfigEntryString parent = new ConfigEntryString("parent", "-");
-    public final ConfigEntryEnum<EnumChatFormatting> color =
-            new ConfigEntryEnum<>("color", FTBLib.chatColors, EnumChatFormatting.WHITE, false);
+    public final ConfigEntryEnum<EnumChatFormatting> color = new ConfigEntryEnum<>(
+            "color",
+            FTBLib.chatColors,
+            EnumChatFormatting.WHITE,
+            false);
     public final ConfigEntryString prefix = new ConfigEntryString("prefix", "");
     // public final ConfigEntryStringArray allowed_commands = new ConfigEntryStringArray("allowed_commands", "*");
     public final RankConfig config;

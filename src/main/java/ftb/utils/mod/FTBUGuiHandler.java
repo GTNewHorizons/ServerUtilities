@@ -1,16 +1,18 @@
 package ftb.utils.mod;
 
-import cpw.mods.fml.relauncher.*;
-import ftb.lib.api.gui.*;
-import ftb.utils.mod.client.gui.claims.GuiClaimChunks;
-import ftb.utils.mod.client.gui.friends.GuideFriendsGUI;
-import ftb.utils.mod.client.gui.guide.GuiGuide;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.NBTTagCompound;
 
+import cpw.mods.fml.relauncher.*;
+import ftb.lib.api.gui.*;
+import ftb.utils.mod.client.gui.claims.GuiClaimChunks;
+import ftb.utils.mod.client.gui.friends.GuideFriendsGUI;
+import ftb.utils.mod.client.gui.guide.GuiGuide;
+
 public class FTBUGuiHandler extends LMGuiHandler {
+
     public static final FTBUGuiHandler instance = new FTBUGuiHandler(FTBUFinals.MOD_ID);
 
     public static final int FRIENDS = 1;

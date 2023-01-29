@@ -1,5 +1,9 @@
 package ftb.utils.mod.client.gui.friends;
 
+import java.util.List;
+
+import net.minecraft.entity.player.EntityPlayer;
+
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.api.client.GlStateManager;
 import ftb.lib.api.gui.GuiLM;
@@ -7,14 +11,13 @@ import ftb.utils.api.guide.GuidePage;
 import ftb.utils.api.guide.lines.GuideTextLine;
 import ftb.utils.mod.client.gui.guide.*;
 import ftb.utils.world.LMPlayerClient;
-import java.util.List;
-import net.minecraft.entity.player.EntityPlayer;
 
 /**
  * Created by LatvianModder on 23.03.2016.
  */
 @SideOnly(Side.CLIENT)
 public class GuidePlayerInventoryLine extends GuideTextLine {
+
     public final LMPlayerClient playerLM;
 
     public GuidePlayerInventoryLine(GuidePage c, LMPlayerClient p) {
@@ -28,6 +31,7 @@ public class GuidePlayerInventoryLine extends GuideTextLine {
     }
 
     public class ButtonGuidePlayerInventory extends ButtonGuideTextLine {
+
         public ButtonGuidePlayerInventory(GuiGuide g, GuidePlayerInventoryLine w) {
             super(g, null);
             width = 18 * 9;
@@ -62,7 +66,10 @@ public class GuidePlayerInventoryLine extends GuideTextLine {
             if (ep != null) {
                 for (int i = 0; i < ep.inventory.mainInventory.length - 9; i++) {
                     GuiLM.drawItem(
-                            gui, ep.inventory.mainInventory[i + 9], ax + (i % 9) * 18 + 1, ay + (i / 9) * 18 + 1);
+                            gui,
+                            ep.inventory.mainInventory[i + 9],
+                            ax + (i % 9) * 18 + 1,
+                            ay + (i / 9) * 18 + 1);
                 }
 
                 for (int i = 0; i < 9; i++) {

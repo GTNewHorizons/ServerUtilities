@@ -1,16 +1,19 @@
 package ftb.utils.mod.cmd.admin;
 
-import ftb.lib.*;
-import ftb.lib.api.cmd.*;
-import ftb.utils.world.LMPlayerServer;
 import java.io.File;
+
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
 
+import ftb.lib.*;
+import ftb.lib.api.cmd.*;
+import ftb.utils.world.LMPlayerServer;
+
 // FIXME: UNFINISHED
 public class CmdResetPos extends CommandLM {
+
     public CmdResetPos() {
         super("reset_pos", CommandLevel.OP);
     }
