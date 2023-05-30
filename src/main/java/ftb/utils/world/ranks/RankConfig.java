@@ -23,6 +23,9 @@ public class RankConfig {
     @Info("Can use /home to teleport to/from another dimension")
     public final ConfigEntryBool cross_dim_homes = new ConfigEntryBool("cross_dim_homes", true);
 
+    @Info("Can use /warp to teleport to another dimension")
+    public final ConfigEntryBool cross_dim_warp = new ConfigEntryBool("cross_dim_warp", true);
+
     @Flags(Flags.SYNC)
     @Info({ "'-' - Player setting",
             "'disabled' - Explosions will never happen in claimed chunks\", \"'enabled' - Explosions will always happen in claimed chunks" })

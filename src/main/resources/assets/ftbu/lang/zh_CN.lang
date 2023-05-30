@@ -1,14 +1,16 @@
-#Traslated by xuyu_staryG(gxy17886) From InfinityStudio
+#Originally Traslated by xuyu_staryG(gxy17886) From InfinityStudio
+#Edited by Cyrus-Vance from KoiRealm
+
 #Buttons
-ftbu:label.friend=好友
-ftbu:label.pfriend=待定的好友
-ftbu:label.joined=%s前加入
-ftbu:label.last_seen=最后露面在%s前
-ftbu:label.deaths=死亡次数: %s
-ftbu:button.explosions=爆炸
-ftbu:button.block_security=方块安全
-ftbu:label.cchunks_count=认领区块: %s
-ftbu:label.lchunks_count=载入区块: %s
+ftbu.label.friend=好友
+ftbu.label.pfriend=待定的好友
+ftbu.label.joined=%s前加入
+ftbu.label.last_seen=最后露面在%s前
+ftbu.label.deaths=死亡次数: %s
+ftbu.button.explosions=爆炸
+ftbu.button.block_security=方块安全
+ftbu.label.cchunks_count=认领区块: %s
+ftbu.label.lchunks_count=载入区块: %s
 
 #ClientConfig
 client_config.ftbu=FTBUtilities
@@ -37,45 +39,70 @@ player_action.ftbu.deny_friend=拒绝好友的请求
 player_action.ftbu.mail=邮件
 
 #Misc
-ftbu:label.new_friends=一个新好友申请!
-ftbu:label.new_friends_click=点击接受所有申请
-ftbu:server_restart=服务器将会在%s后重启
+ftbu.label.new_friends=一个新好友申请!
+ftbu.label.new_friends_click=点击接受所有申请
+ftbu.server_restart=服务器将会在%s后重启
 
-ftbu:cmd.warp_set=传送点'%s'已设置!
-ftbu:cmd.warp_del=传送点'%s'已删除!
-ftbu:cmd.warp_not_set=未知传送点: '%s'!
-ftbu:cmd.warp_tp=传送到'%s'!
+ftbu.cmd.warp_set=传送点'%s'已设置!
+ftbu.cmd.warp_del=传送点'%s'已删除!
+ftbu.cmd.warp_not_set=未知传送点: '%s'!
+ftbu.cmd.warp_tp=传送到'%s'!
+ftbu.cmd.warp_not_same_dim=你不能传送到另一个世界!
 
-ftbu:cmd.home_set=家'%s'已设置!
-ftbu:cmd.home_del=家'%s'已删除!
-ftbu:cmd.home_not_set=未知的家: '%s'!
-ftbu:cmd.home_cross_dim=你不能传送到另一个世界!
-ftbu:cmd.home_limit=你不能设置更多家的位置!
+ftbu.cmd.home_set=家'%s'已设置!
+ftbu.cmd.home_del=家'%s'已删除!
+ftbu.cmd.home_not_set=未知的家: '%s'!
+ftbu.cmd.home_cross_dim=你不能回到另一个世界的家！
+ftbu.cmd.home_limit=你不能设置更多家的位置!
 
-ftbu:cmd.no_dp=你只能回去一次!
-ftbu:cmd.timer_backup=下一次备份: %s
-ftbu:cmd.timer_restart=下一次重启: %s
-ftbu:cmd.rules=[点击这里打开规则]
-ftbu:cmd.spawn_tp=传送到出生点
+ftbu.cmd.no_dp=你只能回去一次!
+ftbu.cmd.timer_backup=下一次备份: %s
+ftbu.cmd.timer_restart=下一次重启: %s
+ftbu.cmd.rules=[点击这里打开规则]
+ftbu.cmd.spawn_tp=传送到出生点
 
-ftbu:button.claims_unclaim_all=解除所有认领区块
-ftbu:button.claims_unclaim_all_dim=在%s解除所有认领区块
-ftbu:button.claims_unclaim_all_q=是否解除所有认领区块?
-ftbu:button.claims_unclaim_all_dim_q=是否在%s解除所有认领区块?
-ftbu:label.claims_invalid_dim=在这个维度不能解除认领区块
+ftbu.button.claims_unclaim_all=解除所有认领区块
+ftbu.button.claims_unclaim_all_dim=在%s解除所有认领区块
+ftbu.button.claims_unclaim_all_q=是否解除所有认领区块?
+ftbu.button.claims_unclaim_all_dim_q=是否在%s解除所有认领区块?
+ftbu.label.claims_invalid_dim=在这个维度不能解除认领区块
 
-ftbu:top.title=服务器排名
-ftbu:top.first_joined=上线时间
-ftbu:top.last_seen=离线时间
-ftbu:top.time_played=游戏时间
-ftbu:top.deaths=死亡
-ftbu:top.deaths_ph=每小时死亡
+ftbu.top.title=服务器排名
+ftbu.top.first_joined=上线时间
+ftbu.top.last_seen=离线时间
+ftbu.top.time_played=游戏时间
+ftbu.top.deaths=死亡
+ftbu.top.deaths_ph=每小时死亡
 
 #Chunktypes
-ftbu:chunktype.unloaded=区块未载入
-ftbu:chunktype.spawn=出生区域
-ftbu:chunktype.world_border=世界边界
-ftbu:chunktype.world_border.warning=你已经到达了世界的边界!
-ftbu:chunktype.wilderness=荒野
-ftbu:chunktype.claimed=认领区域
-ftbu:chunktype.chunkloaded=区块加载
+ftbu.chunktype.unloaded=区块未载入
+ftbu.chunktype.spawn=出生区域
+ftbu.chunktype.world_border=世界边界
+ftbu.chunktype.world_border.warning=你已经到达了世界的边界!
+ftbu.chunktype.wilderness=野外地区
+ftbu.chunktype.claimed=认领区域
+ftbu.chunktype.chunkloaded=区块加载
+
+client_config.ftbu_guide=FTB Utilities: 指南
+client_config.ftbu_guide.unicode=使用Unicode编码
+client_config.ftbu_guide.text_color=文本颜色
+client_config.ftbu_guide.bg_color=背景颜色
+client_config.ftbu_guide.transparency=透明度
+ftbu.player_setting.chat_links=聊天链接
+ftbu.player_setting.render_badge=显示徽章
+ftbu.player_setting.explosions=认领区块发生爆炸
+ftbu.player_setting.security_level=认领区块安全等级
+ftbu.player_setting.fake_players=认领区块允许假玩家
+ftbu.commands=命令
+ftbu.my_permissions=我的权限
+ftbu.cmd.ftb_gamemode=游戏模式: %s
+ftbu.cmd.world_difficulty=难度: %s
+ftbu.cmd.backup_start=服务器备份已开始!
+ftbu.cmd.backup_stop=服务器备份已停止!
+ftbu.cmd.backup_end_1=服务器备份完成，用时%s!
+ftbu.cmd.backup_end_2=服务器备份完成，用时%s! (%s)
+ftbu.cmd.backup_fail=保存世界存档时失败! (%s)
+ftbu.cmd.backup_manual_launch=%s 执行了手动备份!
+ftbu.cmd.backup_already_running=正在备份中……
+ftbu.cmd.backup_not_running=备份进程未运行!
+ftbu.cmd.backup_size=当前世界大小: %s,备份文件夹总大小: %s
