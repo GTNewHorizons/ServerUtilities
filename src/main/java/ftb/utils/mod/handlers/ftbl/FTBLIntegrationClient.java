@@ -1,7 +1,5 @@
 package ftb.utils.mod.handlers.ftbl;
 
-import latmod.lib.*;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
@@ -21,6 +19,7 @@ import ftb.utils.badges.ClientBadges;
 import ftb.utils.mod.client.gui.claims.ClaimedAreasClient;
 import ftb.utils.world.LMWorldClient;
 import ftb.utils.world.claims.WorldBorder;
+import latmod.lib.*;
 
 @SideOnly(Side.CLIENT)
 public class FTBLIntegrationClient extends FTBLIntegration {

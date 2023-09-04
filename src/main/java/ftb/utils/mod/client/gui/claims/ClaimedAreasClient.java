@@ -2,10 +2,10 @@ package ftb.utils.mod.client.gui.claims;
 
 import java.util.*;
 
-import latmod.lib.Bits;
 import cpw.mods.fml.relauncher.*;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.*;
+import latmod.lib.Bits;
 
 @SideOnly(Side.CLIENT)
 public class ClaimedAreasClient {

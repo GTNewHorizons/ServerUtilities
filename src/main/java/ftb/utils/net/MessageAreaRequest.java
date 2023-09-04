@@ -1,12 +1,11 @@
 package ftb.utils.net;
 
-import latmod.lib.*;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import cpw.mods.fml.common.network.simpleimpl.*;
 import ftb.lib.api.net.LMNetworkWrapper;
 import ftb.utils.world.LMWorldServer;
+import latmod.lib.*;
 
 public class MessageAreaRequest extends MessageFTBU {
 

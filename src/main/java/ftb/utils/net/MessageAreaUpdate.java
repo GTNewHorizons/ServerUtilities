@@ -1,6 +1,5 @@
 package ftb.utils.net;
 
-import latmod.lib.*;
 import cpw.mods.fml.common.network.simpleimpl.*;
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.BlockDimPos;
@@ -8,6 +7,7 @@ import ftb.lib.api.net.LMNetworkWrapper;
 import ftb.utils.mod.client.gui.claims.ClaimedAreasClient;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.ChunkType;
+import latmod.lib.*;
 
 public class MessageAreaUpdate extends MessageFTBU {
 

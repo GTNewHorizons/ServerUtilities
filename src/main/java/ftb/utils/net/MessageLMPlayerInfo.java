@@ -2,8 +2,6 @@ package ftb.utils.net;
 
 import java.util.*;
 
-import latmod.lib.*;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IChatComponent;
 
@@ -13,6 +11,7 @@ import ftb.lib.api.client.FTBLibClient;
 import ftb.lib.api.item.LMInvUtils;
 import ftb.lib.api.net.LMNetworkWrapper;
 import ftb.utils.world.*;
+import latmod.lib.*;
 
 public class MessageLMPlayerInfo extends MessageFTBU {
 

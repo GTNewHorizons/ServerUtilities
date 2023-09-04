@@ -1,10 +1,10 @@
 package ftb.utils.world.claims;
 
+import com.google.gson.*;
+
+import ftb.lib.LMDimUtils;
 import latmod.lib.MathHelperLM;
 import latmod.lib.util.Pos2I;
-
-import com.google.gson.*;
-import ftb.lib.LMDimUtils;
 
 public class WorldBorder {
 

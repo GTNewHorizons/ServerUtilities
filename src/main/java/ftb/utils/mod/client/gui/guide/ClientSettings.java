@@ -1,8 +1,8 @@
 package ftb.utils.mod.client.gui.guide;
 
+import ftb.lib.api.config.*;
 import latmod.lib.LMColor;
 import latmod.lib.annotations.NumberBounds;
-import ftb.lib.api.config.*;
 
 /**
  * Created by LatvianModder on 22.03.2016.

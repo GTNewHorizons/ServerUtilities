@@ -2,13 +2,12 @@ package ftb.utils.api.guide;
 
 import java.util.Comparator;
 
-import latmod.lib.*;
-
 import net.minecraft.util.IChatComponent;
 
 import ftb.lib.mod.FTBLibMod;
 import ftb.utils.mod.FTBU;
 import ftb.utils.world.LMPlayerServer;
+import latmod.lib.*;
 
 public abstract class Top implements Comparator<LMPlayerServer> {
 

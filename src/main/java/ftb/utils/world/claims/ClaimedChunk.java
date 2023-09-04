@@ -1,12 +1,11 @@
 package ftb.utils.world.claims;
 
-import latmod.lib.*;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.ChunkCoordIntPair;
 
 import cpw.mods.fml.relauncher.*;
 import ftb.utils.world.*;
+import latmod.lib.*;
 
 public final class ClaimedChunk {
 

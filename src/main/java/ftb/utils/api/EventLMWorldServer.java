@@ -1,8 +1,8 @@
 package ftb.utils.api;
 
-import latmod.lib.util.Phase;
 import ftb.lib.api.EventLM;
 import ftb.utils.world.LMWorldServer;
+import latmod.lib.util.Phase;
 
 public class EventLMWorldServer extends EventLM {
 

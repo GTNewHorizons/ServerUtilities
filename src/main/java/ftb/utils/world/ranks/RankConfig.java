@@ -2,11 +2,11 @@ package ftb.utils.world.ranks;
 
 import java.util.Collections;
 
+import ftb.lib.PrivacyLevel;
+import ftb.lib.api.config.*;
 import latmod.lib.IntList;
 import latmod.lib.annotations.*;
 import latmod.lib.util.EnumEnabled;
-import ftb.lib.PrivacyLevel;
-import ftb.lib.api.config.*;
 
 public class RankConfig {
 

@@ -3,8 +3,6 @@ package ftb.utils.mod.cmd.admin;
 import java.io.File;
 import java.util.UUID;
 
-import latmod.lib.*;
-
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -16,6 +14,7 @@ import ftb.lib.*;
 import ftb.lib.api.cmd.*;
 import ftb.lib.api.item.StringIDInvLoader;
 import ftb.utils.world.*;
+import latmod.lib.*;
 
 public class CmdPlayerLM extends CommandSubLM {
 

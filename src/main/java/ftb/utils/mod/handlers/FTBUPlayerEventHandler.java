@@ -1,8 +1,5 @@
 package ftb.utils.mod.handlers;
 
-import latmod.lib.MathHelperLM;
-import latmod.lib.util.Pos2I;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -22,6 +19,8 @@ import ftb.utils.mod.config.FTBUConfigGeneral;
 import ftb.utils.net.*;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.*;
+import latmod.lib.MathHelperLM;
+import latmod.lib.util.Pos2I;
 
 public class FTBUPlayerEventHandler {
 

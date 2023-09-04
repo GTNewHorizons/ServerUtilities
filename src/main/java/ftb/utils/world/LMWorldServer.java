@@ -3,9 +3,6 @@ package ftb.utils.world;
 import java.io.File;
 import java.util.*;
 
-import latmod.lib.*;
-import latmod.lib.util.Phase;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -21,6 +18,8 @@ import ftb.utils.api.EventLMPlayerServer;
 import ftb.utils.mod.handlers.FTBUChunkEventHandler;
 import ftb.utils.net.MessageLMWorldUpdate;
 import ftb.utils.world.claims.ClaimedChunks;
+import latmod.lib.*;
+import latmod.lib.util.Phase;
 
 public class LMWorldServer extends LMWorld // LMWorldClient
 {

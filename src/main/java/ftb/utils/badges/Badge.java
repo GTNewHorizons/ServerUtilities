@@ -1,7 +1,5 @@
 package ftb.utils.badges;
 
-import latmod.lib.util.FinalIDObject;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -11,6 +9,7 @@ import org.lwjgl.opengl.GL11;
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.api.client.*;
 import ftb.lib.api.gui.GuiLM;
+import latmod.lib.util.FinalIDObject;
 
 public class Badge extends FinalIDObject {
 

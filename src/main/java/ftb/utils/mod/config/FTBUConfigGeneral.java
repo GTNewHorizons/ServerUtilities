@@ -2,12 +2,11 @@ package ftb.utils.mod.config;
 
 import java.util.*;
 
-import latmod.lib.annotations.*;
-
 import net.minecraft.entity.*;
 
 import cpw.mods.fml.relauncher.Side;
 import ftb.lib.api.config.*;
+import latmod.lib.annotations.*;
 
 public class FTBUConfigGeneral {
 

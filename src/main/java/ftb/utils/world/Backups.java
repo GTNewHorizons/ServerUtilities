@@ -3,8 +3,6 @@ package ftb.utils.world;
 import java.io.File;
 import java.util.Arrays;
 
-import latmod.lib.*;
-
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.server.*;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -16,6 +14,7 @@ import org.apache.logging.log4j.*;
 import ftb.lib.*;
 import ftb.utils.mod.FTBU;
 import ftb.utils.mod.config.FTBUConfigBackups;
+import latmod.lib.*;
 
 public class Backups {
 

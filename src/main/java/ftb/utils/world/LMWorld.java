@@ -2,8 +2,6 @@ package ftb.utils.world;
 
 import java.util.*;
 
-import latmod.lib.LMUtils;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
@@ -13,6 +11,7 @@ import ftb.lib.FTBLib;
 import ftb.lib.api.config.ConfigGroup;
 import ftb.utils.mod.FTBU;
 import ftb.utils.world.claims.LMWorldSettings;
+import latmod.lib.LMUtils;
 
 public abstract class LMWorld // FTBWorld
 {

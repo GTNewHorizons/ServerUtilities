@@ -3,10 +3,6 @@ package ftb.utils.badges;
 import java.io.File;
 import java.util.*;
 
-import latmod.lib.*;
-import latmod.lib.net.*;
-import latmod.lib.util.Phase;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import com.google.gson.*;
@@ -15,6 +11,9 @@ import ftb.lib.FTBLib;
 import ftb.utils.mod.FTBU;
 import ftb.utils.net.MessageUpdateBadges;
 import ftb.utils.world.*;
+import latmod.lib.*;
+import latmod.lib.net.*;
+import latmod.lib.util.Phase;
 
 public class ServerBadges {
 

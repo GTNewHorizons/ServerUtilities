@@ -2,8 +2,6 @@ package ftb.utils.world;
 
 import java.util.*;
 
-import latmod.lib.*;
-
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -24,6 +22,7 @@ import ftb.utils.mod.handlers.FTBUChunkEventHandler;
 import ftb.utils.net.*;
 import ftb.utils.world.claims.*;
 import ftb.utils.world.ranks.*;
+import latmod.lib.*;
 
 public class LMPlayerServer extends LMPlayer // LMPlayerClient
 {

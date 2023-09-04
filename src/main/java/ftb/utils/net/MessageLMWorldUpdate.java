@@ -1,9 +1,9 @@
 package ftb.utils.net;
 
-import latmod.lib.ByteCount;
 import cpw.mods.fml.common.network.simpleimpl.*;
 import cpw.mods.fml.relauncher.*;
 import ftb.utils.world.*;
+import latmod.lib.ByteCount;
 
 public class MessageLMWorldUpdate extends MessageFTBU {
 

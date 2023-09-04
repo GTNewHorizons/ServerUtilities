@@ -4,13 +4,12 @@ import java.io.*;
 import java.util.List;
 import java.util.zip.*;
 
-import latmod.lib.*;
-
 import net.minecraft.util.*;
 
 import ftb.lib.BroadcastSender;
 import ftb.utils.mod.FTBU;
 import ftb.utils.mod.config.FTBUConfigBackups;
+import latmod.lib.*;
 
 public class ThreadBackup extends Thread {
 

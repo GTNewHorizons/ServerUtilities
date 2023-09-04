@@ -1,7 +1,5 @@
 package ftb.utils.mod.cmd.admin;
 
-import latmod.lib.LMStringUtils;
-
 import net.minecraft.command.*;
 import net.minecraft.util.*;
 
@@ -9,6 +7,7 @@ import ftb.lib.*;
 import ftb.lib.api.cmd.*;
 import ftb.utils.mod.FTBU;
 import ftb.utils.world.LMPlayerServer;
+import latmod.lib.LMStringUtils;
 
 public class CmdAdminHome extends CommandSubLM {
 

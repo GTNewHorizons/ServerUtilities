@@ -3,9 +3,6 @@ package ftb.utils.api.guide;
 import java.io.File;
 import java.util.*;
 
-import latmod.lib.*;
-import latmod.lib.util.FinalIDObject;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.*;
 import net.minecraftforge.common.util.FakePlayer;
@@ -18,6 +15,8 @@ import ftb.lib.api.gui.IClientActionGui;
 import ftb.utils.api.guide.lines.*;
 import ftb.utils.mod.client.gui.guide.*;
 import ftb.utils.net.MessageDisplayGuide;
+import latmod.lib.*;
+import latmod.lib.util.FinalIDObject;
 
 public class GuidePage extends FinalIDObject implements IJsonSerializable, IClientActionGui // GuideFile
 {

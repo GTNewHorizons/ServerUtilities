@@ -2,8 +2,6 @@ package ftb.utils.mod.config;
 
 import java.util.*;
 
-import latmod.lib.annotations.Info;
-
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.*;
@@ -13,6 +11,7 @@ import com.google.gson.*;
 import ftb.lib.JsonHelper;
 import ftb.lib.api.config.ConfigEntryCustom;
 import ftb.lib.api.item.ItemStackSerializer;
+import latmod.lib.annotations.Info;
 
 public class FTBUConfigLogin {
 

@@ -1,7 +1,5 @@
 package ftb.utils.mod;
 
-import latmod.lib.*;
-
 import net.minecraft.util.*;
 
 import ftb.lib.*;
@@ -10,6 +8,7 @@ import ftb.utils.mod.cmd.admin.CmdRestart;
 import ftb.utils.mod.config.*;
 import ftb.utils.mod.handlers.FTBUChunkEventHandler;
 import ftb.utils.world.Backups;
+import latmod.lib.*;
 
 public class FTBUTicks {
 

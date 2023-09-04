@@ -1,12 +1,11 @@
 package ftb.utils.mod.cmd.admin;
 
-import latmod.lib.LMListUtils;
-
 import net.minecraft.command.*;
 import net.minecraft.util.*;
 
 import ftb.lib.api.cmd.*;
 import ftb.utils.world.LMPlayerServer;
+import latmod.lib.LMListUtils;
 
 public class CmdListFriends extends CommandLM {
 

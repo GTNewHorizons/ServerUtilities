@@ -2,8 +2,6 @@ package ftb.utils.world;
 
 import java.util.*;
 
-import latmod.lib.*;
-
 import net.minecraft.world.World;
 
 import com.mojang.authlib.GameProfile;
@@ -12,6 +10,7 @@ import cpw.mods.fml.relauncher.*;
 import ftb.lib.*;
 import ftb.lib.api.client.FTBLibClient;
 import ftb.utils.api.EventLMPlayerClient;
+import latmod.lib.*;
 
 @SideOnly(Side.CLIENT)
 public class LMWorldClient extends LMWorld // LMWorldServer

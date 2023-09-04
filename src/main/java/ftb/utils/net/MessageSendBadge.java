@@ -2,11 +2,11 @@ package ftb.utils.net;
 
 import java.util.UUID;
 
-import latmod.lib.ByteCount;
 import cpw.mods.fml.common.network.simpleimpl.*;
 import cpw.mods.fml.relauncher.*;
 import ftb.lib.api.net.LMNetworkWrapper;
 import ftb.utils.badges.ClientBadges;
+import latmod.lib.ByteCount;
 
 public class MessageSendBadge extends MessageFTBU {
 

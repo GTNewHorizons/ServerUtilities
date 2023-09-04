@@ -2,13 +2,12 @@ package ftb.utils.mod.cmd.admin;
 
 import java.io.File;
 
-import latmod.lib.LMFileUtils;
-
 import net.minecraft.command.*;
 import net.minecraft.util.IChatComponent;
 
 import ftb.lib.FTBLib;
 import ftb.lib.api.cmd.*;
+import latmod.lib.LMFileUtils;
 
 public class CmdRestart extends CommandLM {
 

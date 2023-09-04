@@ -1,7 +1,5 @@
 package ftb.utils.mod.client.gui.guide;
 
-import latmod.lib.LMColor;
-
 import net.minecraft.util.ResourceLocation;
 
 import ftb.lib.TextureCoords;
@@ -10,6 +8,7 @@ import ftb.lib.api.gui.*;
 import ftb.lib.api.gui.widgets.*;
 import ftb.utils.api.guide.*;
 import ftb.utils.api.guide.lines.GuideTextLine;
+import latmod.lib.LMColor;
 
 public class GuiGuide extends GuiLM implements IClientActionGui {
 

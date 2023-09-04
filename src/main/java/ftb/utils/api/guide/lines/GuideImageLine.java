@@ -5,8 +5,6 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 
-import latmod.lib.LMUtils;
-
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.util.ResourceLocation;
 
@@ -17,6 +15,7 @@ import ftb.lib.*;
 import ftb.lib.api.client.FTBLibClient;
 import ftb.utils.api.guide.GuidePage;
 import ftb.utils.mod.client.gui.guide.*;
+import latmod.lib.LMUtils;
 
 /**
  * Created by LatvianModder on 23.03.2016.

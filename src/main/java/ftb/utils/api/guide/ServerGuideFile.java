@@ -3,8 +3,6 @@ package ftb.utils.api.guide;
 import java.io.File;
 import java.util.*;
 
-import latmod.lib.*;
-
 import net.minecraft.command.ICommand;
 import net.minecraft.util.*;
 
@@ -17,6 +15,7 @@ import ftb.utils.api.guide.lines.GuideExtendedTextLine;
 import ftb.utils.mod.*;
 import ftb.utils.mod.config.*;
 import ftb.utils.world.*;
+import latmod.lib.*;
 
 public class ServerGuideFile extends GuidePage {
 

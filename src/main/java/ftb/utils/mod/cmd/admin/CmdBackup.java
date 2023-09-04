@@ -1,7 +1,5 @@
 package ftb.utils.mod.cmd.admin;
 
-import latmod.lib.LMFileUtils;
-
 import net.minecraft.command.*;
 import net.minecraft.util.IChatComponent;
 
@@ -10,6 +8,7 @@ import ftb.lib.api.cmd.*;
 import ftb.utils.mod.FTBU;
 import ftb.utils.mod.config.FTBUConfigBackups;
 import ftb.utils.world.Backups;
+import latmod.lib.LMFileUtils;
 
 public class CmdBackup extends CommandSubLM {
 

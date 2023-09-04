@@ -1,9 +1,9 @@
 package ftb.utils.world;
 
-import latmod.lib.ByteIOStream;
-
 import com.mojang.authlib.GameProfile;
+
 import ftb.lib.LMNBTUtils;
+import latmod.lib.ByteIOStream;
 
 public class LMPlayerClientSelf extends LMPlayerClient {
 

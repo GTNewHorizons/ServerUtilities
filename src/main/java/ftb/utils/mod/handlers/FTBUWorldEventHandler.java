@@ -5,9 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-import latmod.lib.*;
-import latmod.lib.util.Phase;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.passive.EntityChicken;
@@ -24,6 +21,8 @@ import ftb.utils.mod.FTBU;
 import ftb.utils.mod.config.FTBUConfigGeneral;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.ClaimedChunks;
+import latmod.lib.*;
+import latmod.lib.util.Phase;
 
 public class FTBUWorldEventHandler // FTBLIntegration
 {

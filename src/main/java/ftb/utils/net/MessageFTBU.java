@@ -1,7 +1,7 @@
 package ftb.utils.net;
 
-import latmod.lib.ByteCount;
 import ftb.lib.api.net.*;
+import latmod.lib.ByteCount;
 
 abstract class MessageFTBU extends MessageLM {
 

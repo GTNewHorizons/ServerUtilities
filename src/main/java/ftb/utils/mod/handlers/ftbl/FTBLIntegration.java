@@ -2,9 +2,6 @@ package ftb.utils.mod.handlers.ftbl;
 
 import java.io.File;
 
-import latmod.lib.*;
-import latmod.lib.util.Phase;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -30,6 +27,8 @@ import ftb.utils.net.*;
 import ftb.utils.world.*;
 import ftb.utils.world.claims.ClaimedChunks;
 import ftb.utils.world.ranks.Ranks;
+import latmod.lib.*;
+import latmod.lib.util.Phase;
 
 public class FTBLIntegration implements FTBUIntegration // FTBLIntegrationClient
 {

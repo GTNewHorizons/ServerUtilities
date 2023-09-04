@@ -1,7 +1,5 @@
 package ftb.utils.mod.cmd;
 
-import latmod.lib.LMStringUtils;
-
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.*;
@@ -11,6 +9,7 @@ import ftb.lib.api.cmd.*;
 import ftb.utils.mod.FTBU;
 import ftb.utils.world.LMPlayerServer;
 import ftb.utils.world.LMWorldServer;
+import latmod.lib.LMStringUtils;
 
 public class CmdWarp extends CommandLM {
 

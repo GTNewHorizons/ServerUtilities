@@ -1,10 +1,9 @@
 package ftb.utils.world;
 
-import latmod.lib.*;
-
 import net.minecraft.nbt.NBTTagCompound;
 
 import ftb.lib.PrivacyLevel;
+import latmod.lib.*;
 
 public class PersonalSettings {
 

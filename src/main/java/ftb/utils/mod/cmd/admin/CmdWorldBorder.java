@@ -1,13 +1,12 @@
 package ftb.utils.mod.cmd.admin;
 
-import latmod.lib.MathHelperLM;
-
 import net.minecraft.command.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.*;
 
 import ftb.lib.api.cmd.*;
 import ftb.utils.world.LMWorldServer;
+import latmod.lib.MathHelperLM;
 
 public class CmdWorldBorder extends CommandSubLM {
 

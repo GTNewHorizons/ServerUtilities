@@ -2,8 +2,6 @@ package ftb.utils.mod.cmd.admin;
 
 import java.util.*;
 
-import latmod.lib.IntList;
-
 import net.minecraft.command.*;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EntityList;
@@ -16,6 +14,7 @@ import com.google.common.collect.ImmutableSetMultimap;
 
 import ftb.lib.api.cmd.*;
 import ftb.utils.api.guide.GuidePage;
+import latmod.lib.IntList;
 
 public class CmdServerInfo extends CommandLM {
 

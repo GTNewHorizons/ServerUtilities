@@ -2,9 +2,6 @@ package ftb.utils.world.claims;
 
 import java.util.*;
 
-import latmod.lib.*;
-import latmod.lib.util.EnumEnabled;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.*;
 import net.minecraft.util.ChunkCoordinates;
@@ -16,6 +13,8 @@ import ftb.lib.*;
 import ftb.lib.api.item.LMInvUtils;
 import ftb.utils.mod.config.FTBUConfigGeneral;
 import ftb.utils.world.*;
+import latmod.lib.*;
+import latmod.lib.util.EnumEnabled;
 
 public class ClaimedChunks {
 

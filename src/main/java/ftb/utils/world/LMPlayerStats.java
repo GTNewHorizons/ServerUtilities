@@ -2,13 +2,12 @@ package ftb.utils.world;
 
 import java.util.List;
 
-import latmod.lib.*;
-
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.*;
 import net.minecraft.util.*;
 
 import ftb.utils.mod.FTBU;
+import latmod.lib.*;
 
 public class LMPlayerStats {
 

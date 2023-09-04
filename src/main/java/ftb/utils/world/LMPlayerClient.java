@@ -2,8 +2,6 @@ package ftb.utils.world;
 
 import java.util.*;
 
-import latmod.lib.*;
-
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.util.*;
 
@@ -13,6 +11,7 @@ import cpw.mods.fml.relauncher.*;
 import ftb.lib.LMNBTUtils;
 import ftb.lib.api.client.FTBLibClient;
 import ftb.utils.api.EventLMPlayerClient;
+import latmod.lib.*;
 
 @SideOnly(Side.CLIENT)
 public class LMPlayerClient extends LMPlayer // LMPlayerServer // LMPlayerClientSelf

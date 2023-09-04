@@ -2,12 +2,11 @@ package ftb.utils.mod.cmd;
 
 import javax.script.*;
 
-import latmod.lib.LMStringUtils;
-
 import net.minecraft.command.*;
 import net.minecraft.util.*;
 
 import ftb.lib.api.cmd.*;
+import latmod.lib.LMStringUtils;
 
 public class CmdMath extends CommandLM {
 
