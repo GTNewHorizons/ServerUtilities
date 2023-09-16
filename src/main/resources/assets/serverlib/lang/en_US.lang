@@ -1,0 +1,139 @@
+serverlib.gamemode.loaded=Gamemode set to '%s'!
+serverlib.gamemode.not_found=Gamemode does not exist!
+serverlib.gamemode.already_set=Gamemode already set!
+serverlib.gamemode.current=Current gamemode: %s
+serverlib.gamemode.list=Available gamemodes: %s
+serverlib.worldID=WorldID: %s
+serverlib.reloaded_server=ServerUtilitiesLibrary: Server reloaded in %s
+serverlib.reloaded_client=ServerUtilitiesLibrary: Client reloaded in %s
+serverlib.missing_args=Missing Arguments!
+serverlib.feature_disabled=This feature is disabled!
+serverlib.invalid_subcmd=Invalid subcommand: '%s'!
+serverlib.owner=Owner: %s
+serverlib.delete_item=Do you want to delete '%s'?
+serverlib.label.server_forced=Server overrides to '%s'
+serverlib.reload_client_config=Server Reloaded. You can
+
+serverlib.button.shortcut.action=Action
+serverlib.button.shortcut.data=Action Data
+serverlib.button.shortcut.key=Key
+serverlib.button.shortcut.icon=Icon
+serverlib.button.shortcut.title=Title
+serverlib.button.shortcut.priority=Priority
+serverlib.button.shortcut.add_key=Add Key Shortcut
+serverlib.button.shortcut.add_button=Add Button Shortcut
+
+#Buttons
+serverlib.button.settings=Settings
+serverlib.button.back=Back
+serverlib.button.up=Up
+serverlib.button.down=Down
+serverlib.button.prev=Previous
+serverlib.button.next=Next
+serverlib.button.cancel=Cancel
+serverlib.button.accept=Accept
+serverlib.button.remove=Remove
+serverlib.button.add=Add
+serverlib.button.close=Close
+serverlib.button.save=Save
+serverlib.button.refresh=Refresh
+serverlib.button.other=Other
+serverlib.button.edit=Edit
+serverlib.button.info=Info
+
+serverlib.label.true=True
+serverlib.label.false=False
+serverlib.label.enabled=Enabled
+serverlib.label.disabled=Disabled
+serverlib.label.on=On
+serverlib.label.off=Off
+serverlib.label.online=Online
+serverlib.label.offline=Offline
+serverlib.label.whitelist=Whitelist
+serverlib.label.blacklist=Blacklist
+
+#Colors
+serverlib.color.black=Black
+serverlib.color.red=Red
+serverlib.color.green=Green
+serverlib.color.brown=Brown
+serverlib.color.blue=Blue
+serverlib.color.purple=Purple
+serverlib.color.cyan=Cyan
+serverlib.color.lightgray=Light Gray
+serverlib.color.gray=Dark Gray
+serverlib.color.pink=Pink
+serverlib.color.lime=Lime
+serverlib.color.yellow=Yellow
+serverlib.color.lightblue=Light Blue
+serverlib.color.magenta=Magenta
+serverlib.color.orange=Orange
+serverlib.color.white=White
+
+#Sides
+serverlib.side.down=Down
+serverlib.side.up=Up
+serverlib.side.north=North
+serverlib.side.south=South
+serverlib.side.west=West
+serverlib.side.east=East
+
+serverlib.dside.bottom=Bottom
+serverlib.dside.top=Top
+serverlib.dside.back=Back
+serverlib.dside.front=Front
+serverlib.dside.left=Left
+serverlib.dside.right=Right
+
+#ClientConfig
+client_config=Client Config
+client_config.serverlib=ServerUtilitiesLibrary
+client_config.serverlib.item_ore_names=Item OreDict Names
+client_config.serverlib.item_reg_names=Item Registry Names
+client_config.serverlib.debug_info=Debug Info
+client_config.serverlib.notifications=Notifications
+client_config.serverlib.reload_client_cmd=Client Reloading Command
+client_config.serverlib.action_buttons_on_top=Action Buttons On Top
+client_config.serverlib.player_options_shortcut=Player Options Shortcut
+client_config.serverlib.key_bindings=Key Bindings
+client_config.serverlib.edit_shortcuts=Edit Shortcuts
+client_config.serverlib.light_value_texture=Light Value Texture
+
+client_config.sidebar_buttons=Sidebar Buttons
+
+#PlayerActions
+player_action.serverlib.settings=Client Settings
+player_action.serverlib.notifications=Notifications
+player_action.serverlib.toggle_gamemode=Toggle Gamemode
+player_action.serverlib.toggle_rain=Toggle Rain
+player_action.serverlib.toggle_day=Set time to Day
+player_action.serverlib.toggle_night=Set time to Night
+player_action.serverlib.toggle_chunk_bounds=Toggle Chunk Bounds
+player_action.serverlib.toggle_light_values=Toggle Light Values
+
+#Security Mode
+serverlib.security=Security
+serverlib.security.public=Public
+serverlib.security.private=Private
+serverlib.security.friends=Friends
+serverlib.security.group=Group
+
+#Redstone Mode
+serverlib.redstonemode=Redstone Mode
+serverlib.redstonemode.disabled=Disabled
+serverlib.redstonemode.high=Active High
+serverlib.redstonemode.low=Active Low
+
+#Inventory Mode
+serverlib.invmode=Automation
+serverlib.invmode.enabled=Enabled
+serverlib.invmode.onlyin=Insert Only
+serverlib.invmode.onlyout=Extract Only
+serverlib.invmode.disabled=Disabled
+
+#Click Actions
+click_action.cmd=Command
+click_action.show_cmd=Show Command
+click_action.url=Open URL
+click_action.file=Open File
+click_action.gui=Open Gui

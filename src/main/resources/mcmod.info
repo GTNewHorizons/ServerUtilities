@@ -2,19 +2,21 @@
   "modListVersion": 2,
   "modList": [
     {
-      "modid": "FTBL",
-      "name": "FTBLib",
-      "description": "The libraries for FTB mods",
+      "modid": "ServerUtilitiesLibrary",
+      "name": "ServerUtilitiesLibrary",
+      "description": "The libraries for ServerUtilities",
       "version": "${modVersion}",
       "mcversion": "${minecraftVersion}",
       "url": "https://feed-the-beast.com",
       "updateUrl": "",
       "authorList": [
         "LatvianModder",
-        "Jared"
+        "Jared",
+        "mitchej123",
+        "GTNH Team"
       ],
       "credits": "GTNH",
-      "logoFile": "assets/ftbl/textures/logo.png",
+      "logoFile": "assets/serverlib/textures/logo.png",
       "screenshots": [],
       "parent": "",
       "requiredMods": [
@@ -31,25 +33,27 @@
       "useDependencyInformation": true
     },
     {
-      "modid": "FTBU",
-      "name": "FTBUtilities",
-      "description": "FTB Utilities - GTNH",
+      "modid": "ServerUtilities",
+      "name": "ServerUtilities",
+      "description": "Server Utilities",
       "version": "${modVersion}",
       "mcversion": "${minecraftVersion}",
       "url": "https://feed-the-beast.com",
       "updateUrl": "",
       "authorList": [
-        "LatvianModder"
+        "LatvianModder",
+        "mitchej123",
+        "GTNH Team"
       ],
       "credits": "GTNH",
-      "logoFile": "assets/ftbu/textures/logo.png",
+      "logoFile": "assets/serverutils/textures/logo.png",
       "screenshots": [],
       "parent": "",
       "requiredMods": [
-        "FTBL"
+        "ServerUtilitiesLibrary"
       ],
       "dependencies": [
-        "FTBL",
+        "ServerUtilitiesLibrary",
         "Baubles",
         "Waila"
       ],

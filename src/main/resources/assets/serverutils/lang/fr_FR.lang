@@ -1,0 +1,125 @@
+#Buttons
+serverutils:button.settings=Options
+serverutils:button.back=Arrière
+serverutils:button.up=Haut
+serverutils:button.down=Bas
+serverutils:button.prev=Précédent
+serverutils:button.next=Suivant
+serverutils:button.enabled=Activé
+serverutils:button.disabled=Désactivé
+serverutils:button.cancel=Annuler
+serverutils:button.accept=Accepter
+serverutils:button.remove=Supprimer
+serverutils:button.add=Ajouter
+serverutils:button.close=Fermer
+serverutils:button.save=Enregistrer
+serverutils:button.refresh=Raffraichir
+
+#FriendsGUI
+serverutils:button.addFriend=Ajouter comme ami
+serverutils:button.remFriend=Supprimer des amis
+serverutils:button.deny_friend=Refuser la demande d'ami
+serverutils:label.online=En ligne
+serverutils:label.friend=Ami
+serverutils:label.pfriend=Amis en attente
+serverutils:label.joined=Rejoint %s
+serverutils:label.last_seen=Dernier vu %s
+serverutils:label.deaths=Morts: %s
+
+#ClientConfig 
+serverutils:client_config=Configuration du client
+config.value.enabled=Activé
+config.value.disabled=Désactivé
+config.value.true=Vrai
+config.value.false=Faux
+config.value.left=Gauche
+config.value.right=Droite
+config.value.top=Haut
+config.value.bottom=Bas
+config.value.edit=Modifier
+config.property.enabled=Actif
+
+config.group.serverutils=ServerUtilities
+config.property.player_decorators=Décorateurs de joueurs
+config.property.item_ore_names=Noms d'OreDict d'éléments 
+config.property.item_reg_names=Noms d'enregistrement d'éléments
+config.property.debug_info=Info de déboggue
+config.property.options_button=Bouton d'options
+config.property.chat_links=Liens de tchat
+config.property.chunk_messages=Messages de parcelles
+config.value.cm_notify=Notification
+config.value.cm_screen=Écran
+config.value.cm_chat=Tchat
+
+#Misc
+commands.lmmissingargs=Arguments manquants !
+commands.lmdisabled=Cette fonctionalité est désactivée !
+serverutils:owner=Propriétaire : %s
+serverutils:deleteitem=Voulez-vous supprimer '%s' ?
+serverutils:button.claimed_chunks=Parcelles bloquées
+serverutils:button.mail=Courrier
+serverutils:button.trade=Commerce
+serverutils:button.notes=Notes
+
+#Security Mode
+serverutils:security=Securité
+serverutils:security.public=Public
+serverutils:security.private=Privé
+serverutils:security.friends=Amis
+serverutils:security.group=Groupes
+serverutils:security.whitelist=Liste blanche
+serverutils:security.blacklist=Liste noire
+
+#Redstone Mode
+serverutils:redstonemode=Mode Redstone
+serverutils:redstonemode.disabled=Désactivé
+serverutils:redstonemode.high=Très actif
+serverutils:redstonemode.low=Peu actif
+
+#Inventory Mode
+serverutils:invmode=Automatisation
+serverutils:invmode.enabled=Activé
+serverutils:invmode.onlyin=Insertion seule
+serverutils:invmode.onlyout=Extraction seule
+serverutils:invmode.disabled=Désactivé
+
+#Colors
+serverutils:color.black=Noir
+serverutils:color.red=Rouge
+serverutils:color.green=Vert
+serverutils:color.brown=Marron
+serverutils:color.blue=Bleu
+serverutils:color.purple=Violet
+serverutils:color.cyan=Cyan
+serverutils:color.silver=Gris clair
+serverutils:color.gray=Gris
+serverutils:color.pink=Rose
+serverutils:color.lime=Vert clair
+serverutils:color.yellow=Jaune
+serverutils:color.light_blue=Bleu clair
+serverutils:color.magenta=Magenta
+serverutils:color.orange=Orange
+serverutils:color.white=Blanc
+
+#Chunktypes
+serverutils:chunktype.spawn=Zone d'apparition
+serverutils:chunktype.world_border=Bordure du monde
+serverutils:chunktype.world_border.warning=Vous avez atteint la bordure du monde !
+serverutils:chunktype.wilderness=Etendue sauvage
+serverutils:chunktype.claimed=Zone revendiquée
+serverutils:chunktype.unloaded=Parcelles non chargées
+
+#Sides
+serverutils:side.down=Bas
+serverutils:side.up=Haut
+serverutils:side.north=Nord
+serverutils:side.south=Sud
+serverutils:side.west=Ouest
+serverutils:side.east=Est
+
+serverutils:dside.bottom=Bas
+serverutils:dside.top=Haut
+serverutils:dside.back=Arrière
+serverutils:dside.front=Avant
+serverutils:dside.left=Gauche
+serverutils:dside.right=Droite

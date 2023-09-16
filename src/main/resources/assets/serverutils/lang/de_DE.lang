@@ -1,0 +1,103 @@
+#Buttons
+serverutils:button.add_friend=Zu Freunden hinzufügen
+serverutils:button.rem_friend=Von Freunden entfernen
+serverutils:button.deny_friend=Freundschafftsanfrage ablehnen
+serverutils:button.guide=Guide
+serverutils:button.claimed_chunks=Beanspruchte Chunks
+serverutils:button.mail=Nachrichten
+serverutils:button.trade=Handel
+serverutils:button.notes=Notizen
+serverutils:button.server_info=Server Info
+serverutils:label.friend=Freund
+serverutils:label.pfriend=Ausstehende Freundschaftsanfragen
+serverutils:label.joined=Beigetreten vor %s
+serverutils:label.last_seen=Zuletzt gesehen %s
+serverutils:label.deaths=Tode: %s
+serverutils:button.explosions=Explosionen
+serverutils:button.block_security=Block Sicherheit
+serverutils:label.cchunks_count=Beanspruchte Chunks: %s
+serverutils:label.lchunks_count=Geladene Chunks: %s
+
+#ClientConfig
+client_config.sidebar_buttons.guide=Guide
+client_config.sidebar_buttons.info=Server Info
+client_config.sidebar_buttons.claims=Beanspruchte Chunks
+
+client_config.serverutils=ServerUtilities
+client_config.serverutils.render_badges=Zeige Abzeichen
+client_config.serverutils.render_my_badge=Zeige meine Abzeichen
+client_config.serverutils.options_button=Optionen Button
+client_config.serverutils.chat_links=Chat Links
+client_config.serverutils.player_options_shortcut=Spieler Optionen Shortcut
+client_config.serverutils.sort_friends_az=Sortiere Freunde A-Z
+
+claims_config=Beanspruchte Chunks Config
+claims_config.explosions=Explosionen
+claims_config.security_level=Block Sicherheits Level
+claims_config.fake_players=Erlaube Fake Players
+
+#Misc
+serverutils:label.new_friends=Neue Freundschaftsanfrage!
+serverutils:label.new_friends_click=Klicke um alle Anfragen anzunehmen
+serverutils:server_restart=Server wird in %s neustarten
+
+serverutils:cmd.warp_set=Warp '%s' gesetzt!
+serverutils:cmd.warp_del=Warp '%s' gelöscht!
+serverutils:cmd.warp_not_set=Unbekannter Warp: '%s'!
+serverutils:cmd.warp_tp=Teleportiert zu '%s'!
+
+serverutils:cmd.home_set=Zuhause '%s' gesetzt!
+serverutils:cmd.home_del=Zuhause '%s' gelöscht!
+serverutils:cmd.home_not_set=Unbekanntes Zuhause: '%s'!
+serverutils:cmd.home_cross_dim=Du kannst dich nicht in eine andere Dimension teleportieren!
+serverutils:cmd.home_limit=Du kannst keine weiteren Zuhause setzen!
+
+serverutils:cmd.no_dp=Du kannst nur einmal zurück gehen!
+serverutils:cmd.timer_backup=Nächste Sicherung: %s
+serverutils:cmd.timer_restart=Nächster Neustart: %s
+serverutils:cmd.rules=[Klicke hier um die Regeln zu öffnen]
+serverutils:cmd.spawn_tp=Zum Spawn teleportiert
+
+serverutils:button.claims_unclaim_all=Gebe alle Chunks frei
+serverutils:button.claims_unclaim_all_dim=Gebe alle Chunks in %s frei
+serverutils:button.claims_unclaim_all_q=Alle beanspruchten Chunks freigeben?
+serverutils:button.claims_unclaim_all_dim_q=Alle beanspruchten Chunks in %s freigeben?
+serverutils:label.claims_invalid_dim=Du kannst keine Chunks in dieser Dimension beanspruchen
+
+serverutils:top.title=Server Rangliste
+serverutils:top.first_joined=Zuerst Gesehen
+serverutils:top.last_seen=Zuletzt Gesehen
+serverutils:top.time_played=Spielzeit
+serverutils:top.deaths=Tode
+serverutils:top.deaths_ph=Tode per Stunde
+
+#Security Mode
+serverutils:security=Sicherheit
+serverutils:security.public=Öffentlich
+serverutils:security.private=Privat
+serverutils:security.friends=Freunde
+serverutils:security.group=Gruppe
+serverutils:security.whitelist=Whitelist
+serverutils:security.blacklist=Blacklist
+
+#Redstone Mode
+serverutils:redstonemode=Redstone Modus
+serverutils:redstonemode.disabled=Deaktviert
+serverutils:redstonemode.high=Aktiv Hoch
+serverutils:redstonemode.low=Aktiv Niedrig
+
+#Inventory Mode
+serverutils:invmode=Automatisierung
+serverutils:invmode.enabled=Aktiviert
+serverutils:invmode.onlyin=Nur Insertion
+serverutils:invmode.onlyout=Nur Extraktion
+serverutils:invmode.disabled=Deaktviert
+
+#Chunktypes
+serverutils:chunktype.unloaded=Chunk nicht geladen
+serverutils:chunktype.spawn=Spawn Bereich
+serverutils:chunktype.world_border=Welt Begrenzung
+serverutils:chunktype.world_border.warning=Du hast die Welt Begrenzung erreicht!
+serverutils:chunktype.wilderness=Wildnis
+serverutils:chunktype.claimed=Beanspruchter Bereich
+serverutils:chunktype.chunkloaded=Geladener Chunk

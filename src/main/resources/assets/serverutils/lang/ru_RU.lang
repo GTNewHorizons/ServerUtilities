@@ -1,0 +1,95 @@
+#Buttons
+serverutils.label.friend=Друг
+serverutils.label.pfriend=Заявка отправлена
+serverutils.label.joined=Присоединился %s назад
+serverutils.label.last_seen=Был виден последний раз %s назад
+serverutils.label.deaths=Смертей: %s
+serverutils.button.block_security=Безопасность блока
+serverutils.label.cchunks_count=Заприваченные чанки: %s
+serverutils.label.lchunks_count=Загруженные чанки: %s
+
+#ClientConfig
+client_config.serverutils=Server Utilities
+client_config.serverutils.render_badges=Показывать значки
+client_config.serverutils.sort_friends_az=Сортировать друзей A-Z
+client_config.serverutils.loaded_chunks_space_key=Используйте Пробел для загруженных чанков
+
+client_config.serverutils_guide=Server Utilities: руководство
+client_config.serverutils_guide.unicode=Использовать Unicode
+client_config.serverutils_guide.text_color=Цвет текста
+client_config.serverutils_guide.bg_color=Цвет фона
+client_config.serverutils_guide.transparency=Прозрачность
+
+serverutils.player_setting.chat_links=Ссылки в чате
+serverutils.player_setting.render_badge=Показывать мой значок
+serverutils.player_setting.explosions=Взрывы в заприваченных чанках
+serverutils.player_setting.security_level=Уровень безопасности в заприваченных чанках
+serverutils.player_setting.fake_players=Разрешить действия Fake Player в заприваченных чанках
+
+#PlayerActions
+player_action.serverutils.guide=Руководство
+player_action.serverutils.server_info=Информация о сервере
+player_action.serverutils.claimed_chunks=Заприваченные чанки
+player_action.serverutils.trade=Обмен
+player_action.serverutils.notes=Записки
+player_action.serverutils.add_friend=Добавить друга
+player_action.serverutils.rem_friend=Удалить из друзей
+player_action.serverutils.deny_friend=Отклонить запрос
+player_action.serverutils.mail=Почта
+
+#Misc
+serverutils.label.new_friends=Новые заявки в друзья!
+serverutils.label.new_friends_click=Принять все заявки в друзья
+serverutils.server_restart=Сервер перезапустится через %s
+serverutils.commands=Комманды
+serverutils.my_permissions=Мои разрешения
+
+serverutils.cmd.warp_set=Варп '%s' установлен!
+serverutils.cmd.warp_del=Варп '%s' удалён!
+serverutils.cmd.warp_not_set=Неизвестный варп: '%s'!
+serverutils.cmd.warp_tp=Телепортирован к '%s'!
+
+serverutils.cmd.home_set=Дом '%s' установлен!
+serverutils.cmd.home_del=Дом '%s' удалён!
+serverutils.cmd.home_not_set=Неизвестный дом: '%s'!
+serverutils.cmd.home_cross_dim=Вы не можете телепортироваться между измерениями!
+serverutils.cmd.home_limit=Вы не можете устанавливать больше домов!
+
+serverutils.cmd.no_dp=Вы можете вернуться только один раз!
+serverutils.cmd.timer_backup=Следующий Backup: %s
+serverutils.cmd.timer_restart=Следующий рестарт: %s
+serverutils.cmd.spawn_tp=Телепортирован на спавн
+serverutils.cmd.serveru_gamemode=Режим игры: %s
+serverutils.cmd.world_difficulty=Сложность: %s
+
+serverutils.cmd.backup_start=Резервное копирование сервера началось!
+serverutils.cmd.backup_stop=Резервное копирование сервера завершено!
+serverutils.cmd.backup_end_1=Резервное копирование сервера заняло %s!
+serverutils.cmd.backup_end_2=Резервное копирование сервера заняло %s! (%s)
+serverutils.cmd.backup_fail=Не удалось сохранить мир! (%s)
+serverutils.cmd.backup_manual_launch=%s запустил резервное копирование!
+serverutils.cmd.backup_already_running=Резервное копирование уже проводится!
+serverutils.cmd.backup_not_running=Резервное копирование не запущено!
+serverutils.cmd.backup_size=Текущий размер мира: %s, общий размер резервных копий: %s
+
+serverutils.button.claims_unclaim_all=Расприватить все чанки
+serverutils.button.claims_unclaim_all_dim=Расприватить все чанки в %s
+serverutils.button.claims_unclaim_all_q=Расприватить все чанки?
+serverutils.button.claims_unclaim_all_dim_q=Расприватить все чанки в %s?
+serverutils.label.claims_invalid_dim=Приватить чанки в этом измерении запрещено
+
+serverutils.top.title=Топы сервера
+serverutils.top.first_joined=Первый вход
+serverutils.top.last_seen=Последний вход
+serverutils.top.time_played=Общее время сыграно
+serverutils.top.deaths=Смертей
+serverutils.top.deaths_ph=Смертей в час
+
+#Chunktypes
+serverutils.chunktype.unloaded=Чанк не загружен
+serverutils.chunktype.spawn=Зона спавна
+serverutils.chunktype.world_border=Граница мира
+serverutils.chunktype.world_border.warning=Вы достигли границы мира!
+serverutils.chunktype.wilderness=Дикая местность
+serverutils.chunktype.claimed=Заприваченная зона
+serverutils.chunktype.chunkloaded=Загруженная зона
