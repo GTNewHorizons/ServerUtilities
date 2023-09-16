@@ -1,22 +1,59 @@
 {
   "modListVersion": 2,
-  "modList": [{
-    "modid": "${modId}",
-    "name": "${modName}",
-    "description": "FTB Utilities - GTNH",
-    "version": "${modVersion}",
-    "mcversion": "${minecraftVersion}",
-    "url": "https://feed-the-beast.com",
-    "updateUrl": "",
-    "authorList": [
-      "LatvianModder"
-    ],
-    "credits": "GTNH",
-    "logoFile": "assets/ftbu/textures/logo.png",
-    "screenshots": [],
-    "parent": "",
-    "requiredMods": ["FTBL"],
-    "dependencies": ["FTBL", "Baubles", "Waila"],
-    "useDependencyInformation": true
-  }]
+  "modList": [
+    {
+      "modid": "FTBL",
+      "name": "FTBLib",
+      "description": "The libraries for FTB mods",
+      "version": "${modVersion}",
+      "mcversion": "${minecraftVersion}",
+      "url": "https://feed-the-beast.com",
+      "updateUrl": "",
+      "authorList": [
+        "LatvianModder",
+        "Jared"
+      ],
+      "credits": "GTNH",
+      "logoFile": "assets/ftbl/textures/logo.png",
+      "screenshots": [],
+      "parent": "",
+      "requiredMods": [
+        "Forge"
+      ],
+      "dependencies": [
+        "Forge",
+        "Baubles",
+        "NotEnoughItems",
+        "Waila",
+        "MineTweaker3"
+      ],
+      "dependants": [],
+      "useDependencyInformation": true
+    },
+    {
+      "modid": "FTBU",
+      "name": "FTBUtilities",
+      "description": "FTB Utilities - GTNH",
+      "version": "${modVersion}",
+      "mcversion": "${minecraftVersion}",
+      "url": "https://feed-the-beast.com",
+      "updateUrl": "",
+      "authorList": [
+        "LatvianModder"
+      ],
+      "credits": "GTNH",
+      "logoFile": "assets/ftbu/textures/logo.png",
+      "screenshots": [],
+      "parent": "",
+      "requiredMods": [
+        "FTBL"
+      ],
+      "dependencies": [
+        "FTBL",
+        "Baubles",
+        "Waila"
+      ],
+      "useDependencyInformation": true
+    }
+  ]
 }

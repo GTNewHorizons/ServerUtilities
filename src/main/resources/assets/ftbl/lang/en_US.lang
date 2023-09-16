@@ -1,0 +1,139 @@
+ftbl.gamemode.loaded=Gamemode set to '%s'!
+ftbl.gamemode.not_found=Gamemode does not exist!
+ftbl.gamemode.already_set=Gamemode already set!
+ftbl.gamemode.current=Current gamemode: %s
+ftbl.gamemode.list=Available gamemodes: %s
+ftbl.worldID=WorldID: %s
+ftbl.reloaded_server=FTBLib: Server reloaded in %s
+ftbl.reloaded_client=FTBLib: Client reloaded in %s
+ftbl.missing_args=Missing Arguments!
+ftbl.feature_disabled=This feature is disabled!
+ftbl.invalid_subcmd=Invalid subcommand: '%s'!
+ftbl.owner=Owner: %s
+ftbl.delete_item=Do you want to delete '%s'?
+ftbl.label.server_forced=Server overrides to '%s'
+ftbl.reload_client_config=Server Reloaded. You can
+
+ftbl.button.shortcut.action=Action
+ftbl.button.shortcut.data=Action Data
+ftbl.button.shortcut.key=Key
+ftbl.button.shortcut.icon=Icon
+ftbl.button.shortcut.title=Title
+ftbl.button.shortcut.priority=Priority
+ftbl.button.shortcut.add_key=Add Key Shortcut
+ftbl.button.shortcut.add_button=Add Button Shortcut
+
+#Buttons
+ftbl.button.settings=Settings
+ftbl.button.back=Back
+ftbl.button.up=Up
+ftbl.button.down=Down
+ftbl.button.prev=Previous
+ftbl.button.next=Next
+ftbl.button.cancel=Cancel
+ftbl.button.accept=Accept
+ftbl.button.remove=Remove
+ftbl.button.add=Add
+ftbl.button.close=Close
+ftbl.button.save=Save
+ftbl.button.refresh=Refresh
+ftbl.button.other=Other
+ftbl.button.edit=Edit
+ftbl.button.info=Info
+
+ftbl.label.true=True
+ftbl.label.false=False
+ftbl.label.enabled=Enabled
+ftbl.label.disabled=Disabled
+ftbl.label.on=On
+ftbl.label.off=Off
+ftbl.label.online=Online
+ftbl.label.offline=Offline
+ftbl.label.whitelist=Whitelist
+ftbl.label.blacklist=Blacklist
+
+#Colors
+ftbl.color.black=Black
+ftbl.color.red=Red
+ftbl.color.green=Green
+ftbl.color.brown=Brown
+ftbl.color.blue=Blue
+ftbl.color.purple=Purple
+ftbl.color.cyan=Cyan
+ftbl.color.lightgray=Light Gray
+ftbl.color.gray=Dark Gray
+ftbl.color.pink=Pink
+ftbl.color.lime=Lime
+ftbl.color.yellow=Yellow
+ftbl.color.lightblue=Light Blue
+ftbl.color.magenta=Magenta
+ftbl.color.orange=Orange
+ftbl.color.white=White
+
+#Sides
+ftbl.side.down=Down
+ftbl.side.up=Up
+ftbl.side.north=North
+ftbl.side.south=South
+ftbl.side.west=West
+ftbl.side.east=East
+
+ftbl.dside.bottom=Bottom
+ftbl.dside.top=Top
+ftbl.dside.back=Back
+ftbl.dside.front=Front
+ftbl.dside.left=Left
+ftbl.dside.right=Right
+
+#ClientConfig
+client_config=Client Config
+client_config.ftbl=FTBLib
+client_config.ftbl.item_ore_names=Item OreDict Names
+client_config.ftbl.item_reg_names=Item Registry Names
+client_config.ftbl.debug_info=Debug Info
+client_config.ftbl.notifications=Notifications
+client_config.ftbl.reload_client_cmd=Client Reloading Command
+client_config.ftbl.action_buttons_on_top=Action Buttons On Top
+client_config.ftbl.player_options_shortcut=Player Options Shortcut
+client_config.ftbl.key_bindings=Key Bindings
+client_config.ftbl.edit_shortcuts=Edit Shortcuts
+client_config.ftbl.light_value_texture=Light Value Texture
+
+client_config.sidebar_buttons=Sidebar Buttons
+
+#PlayerActions
+player_action.ftbl.settings=Client Settings
+player_action.ftbl.notifications=Notifications
+player_action.ftbl.toggle_gamemode=Toggle Gamemode
+player_action.ftbl.toggle_rain=Toggle Rain
+player_action.ftbl.toggle_day=Set time to Day
+player_action.ftbl.toggle_night=Set time to Night
+player_action.ftbl.toggle_chunk_bounds=Toggle Chunk Bounds
+player_action.ftbl.toggle_light_values=Toggle Light Values
+
+#Security Mode
+ftbl.security=Security
+ftbl.security.public=Public
+ftbl.security.private=Private
+ftbl.security.friends=Friends
+ftbl.security.group=Group
+
+#Redstone Mode
+ftbl.redstonemode=Redstone Mode
+ftbl.redstonemode.disabled=Disabled
+ftbl.redstonemode.high=Active High
+ftbl.redstonemode.low=Active Low
+
+#Inventory Mode
+ftbl.invmode=Automation
+ftbl.invmode.enabled=Enabled
+ftbl.invmode.onlyin=Insert Only
+ftbl.invmode.onlyout=Extract Only
+ftbl.invmode.disabled=Disabled
+
+#Click Actions
+click_action.cmd=Command
+click_action.show_cmd=Show Command
+click_action.url=Open URL
+click_action.file=Open File
+click_action.gui=Open Gui

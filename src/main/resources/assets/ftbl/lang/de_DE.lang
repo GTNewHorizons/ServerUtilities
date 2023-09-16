@@ -1,0 +1,85 @@
+ftbl:gamemode.loaded=Spielmodus geändert zu '%s'!
+ftbl:gamemode.not_found=Spielmodus existiert nicht!
+ftbl:gamemode.already_set=Spielmodus bereits geladen!
+ftbl:gamemode.current=Aktiver Spielmodus: %s
+ftbl:gamemode.list=Verfügbare Spielmodi: %s
+ftbl:worldID=WorldID: %s
+ftbl:reloadedServer=FTBLib neu geladen (Server)
+ftbl:reloadedClient=FTBLib neu geladen (Client)
+ftbl:missing_args=Fehlende Argumente!
+ftbl:feature_disabled=Dieses Feature ist deaktiviert!
+ftbl:invalid_subcmd=Invalider Sub-Befehl: '%s'!
+ftbl:owner=Besitzer: %s
+ftbl:delete_item=Willst du '%s' löschen?
+ftbl:label.server_forced=Server overrides to '%s'
+
+#Buttons
+ftbl:button.settings=Einstellungen
+ftbl:button.back=Zurück
+ftbl:button.up=Hoch
+ftbl:button.down=Runter
+ftbl:button.prev=Vorherige
+ftbl:button.next=Nächste
+ftbl:button.cancel=Abbrechen
+ftbl:button.accept=Akzeptieren
+ftbl:button.remove=Entfernen
+ftbl:button.add=Hinzufügen
+ftbl:button.close=Schließen
+ftbl:button.save=Speichern
+ftbl:button.refresh=Neu laden
+ftbl:button.other=Andere
+ftbl:button.edit=Editieren
+
+ftbl:label.true=True
+ftbl:label.false=False
+ftbl:label.enabled=Aktiviert
+ftbl:label.disabled=Deaktiviert
+ftbl:label.on=An
+ftbl:label.off=Aus
+ftbl:label.online=Online
+ftbl:label.offline=Offline
+
+#Colors
+ftbl:color.black=Schwarz
+ftbl:color.red=Rot
+ftbl:color.green=Grün
+ftbl:color.brown=Braun
+ftbl:color.blue=Blau
+ftbl:color.purple=Lila
+ftbl:color.cyan=Cyan
+ftbl:color.lightgray=Hell Grau
+ftbl:color.gray=Dunkel Grau
+ftbl:color.pink=Pink
+ftbl:color.lime=Lime
+ftbl:color.yellow=Gelb
+ftbl:color.lightblue=Hell Blau
+ftbl:color.magenta=Magenta
+ftbl:color.orange=Orange
+ftbl:color.white=Weiß
+
+#Sides
+ftbl:side.down=Unten
+ftbl:side.up=Oben
+ftbl:side.north=Norden
+ftbl:side.south=Süden
+ftbl:side.west=Westen
+ftbl:side.east=Osten
+
+ftbl:dside.bottom=Unten
+ftbl:dside.top=Oben
+ftbl:dside.back=Hinten
+ftbl:dside.front=Vorne
+ftbl:dside.left=Links
+ftbl:dside.right=Rechts
+
+#Config
+client_config=Client Config
+client_config.ftbl=FTBLib
+client_config.ftbl.item_ore_names=Item OreDict Names
+client_config.ftbl.item_reg_names=Item Registry Names
+client_config.ftbl.debug_info=Debug Info
+client_config.ftbl.notifications=Benachrichtigungen
+
+client_config.sidebar_buttons=Seitenleiste Buttons
+client_config.sidebar_buttons.settings=Client Einstellungen
+client_config.sidebar_buttons.notifications=Benachrichtigungen
