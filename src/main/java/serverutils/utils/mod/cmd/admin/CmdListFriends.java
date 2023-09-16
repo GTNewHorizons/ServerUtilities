@@ -1,10 +1,13 @@
 package serverutils.utils.mod.cmd.admin;
 
-import net.minecraft.command.*;
-import net.minecraft.util.*;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 
 import latmod.lib.LMListUtils;
-import serverutils.lib.api.cmd.*;
+import serverutils.lib.api.cmd.CommandLM;
+import serverutils.lib.api.cmd.CommandLevel;
 import serverutils.utils.world.LMPlayerServer;
 
 public class CmdListFriends extends CommandLM {

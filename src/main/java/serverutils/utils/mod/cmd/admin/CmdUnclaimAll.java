@@ -1,10 +1,14 @@
 package serverutils.utils.mod.cmd.admin;
 
-import net.minecraft.command.*;
-import net.minecraft.util.*;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.api.cmd.*;
-import serverutils.utils.world.*;
+import serverutils.lib.api.cmd.CommandLM;
+import serverutils.lib.api.cmd.CommandLevel;
+import serverutils.utils.world.LMPlayerServer;
+import serverutils.utils.world.LMWorldServer;
 
 public class CmdUnclaimAll extends CommandLM {
 

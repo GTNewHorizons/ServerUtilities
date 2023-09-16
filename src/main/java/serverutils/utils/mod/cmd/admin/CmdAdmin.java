@@ -1,6 +1,7 @@
 package serverutils.utils.mod.cmd.admin;
 
-import serverutils.lib.api.cmd.*;
+import serverutils.lib.api.cmd.CommandLevel;
+import serverutils.lib.api.cmd.CommandSubLM;
 import serverutils.utils.mod.config.ServerUtilitiesConfigCmd;
 
 public class CmdAdmin extends CommandSubLM {
