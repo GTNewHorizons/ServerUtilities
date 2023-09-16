@@ -1,16 +1,23 @@
 package serverutils.utils.mod.handlers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
 
 import com.google.common.collect.MapMaker;
 
-import serverutils.lib.*;
-import serverutils.utils.mod.*;
+import serverutils.lib.EventBusHelper;
+import serverutils.lib.LMDimUtils;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.utils.mod.ServerUtilities;
+import serverutils.utils.mod.ServerUtilitiesFinals;
 import serverutils.utils.mod.config.ServerUtilitiesConfigChunkloading;
-import serverutils.utils.world.*;
+import serverutils.utils.world.LMPlayerServer;
+import serverutils.utils.world.LMWorldServer;
 import serverutils.utils.world.claims.ClaimedChunk;
 
 public class ServerUtilitiesChunkEventHandler
@@ -59,7 +66,7 @@ public class ServerUtilitiesChunkEventHandler
     }
 
     public List<ForgeChunkManager.Ticket> ticketsLoaded(List<ForgeChunkManager.Ticket> tickets, World world,
-            int maxTicketCount) {
+                                                        int maxTicketCount) {
         table.remove(world);
         List<ForgeChunkManager.Ticket> tickets1 = new ArrayList<>();
         if (tickets.isEmpty() || !ServerUtilitiesConfigChunkloading.enabled.getAsBoolean()) return tickets1;

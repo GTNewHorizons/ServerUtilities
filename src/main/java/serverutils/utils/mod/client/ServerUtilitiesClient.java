@@ -2,15 +2,19 @@ package serverutils.utils.mod.client;
 
 import net.minecraftforge.client.ClientCommandHandler;
 
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.EventBusHelper;
-import serverutils.lib.api.config.*;
+import serverutils.lib.api.config.ClientConfigRegistry;
+import serverutils.lib.api.config.ConfigEntryBool;
 import serverutils.lib.api.gui.LMGuiHandlerRegistry;
 import serverutils.utils.badges.BadgeRenderer;
-import serverutils.utils.mod.*;
+import serverutils.utils.mod.ServerUtilitiesCommon;
+import serverutils.utils.mod.ServerUtilsGuiHandler;
 import serverutils.utils.mod.client.gui.guide.ClientSettings;
 import serverutils.utils.mod.cmd.CmdMath;
-import serverutils.utils.world.*;
+import serverutils.utils.world.LMWorld;
+import serverutils.utils.world.LMWorldClient;
 
 @SideOnly(Side.CLIENT)
 public class ServerUtilitiesClient extends ServerUtilitiesCommon {

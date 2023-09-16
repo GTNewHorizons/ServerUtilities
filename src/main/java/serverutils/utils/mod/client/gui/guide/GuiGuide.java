@@ -4,10 +4,16 @@ import net.minecraft.util.ResourceLocation;
 
 import latmod.lib.LMColor;
 import serverutils.lib.TextureCoords;
-import serverutils.lib.api.client.*;
-import serverutils.lib.api.gui.*;
-import serverutils.lib.api.gui.widgets.*;
-import serverutils.utils.api.guide.*;
+import serverutils.lib.api.client.GlStateManager;
+import serverutils.lib.api.client.ServerUtilitiesLibraryClient;
+import serverutils.lib.api.gui.GuiLM;
+import serverutils.lib.api.gui.IClientActionGui;
+import serverutils.lib.api.gui.widgets.ButtonLM;
+import serverutils.lib.api.gui.widgets.PanelLM;
+import serverutils.lib.api.gui.widgets.SliderLM;
+import serverutils.lib.api.gui.widgets.WidgetLM;
+import serverutils.utils.api.guide.ClientGuideFile;
+import serverutils.utils.api.guide.GuidePage;
 import serverutils.utils.api.guide.lines.GuideTextLine;
 
 public class GuiGuide extends GuiLM implements IClientActionGui {

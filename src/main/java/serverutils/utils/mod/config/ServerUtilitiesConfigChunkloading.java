@@ -1,7 +1,10 @@
 package serverutils.utils.mod.config;
 
-import latmod.lib.annotations.*;
-import serverutils.lib.api.config.*;
+import latmod.lib.annotations.Flags;
+import latmod.lib.annotations.Info;
+import latmod.lib.annotations.NumberBounds;
+import serverutils.lib.api.config.ConfigEntryBool;
+import serverutils.lib.api.config.ConfigEntryDouble;
 
 public class ServerUtilitiesConfigChunkloading {
 

@@ -1,9 +1,13 @@
 package serverutils.utils.net;
 
-import cpw.mods.fml.common.network.simpleimpl.*;
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import latmod.lib.ByteCount;
-import serverutils.utils.world.*;
+import serverutils.utils.world.LMPlayerServer;
+import serverutils.utils.world.LMWorldClient;
+import serverutils.utils.world.LMWorldServer;
 
 public class MessageLMWorldUpdate extends MessageServerUtilities {
 

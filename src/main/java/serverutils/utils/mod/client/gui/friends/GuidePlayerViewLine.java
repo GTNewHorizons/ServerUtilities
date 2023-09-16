@@ -4,15 +4,20 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.*;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.input.Mouse;
 
-import cpw.mods.fml.relauncher.*;
-import serverutils.lib.api.client.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import serverutils.lib.api.client.GlStateManager;
+import serverutils.lib.api.client.ServerUtilitiesLibraryClient;
 import serverutils.utils.api.guide.GuidePage;
 import serverutils.utils.api.guide.lines.GuideTextLine;
-import serverutils.utils.mod.client.gui.guide.*;
+import serverutils.utils.mod.client.gui.guide.ButtonGuideTextLine;
+import serverutils.utils.mod.client.gui.guide.GuiGuide;
 import serverutils.utils.world.LMPlayerClient;
 
 /**

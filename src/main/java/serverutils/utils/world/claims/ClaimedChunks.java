@@ -1,20 +1,39 @@
 package serverutils.utils.world.claims;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
-import latmod.lib.*;
+import latmod.lib.Bits;
+import latmod.lib.LMJsonUtils;
+import latmod.lib.LMMapUtils;
+import latmod.lib.LMUtils;
+import latmod.lib.MathHelperLM;
 import latmod.lib.util.EnumEnabled;
-import serverutils.lib.*;
+import serverutils.lib.BlockDimPos;
+import serverutils.lib.LMDimUtils;
+import serverutils.lib.LMNBTUtils;
+import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.api.item.LMInvUtils;
 import serverutils.utils.mod.config.ServerUtilitiesConfigGeneral;
-import serverutils.utils.world.*;
+import serverutils.utils.world.LMPlayer;
+import serverutils.utils.world.LMPlayerServer;
+import serverutils.utils.world.LMWorld;
+import serverutils.utils.world.LMWorldServer;
+import serverutils.utils.world.PersonalSettings;
 
 public class ClaimedChunks {
 

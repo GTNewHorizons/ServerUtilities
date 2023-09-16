@@ -7,10 +7,15 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 
 import org.lwjgl.opengl.GL11;
 
-import cpw.mods.fml.relauncher.*;
-import latmod.lib.*;
-import serverutils.lib.api.*;
-import serverutils.lib.api.client.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import latmod.lib.ByteIOStream;
+import latmod.lib.MathHelperLM;
+import serverutils.lib.api.EventServerUtilitiesReload;
+import serverutils.lib.api.EventServerUtilitiesWorldClient;
+import serverutils.lib.api.client.GlStateManager;
+import serverutils.lib.api.client.LMFrustrumUtils;
+import serverutils.lib.api.client.ServerUtilitiesLibraryClient;
 import serverutils.lib.api.client.model.CubeRenderer;
 import serverutils.lib.api.notification.ClientNotifications;
 import serverutils.lib.mod.ServerUtilitiesLibraryMod;

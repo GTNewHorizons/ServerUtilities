@@ -3,9 +3,15 @@ package serverutils.utils.world.claims;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.ChunkCoordIntPair;
 
-import cpw.mods.fml.relauncher.*;
-import latmod.lib.*;
-import serverutils.utils.world.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import latmod.lib.Bits;
+import latmod.lib.LMUtils;
+import latmod.lib.MathHelperLM;
+import serverutils.utils.world.LMPlayerClient;
+import serverutils.utils.world.LMPlayerServer;
+import serverutils.utils.world.LMWorldClient;
+import serverutils.utils.world.LMWorldServer;
 
 public final class ClaimedChunk {
 

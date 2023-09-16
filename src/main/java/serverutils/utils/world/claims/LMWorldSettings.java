@@ -2,7 +2,8 @@ package serverutils.utils.world.claims;
 
 import java.util.HashMap;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import latmod.lib.ByteIOStream;
 import serverutils.lib.api.config.ConfigEntryBool;

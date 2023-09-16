@@ -2,8 +2,10 @@ package serverutils.utils.net;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import cpw.mods.fml.common.network.simpleimpl.*;
-import latmod.lib.*;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
+import latmod.lib.ByteCount;
+import latmod.lib.MathHelperLM;
 import serverutils.lib.api.net.LMNetworkWrapper;
 import serverutils.utils.world.LMWorldServer;
 
