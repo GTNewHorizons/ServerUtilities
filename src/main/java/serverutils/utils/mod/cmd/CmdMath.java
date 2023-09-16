@@ -1,12 +1,16 @@
 package serverutils.utils.mod.cmd;
 
-import javax.script.*;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
 
-import net.minecraft.command.*;
-import net.minecraft.util.*;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 
 import latmod.lib.LMStringUtils;
-import serverutils.lib.api.cmd.*;
+import serverutils.lib.api.cmd.CommandLM;
+import serverutils.lib.api.cmd.CommandLevel;
 
 public class CmdMath extends CommandLM {
 

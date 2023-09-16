@@ -1,11 +1,16 @@
 package serverutils.utils.mod.cmd;
 
-import net.minecraft.command.*;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.*;
-import serverutils.lib.api.cmd.*;
-import serverutils.utils.world.*;
+import serverutils.lib.PrivacyLevel;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.api.cmd.CommandLM;
+import serverutils.lib.api.cmd.CommandLevel;
+import serverutils.lib.api.cmd.CommandSubLM;
+import serverutils.utils.world.LMPlayerServer;
+import serverutils.utils.world.PersonalSettings;
 
 /**
  * Created by LatvianModder on 14.01.2016.
