@@ -29,9 +29,8 @@ public class CmdSetHome extends CommandLM {
         EntityPlayerMP ep = getCommandSenderAsPlayer(ics);
         LMPlayerServer p = LMPlayerServer.get(ep);
 
-        if (args.length == 0)
-        {
-            args = new String[] {"home"};
+        if (args.length == 0) {
+            args = new String[] { "home" };
         }
 
         args[0] = args[0].toLowerCase();

@@ -4,8 +4,8 @@ import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;

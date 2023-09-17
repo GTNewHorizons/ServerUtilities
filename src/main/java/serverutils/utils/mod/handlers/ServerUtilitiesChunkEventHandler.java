@@ -66,7 +66,7 @@ public class ServerUtilitiesChunkEventHandler
     }
 
     public List<ForgeChunkManager.Ticket> ticketsLoaded(List<ForgeChunkManager.Ticket> tickets, World world,
-                                                        int maxTicketCount) {
+            int maxTicketCount) {
         table.remove(world);
         List<ForgeChunkManager.Ticket> tickets1 = new ArrayList<>();
         if (tickets.isEmpty() || !ServerUtilitiesConfigChunkloading.enabled.getAsBoolean()) return tickets1;

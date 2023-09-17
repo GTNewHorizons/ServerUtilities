@@ -12,6 +12,8 @@ import net.minecraft.util.IChatComponent;
 
 import com.mojang.authlib.GameProfile;
 
+import latmod.lib.LMFileUtils;
+import latmod.lib.LMUtils;
 import serverutils.lib.BaublesHelper;
 import serverutils.lib.LMNBTUtils;
 import serverutils.lib.OtherMods;
@@ -22,8 +24,6 @@ import serverutils.lib.api.cmd.CommandSubLM;
 import serverutils.lib.api.item.StringIDInvLoader;
 import serverutils.utils.world.LMPlayerServer;
 import serverutils.utils.world.LMWorldServer;
-import latmod.lib.LMFileUtils;
-import latmod.lib.LMUtils;
 
 public class CmdPlayerLM extends CommandSubLM {
 
