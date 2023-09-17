@@ -97,7 +97,7 @@ public abstract class BlockLM extends Block implements IBlockLM {
     }
 
     public float getExplosionResistance(Entity entity, World w, int x, int y, int z, double explosionX,
-                                        double explosionY, double explosionZ) {
+            double explosionY, double explosionZ) {
         if (hasTileEntity(w.getBlockMetadata(x, y, z))) {
             TileLM tile = getTile(w, x, y, z);
             if (tile != null && tile.isExplosionResistant()) return 1000000F;

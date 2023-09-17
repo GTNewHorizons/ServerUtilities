@@ -149,7 +149,7 @@ public class ServerUtilitiesLibraryClient {
     }
 
     public static ThreadDownloadImageData getDownloadImage(ResourceLocation out, String url, ResourceLocation def,
-                                                           IImageBuffer buffer) {
+            IImageBuffer buffer) {
         TextureManager t = mc.getTextureManager();
         ThreadDownloadImageData img = (ThreadDownloadImageData) t.getTexture(out);
 

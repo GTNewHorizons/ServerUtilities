@@ -7,12 +7,11 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 
 import cpw.mods.fml.relauncher.Side;
-
+import latmod.lib.annotations.Info;
+import latmod.lib.annotations.NumberBounds;
 import serverutils.lib.api.config.ConfigEntryBool;
 import serverutils.lib.api.config.ConfigEntryDouble;
 import serverutils.lib.api.config.ConfigEntryStringList;
-import latmod.lib.annotations.Info;
-import latmod.lib.annotations.NumberBounds;
 
 public class ServerUtilitiesConfigGeneral {
 
