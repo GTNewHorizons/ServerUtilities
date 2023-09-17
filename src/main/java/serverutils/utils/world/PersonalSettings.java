@@ -2,7 +2,8 @@ package serverutils.utils.world;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-import latmod.lib.*;
+import latmod.lib.Bits;
+import latmod.lib.ByteIOStream;
 import serverutils.lib.PrivacyLevel;
 
 public class PersonalSettings {

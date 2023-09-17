@@ -4,13 +4,17 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.material.*;
+import net.minecraft.block.material.MapColor;
+import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
-import cpw.mods.fml.relauncher.*;
-import latmod.lib.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import latmod.lib.LMColorUtils;
+import latmod.lib.MathHelperLM;
+import latmod.lib.PixelBuffer;
 import serverutils.lib.api.client.ServerUtilitiesLibraryClient;
 
 @SideOnly(Side.CLIENT)

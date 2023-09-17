@@ -3,10 +3,18 @@ package serverutils.utils.world.ranks;
 import java.util.Collections;
 
 import latmod.lib.IntList;
-import latmod.lib.annotations.*;
+import latmod.lib.annotations.Flags;
+import latmod.lib.annotations.Info;
+import latmod.lib.annotations.NumberBounds;
 import latmod.lib.util.EnumEnabled;
 import serverutils.lib.PrivacyLevel;
-import serverutils.lib.api.config.*;
+import serverutils.lib.api.config.ConfigEntryBool;
+import serverutils.lib.api.config.ConfigEntryEnum;
+import serverutils.lib.api.config.ConfigEntryInt;
+import serverutils.lib.api.config.ConfigEntryIntList;
+import serverutils.lib.api.config.ConfigEntryString;
+import serverutils.lib.api.config.ConfigEntryStringList;
+import serverutils.lib.api.config.ConfigGroup;
 
 public class RankConfig {
 

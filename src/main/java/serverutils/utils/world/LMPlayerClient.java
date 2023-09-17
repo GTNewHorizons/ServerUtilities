@@ -1,14 +1,19 @@
 package serverutils.utils.world;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.util.*;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.ResourceLocation;
 
 import com.mojang.authlib.GameProfile;
 
-import cpw.mods.fml.relauncher.*;
-import latmod.lib.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import latmod.lib.ByteCount;
+import latmod.lib.ByteIOStream;
+import latmod.lib.IntList;
 import serverutils.lib.LMNBTUtils;
 import serverutils.lib.api.client.ServerUtilitiesLibraryClient;
 import serverutils.utils.api.EventLMPlayerClient;

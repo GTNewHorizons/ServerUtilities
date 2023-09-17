@@ -3,7 +3,9 @@ package serverutils.lib.api.config;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.IJsonSerializable;
 import net.minecraftforge.common.util.Constants;
 

@@ -1,7 +1,11 @@
 package serverutils.utils.mod.config;
 
-import latmod.lib.annotations.*;
-import serverutils.lib.api.config.*;
+import latmod.lib.annotations.Info;
+import latmod.lib.annotations.NumberBounds;
+import serverutils.lib.api.config.ConfigEntryBool;
+import serverutils.lib.api.config.ConfigEntryDouble;
+import serverutils.lib.api.config.ConfigEntryInt;
+import serverutils.lib.api.config.ConfigEntryString;
 
 public class ServerUtilitiesConfigBackups {
 

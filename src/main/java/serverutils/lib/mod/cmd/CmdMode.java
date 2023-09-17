@@ -1,7 +1,10 @@
 package serverutils.lib.mod.cmd;
 
-import net.minecraft.command.*;
-import net.minecraft.util.*;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import latmod.lib.LMListUtils;
 import serverutils.lib.ServerUtilitiesLib;

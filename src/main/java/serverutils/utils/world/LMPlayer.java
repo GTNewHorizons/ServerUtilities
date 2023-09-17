@@ -1,14 +1,17 @@
 package serverutils.utils.world;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 import com.mojang.authlib.GameProfile;
 
-import cpw.mods.fml.relauncher.*;
-import latmod.lib.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import latmod.lib.IntList;
+import latmod.lib.LMUtils;
 import serverutils.lib.api.friends.ILMPlayer;
 
 public abstract class LMPlayer implements ILMPlayer, Comparable<ILMPlayer> // LMPlayerServer // LMPlayerClient

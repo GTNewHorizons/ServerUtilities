@@ -3,18 +3,27 @@ package serverutils.utils.mod.cmd.admin;
 import java.io.File;
 import java.util.UUID;
 
-import net.minecraft.command.*;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.*;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 
 import com.mojang.authlib.GameProfile;
 
-import latmod.lib.*;
-import serverutils.lib.*;
-import serverutils.lib.api.cmd.*;
+import latmod.lib.LMFileUtils;
+import latmod.lib.LMUtils;
+import serverutils.lib.BaublesHelper;
+import serverutils.lib.LMNBTUtils;
+import serverutils.lib.OtherMods;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.api.cmd.CommandLM;
+import serverutils.lib.api.cmd.CommandLevel;
+import serverutils.lib.api.cmd.CommandSubLM;
 import serverutils.lib.api.item.StringIDInvLoader;
-import serverutils.utils.world.*;
+import serverutils.utils.world.LMPlayerServer;
+import serverutils.utils.world.LMWorldServer;
 
 public class CmdPlayerLM extends CommandSubLM {
 

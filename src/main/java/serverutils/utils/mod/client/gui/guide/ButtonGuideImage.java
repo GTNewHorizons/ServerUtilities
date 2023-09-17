@@ -1,8 +1,10 @@
 package serverutils.utils.mod.client.gui.guide;
 
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.TextureCoords;
-import serverutils.lib.api.client.*;
+import serverutils.lib.api.client.GlStateManager;
+import serverutils.lib.api.client.ServerUtilitiesLibraryClient;
 import serverutils.lib.api.gui.GuiLM;
 import serverutils.utils.api.guide.lines.GuideImageLine;
 

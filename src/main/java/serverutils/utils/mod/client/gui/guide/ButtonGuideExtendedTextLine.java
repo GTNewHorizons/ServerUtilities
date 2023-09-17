@@ -1,10 +1,12 @@
 package serverutils.utils.mod.client.gui.guide;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.util.IChatComponent;
 
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.api.client.GlStateManager;
 import serverutils.lib.api.gui.GuiLM;
 import serverutils.utils.api.guide.lines.GuideExtendedTextLine;

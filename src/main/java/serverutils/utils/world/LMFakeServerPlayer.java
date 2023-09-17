@@ -6,7 +6,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.util.FakePlayer;
 
-import serverutils.utils.world.ranks.*;
+import serverutils.utils.world.ranks.Rank;
+import serverutils.utils.world.ranks.Ranks;
 
 public class LMFakeServerPlayer extends LMPlayerServer {
 

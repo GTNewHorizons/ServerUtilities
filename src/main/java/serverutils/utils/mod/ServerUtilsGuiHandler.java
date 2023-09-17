@@ -5,8 +5,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.nbt.NBTTagCompound;
 
-import cpw.mods.fml.relauncher.*;
-import serverutils.lib.api.gui.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import serverutils.lib.api.gui.ContainerEmpty;
+import serverutils.lib.api.gui.LMGuiHandler;
 import serverutils.utils.mod.client.gui.claims.GuiClaimChunks;
 import serverutils.utils.mod.client.gui.friends.GuideFriendsGUI;
 import serverutils.utils.mod.client.gui.guide.GuiGuide;

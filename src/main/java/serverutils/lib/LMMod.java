@@ -6,10 +6,13 @@ import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
-import net.minecraft.item.*;
-import net.minecraft.util.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
-import cpw.mods.fml.common.*;
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import latmod.lib.util.FinalIDObject;

@@ -1,10 +1,13 @@
 package serverutils.utils.world.ranks;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.UUID;
 
 import net.minecraft.util.EnumChatFormatting;
 
-import serverutils.lib.api.config.*;
+import serverutils.lib.api.config.ConfigEntryString;
+import serverutils.lib.api.config.ConfigFile;
+import serverutils.lib.api.config.ConfigGroup;
 import serverutils.utils.world.LMPlayerServer;
 
 public class Ranks {

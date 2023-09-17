@@ -3,7 +3,8 @@ package serverutils.lib.api.notification;
 import java.io.File;
 import java.net.URI;
 
-import net.minecraft.client.gui.*;
+import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.gui.GuiScreen;
 
 import com.google.gson.JsonElement;
 

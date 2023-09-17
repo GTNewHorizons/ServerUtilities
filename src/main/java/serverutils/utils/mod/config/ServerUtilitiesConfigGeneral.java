@@ -1,12 +1,17 @@
 package serverutils.utils.mod.config;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import net.minecraft.entity.*;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 
 import cpw.mods.fml.relauncher.Side;
-import latmod.lib.annotations.*;
-import serverutils.lib.api.config.*;
+import latmod.lib.annotations.Info;
+import latmod.lib.annotations.NumberBounds;
+import serverutils.lib.api.config.ConfigEntryBool;
+import serverutils.lib.api.config.ConfigEntryDouble;
+import serverutils.lib.api.config.ConfigEntryStringList;
 
 public class ServerUtilitiesConfigGeneral {
 

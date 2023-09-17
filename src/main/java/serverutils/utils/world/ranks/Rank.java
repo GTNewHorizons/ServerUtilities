@@ -5,7 +5,8 @@ import net.minecraft.util.EnumChatFormatting;
 import latmod.lib.IntList;
 import latmod.lib.util.FinalIDObject;
 import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.api.config.*;
+import serverutils.lib.api.config.ConfigEntryEnum;
+import serverutils.lib.api.config.ConfigEntryString;
 
 public class Rank extends FinalIDObject {
 

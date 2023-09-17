@@ -4,7 +4,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
-import cpw.mods.fml.common.network.simpleimpl.*;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import latmod.lib.ByteCount;
 import serverutils.lib.api.item.IClientActionItem;
 import serverutils.lib.api.net.LMNetworkWrapper;

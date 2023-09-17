@@ -1,12 +1,15 @@
 package serverutils.utils.mod.config;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.*;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 
 import latmod.lib.annotations.Info;
 import serverutils.lib.JsonHelper;

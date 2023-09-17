@@ -3,7 +3,9 @@ package serverutils.lib.api.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

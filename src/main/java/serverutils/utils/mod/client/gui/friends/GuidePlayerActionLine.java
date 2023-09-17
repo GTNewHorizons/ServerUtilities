@@ -2,14 +2,18 @@ package serverutils.utils.mod.client.gui.friends;
 
 import java.util.List;
 
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.api.PlayerAction;
-import serverutils.lib.api.client.*;
+import serverutils.lib.api.client.GlStateManager;
+import serverutils.lib.api.client.ServerUtilitiesLibraryClient;
 import serverutils.lib.api.gui.GuiLM;
 import serverutils.utils.api.guide.GuidePage;
 import serverutils.utils.api.guide.lines.GuideTextLine;
-import serverutils.utils.mod.client.gui.guide.*;
-import serverutils.utils.world.*;
+import serverutils.utils.mod.client.gui.guide.ButtonGuideTextLine;
+import serverutils.utils.mod.client.gui.guide.GuiGuide;
+import serverutils.utils.world.LMPlayerClient;
+import serverutils.utils.world.LMWorldClient;
 
 /**
  * Created by LatvianModder on 23.03.2016.

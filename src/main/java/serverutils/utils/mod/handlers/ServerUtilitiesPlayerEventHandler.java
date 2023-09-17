@@ -3,24 +3,32 @@ package serverutils.utils.mod.handlers;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.*;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.event.entity.living.*;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import latmod.lib.MathHelperLM;
 import latmod.lib.util.Pos2I;
-import serverutils.lib.*;
+import serverutils.lib.EntityPos;
+import serverutils.lib.LMDimUtils;
+import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.api.notification.Notification;
 import serverutils.utils.api.EventLMPlayerServer;
 import serverutils.utils.mod.ServerUtilities;
 import serverutils.utils.mod.config.ServerUtilitiesConfigGeneral;
-import serverutils.utils.net.*;
-import serverutils.utils.world.*;
-import serverutils.utils.world.claims.*;
+import serverutils.utils.net.MessageLMPlayerDied;
+import serverutils.utils.net.MessageLMPlayerLoggedOut;
+import serverutils.utils.world.LMPlayerServer;
+import serverutils.utils.world.LMWorldServer;
+import serverutils.utils.world.claims.ChunkType;
+import serverutils.utils.world.claims.ClaimedChunks;
 
 public class ServerUtilitiesPlayerEventHandler {
 

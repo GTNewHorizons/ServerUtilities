@@ -2,13 +2,19 @@ package serverutils.utils.mod.handlers;
 
 import java.util.ArrayList;
 
-import net.minecraft.event.*;
-import net.minecraft.util.*;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
-import cpw.mods.fml.common.eventhandler.*;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.api.ServerTickCallback;
-import serverutils.utils.world.*;
+import serverutils.utils.world.LMPlayer;
+import serverutils.utils.world.LMWorldServer;
+import serverutils.utils.world.PersonalSettings;
 
 public class ServerUtilitiesChatEventHandler {
 

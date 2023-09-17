@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.audio.PositionedSoundRecord;
-import net.minecraft.client.gui.*;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;

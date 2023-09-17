@@ -1,11 +1,15 @@
 package serverutils.utils.mod.client.gui.claims;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import latmod.lib.Bits;
-import serverutils.utils.world.*;
-import serverutils.utils.world.claims.*;
+import serverutils.utils.world.LMPlayerClient;
+import serverutils.utils.world.LMWorldClient;
+import serverutils.utils.world.claims.ChunkType;
+import serverutils.utils.world.claims.ClaimedChunks;
 
 @SideOnly(Side.CLIENT)
 public class ClaimedAreasClient {

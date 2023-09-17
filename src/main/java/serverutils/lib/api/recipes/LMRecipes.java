@@ -3,8 +3,12 @@ package serverutils.lib.api.recipes;
 import java.util.ArrayList;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.*;
-import net.minecraftforge.oredict.*;
+import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.FurnaceRecipes;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.ShapelessRecipes;
+import net.minecraftforge.oredict.ShapedOreRecipe;
+import net.minecraftforge.oredict.ShapelessOreRecipe;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 

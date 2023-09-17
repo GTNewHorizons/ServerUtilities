@@ -1,15 +1,20 @@
 package serverutils.utils.mod.client.gui.friends;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import net.minecraft.util.ChatComponentText;
 
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import latmod.lib.LMColor;
-import serverutils.lib.api.friends.*;
+import serverutils.lib.api.friends.LMPNameComparator;
+import serverutils.lib.api.friends.LMPStatusComparator;
 import serverutils.utils.api.guide.GuidePage;
 import serverutils.utils.mod.client.ServerUtilitiesClient;
-import serverutils.utils.world.*;
+import serverutils.utils.world.LMPlayer;
+import serverutils.utils.world.LMWorldClient;
 
 /**
  * Created by LatvianModder on 23.03.2016.

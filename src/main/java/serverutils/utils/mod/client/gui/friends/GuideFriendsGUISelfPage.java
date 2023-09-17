@@ -1,18 +1,24 @@
 package serverutils.utils.mod.client.gui.friends;
 
-import net.minecraft.util.*;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import com.google.gson.JsonPrimitive;
 
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.PrivacyLevel;
 import serverutils.lib.api.PlayerAction;
 import serverutils.lib.api.gui.PlayerActionRegistry;
-import serverutils.lib.api.notification.*;
+import serverutils.lib.api.notification.ClickAction;
+import serverutils.lib.api.notification.ClickActionType;
 import serverutils.utils.api.guide.GuidePage;
 import serverutils.utils.api.guide.lines.GuideExtendedTextLine;
 import serverutils.utils.mod.ServerUtilities;
-import serverutils.utils.world.*;
+import serverutils.utils.world.LMWorldClient;
+import serverutils.utils.world.PersonalSettings;
 
 /**
  * Created by LatvianModder on 24.03.2016.

@@ -5,8 +5,10 @@ import java.util.Arrays;
 import java.util.Map;
 
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.*;
-import net.minecraft.nbt.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.util.Constants;
 
 public class StringIDInvLoader {

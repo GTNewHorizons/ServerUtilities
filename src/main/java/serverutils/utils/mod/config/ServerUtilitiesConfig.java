@@ -3,7 +3,8 @@ package serverutils.utils.mod.config;
 import java.io.File;
 
 import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.api.config.*;
+import serverutils.lib.api.config.ConfigFile;
+import serverutils.lib.api.config.ConfigRegistry;
 import serverutils.utils.world.ranks.Ranks;
 
 public class ServerUtilitiesConfig {

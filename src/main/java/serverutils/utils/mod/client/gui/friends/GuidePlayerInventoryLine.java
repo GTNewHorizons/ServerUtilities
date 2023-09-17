@@ -4,12 +4,14 @@ import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
 
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.api.client.GlStateManager;
 import serverutils.lib.api.gui.GuiLM;
 import serverutils.utils.api.guide.GuidePage;
 import serverutils.utils.api.guide.lines.GuideTextLine;
-import serverutils.utils.mod.client.gui.guide.*;
+import serverutils.utils.mod.client.gui.guide.ButtonGuideTextLine;
+import serverutils.utils.mod.client.gui.guide.GuiGuide;
 import serverutils.utils.world.LMPlayerClient;
 
 /**

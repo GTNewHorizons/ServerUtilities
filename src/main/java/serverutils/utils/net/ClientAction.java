@@ -3,7 +3,8 @@ package serverutils.utils.net;
 import java.util.HashMap;
 
 import serverutils.utils.api.guide.ServerGuideFile;
-import serverutils.utils.world.*;
+import serverutils.utils.world.LMPlayerServer;
+import serverutils.utils.world.PersonalSettings;
 
 public abstract class ClientAction {
 

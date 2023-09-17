@@ -2,8 +2,10 @@ package serverutils.utils.mod.client;
 
 import com.google.gson.JsonElement;
 
-import cpw.mods.fml.relauncher.*;
-import serverutils.lib.api.notification.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import serverutils.lib.api.notification.ClickActionRegistry;
+import serverutils.lib.api.notification.ClickActionType;
 import serverutils.utils.net.ClientAction;
 
 public class ServerUtilitiesClickAction {

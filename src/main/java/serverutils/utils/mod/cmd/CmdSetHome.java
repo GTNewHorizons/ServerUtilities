@@ -1,10 +1,12 @@
 package serverutils.utils.mod.cmd;
 
-import net.minecraft.command.*;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.api.cmd.*;
+import serverutils.lib.api.cmd.CommandLM;
+import serverutils.lib.api.cmd.CommandLevel;
 import serverutils.utils.mod.ServerUtilities;
 import serverutils.utils.world.LMPlayerServer;
 
@@ -26,7 +28,12 @@ public class CmdSetHome extends CommandLM {
     public IChatComponent onCommand(ICommandSender ics, String[] args) throws CommandException {
         EntityPlayerMP ep = getCommandSenderAsPlayer(ics);
         LMPlayerServer p = LMPlayerServer.get(ep);
-        checkArgs(args, 1);
+
+        if (args.length == 0) {
+            args = new String[] { "home" };
+        }
+
+        args[0] = args[0].toLowerCase();
 
         int maxHomes = p.getRank().config.max_homes.getAsInt();
 

@@ -3,10 +3,14 @@ package serverutils.utils.world;
 import java.util.List;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.stats.*;
-import net.minecraft.util.*;
+import net.minecraft.stats.StatList;
+import net.minecraft.stats.StatisticsFile;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
-import latmod.lib.*;
+import latmod.lib.LMStringUtils;
+import latmod.lib.LMUtils;
 import serverutils.utils.mod.ServerUtilities;
 
 public class LMPlayerStats {

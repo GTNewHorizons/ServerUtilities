@@ -2,7 +2,8 @@ package serverutils.utils.mod.client.gui.guide;
 
 import java.util.List;
 
-import net.minecraft.util.*;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import serverutils.lib.api.client.ServerUtilitiesLibraryClient;
 import serverutils.lib.api.gui.widgets.ButtonLM;

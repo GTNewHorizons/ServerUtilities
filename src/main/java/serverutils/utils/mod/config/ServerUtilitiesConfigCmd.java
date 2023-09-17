@@ -1,6 +1,7 @@
 package serverutils.utils.mod.config;
 
-import serverutils.lib.api.config.*;
+import serverutils.lib.api.config.ConfigEntryBool;
+import serverutils.lib.api.config.ConfigEntryString;
 
 public class ServerUtilitiesConfigCmd {
 

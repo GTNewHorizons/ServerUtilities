@@ -2,7 +2,8 @@ package serverutils.lib.mod.net;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import cpw.mods.fml.common.network.simpleimpl.*;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 import cpw.mods.fml.relauncher.Side;
 import latmod.lib.ByteCount;
 import serverutils.lib.ServerUtilitiesLib;

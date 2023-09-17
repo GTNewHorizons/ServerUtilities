@@ -2,8 +2,10 @@ package serverutils.utils.net;
 
 import java.util.UUID;
 
-import cpw.mods.fml.common.network.simpleimpl.*;
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import latmod.lib.ByteCount;
 import serverutils.lib.api.net.LMNetworkWrapper;
 import serverutils.utils.badges.ClientBadges;

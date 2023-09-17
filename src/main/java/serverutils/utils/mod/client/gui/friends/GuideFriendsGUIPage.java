@@ -1,13 +1,17 @@
 package serverutils.utils.mod.client.gui.friends;
 
-import cpw.mods.fml.relauncher.*;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.api.PlayerAction;
 import serverutils.lib.api.client.GlStateManager;
-import serverutils.lib.api.gui.*;
+import serverutils.lib.api.gui.GuiLM;
+import serverutils.lib.api.gui.PlayerActionRegistry;
 import serverutils.utils.api.guide.GuidePage;
-import serverutils.utils.mod.client.gui.guide.*;
+import serverutils.utils.mod.client.gui.guide.ButtonGuidePage;
+import serverutils.utils.mod.client.gui.guide.GuiGuide;
 import serverutils.utils.net.ClientAction;
-import serverutils.utils.world.*;
+import serverutils.utils.world.LMPlayerClient;
+import serverutils.utils.world.LMWorldClient;
 
 /**
  * Created by LatvianModder on 24.03.2016.
