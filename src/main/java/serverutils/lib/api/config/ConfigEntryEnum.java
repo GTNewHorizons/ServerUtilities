@@ -2,7 +2,9 @@ package serverutils.lib.api.config;
 
 import java.util.LinkedHashMap;
 
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;

@@ -1,7 +1,8 @@
 package serverutils.lib;
 
 import net.minecraft.command.ICommandSender;
-import net.minecraft.util.*;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.world.World;
 
 public class BroadcastSender implements ICommandSender {

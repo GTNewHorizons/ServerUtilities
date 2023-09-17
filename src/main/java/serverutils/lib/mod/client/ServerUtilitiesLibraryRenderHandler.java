@@ -6,7 +6,8 @@ import java.util.List;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
 
-import cpw.mods.fml.common.eventhandler.*;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

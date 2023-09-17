@@ -1,7 +1,8 @@
 package serverutils.lib.api;
 
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.*;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

@@ -2,7 +2,8 @@ package serverutils.lib.mod;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
-import net.minecraftforge.event.entity.player.*;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 import latmod.lib.ByteIOStream;
 import latmod.lib.util.Phase;

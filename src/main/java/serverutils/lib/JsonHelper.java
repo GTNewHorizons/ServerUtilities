@@ -1,6 +1,8 @@
 package serverutils.lib;
 
-import net.minecraft.util.*;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumTypeAdapterFactory;
+import net.minecraft.util.IChatComponent;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

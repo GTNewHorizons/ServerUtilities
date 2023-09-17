@@ -3,7 +3,9 @@ package serverutils.lib.mod.cmd;
 import java.util.Collections;
 import java.util.List;
 
-import net.minecraft.command.*;
+import net.minecraft.command.CommandHelp;
+import net.minecraft.command.ICommand;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 
 public class CmdHelpOverride extends CommandHelp {

@@ -4,7 +4,8 @@ import java.util.List;
 
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.client.event.*;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 
 import cpw.mods.fml.common.Loader;

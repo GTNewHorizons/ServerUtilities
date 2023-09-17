@@ -2,7 +2,8 @@ package serverutils.lib;
 
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Items;
-import net.minecraft.item.*;
+import net.minecraft.item.ItemDye;
+import net.minecraft.item.ItemStack;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;

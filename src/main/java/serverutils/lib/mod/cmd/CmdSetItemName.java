@@ -1,8 +1,10 @@
 package serverutils.lib.mod.cmd;
 
-import net.minecraft.command.*;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.*;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 
 import latmod.lib.LMStringUtils;
 import serverutils.lib.api.cmd.CommandLM;

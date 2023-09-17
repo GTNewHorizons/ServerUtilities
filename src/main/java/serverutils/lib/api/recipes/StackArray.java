@@ -7,8 +7,11 @@ import java.util.Collections;
 
 import net.minecraft.block.Block;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.*;
-import net.minecraftforge.fluids.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
 import serverutils.lib.api.item.LMInvUtils;
 import serverutils.lib.api.item.MaterialItem;

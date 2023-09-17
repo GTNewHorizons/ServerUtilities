@@ -6,12 +6,17 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.entity.*;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.*;
-import net.minecraft.world.*;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.IIcon;
+import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import cpw.mods.fml.relauncher.Side;
@@ -92,7 +97,7 @@ public abstract class BlockLM extends Block implements IBlockLM {
     }
 
     public float getExplosionResistance(Entity entity, World w, int x, int y, int z, double explosionX,
-            double explosionY, double explosionZ) {
+                                        double explosionY, double explosionZ) {
         if (hasTileEntity(w.getBlockMetadata(x, y, z))) {
             TileLM tile = getTile(w, x, y, z);
             if (tile != null && tile.isExplosionResistant()) return 1000000F;

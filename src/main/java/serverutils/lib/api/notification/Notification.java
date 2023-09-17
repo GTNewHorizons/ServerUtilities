@@ -1,7 +1,8 @@
 package serverutils.lib.api.notification;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.*;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.IJsonSerializable;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
