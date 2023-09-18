@@ -11,7 +11,7 @@ serverlib.feature_disabled=This feature is disabled!
 serverlib.invalid_subcmd=Invalid subcommand: '%s'!
 serverlib.owner=Owner: %s
 serverlib.delete_item=Do you want to delete '%s'?
-serverlib.label.server_forced=Server overrides to '%s'
+serverutilitieslibrary.label.server_forced=Server overrides to '%s'
 serverlib.reload_client_config=Server Reloaded. You can
 
 serverlib.button.shortcut.action=Action
@@ -41,16 +41,16 @@ serverlib.button.other=Other
 serverlib.button.edit=Edit
 serverlib.button.info=Info
 
-serverlib.label.true=True
-serverlib.label.false=False
-serverlib.label.enabled=Enabled
-serverlib.label.disabled=Disabled
-serverlib.label.on=On
-serverlib.label.off=Off
-serverlib.label.online=Online
-serverlib.label.offline=Offline
-serverlib.label.whitelist=Whitelist
-serverlib.label.blacklist=Blacklist
+serverutilitieslibrary.label.true=True
+serverutilitieslibrary.label.false=False
+serverutilitieslibrary.label.enabled=Enabled
+serverutilitieslibrary.label.disabled=Disabled
+serverutilitieslibrary.label.on=On
+serverutilitieslibrary.label.off=Off
+serverutilitieslibrary.label.online=Online
+serverutilitieslibrary.label.offline=Offline
+serverutilitieslibrary.label.whitelist=Whitelist
+serverutilitieslibrary.label.blacklist=Blacklist
 
 #Colors
 serverlib.color.black=Black

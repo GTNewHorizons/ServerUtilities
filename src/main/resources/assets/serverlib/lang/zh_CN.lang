@@ -1,80 +1,80 @@
 #Traslated by xuyu_staryG(gxy17886) From InfinityStudio
-serverlib:gamemode.loaded=游戏模式设置为'%s'!
-serverlib:gamemode.not_found=游戏模式不存在!
-serverlib:gamemode.already_set=游戏模式已设置!
-serverlib:gamemode.current=当前游戏模式: %s
-serverlib:gamemode.list=可用游戏模式: %s
-serverlib:worldID=世界ID: %s
-serverlib:reloadedServer=ServerUtilitiesLibrary:服务器重新载入在%s
-serverlib:reloadedClient=ServerUtilitiesLibrary:客户端重新载入在%s
-serverlib:missing_args=缺少参数!
-serverlib:feature_disabled=此功能被禁用!
-serverlib:invalid_subcmd=无效的子命令: '%s'!
-serverlib:owner=所有者: %s
-serverlib:delete_item=你确定要删除'%s'?
-serverlib:label.server_forced=服务器覆盖'%s'
-serverlib:reload_client_config=你可以重新载入服务器.
+serverlib.gamemode.loaded=游戏模式设置为'%s'!
+serverlib.gamemode.not_found=游戏模式不存在!
+serverlib.gamemode.already_set=游戏模式已设置!
+serverlib.gamemode.current=当前游戏模式: %s
+serverlib.gamemode.list=可用游戏模式: %s
+serverlib.worldID=世界ID: %s
+serverlib.reloadedServer=ServerUtilitiesLibrary:服务器重新载入在%s
+serverlib.reloadedClient=ServerUtilitiesLibrary:客户端重新载入在%s
+serverlib.missing_args=缺少参数!
+serverlib.feature_disabled=此功能被禁用!
+serverlib.invalid_subcmd=无效的子命令: '%s'!
+serverlib.owner=所有者: %s
+serverlib.delete_item=你确定要删除'%s'?
+serverutilitieslibrary.label.server_forced=服务器覆盖'%s'
+serverlib.reload_client_config=你可以重新载入服务器.
 
 #Buttons
-serverlib:button.settings=设置
-serverlib:button.back=后退
-serverlib:button.up=上
-serverlib:button.down=下
-serverlib:button.prev=上一步
-serverlib:button.next=下一步
-serverlib:button.cancel=取消
-serverlib:button.accept=接受
-serverlib:button.remove=删除
-serverlib:button.add=添加
-serverlib:button.close=关闭
-serverlib:button.save=保存
-serverlib:button.refresh=刷新
-serverlib:button.other=其他
-serverlib:button.edit=编辑
+serverlib.button.settings=设置
+serverlib.button.back=后退
+serverlib.button.up=上
+serverlib.button.down=下
+serverlib.button.prev=上一步
+serverlib.button.next=下一步
+serverlib.button.cancel=取消
+serverlib.button.accept=接受
+serverlib.button.remove=删除
+serverlib.button.add=添加
+serverlib.button.close=关闭
+serverlib.button.save=保存
+serverlib.button.refresh=刷新
+serverlib.button.other=其他
+serverlib.button.edit=编辑
 
-serverlib:label.true=True
-serverlib:label.false=False
-serverlib:label.enabled=启用
-serverlib:label.disabled=禁用
-serverlib:label.on=开
-serverlib:label.off=关
-serverlib:label.online=在线
-serverlib:label.offline=离线
-serverlib:label.whitelist=白名单
-serverlib:label.blacklist=黑名单
+serverutilitieslibrary.label.true=True
+serverutilitieslibrary.label.false=False
+serverutilitieslibrary.label.enabled=启用
+serverutilitieslibrary.label.disabled=禁用
+serverutilitieslibrary.label.on=开
+serverutilitieslibrary.label.off=关
+serverutilitieslibrary.label.online=在线
+serverutilitieslibrary.label.offline=离线
+serverutilitieslibrary.label.whitelist=白名单
+serverutilitieslibrary.label.blacklist=黑名单
 
 #Colors
-serverlib:color.black=黑色
-serverlib:color.red=红色
-serverlib:color.green=绿色
-serverlib:color.brown=棕色
-serverlib:color.blue=蓝色
-serverlib:color.purple=紫色
-serverlib:color.cyan=青色
-serverlib:color.lightgray=浅灰色
-serverlib:color.gray=深灰色
-serverlib:color.pink=粉色
-serverlib:color.lime=黄绿色
-serverlib:color.yellow=黄色
-serverlib:color.lightblue=浅蓝色
-serverlib:color.magenta=品红色
-serverlib:color.orange=橙色
-serverlib:color.white=白色
+serverlib.color.black=黑色
+serverlib.color.red=红色
+serverlib.color.green=绿色
+serverlib.color.brown=棕色
+serverlib.color.blue=蓝色
+serverlib.color.purple=紫色
+serverlib.color.cyan=青色
+serverlib.color.lightgray=浅灰色
+serverlib.color.gray=深灰色
+serverlib.color.pink=粉色
+serverlib.color.lime=黄绿色
+serverlib.color.yellow=黄色
+serverlib.color.lightblue=浅蓝色
+serverlib.color.magenta=品红色
+serverlib.color.orange=橙色
+serverlib.color.white=白色
 
 #Sides
-serverlib:side.down=下
-serverlib:side.up=上
-serverlib:side.north=北
-serverlib:side.south=南
-serverlib:side.west=西
-serverlib:side.east=东
+serverlib.side.down=下
+serverlib.side.up=上
+serverlib.side.north=北
+serverlib.side.south=南
+serverlib.side.west=西
+serverlib.side.east=东
 
-serverlib:dside.bottom=底部
-serverlib:dside.top=顶部
-serverlib:dside.back=后面
-serverlib:dside.front=前面
-serverlib:dside.left=左侧
-serverlib:dside.right=右侧
+serverlib.dside.bottom=底部
+serverlib.dside.top=顶部
+serverlib.dside.back=后面
+serverlib.dside.front=前面
+serverlib.dside.left=左侧
+serverlib.dside.right=右侧
 
 #ClientConfig
 client_config=客户端配置
@@ -98,21 +98,21 @@ player_action.serverlib.toggle_day=设置时间为白天
 player_action.serverlib.toggle_night=设置时间为晚上
 
 #Security Mode
-serverlib:security=安全
-serverlib:security.public=公共
-serverlib:security.private=私人
-serverlib:security.friends=仅限朋友
-serverlib:security.group=仅限同组
+serverlib.security=安全
+serverlib.security.public=公共
+serverlib.security.private=私人
+serverlib.security.friends=仅限朋友
+serverlib.security.group=仅限同组
 
 #Redstone Mode
-serverlib:redstonemode=红石模式
-serverlib:redstonemode.disabled=禁用
-serverlib:redstonemode.high=高态有效
-serverlib:redstonemode.low=低态有效
+serverlib.redstonemode=红石模式
+serverlib.redstonemode.disabled=禁用
+serverlib.redstonemode.high=高态有效
+serverlib.redstonemode.low=低态有效
 
 #Inventory Mode
-serverlib:invmode=自动化
-serverlib:invmode.enabled=启用
-serverlib:invmode.onlyin=只有输入
-serverlib:invmode.onlyout=只有输出
-serverlib:invmode.disabled=禁用
+serverlib.invmode=自动化
+serverlib.invmode.enabled=启用
+serverlib.invmode.onlyin=只有输入
+serverlib.invmode.onlyout=只有输出
+serverlib.invmode.disabled=禁用
