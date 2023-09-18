@@ -2,25 +2,25 @@
 #Edited by Cyrus-Vance from KoiRealm
 
 #Buttons
-serverutils.label.friend=好友
-serverutils.label.pfriend=待定的好友
-serverutils.label.joined=%s前加入
-serverutils.label.last_seen=最后露面在%s前
-serverutils.label.deaths=死亡次数: %s
-serverutils.button.explosions=爆炸
-serverutils.button.block_security=方块安全
-serverutils.label.cchunks_count=认领区块: %s
-serverutils.label.lchunks_count=载入区块: %s
+serverutilities.label.friend=好友
+serverutilities.label.pfriend=待定的好友
+serverutilities.label.joined=%s前加入
+serverutilities.label.last_seen=最后露面在%s前
+serverutilities.label.deaths=死亡次数: %s
+serverutilities.button.explosions=爆炸
+serverutilities.button.block_security=方块安全
+serverutilities.label.cchunks_count=认领区块: %s
+serverutilities.label.lchunks_count=载入区块: %s
 
 #ClientConfig
-client_config.serverutils=ServerUtilities
-client_config.serverutils.render_badges=显示徽章
-client_config.serverutils.render_my_badge=展示我的徽章
-client_config.serverutils.options_button=选项按钮
-client_config.serverutils.chat_links=聊天链接
-client_config.serverutils.sort_friends_az=按A-Z首字母顺序分类好友
-client_config.serverutils.loaded_chunks_space_key=使用空格键加载区块
-client_config.serverutils.guide_unicode=在指南中使用Unicode编码
+client_config.serverutilities=ServerUtilities
+client_config.serverutilities.render_badges=显示徽章
+client_config.serverutilities.render_my_badge=展示我的徽章
+client_config.serverutilities.options_button=选项按钮
+client_config.serverutilities.chat_links=聊天链接
+client_config.serverutilities.sort_friends_az=按A-Z首字母顺序分类好友
+client_config.serverutilities.loaded_chunks_space_key=使用空格键加载区块
+client_config.serverutilities.guide_unicode=在指南中使用Unicode编码
 
 claims_config=认领区块配置
 claims_config.explosions=爆炸
@@ -28,81 +28,81 @@ claims_config.security_level=方块安全等级
 claims_config.fake_players=允许假玩家
 
 #PlayerActions
-player_action.serverutils.guide=指南
-player_action.serverutils.server_info=服务器信息
-player_action.serverutils.claimed_chunks=认领区块
-player_action.serverutils.trade=交易
-player_action.serverutils.notes=注释
-player_action.serverutils.add_friend=加为好友
-player_action.serverutils.rem_friend=从好友中移除
-player_action.serverutils.deny_friend=拒绝好友的请求
-player_action.serverutils.mail=邮件
+player_action.serverutilities.guide=指南
+player_action.serverutilities.server_info=服务器信息
+player_action.serverutilities.claimed_chunks=认领区块
+player_action.serverutilities.trade=交易
+player_action.serverutilities.notes=注释
+player_action.serverutilities.add_friend=加为好友
+player_action.serverutilities.rem_friend=从好友中移除
+player_action.serverutilities.deny_friend=拒绝好友的请求
+player_action.serverutilities.mail=邮件
 
 #Misc
-serverutils.label.new_friends=一个新好友申请!
-serverutils.label.new_friends_click=点击接受所有申请
-serverutils.server_restart=服务器将会在%s后重启
+serverutilities.label.new_friends=一个新好友申请!
+serverutilities.label.new_friends_click=点击接受所有申请
+serverutilities.server_restart=服务器将会在%s后重启
 
-serverutils.cmd.warp_set=传送点'%s'已设置!
-serverutils.cmd.warp_del=传送点'%s'已删除!
-serverutils.cmd.warp_not_set=未知传送点: '%s'!
-serverutils.cmd.warp_tp=传送到'%s'!
-serverutils.cmd.warp_not_same_dim=你不能传送到另一个世界!
+serverutilities.cmd.warp_set=传送点'%s'已设置!
+serverutilities.cmd.warp_del=传送点'%s'已删除!
+serverutilities.cmd.warp_not_set=未知传送点: '%s'!
+serverutilities.cmd.warp_tp=传送到'%s'!
+serverutilities.cmd.warp_not_same_dim=你不能传送到另一个世界!
 
-serverutils.cmd.home_set=家'%s'已设置!
-serverutils.cmd.home_del=家'%s'已删除!
-serverutils.cmd.home_not_set=未知的家: '%s'!
-serverutils.cmd.home_cross_dim=你不能回到另一个世界的家！
-serverutils.cmd.home_limit=你不能设置更多家的位置!
+serverutilities.cmd.home_set=家'%s'已设置!
+serverutilities.cmd.home_del=家'%s'已删除!
+serverutilities.cmd.home_not_set=未知的家: '%s'!
+serverutilities.cmd.home_cross_dim=你不能回到另一个世界的家！
+serverutilities.cmd.home_limit=你不能设置更多家的位置!
 
-serverutils.cmd.no_dp=你只能回去一次!
-serverutils.cmd.timer_backup=下一次备份: %s
-serverutils.cmd.timer_restart=下一次重启: %s
-serverutils.cmd.rules=[点击这里打开规则]
-serverutils.cmd.spawn_tp=传送到出生点
+serverutilities.cmd.no_dp=你只能回去一次!
+serverutilities.cmd.timer_backup=下一次备份: %s
+serverutilities.cmd.timer_restart=下一次重启: %s
+serverutilities.cmd.rules=[点击这里打开规则]
+serverutilities.cmd.spawn_tp=传送到出生点
 
-serverutils.button.claims_unclaim_all=解除所有认领区块
-serverutils.button.claims_unclaim_all_dim=在%s解除所有认领区块
-serverutils.button.claims_unclaim_all_q=是否解除所有认领区块?
-serverutils.button.claims_unclaim_all_dim_q=是否在%s解除所有认领区块?
-serverutils.label.claims_invalid_dim=在这个维度不能解除认领区块
+serverutilities.button.claims_unclaim_all=解除所有认领区块
+serverutilities.button.claims_unclaim_all_dim=在%s解除所有认领区块
+serverutilities.button.claims_unclaim_all_q=是否解除所有认领区块?
+serverutilities.button.claims_unclaim_all_dim_q=是否在%s解除所有认领区块?
+serverutilities.label.claims_invalid_dim=在这个维度不能解除认领区块
 
-serverutils.top.title=服务器排名
-serverutils.top.first_joined=上线时间
-serverutils.top.last_seen=离线时间
-serverutils.top.time_played=游戏时间
-serverutils.top.deaths=死亡
-serverutils.top.deaths_ph=每小时死亡
+serverutilities.top.title=服务器排名
+serverutilities.top.first_joined=上线时间
+serverutilities.top.last_seen=离线时间
+serverutilities.top.time_played=游戏时间
+serverutilities.top.deaths=死亡
+serverutilities.top.deaths_ph=每小时死亡
 
 #Chunktypes
-serverutils.chunktype.unloaded=区块未载入
-serverutils.chunktype.spawn=出生区域
-serverutils.chunktype.world_border=世界边界
-serverutils.chunktype.world_border.warning=你已经到达了世界的边界!
-serverutils.chunktype.wilderness=野外地区
-serverutils.chunktype.claimed=认领区域
-serverutils.chunktype.chunkloaded=区块加载
+serverutilities.chunktype.unloaded=区块未载入
+serverutilities.chunktype.spawn=出生区域
+serverutilities.chunktype.world_border=世界边界
+serverutilities.chunktype.world_border.warning=你已经到达了世界的边界!
+serverutilities.chunktype.wilderness=野外地区
+serverutilities.chunktype.claimed=认领区域
+serverutilities.chunktype.chunkloaded=区块加载
 
 client_config.serverutils_guide=Server Utilities: 指南
 client_config.serverutils_guide.unicode=使用Unicode编码
 client_config.serverutils_guide.text_color=文本颜色
 client_config.serverutils_guide.bg_color=背景颜色
 client_config.serverutils_guide.transparency=透明度
-serverutils.player_setting.chat_links=聊天链接
-serverutils.player_setting.render_badge=显示徽章
-serverutils.player_setting.explosions=认领区块发生爆炸
-serverutils.player_setting.security_level=认领区块安全等级
-serverutils.player_setting.fake_players=认领区块允许假玩家
-serverutils.commands=命令
-serverutils.my_permissions=我的权限
-serverutils.cmd.serveru_gamemode=游戏模式: %s
-serverutils.cmd.world_difficulty=难度: %s
-serverutils.cmd.backup_start=服务器备份已开始!
-serverutils.cmd.backup_stop=服务器备份已停止!
-serverutils.cmd.backup_end_1=服务器备份完成，用时%s!
-serverutils.cmd.backup_end_2=服务器备份完成，用时%s! (%s)
-serverutils.cmd.backup_fail=保存世界存档时失败! (%s)
-serverutils.cmd.backup_manual_launch=%s 执行了手动备份!
-serverutils.cmd.backup_already_running=正在备份中……
-serverutils.cmd.backup_not_running=备份进程未运行!
-serverutils.cmd.backup_size=当前世界大小: %s,备份文件夹总大小: %s
+serverutilities.player_setting.chat_links=聊天链接
+serverutilities.player_setting.render_badge=显示徽章
+serverutilities.player_setting.explosions=认领区块发生爆炸
+serverutilities.player_setting.security_level=认领区块安全等级
+serverutilities.player_setting.fake_players=认领区块允许假玩家
+serverutilities.commands=命令
+serverutilities.my_permissions=我的权限
+serverutilities.cmd.serveru_gamemode=游戏模式: %s
+serverutilities.cmd.world_difficulty=难度: %s
+serverutilities.cmd.backup_start=服务器备份已开始!
+serverutilities.cmd.backup_stop=服务器备份已停止!
+serverutilities.cmd.backup_end_1=服务器备份完成，用时%s!
+serverutilities.cmd.backup_end_2=服务器备份完成，用时%s! (%s)
+serverutilities.cmd.backup_fail=保存世界存档时失败! (%s)
+serverutilities.cmd.backup_manual_launch=%s 执行了手动备份!
+serverutilities.cmd.backup_already_running=正在备份中……
+serverutilities.cmd.backup_not_running=备份进程未运行!
+serverutilities.cmd.backup_size=当前世界大小: %s,备份文件夹总大小: %s

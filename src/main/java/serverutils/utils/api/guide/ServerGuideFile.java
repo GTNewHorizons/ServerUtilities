@@ -22,7 +22,7 @@ public class ServerGuideFile extends GuidePage {
     public static class CachedInfo {
 
         public static final GuidePage main = new GuidePage("server_info")
-                .setTitle(new ChatComponentTranslation("player_action.serverutils.server_info"));
+                .setTitle(new ChatComponentTranslation("player_action.serverutilities.server_info"));
         public static GuidePage categoryServer;
 
         public static void reload() {

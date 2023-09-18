@@ -17,7 +17,7 @@ public class ClientGuideFile extends GuidePage {
 
     public ClientGuideFile(String id) {
         super(id);
-        setTitle(new ChatComponentTranslation("player_action.serverutils.guide"));
+        setTitle(new ChatComponentTranslation("player_action.serverutilities.guide"));
     }
 
     public void reload(EventServerUtilitiesReload e) {
