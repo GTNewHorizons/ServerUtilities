@@ -76,7 +76,7 @@ public class ServerUtilitiesActions {
 
     public static final PlayerAction friends_gui = new PlayerAction(
             PlayerAction.Type.SELF,
-            "serverutils.friends_gui",
+            "serverutilities.friends_gui",
             950,
             TextureCoords.getSquareIcon(new ResourceLocation("serverutils", "textures/gui/friendsbutton.png"), 256)) {
 
@@ -95,7 +95,7 @@ public class ServerUtilitiesActions {
 
     public static final PlayerAction guide = new PlayerAction(
             PlayerAction.Type.SELF,
-            "serverutils.guide",
+            "serverutilities.guide",
             0,
             GuiIcons.book) {
 
@@ -115,7 +115,7 @@ public class ServerUtilitiesActions {
 
     public static final PlayerAction info = new PlayerAction(
             PlayerAction.Type.SELF,
-            "serverutils.server_info",
+            "serverutilities.server_info",
             0,
             GuiIcons.book_red) {
 
@@ -134,7 +134,7 @@ public class ServerUtilitiesActions {
 
     public static final PlayerAction claims = new PlayerAction(
             PlayerAction.Type.SELF,
-            "serverutils.claimed_chunks",
+            "serverutilities.claimed_chunks",
             0,
             GuiIcons.map) {
 
@@ -153,7 +153,7 @@ public class ServerUtilitiesActions {
 
     public static final PlayerAction trade = new PlayerAction(
             PlayerAction.Type.SELF,
-            "serverutils.trade",
+            "serverutilities.trade",
             0,
             GuiIcons.money_bag) {
 
@@ -172,7 +172,7 @@ public class ServerUtilitiesActions {
 
     public static final PlayerAction friend_add = new PlayerAction(
             PlayerAction.Type.OTHER,
-            "serverutils.add_friend",
+            "serverutilities.add_friend",
             1,
             GuiIcons.add) {
 
@@ -187,7 +187,7 @@ public class ServerUtilitiesActions {
 
     public static final PlayerAction friend_remove = new PlayerAction(
             PlayerAction.Type.OTHER,
-            "serverutils.rem_friend",
+            "serverutilities.rem_friend",
             -1,
             GuiIcons.remove) {
 
@@ -202,7 +202,7 @@ public class ServerUtilitiesActions {
 
     public static final PlayerAction friend_deny = new PlayerAction(
             PlayerAction.Type.OTHER,
-            "serverutils.deny_friend",
+            "serverutilities.deny_friend",
             -1,
             GuiIcons.remove) {
 
@@ -218,7 +218,7 @@ public class ServerUtilitiesActions {
 
     public static final PlayerAction mail = new PlayerAction(
             PlayerAction.Type.OTHER,
-            "serverutils.mail",
+            "serverutilities.mail",
             0,
             GuiIcons.feather) {
 
