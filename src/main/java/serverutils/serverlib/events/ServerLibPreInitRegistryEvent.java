@@ -1,15 +1,16 @@
 package serverutils.serverlib.events;
 
+import net.minecraft.util.ResourceLocation;
+
 import serverutils.serverlib.lib.config.ConfigValueProvider;
 import serverutils.serverlib.lib.data.AdminPanelAction;
 import serverutils.serverlib.lib.data.ISyncData;
 import serverutils.serverlib.lib.data.TeamAction;
-import net.minecraft.util.ResourceLocation;
 
-public class ServerLibPreInitRegistryEvent extends ServerLibEvent
-{
-	public interface Registry
-	{
+public class ServerLibPreInitRegistryEvent extends ServerLibEvent {
+
+	public interface Registry {
+
 		void registerConfigValueProvider(String id, ConfigValueProvider provider);
 
 		void registerSyncData(String mod, ISyncData data);
@@ -23,13 +24,11 @@ public class ServerLibPreInitRegistryEvent extends ServerLibEvent
 
 	private final Registry registry;
 
-	public ServerLibPreInitRegistryEvent(Registry r)
-	{
+	public ServerLibPreInitRegistryEvent(Registry r) {
 		registry = r;
 	}
 
-	public Registry getRegistry()
-	{
+	public Registry getRegistry() {
 		return registry;
 	}
 }

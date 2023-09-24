@@ -1,7 +1,7 @@
 package serverutils.serverlib.events;
 
 @FunctionalInterface
-public interface IReloadHandler
-{
+public interface IReloadHandler {
+
 	boolean onReload(ServerReloadEvent reloadEvent) throws Exception;
 }

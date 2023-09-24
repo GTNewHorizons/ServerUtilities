@@ -5,6 +5,7 @@ import serverutils.serverlib.lib.data.ForgePlayer;
 import net.minecraft.command.ICommandSender;
 
 public class ForgePlayerConfigSavedEvent extends ForgePlayerEvent {
+
 	private final ConfigGroup config;
 	private final ICommandSender sender;
 
@@ -14,13 +15,11 @@ public class ForgePlayerConfigSavedEvent extends ForgePlayerEvent {
 		sender = ics;
 	}
 
-	public ConfigGroup getConfig()
-	{
+	public ConfigGroup getConfig() {
 		return config;
 	}
 
-	public ICommandSender getSender()
-	{
+	public ICommandSender getSender() {
 		return sender;
 	}
 }

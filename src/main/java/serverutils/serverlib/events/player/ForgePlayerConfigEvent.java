@@ -4,6 +4,7 @@ import serverutils.serverlib.lib.config.ConfigGroup;
 import serverutils.serverlib.lib.data.ForgePlayer;
 
 public class ForgePlayerConfigEvent extends ForgePlayerEvent {
+
 	private final ConfigGroup config;
 
 	public ForgePlayerConfigEvent(ForgePlayer player, ConfigGroup s) {
@@ -11,8 +12,7 @@ public class ForgePlayerConfigEvent extends ForgePlayerEvent {
 		config = s;
 	}
 
-	public ConfigGroup getConfig()
-	{
+	public ConfigGroup getConfig() {
 		return config;
 	}
 }

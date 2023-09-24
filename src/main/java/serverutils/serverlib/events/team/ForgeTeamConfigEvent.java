@@ -5,6 +5,7 @@ import serverutils.serverlib.lib.data.ForgeTeam;
 
 
 public class ForgeTeamConfigEvent extends ForgeTeamEvent {
+
 	private final ConfigGroup config;
 
 	public ForgeTeamConfigEvent(ForgeTeam team, ConfigGroup s) {
@@ -12,8 +13,7 @@ public class ForgeTeamConfigEvent extends ForgeTeamEvent {
 		config = s;
 	}
 
-	public ConfigGroup getConfig()
-	{
+	public ConfigGroup getConfig() {
 		return config;
 	}
 }

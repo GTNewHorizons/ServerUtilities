@@ -6,15 +6,14 @@ import cpw.mods.fml.common.eventhandler.Cancelable;
 
 @Cancelable
 public class CustomClickEvent extends ServerLibEvent {
+
 	private final ResourceLocation id;
 
-	public CustomClickEvent(ResourceLocation _id)
-	{
+	public CustomClickEvent(ResourceLocation _id) {
 		id = _id;
 	}
 
-	public ResourceLocation getID()
-	{
+	public ResourceLocation getID() {
 		return id;
 	}
 }

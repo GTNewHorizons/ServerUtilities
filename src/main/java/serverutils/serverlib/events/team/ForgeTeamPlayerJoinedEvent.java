@@ -1,30 +1,24 @@
 package serverutils.serverlib.events.team;
 
+import javax.annotation.Nullable;
+
 import serverutils.serverlib.events.player.ForgePlayerEvent;
 import serverutils.serverlib.lib.data.ForgePlayer;
 
-import javax.annotation.Nullable;
+public class ForgeTeamPlayerJoinedEvent extends ForgePlayerEvent {
 
-/**
- * @author LatvianModder
- */
-public class ForgeTeamPlayerJoinedEvent extends ForgePlayerEvent
-{
 	private Runnable displayGui;
 
-	public ForgeTeamPlayerJoinedEvent(ForgePlayer player)
-	{
+	public ForgeTeamPlayerJoinedEvent(ForgePlayer player) {
 		super(player);
 	}
 
-	public void setDisplayGui(Runnable gui)
-	{
+	public void setDisplayGui(Runnable gui) {
 		displayGui = gui;
 	}
 
 	@Nullable
-	public Runnable getDisplayGui()
-	{
+	public Runnable getDisplayGui() {
 		return displayGui;
 	}
 }
