@@ -1,39 +1,37 @@
 package serverutils.serverlib.lib.data;
 
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
+
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 
+public abstract class Action {
 
-public abstract class Action
-{
-	public enum Type
-	{
+	public enum Type {
+
 		ENABLED,
 		DISABLED,
 		INVISIBLE;
 
-		public static Type fromBoolean(boolean value)
-		{
+		public static Type fromBoolean(boolean value) {
 			return value ? ENABLED : DISABLED;
 		}
 
-		public boolean isEnabled()
-		{
+		public boolean isEnabled() {
 			return this == ENABLED;
 		}
 
-		public boolean isVisible()
-		{
+		public boolean isVisible() {
 			return this != INVISIBLE;
 		}
 	}
 
-	public static class Inst implements Comparable<Inst>
-	{
+	public static class Inst implements Comparable<Inst> {
+
 		public static final DataOut.Serializer<Inst> SERIALIZER = (data, object) -> object.writeData(data);
 		public static final DataIn.Deserializer<Inst> DESERIALIZER = Inst::new;
 
@@ -44,8 +42,7 @@ public abstract class Action
 		public boolean enabled;
 		public int order;
 
-		private Inst(DataIn data)
-		{
+		private Inst(DataIn data) {
 			id = data.readResourceLocation();
 			title = data.readTextComponent();
 			requiresConfirm = data.readBoolean();
@@ -54,8 +51,7 @@ public abstract class Action
 			order = data.readVarInt();
 		}
 
-		public Inst(Action action, Action.Type t)
-		{
+		public Inst(Action action, Action.Type t) {
 			id = action.getId();
 			title = action.getTitle();
 			requiresConfirm = action.getRequireConfirm();
@@ -64,8 +60,7 @@ public abstract class Action
 			order = action.getOrder();
 		}
 
-		private void writeData(DataOut data)
-		{
+		private void writeData(DataOut data) {
 			data.writeResourceLocation(id);
 			data.writeTextComponent(title);
 			data.writeBoolean(requiresConfirm);
@@ -75,8 +70,7 @@ public abstract class Action
 		}
 
 		@Override
-		public int compareTo(Inst o)
-		{
+		public int compareTo(Inst o) {
 			int i = Integer.compare(order, o.order);
 			return i == 0 ? title.getUnformattedText().compareToIgnoreCase(o.title.getUnformattedText()) : i;
 		}
@@ -88,8 +82,7 @@ public abstract class Action
 	private Icon icon;
 	private int order;
 
-	public Action(ResourceLocation _id, IChatComponent t, Icon i, int o)
-	{
+	public Action(ResourceLocation _id, IChatComponent t, Icon i, int o) {
 		id = _id;
 		title = t;
 		requiresConfirm = false;
@@ -97,8 +90,7 @@ public abstract class Action
 		order = o;
 	}
 
-	public final ResourceLocation getId()
-	{
+	public final ResourceLocation getId() {
 		return id;
 	}
 
@@ -106,62 +98,51 @@ public abstract class Action
 
 	public abstract void onAction(ForgePlayer player, NBTTagCompound data);
 
-	public Action setTitle(IChatComponent t)
-	{
+	public Action setTitle(IChatComponent t) {
 		title = t;
 		return this;
 	}
 
-	public IChatComponent getTitle()
-	{
+	public IChatComponent getTitle() {
 		return title;
 	}
 
-	public Action setRequiresConfirm()
-	{
+	public Action setRequiresConfirm() {
 		requiresConfirm = true;
 		return this;
 	}
 
-	public boolean getRequireConfirm()
-	{
+	public boolean getRequireConfirm() {
 		return requiresConfirm;
 	}
 
-	public Action setIcon(Icon i)
-	{
+	public Action setIcon(Icon i) {
 		icon = i;
 		return this;
 	}
 
-	public Icon getIcon()
-	{
+	public Icon getIcon() {
 		return icon;
 	}
 
-	public Action setOrder(int o)
-	{
-		order = (int) MathHelper.clamp(o, Short.MIN_VALUE, Short.MAX_VALUE);
+	public Action setOrder(int o) {
+		order = MathHelper.clamp_int(o, Short.MIN_VALUE, Short.MAX_VALUE);
 		return this;
 	}
 
-	public int getOrder()
-	{
+	public int getOrder() {
 		return order;
 	}
 
-	public final int hashCode()
-	{
+	public final int hashCode() {
 		return id.hashCode();
 	}
 
-	public final boolean equals(Object o)
-	{
+	public final boolean equals(Object o) {
 		return o == this;
 	}
 
-	public final String toString()
-	{
+	public final String toString() {
 		return id.toString();
 	}
 }

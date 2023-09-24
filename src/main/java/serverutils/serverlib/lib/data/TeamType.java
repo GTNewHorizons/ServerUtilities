@@ -1,10 +1,10 @@
 package serverutils.serverlib.lib.data;
 
+import serverutils.serverlib.lib.util.IStringSerializable;
 import serverutils.serverlib.lib.util.misc.NameMap;
-import net.minecraft.util.IStringSerializable;
 
-public enum TeamType implements IStringSerializable
-{
+public enum TeamType implements IStringSerializable {
+
 	PLAYER("player", true, false, true, false),
 	SERVER("server", false, true, true, false),
 	SERVER_NO_SAVE("server_no_save", false, true, false, false),
@@ -15,8 +15,7 @@ public enum TeamType implements IStringSerializable
 
 	public static final NameMap<TeamType> NAME_MAP = NameMap.create(PLAYER, values());
 
-	TeamType(String n, boolean p, boolean s, boolean sv, boolean nn)
-	{
+	TeamType(String n, boolean p, boolean s, boolean sv, boolean nn) {
 		name = n;
 		isPlayer = p;
 		isServer = s;
@@ -25,8 +24,7 @@ public enum TeamType implements IStringSerializable
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 }

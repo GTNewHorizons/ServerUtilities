@@ -1,33 +1,30 @@
 package serverutils.serverlib.lib.data;
 
-import serverutils.serverlib.lib.util.ServerUtils;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-public class FakeForgePlayer extends ForgePlayer
-{
-	public FakeForgePlayer(Universe u)
-	{
+import com.mojang.authlib.GameProfile;
+
+import serverutils.serverlib.lib.util.ServerUtils;
+
+public class FakeForgePlayer extends ForgePlayer {
+
+	public FakeForgePlayer(Universe u) {
 		super(u, ServerUtils.FAKE_PLAYER_PROFILE.getId(), ServerUtils.FAKE_PLAYER_PROFILE.getName());
 	}
 
 	@Override
-	public GameProfile getProfile()
-	{
+	public GameProfile getProfile() {
 		return ServerUtils.FAKE_PLAYER_PROFILE;
 	}
 
 	@Override
-	public boolean isOnline()
-	{
+	public boolean isOnline() {
 		return tempPlayer != null;
 	}
 
 	@Override
-	public EntityPlayerMP getPlayer()
-	{
-		if (tempPlayer == null)
-		{
+	public EntityPlayerMP getPlayer() {
+		if (tempPlayer == null) {
 			throw new NullPointerException("Fake player not set yet!");
 		}
 
@@ -35,20 +32,17 @@ public class FakeForgePlayer extends ForgePlayer
 	}
 
 	@Override
-	public boolean isFake()
-	{
+	public boolean isFake() {
 		return true;
 	}
 
 	@Override
-	public boolean isOP()
-	{
+	public boolean isOP() {
 		return false;
 	}
 
 	@Override
-	public void markDirty()
-	{
+	public void markDirty() {
 		team.universe.markDirty();
 	}
 }
