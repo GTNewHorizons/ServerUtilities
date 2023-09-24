@@ -3,10 +3,9 @@ package serverutils.serverlib.command.team;
 import serverutils.serverlib.lib.command.CmdTreeBase;
 import serverutils.serverlib.lib.command.CmdTreeHelp;
 
-public class CmdTeam extends CmdTreeBase
-{
-	public CmdTeam()
-	{
+public class CmdTeam extends CmdTreeBase {
+
+	public CmdTeam() {
 		super("team");
 		addSubcommand(new CmdSettings());
 		addSubcommand(new CmdCreate());

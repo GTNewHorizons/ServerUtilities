@@ -1,41 +1,34 @@
 package serverutils.serverlib.command.team;
 
+import java.util.List;
+
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.IChatComponent;
 
 import serverutils.serverlib.lib.command.CmdBase;
 import serverutils.serverlib.lib.command.CommandUtils;
 import serverutils.serverlib.lib.data.ForgePlayer;
 import serverutils.serverlib.lib.data.Universe;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.IChatComponent;
-import serverutils.serverlib.lib.math.BlockDimPos;
 
-import javax.annotation.Nullable;
-import java.util.List;
+public class CmdGet extends CmdBase {
 
-public class CmdGet extends CmdBase
-{
-	public CmdGet()
-	{
+	public CmdGet() {
 		super("get", Level.ALL);
 	}
 
 	@Override
-	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockDimPos pos)
-	{
-		if (args.length == 1)
-		{
-			return getListOfStringsMatchingLastWord(args, Universe.get().getPlayers());
+	public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+		if (args.length == 1) {
+			return matchFromIterable(args, Universe.get().getPlayers());
 		}
 
-		return super.getTabCompletions(server, sender, args, pos);
+		return super.addTabCompletionOptions(sender, args);
 	}
 
 	@Override
-	public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
-	{
+	public void processCommand(ICommandSender sender, String[] args) throws CommandException {
 		checkArgs(sender, args, 1);
 		ForgePlayer player = CommandUtils.getSelfOrOther(sender, args, 0);
 		IChatComponent component = new ChatComponentText("");
