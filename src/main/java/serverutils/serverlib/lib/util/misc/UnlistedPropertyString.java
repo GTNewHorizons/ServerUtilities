@@ -4,9 +4,6 @@ import net.minecraftforge.common.property.IUnlistedProperty;
 
 import java.util.function.Predicate;
 
-/**
- * @author LatvianModder
- */
 public class UnlistedPropertyString implements IUnlistedProperty<String>
 {
 	public static UnlistedPropertyString create(String name, Predicate<String> validator)

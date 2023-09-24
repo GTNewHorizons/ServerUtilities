@@ -1,24 +1,17 @@
 package serverutils.serverlib.lib.util.text_components;
 
+import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
 import serverutils.serverlib.lib.util.StringUtils;
 import serverutils.serverlib.lib.util.misc.NameMap;
-import it.unimi.dsi.fastutil.chars.Char2ObjectOpenHashMap;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;
 
-/**
- * @author LatvianModder
- */
 public class TextComponentParser
 {
 	public static final NameMap.ObjectProperties<EnumChatFormatting> TEXT_FORMATTING_OBJECT_PROPERTIES = new NameMap.ObjectProperties<EnumChatFormatting>()

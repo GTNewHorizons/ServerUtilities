@@ -2,9 +2,6 @@ package serverutils.serverlib.lib.util.misc;
 
 import serverutils.serverlib.lib.data.Universe;
 
-/**
- * @author LatvianModder
- */
 @FunctionalInterface
 public interface IScheduledTask
 {

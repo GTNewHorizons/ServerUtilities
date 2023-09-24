@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib.util.misc;
 
-/**
- * @author LatvianModder
- */
 public class MouseButton
 {
 	private static final MouseButton[] BUTTONS = new MouseButton[16];

@@ -4,18 +4,16 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemDye;  EnumDyeColor;
 import net.minecraft.item.ItemStack;
 
-/**
- * @author LatvianModder
- */
 public class EnumDyeColorHelper // ItemDye
 {
-	public static final EnumDyeColorHelper[] HELPERS = new EnumDyeColorHelper[ItemDye.values().length];
+	public static final EnumDyeColorHelper[] HELPERS = new EnumDyeColorHelper[ItemDye.field_150923_a.length];
 
 	static
 	{
-		for (ItemDye c : ItemDye.()) //EnumDyeColor.values())
+		for (Object co : ItemDye.field_150923_a) //EnumDyeColor.values())
 		{
-			HELPERS[c.ordinal()] = new EnumDyeColorHelper(c);
+			ItemDye c = (ItemDye) co;
+			HELPERS[c.hashCode()] = new EnumDyeColorHelper(c);
 		}
 	}
 

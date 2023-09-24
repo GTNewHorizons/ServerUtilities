@@ -5,9 +5,6 @@ import net.minecraft.block.properties.PropertyHelper;
 
 import java.util.Collection;
 
-/**
- * @author LatvianModder
- */
 public class BlockPropertyString extends PropertyHelper<String>
 {
 	private final String name;

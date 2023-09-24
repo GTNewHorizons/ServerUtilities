@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib.util.misc;
 
-/**
- * @author LatvianModder
- */
 public enum TimeType
 {
 	TICKS,

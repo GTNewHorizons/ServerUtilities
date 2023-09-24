@@ -2,9 +2,6 @@ package serverutils.serverlib.lib.util.misc;
 
 import net.minecraft.util.IStringSerializable;
 
-/**
- * @author LatvianModder
- */
 public enum EnumScreenPosition implements IStringSerializable
 {
 	CENTER("center", 0, 0),

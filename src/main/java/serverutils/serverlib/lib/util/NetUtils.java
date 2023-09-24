@@ -9,9 +9,6 @@ import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
 
-/**
- * @author LatvianModder
- */
 public class NetUtils
 {
 	public static String getHostAddress()

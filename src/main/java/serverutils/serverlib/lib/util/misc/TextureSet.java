@@ -12,9 +12,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author LatvianModder
- */
 public class TextureSet
 {
 	public static final TextureSet DEFAULT = TextureSet.of("all=blocks/planks_oak");

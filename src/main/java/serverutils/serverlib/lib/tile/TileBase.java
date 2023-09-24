@@ -12,14 +12,12 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity; SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.client.audio.SoundEventAccessor; //SoundEvent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.world.IWorldAccess IWorldNameable;
+import net.minecraft.world.IWorldAccess; //IWorldNameable;
 import net.minecraft.world.World;
 
 import javax.annotation.Nonnull;
@@ -71,7 +69,7 @@ public abstract class TileBase extends TileEntity implements IWorldNameable, ICh
 
 	@Override
 	@Nullable
-	public final SPacketUpdateTileEntity getUpdatePacket()
+	public final S35PacketUpdateTileEntity getUpdatePacket()
 	{
 		NBTTagCompound nbt = super.writeToNBT(new NBTTagCompound());
 		writeData(nbt, EnumSaveType.NET_UPDATE);
@@ -79,13 +77,13 @@ public abstract class TileBase extends TileEntity implements IWorldNameable, ICh
 		nbt.removeTag("x");
 		nbt.removeTag("y");
 		nbt.removeTag("z");
-		return nbt.isEmpty() ? null : new SPacketUpdateTileEntity(pos, 0, nbt);
+		return nbt.isEmpty() ? null : new S35PacketUpdateTileEntity(getDimPos().posX, getDimPos().posY, getDimPos().posZ, 0, nbt);
 	}
 
 	@Override
-	public final void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt)
+	public final void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt)
 	{
-		readData(pkt.getNbtCompound(), EnumSaveType.NET_UPDATE);
+		readData(pkt.func_148857_g(), EnumSaveType.NET_UPDATE);
 		onUpdatePacket(EnumSaveType.NET_UPDATE);
 	}
 

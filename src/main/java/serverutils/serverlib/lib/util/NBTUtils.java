@@ -20,9 +20,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 
-/**
- * @author LatvianModder
- */
 public class NBTUtils
 {
 	public static final NBTTagByte BYTE_0 = new NBTTagByte((byte) 0);
@@ -54,7 +51,7 @@ public class NBTUtils
 
 	public static void writeNBTSafe(File file, NBTTagCompound tag)
 	{
-		ThreadedFileIOBase.getThreadedIOInstance().queueIO(() ->
+		ThreadedFileIOBase.threadedIOInstance.queueIO(() ->
 		{
 			writeNBT(file, tag);
 			return false;

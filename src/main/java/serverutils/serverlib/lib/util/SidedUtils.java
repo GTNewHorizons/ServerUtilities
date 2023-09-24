@@ -12,9 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * @author LatvianModder
- */
 public class SidedUtils
 {
 	private static final Map<String, String> SERVER_MODS_0 = new HashMap<>();
@@ -24,7 +21,7 @@ public class SidedUtils
 
 	public static IChatComponent lang(@Nullable ICommandSender sender, String mod, String key, Object... args)
 	{
-		return //TextComponentHelper.createComponentTranslation(sender, key, args);
+		return TextComponentHelper.createComponentTranslation(sender, key, args);
 	}
 
 	public static void checkModLists(@Nullable Side side, @Nullable Map<String, String> map)

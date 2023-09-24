@@ -6,9 +6,6 @@ import cpw.mods.fml.common.network.FMLEmbeddedChannel;
 import cpw.mods.fml.common.network.FMLOutboundHandler;
 import cpw.mods.fml.relauncher.Side;
 
-/**
- * @author LatvianModder
- */
 public abstract class MessageToServer extends MessageBase
 {
 	public final void sendToServer()

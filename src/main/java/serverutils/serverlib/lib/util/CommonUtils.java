@@ -9,9 +9,6 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 
 import javax.annotation.Nullable;
 
-/**
- * Made by LatvianModder
- */
 public class CommonUtils
 {
 	private static ListMultimap<String, ModContainer> packageOwners = null;

@@ -1,6 +1,5 @@
 package serverutils.serverlib.lib.util;
 
-import serverutils.serverlib.lib.ATHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -14,13 +13,14 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.oredict.OreDictionary;
+import serverutils.serverlib.lib.ATHelper;
+import serverutils.serverlib.lib.math.BlockDimPos;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -28,9 +28,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 
-/**
- * Made by LatvianModder
- */
 public class InvUtils
 {
 	public static final IInventory EMPTY_INVENTORY = new InventoryBasic("[Null]", true, 0);
@@ -67,8 +64,8 @@ public class InvUtils
 			ei.motionX = mx;
 			ei.motionY = my;
 			ei.motionZ = mz;
-			ei.setPickupDelay(delay);
-			w.spawnEntity(ei);
+			ei.delayBeforeCanPickup = delay;
+			w.spawnEntityInWorld(ei);
 		}
 	}
 
@@ -77,14 +74,14 @@ public class InvUtils
 		dropItem(w, x, y, z, w.rand.nextGaussian() * 0.07F, w.rand.nextFloat() * 0.05F, w.rand.nextGaussian() * 0.07F, item, delay);
 	}
 
-	public static void dropItem(World w, BlockPos pos, ItemStack item, int delay)
+	public static void dropItem(World w, BlockDimPos pos, ItemStack item, int delay)
 	{
-		dropItem(w, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, item, delay);
+		dropItem(w, pos.posX + 0.5D, pos.posY + 0.5D, pos.posZ + 0.5D, item, delay);
 	}
 
 	public static void dropItem(Entity e, ItemStack item)
 	{
-		dropItem(e.world, e.posX, e.posY, e.posZ, item, 0);
+		dropItem(e.worldObj, e.posX, e.posY, e.posZ, item, 0);
 	}
 
 	public static void dropAllItems(World world, double x, double y, double z, Iterable<ItemStack> items)
@@ -172,7 +169,7 @@ public class InvUtils
 
 	public static boolean stacksAreEqual(ItemStack stackA, ItemStack stackB)
 	{
-		return stackA.getItem() == stackB.getItem() && stackA.getMetadata() == stackB.getMetadata() && ItemStack.areItemStackTagsEqual(stackA, stackB);
+		return stackA.getItem() == stackB.getItem() && stackA.getItemDamage() == stackB.getItemDamage() && ItemStack.areItemStackTagsEqual(stackA, stackB);
 	}
 
 	public static Set<String> getOreNames(@Nullable Set<String> l, ItemStack is)

@@ -3,9 +3,6 @@ package serverutils.serverlib.lib.util;
 import java.util.Collection;
 import java.util.function.Function;
 
-/**
- * @author LatvianModder
- */
 public abstract class StringJoiner
 {
 	private static final Function<Object, String> DEFAULT_STRING_GETTER = String::valueOf;

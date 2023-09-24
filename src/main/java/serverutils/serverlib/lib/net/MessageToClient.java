@@ -10,9 +10,6 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * @author LatvianModder
- */
 public abstract class MessageToClient extends MessageBase
 {
 	public final void sendTo(EntityPlayerMP player)

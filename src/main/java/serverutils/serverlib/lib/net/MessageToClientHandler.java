@@ -1,14 +1,11 @@
 package serverutils.serverlib.lib.net;
 
-import serverutils.serverlib.FTBLib;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import serverutils.serverlib.ServerLib;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.network.simpleimpl.IMessage;
+import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
+import cpw.mods.fml.common.network.simpleimpl.MessageContext;
 
-/**
- * @author LatvianModder
- */
 enum MessageToClientHandler implements IMessageHandler<MessageToClient, IMessage>
 {
 	INSTANCE;
@@ -16,7 +13,7 @@ enum MessageToClientHandler implements IMessageHandler<MessageToClient, IMessage
 	@Override
 	public IMessage onMessage(MessageToClient message, MessageContext context)
 	{
-		FMLCommonHandler.instance().getWorldThread(context.netHandler).addScheduledTask(() -> FTBLib.PROXY.handleClientMessage(message));
+		FMLCommonHandler.instance().getWorldThread(context.netHandler).addScheduledTask(() -> ServerLib.PROXY.handleClientMessage(message));
 		return null;
 	}
 }

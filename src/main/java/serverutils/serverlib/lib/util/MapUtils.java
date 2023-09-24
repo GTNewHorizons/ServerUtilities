@@ -7,9 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author LatvianModder
- */
 public class MapUtils
 {
 	public static <K, V> Map<V, K> inverse(Map<K, V> map)

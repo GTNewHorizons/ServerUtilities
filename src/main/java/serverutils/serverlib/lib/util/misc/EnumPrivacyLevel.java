@@ -4,9 +4,6 @@ import serverutils.serverlib.lib.gui.GuiIcons;
 import serverutils.serverlib.lib.icon.Icon;
 import net.minecraft.util.IStringSerializable;
 
-/**
- * @author LatvianModder
- */
 public enum EnumPrivacyLevel implements IStringSerializable
 {
 	PUBLIC("public"),

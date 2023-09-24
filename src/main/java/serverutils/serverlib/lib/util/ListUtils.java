@@ -8,9 +8,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
-/**
- * @author LatvianModder
- */
 public class ListUtils
 {
 	public static void removeNullValues(List<?> list)

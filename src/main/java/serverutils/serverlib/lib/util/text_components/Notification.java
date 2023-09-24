@@ -13,9 +13,6 @@ import serverutils.serverlib.lib.util.StringJoiner;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class Notification extends ChatComponentText
 {
 	public static final ResourceLocation VANILLA_STATUS = new ResourceLocation("minecraft", "status");

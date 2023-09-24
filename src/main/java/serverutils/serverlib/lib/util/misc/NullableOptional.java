@@ -4,9 +4,6 @@ import serverutils.serverlib.lib.util.CommonUtils;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public abstract class NullableOptional<T>
 {
 	private static final NullableOptional<?> EMPTY = new NullableOptional<Object>()

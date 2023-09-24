@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib.util;
 
-/**
- * @author LatvianModder
- */
 public class FinalIDObject implements IWithID
 {
 	private final String id;

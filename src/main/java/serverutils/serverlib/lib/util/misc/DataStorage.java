@@ -3,9 +3,6 @@ package serverutils.serverlib.lib.util.misc;
 import serverutils.serverlib.lib.tile.EnumSaveType;
 import net.minecraft.nbt.NBTTagCompound;
 
-/**
- * @author LatvianModder
- */
 public abstract class DataStorage
 {
 	public static final DataStorage EMPTY = new DataStorage()

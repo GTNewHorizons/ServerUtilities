@@ -8,9 +8,6 @@ import serverutils.serverlib.ServerLib;
 import serverutils.serverlib.lib.math.Ticks;
 import serverutils.serverlib.lib.util.StringJoiner;
 
-/**
- * @author LatvianModder
- */
 public class TextComponentCountdown extends ChatComponentText
 {
 	public final long countdown;

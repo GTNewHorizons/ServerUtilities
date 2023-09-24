@@ -26,9 +26,6 @@ import java.util.Random;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-/**
- * @author LatvianModder
- */
 public final class NameMap<E> implements Iterable<E>, DataIn.Deserializer<E>, DataOut.Serializer<E>
 {
 	public static class ObjectProperties<T>

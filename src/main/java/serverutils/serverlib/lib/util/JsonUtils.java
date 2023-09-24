@@ -47,9 +47,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 
-/**
- * @author LatvianModder
- */
 public class JsonUtils
 {
 	public static final JsonPrimitive JSON_TRUE = new JsonPrimitive(true);
@@ -300,7 +297,7 @@ public class JsonUtils
 					}
 					else
 					{
-						array.add(String.valueOf(object));
+						array.add((JsonElement) object);
 					}
 				}
 
