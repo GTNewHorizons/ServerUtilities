@@ -8,11 +8,11 @@ public interface ServerLibGameRules {
 
 	static boolean canCreateTeam(World world)
 	{
-		return !ServerLibConfig.teams.disable_teams && !world.getGameRules().getBoolean(DISABLE_TEAM_CREATION);
+		return !ServerLibConfig.teams.disable_teams && !world.getGameRules().getGameRuleBooleanValue(DISABLE_TEAM_CREATION);
 	}
 
 	static boolean canJoinTeam(World world)
 	{
-		return !ServerLibConfig.teams.disable_teams && !world.getGameRules().getBoolean(DISABLE_TEAM_JOINING);
+		return !ServerLibConfig.teams.disable_teams && !world.getGameRules().getGameRuleBooleanValue(DISABLE_TEAM_JOINING);
 	}
 }

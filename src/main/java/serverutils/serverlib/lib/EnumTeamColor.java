@@ -17,26 +17,26 @@ import net.minecraft.util.text.TextFormatting;
  */
 public enum EnumTeamColor implements IStringSerializable
 {
-	BLUE("blue", EnumChatFormatting.BLUE, ChatFormatting.BLUE, 0x0094FF),
-	CYAN("cyan", EnumChatFormatting.AQUA, ChatFormatting.AQUA, 0x00DDFF),
-	GREEN("green", EnumChatFormatting.GREEN, ChatFormatting.GREEN, 0x23D34C),
-	YELLOW("yellow", EnumChatFormatting.YELLOW, ChatFormatting.YELLOW, 0xFFD000),
-	ORANGE("orange", EnumChatFormatting.GOLD, ChatFormatting.GOLD, 0xFF9400),
-	RED("red", EnumChatFormatting.RED, ChatFormatting.RED, 0xEA4B4B),
-	PINK("pink", EnumChatFormatting.LIGHT_PURPLE, ChatFormatting.LIGHT_PURPLE, 0xE888C9),
-	MAGENTA("magenta", EnumChatFormatting.LIGHT_PURPLE, ChatFormatting.LIGHT_PURPLE, 0xFF007F),
-	PURPLE("purple", EnumChatFormatting.DARK_PURPLE, ChatFormatting.DARK_PURPLE, 0xB342FF),
-	GRAY("gray", EnumChatFormatting.GRAY, ChatFormatting.GRAY, 0xC0C0C0);
+	BLUE("blue", EnumChatFormatting.BLUE, EnumChatFormatting.BLUE, 0x0094FF),
+	CYAN("cyan", EnumChatFormatting.AQUA, EnumChatFormatting.AQUA, 0x00DDFF),
+	GREEN("green", EnumChatFormatting.GREEN, EnumChatFormatting.GREEN, 0x23D34C),
+	YELLOW("yellow", EnumChatFormatting.YELLOW, EnumChatFormatting.YELLOW, 0xFFD000),
+	ORANGE("orange", EnumChatFormatting.GOLD, EnumChatFormatting.GOLD, 0xFF9400),
+	RED("red", EnumChatFormatting.RED, EnumChatFormatting.RED, 0xEA4B4B),
+	PINK("pink", EnumChatFormatting.LIGHT_PURPLE, EnumChatFormatting.LIGHT_PURPLE, 0xE888C9),
+	MAGENTA("magenta", EnumChatFormatting.LIGHT_PURPLE, EnumChatFormatting.LIGHT_PURPLE, 0xFF007F),
+	PURPLE("purple", EnumChatFormatting.DARK_PURPLE, EnumChatFormatting.DARK_PURPLE, 0xB342FF),
+	GRAY("gray", EnumChatFormatting.GRAY, EnumChatFormatting.GRAY, 0xC0C0C0);
 
 	public static final NameMap<EnumTeamColor> NAME_MAP = NameMap.createWithNameAndColor(BLUE, (sender, value) -> new ChatComponentTranslation(value.getLangKey()), EnumTeamColor::getColor, values());
 
 	private final String name;
 	private final EnumChatFormatting dyeColor;
-	private final ChatFormatting textFormatting;
+	private final EnumChatFormatting textFormatting;
 	private final Color4I color;
 	private final String langKey;
 
-	EnumTeamColor(String n, EnumChatFormatting d, ChatFormatting t, int c)
+	EnumTeamColor(String n, EnumChatFormatting d, EnumChatFormatting t, int c)
 	{
 		name = n;
 		dyeColor = d;
@@ -51,7 +51,7 @@ public enum EnumTeamColor implements IStringSerializable
 		return name;
 	}
 
-	public ChatFormatting getTextFormatting()
+	public EnumChatFormatting getTextFormatting()
 	{
 		return textFormatting;
 	}

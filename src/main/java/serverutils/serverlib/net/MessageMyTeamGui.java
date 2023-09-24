@@ -8,9 +8,6 @@ import serverutils.serverlib.lib.net.MessageToServer;
 import serverutils.serverlib.lib.net.NetworkWrapper;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-/**
- * @author LatvianModder
- */
 public class MessageMyTeamGui extends MessageToServer
 {
 	@Override

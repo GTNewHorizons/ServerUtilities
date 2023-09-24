@@ -1,5 +1,7 @@
 package serverutils.serverlib.net;
 
+import net.minecraft.util.IChatComponent;
+import net.minecraft.nbt.NBTTagCompound;
 import serverutils.serverlib.ServerLibCommon;
 import serverutils.serverlib.lib.data.Action;
 import serverutils.serverlib.lib.data.ForgePlayer;
@@ -8,20 +10,16 @@ import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.net.MessageToClient;
 import serverutils.serverlib.lib.net.NetworkWrapper;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-/**
- * @author LatvianModder
- */
 public class MessageMyTeamGuiResponse extends MessageToClient
 {
-	private ITextComponent title;
+	private IChatComponent title;
 	private Collection<Action.Inst> actions;
 
 	public MessageMyTeamGuiResponse()

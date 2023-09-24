@@ -1,6 +1,5 @@
 package serverutils.serverlib;
 
-import serverutils.serverlib.ServerLib;
 import serverutils.serverlib.lib.util.text_components.Notification;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.ChatComponentTranslation;

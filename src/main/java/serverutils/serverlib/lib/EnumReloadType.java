@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib;
 
-/**
- * @author LatvianModder
- */
 public enum EnumReloadType
 {
 	/**

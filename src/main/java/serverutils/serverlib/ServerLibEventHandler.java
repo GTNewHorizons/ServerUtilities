@@ -8,9 +8,6 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 
-/**
- * @author LatvianModder
- */
 @Mod.EventBusSubscriber(modid = ServerLib.MOD_ID)
 public class ServerLibEventHandler {
 	@SubscribeEvent

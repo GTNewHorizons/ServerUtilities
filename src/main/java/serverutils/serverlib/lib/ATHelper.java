@@ -4,7 +4,7 @@ import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IContainerListener;
-import net.minecraft.server.management.PlayerList;
+import net.minecraft.server.management.ServerConfigurationManager;  //PlayerList;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.event.ClickEvent;
@@ -92,9 +92,9 @@ public final class ATHelper
 		return style.getChatHoverEvent();
 	}
 
-	@Nullable
-	public static String getInsertion(ChatStyle style)
-	{
-		return style.insertion;
-	}
+	//@Nullable
+	//public static String getInsertion(ChatStyle style)
+	//{
+	//	return style.insertion;
+	//}
 }

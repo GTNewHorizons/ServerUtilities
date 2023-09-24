@@ -21,9 +21,6 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-/**
- * @author LatvianModder
- */
 public class MessageMyTeamPlayerList extends MessageToClient
 {
 	public static class Entry implements Comparable<Entry>

@@ -23,9 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * @author LatvianModder
- */
 public class MessageSyncData extends MessageToClient
 {
 	private static final int LOGIN = 1;
@@ -84,8 +81,9 @@ public class MessageSyncData extends MessageToClient
 	{
 		SidedUtils.UNIVERSE_UUID_CLIENT = universeId;
 
-		for (String key : syncData.getKeySet())
+		for (Object k : syncData.func_150296_c())  //.getKeySet())
 		{
+			String key = (String) k;
 			ISyncData nbt = ServerLibCommon.SYNCED_DATA.get(key);
 
 			if (nbt != null)

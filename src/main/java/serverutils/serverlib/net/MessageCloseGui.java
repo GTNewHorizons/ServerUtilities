@@ -8,9 +8,6 @@ import net.minecraft.client.gui.GuiChat;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * @author LatvianModder
- */
 public class MessageCloseGui extends MessageToClient
 {
 	@Override

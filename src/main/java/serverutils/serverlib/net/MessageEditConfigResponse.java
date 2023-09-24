@@ -8,9 +8,6 @@ import serverutils.serverlib.lib.net.NetworkWrapper;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 
-/**
- * @author LatvianModder
- */
 public class MessageEditConfigResponse extends MessageToServer
 {
 	private NBTTagCompound nbt;

@@ -15,9 +15,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 import java.util.ArrayList;
 import java.util.Collection;
 
-/**
- * @author LatvianModder
- */
 public class MessageSelectTeamGui extends MessageToClient
 {
 	private Collection<PublicTeamData> teams;

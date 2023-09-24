@@ -12,9 +12,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 import java.util.Collection;
 
-/**
- * @author LatvianModder
- */
 public class MessageAdminPanelGuiResponse extends MessageToClient
 {
 	private Collection<Action.Inst> actions;

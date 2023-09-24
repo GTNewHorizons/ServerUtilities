@@ -6,9 +6,6 @@ import serverutils.serverlib.ServerLibConfig;
 import net.minecraftforge.common.MinecraftForge;
 import cpw.mods.fml.common.eventhandler.Event;
 
-/**
- * @author LatvianModder
- */
 public class EventBase extends Event
 {
 	private boolean canPost = true;
