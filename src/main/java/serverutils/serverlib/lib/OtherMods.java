@@ -7,6 +7,7 @@ public interface OtherMods
 {
 	String BAUBLES = "baubles";
 	String NEI = "nei";
+	String NEI_GTNH = "NotEnoughItems";
 	String MC_MULTIPART = "mcmultipart";
 	String ICHUN_UTIL = "ichunutil";
 	String FORESTRY = "forestry";
