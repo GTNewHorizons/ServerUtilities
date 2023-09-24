@@ -1,7 +1,7 @@
 package serverutils.serverlib.lib.gui;
 
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 
 import java.util.ArrayList;
 import java.util.List;

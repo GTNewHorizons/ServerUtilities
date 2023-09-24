@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL11;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.gui.GuiBase;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.gui.Theme;

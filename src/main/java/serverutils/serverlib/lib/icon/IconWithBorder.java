@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.gui.GuiHelper;
 
 public class IconWithBorder extends IconWithParent

@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.io.DataReader;
 import serverutils.serverlib.lib.util.StringUtils;

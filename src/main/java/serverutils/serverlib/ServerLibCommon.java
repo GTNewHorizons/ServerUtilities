@@ -1,15 +1,18 @@
 package serverutils.serverlib;
 
-import net.minecraft.item.ItemStack;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
+
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;										 
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 import serverutils.serverlib.events.ServerLibPreInitRegistryEvent;
 import serverutils.serverlib.events.IReloadHandler;
@@ -50,11 +53,9 @@ import serverutils.serverlib.lib.net.MessageToClient;
 import serverutils.serverlib.lib.util.BlockUtils;
 import serverutils.serverlib.net.ServerLibNetHandler;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.function.Function;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 public class ServerLibCommon {
 	public static final Map<String, ConfigValueProvider> CONFIG_VALUE_PROVIDERS = new HashMap<>();
@@ -65,40 +66,35 @@ public class ServerLibCommon {
 	public static final Map<ResourceLocation, AdminPanelAction> ADMIN_PANEL_ACTIONS = new HashMap<>();
 	private static final Map<String, Function<ForgePlayer, IChatComponent>> CHAT_FORMATTING_SUBSTITUTES = new HashMap<>();
 
-	public static Function<String, IChatComponent> chatFormattingSubstituteFunction(ForgePlayer player)
-	{
+	public static Function<String, IChatComponent> chatFormattingSubstituteFunction(ForgePlayer player) {
 		return s -> {
 			Function<ForgePlayer, IChatComponent> sub = CHAT_FORMATTING_SUBSTITUTES.get(s);
 			return sub == null ? null : sub.apply(player);
 		};
 	}
 
-	public static class EditingConfig
-	{
+	public static class EditingConfig {
 		public final ConfigGroup group;
 		public final IConfigCallback callback;
 
-		public EditingConfig(ConfigGroup g, IConfigCallback c)
-		{
+		public EditingConfig(ConfigGroup g, IConfigCallback c) {
 			group = g;
 			callback = c;
 		}
 	}
 
-	public void preInit(FMLPreInitializationEvent event)
-	{
-		if ((Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment"))
-		{
+	public void preInit(FMLPreInitializationEvent event) {
+		if ((Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
 			ServerLib.LOGGER.info("Loading ServerLib in development environment");
 		}
+	}
 
+	public void init(FMLInitializationEvent event) {
 		ServerLibNetHandler.init();
 
-		ServerLibPreInitRegistryEvent.Registry registry = new ServerLibPreInitRegistryEvent.Registry()
-		{
+		ServerLibPreInitRegistryEvent.Registry registry = new ServerLibPreInitRegistryEvent.Registry() {
 			@Override
-			public void registerConfigValueProvider(String id, ConfigValueProvider provider)
-			{
+			public void registerConfigValueProvider(String id, ConfigValueProvider provider) {
 				CONFIG_VALUE_PROVIDERS.put(id, provider);
 			}
 
@@ -136,25 +132,22 @@ public class ServerLibCommon {
 		registry.registerConfigValueProvider(ConfigString.ID, () -> new ConfigString(""));
 		registry.registerConfigValueProvider(ConfigColor.ID, () -> new ConfigColor(Color4I.WHITE));
 		registry.registerConfigValueProvider(ConfigEnum.ID, () -> new ConfigStringEnum(Collections.emptyList(), ""));
-		registry.registerConfigValueProvider(ConfigBlockState.ID, () -> new ConfigBlockState(BlockUtils.AIR_STATE));
-		registry.registerConfigValueProvider(ConfigItemStack.ID, () -> new ConfigItemStack(ItemStack.EMPTY));
+		//registry.registerConfigValueProvider(ConfigBlockState.ID, () -> new ConfigBlockState(BlockUtils.AIR_STATE));
+		registry.registerConfigValueProvider(ConfigItemStack.ID, () -> new ConfigItemStack(InvUtils.EMPTY_STACK));
 		registry.registerConfigValueProvider(ConfigTextComponent.ID, () -> new ConfigTextComponent(new ChatComponentText("")));
 		registry.registerConfigValueProvider(ConfigTimer.ID, () -> new ConfigTimer(Ticks.NO_TICKS));
 		registry.registerConfigValueProvider(ConfigNBT.ID, () -> new ConfigNBT(null));
 		registry.registerConfigValueProvider(ConfigFluid.ID, () -> new ConfigFluid(null, null));
 		registry.registerConfigValueProvider(ConfigTeam.TEAM_ID, () -> new ConfigTeamClient(""));
 
-		registry.registerAdminPanelAction(new AdminPanelAction(ServerLib.MOD_ID, "reload", GuiIcons.REFRESH, -1000)
-		{
+		registry.registerAdminPanelAction(new AdminPanelAction(ServerLib.MOD_ID, "reload", GuiIcons.REFRESH, -1000) {
 			@Override
-			public Type getType(ForgePlayer player, NBTTagCompound data)
-			{
+			public Type getType(ForgePlayer player, NBTTagCompound data) {
 				return Type.fromBoolean(player.isOP());
 			}
 
 			@Override
-			public void onAction(ForgePlayer player, NBTTagCompound data)
-			{
+			public void onAction(ForgePlayer player, NBTTagCompound data) {
 				ServerLibAPI.reloadServer(player.team.universe, player.getPlayer(), EnumReloadType.RELOAD_COMMAND, ServerReloadEvent.ALL);
 			}
 		}.setTitle(new ChatComponentTranslation("serverlib.lang.reload_server_button")));
@@ -174,7 +167,7 @@ public class ServerLibCommon {
 
 		CHAT_FORMATTING_SUBSTITUTES.put("name", ForgePlayer::getDisplayName);
 		CHAT_FORMATTING_SUBSTITUTES.put("team", player -> player.team.getTitle());
-		//CHAT_FORMATTING_SUBSTITUTES.put("tag", player -> new TextComponentString(player.getTag()));
+		//CHAT_FORMATTING_SUBSTITUTES.put("tag", player -> new ChatComponentText(player.getTag())); //TODO
 	}
 
 	public void postInit()

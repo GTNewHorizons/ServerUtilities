@@ -7,7 +7,6 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.ItemRenderer; //RenderItem;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -19,7 +18,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.event.ClickEvent;
 import org.lwjgl.opengl.GL11;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.ClientATHelper;
 import serverutils.serverlib.lib.icon.Color4I;
 

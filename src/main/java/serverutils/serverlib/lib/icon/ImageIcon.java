@@ -13,7 +13,7 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 import serverutils.serverlib.ServerLib;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.client.IPixelBuffer;
 import serverutils.serverlib.lib.client.PixelBuffer;
 import serverutils.serverlib.lib.gui.GuiHelper;

@@ -1,7 +1,10 @@
 package serverutils.serverlib.client;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import serverutils.serverlib.ServerLib;
 import serverutils.serverlib.lib.client.ClientUtils;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.gui.GuiBase;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.gui.misc.ChunkSelectorMap;
@@ -9,8 +12,6 @@ import serverutils.serverlib.lib.gui.misc.GuiChunkSelectorBase;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.math.MathUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
 
 
 public class BuiltinChunkMap extends ChunkSelectorMap {

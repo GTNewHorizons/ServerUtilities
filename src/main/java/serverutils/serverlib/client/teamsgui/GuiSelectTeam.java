@@ -1,5 +1,7 @@
 package serverutils.serverlib.client.teamsgui;
 
+import net.minecraft.client.resources.I18n;
+import net.minecraft.util.EnumChatFormatting;
 import serverutils.serverlib.lib.EnumTeamStatus;
 import serverutils.serverlib.lib.client.ClientUtils;
 import serverutils.serverlib.lib.gui.GuiHelper;
@@ -9,8 +11,6 @@ import serverutils.serverlib.lib.gui.SimpleTextButton;
 import serverutils.serverlib.lib.gui.WidgetType;
 import serverutils.serverlib.lib.gui.misc.GuiButtonListBase;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.EnumChatFormatting;
 
 import java.util.ArrayList;
 import java.util.Collection;

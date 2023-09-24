@@ -1,5 +1,8 @@
 package serverutils.serverlib.client.teamsgui;
 
+import net.minecraft.client.resources.I18n;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
 import serverutils.serverlib.lib.EnumTeamStatus;
 import serverutils.serverlib.lib.data.ServerLibTeamGuiActions;
 import serverutils.serverlib.lib.gui.GuiHelper;
@@ -8,16 +11,10 @@ import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.util.misc.MouseButton;
 import serverutils.serverlib.net.MessageMyTeamAction;
 import serverutils.serverlib.net.MessageMyTeamPlayerList;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.TextFormatting;
 
 import java.util.Collection;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class GuiManageEnemies extends GuiManagePlayersBase
 {
 	private static class ButtonPlayer extends ButtonPlayerBase
@@ -30,7 +27,7 @@ public class GuiManageEnemies extends GuiManagePlayersBase
 		@Override
         Color4I getPlayerColor()
 		{
-			return entry.status == EnumTeamStatus.ENEMY ? Color4I.getChatFormattingColor(TextFormatting.RED) : getDefaultPlayerColor();
+			return entry.status == EnumTeamStatus.ENEMY ? Color4I.getChatFormattingColor(EnumChatFormatting.RED) : getDefaultPlayerColor();
 		}
 
 		@Override

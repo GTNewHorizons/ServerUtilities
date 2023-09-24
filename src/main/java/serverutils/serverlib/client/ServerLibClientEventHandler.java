@@ -1,90 +1,58 @@
 package serverutils.serverlib.client;
 
-import serverutils.serverlib.ServerLib;
-import serverutils.serverlib.ServerLibConfig;
-import serverutils.serverlib.events.client.CustomClickEvent;
-import serverutils.serverlib.lib.ClientATHelper;
-import serverutils.serverlib.lib.client.ClientUtils;
-import serverutils.serverlib.lib.gui.GuiIcons;
-import serverutils.serverlib.lib.icon.AtlasSpriteIcon;
-import serverutils.serverlib.lib.icon.Color4I;
-import serverutils.serverlib.lib.icon.IconPresets;
-import serverutils.serverlib.lib.icon.IconRenderer;
-import serverutils.serverlib.lib.util.InvUtils;
-import serverutils.serverlib.lib.util.NBTUtils;
-import serverutils.serverlib.lib.util.SidedUtils;
-import serverutils.serverlib.lib.util.text_components.Notification;
-import serverutils.serverlib.net.MessageAdminPanelGui;
-import serverutils.serverlib.net.MessageMyTeamGui;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.gui.chat.IChatListener;
-import net.minecraft.client.gui.inventory.GuiContainerCreative;
-import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.client.renderer.InventoryEffectRenderer;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.ChatType;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.client.event.GuiScreenEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.TextureStitchEvent;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.common.network.FMLNetworkEvent;
-import cpw.mods.fml.relauncher.Side;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.GL11;
-
-import javax.annotation.Nullable;
-import java.awt.*;
-import java.lang.reflect.Field;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
-@Mod.EventBusSubscriber(modid = ServerLib.MOD_ID, value = Side.CLIENT)
-public class ServerLibClientEventHandler
-{
+import javax.annotation.Nullable;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.gui.inventory.GuiContainerCreative;
+import net.minecraft.client.renderer.InventoryEffectRenderer;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
+
+import serverutils.serverlib.ServerLib;
+import serverutils.serverlib.ServerLibConfig;
+import serverutils.serverlib.events.client.CustomClickEvent;
+import serverutils.serverlib.lib.client.ClientUtils;
+import serverutils.serverlib.lib.client.GlStateManager;
+import serverutils.serverlib.lib.gui.Widget;
+import serverutils.serverlib.lib.icon.Color4I;
+import serverutils.serverlib.lib.icon.IconRenderer;
+import serverutils.serverlib.lib.util.InvUtils;
+import serverutils.serverlib.lib.util.NBTUtils;
+import serverutils.serverlib.lib.util.text_components.Notification;
+import serverutils.serverlib.net.MessageAdminPanelGui;
+import serverutils.serverlib.net.MessageMyTeamGui;
+
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+
+public class ServerLibClientEventHandler {
+	public static final ServerLibClientEventHandler INST = new ServerLibClientEventHandler();
 	private static Temp currentNotification;
 	public static Rectangle lastDrawnArea = new Rectangle();
-	public static boolean shouldRenderIcons = false;
-	public static boolean isAltKeyDown()
-	{
-		return Keyboard.isKeyDown(18) || Keyboard.isKeyDown(65406);
-	}
-
-	private static final IChatListener CHAT_LISTENER = (type, component) -> {
-		if (type == ChatType.GAME_INFO) {
-			if (component instanceof Notification || ServerLibClientConfig.replace_vanilla_status_messages) {
-				ResourceLocation id = component instanceof Notification ? ((Notification) component).getId() : Notification.VANILLA_STATUS;
-				Temp.MAP.remove(id);
-
-				if (currentNotification != null && currentNotification.widget.id.equals(id)) {
-					currentNotification = null;
-				}
-
-				Temp.MAP.put(id, component);
-			}
-			else {
-				Minecraft.getMinecraft().ingameGUI.renderGameOverlay(component.getFormattedText(), false);
-			}
-		}
-	};
+	public static boolean shouldRenderIcons = false;		 
 
 	public static class NotificationWidget {
+		
 		public final IChatComponent notification;
 		public final ResourceLocation id;
 		public final List<String> text;
@@ -109,7 +77,8 @@ public class ServerLibClientEventHandler
 				s0 = EnumChatFormatting.RED + ex.toString();
 			}
 
-			for (String s : font.listFormattedStringToWidth(s0, new ScaledResolution(Minecraft.getMinecraft()).getScaledWidth())) {
+			Minecraft mc = Minecraft.getMinecraft();
+			for (String s : (List<String>) font.listFormattedStringToWidth(s0, new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaledWidth())) {
 				for (String line : s.split("\n")) {
 					if (!line.isEmpty()) {
 						line = line.trim();
@@ -196,8 +165,7 @@ public class ServerLibClientEventHandler
 	}
 
 	@SubscribeEvent
-	public static void onConnected(FMLNetworkEvent.ClientConnectedToServerEvent event)
-	{
+	public static void onConnected(FMLNetworkEvent.ClientConnectedToServerEvent event) {
 		SidedUtils.UNIVERSE_UUID_CLIENT = null;
 		currentNotification = null;
 		Temp.MAP.clear();
@@ -223,12 +191,9 @@ public class ServerLibClientEventHandler
 			}
 		}
 
-		if (ServerLibClientConfig.item_nbt && GuiScreen.isShiftKeyDown())
-		{
-			NBTTagCompound nbt = isAltKeyDown() ? event.itemStack.getTagCompound() : null;
-			// event.getItemStack().getItem().getNBTShareTag(event.getItemStack()) : event.getItemStack().getTagCompound();
-			if (nbt != null)
-			{
+		if (ServerLibClientConfig.item_nbt && GuiScreen.isShiftKeyDown()) {
+			NBTTagCompound nbt = Widget.isAltKeyDown() ? event.itemStack.getTagCompound() : null;
+			if (nbt != null) {
 				event.toolTip.add(NBTUtils.getColoredNBTString(nbt));
 			}
 		}
@@ -336,32 +301,25 @@ public class ServerLibClientEventHandler
 		}
 	}
 
-	@SubscribeEvent
-	public static void onBeforeTexturesStitched(TextureStitchEvent.Pre event)
-	{
-		try
-		{
-			for (Field field : GuiIcons.class.getDeclaredFields())
-			{
-				field.setAccessible(true);
-				Object o = field.get(null);
-
-				if (o instanceof AtlasSpriteIcon)
-				{
-					AtlasSpriteIcon a = (AtlasSpriteIcon) o;
-					event.map.registerIcon(new ResourceLocation(a.name).toString()); //getMap().registerSprite(new ResourceLocation(a.name));
-					IconPresets.MAP.put(a.name, a);
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			if (ServerLibConfig.debugging.print_more_errors)
-			{
-				ex.printStackTrace();
-			}
-		}
-	}
+	//@SubscribeEvent
+	//public static void onBeforeTexturesStitched(TextureStitchEvent.Pre event) {
+	//	try {
+	//		for (Field field : GuiIcons.class.getDeclaredFields()) {
+	//			field.setAccessible(true);
+	//			Object o = field.get(null);
+	//			if (o instanceof AtlasSpriteIcon) {
+	//				AtlasSpriteIcon a = (AtlasSpriteIcon) o;
+	//				event.map.registerIcon(new ResourceLocation(a.name).toString()); //getMap().registerSprite(new ResourceLocation(a.name));
+	//				IconPresets.MAP.put(a.name, a);
+	//			}
+	//		}
+	//	}
+	//	catch (Exception ex) {
+	//		if (ServerLibConfig.debugging.print_more_errors) {
+	//			ex.printStackTrace();
+	//		}
+	//	}
+	//}
 
 	@SubscribeEvent
 	public static void onCustomClick(CustomClickEvent event)
@@ -413,12 +371,12 @@ public class ServerLibClientEventHandler
 		}
 
 		@Override
-		public void drawButton(Minecraft mc, int mx, int my, float partialTicks) {
+		public void drawButton(Minecraft mc, int mx, int my) {
 			buttons.clear();
 			mouseOver = null;
 			int rx, ry = 0;
 			boolean addedAny;
-			boolean top = ServerLibClientConfig.action_buttons.top() || !gui.mc.thePlayer.getActivePotionEffects().isEmpty() || (gui instanceof GuiInventory && ((GuiInventory) gui).func_194310_f().isVisible());
+			boolean top = ServerLibClientConfig.action_buttons.top() || !gui.mc.thePlayer.getActivePotionEffects().isEmpty();
 
 			for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
 				rx = 0;
@@ -437,8 +395,8 @@ public class ServerLibClientEventHandler
 				}
 			}
 
-			int guiLeft = gui.getGuiLeft();
-			int guiTop = gui.getGuiTop();
+			int guiLeft = gui.guiLeft;
+			int guiTop = gui.guiTop;
 
 			if (top) {
 				for (GuiButtonSidebar button : buttons) {
@@ -459,8 +417,8 @@ public class ServerLibClientEventHandler
 				}
 			}
 
-			x = Integer.MAX_VALUE;
-			y = Integer.MAX_VALUE;
+			int x = Integer.MAX_VALUE;
+			int y = Integer.MAX_VALUE;
 			int maxX = Integer.MIN_VALUE;
 			int maxY = Integer.MIN_VALUE;
 
@@ -486,6 +444,9 @@ public class ServerLibClientEventHandler
 			width = maxX - x;
 			height = maxY - y;
 			zLevel = 0F;
+			
+			xPosition = x;
+            yPosition = y;
 
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(0, 0, 500);

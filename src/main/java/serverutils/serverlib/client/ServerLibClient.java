@@ -1,7 +1,16 @@
 package serverutils.serverlib.client;
 
-import cpw.mods.fml.common.Loader;
+import java.util.HashMap;
+import java.util.Map;
+
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.IReloadableResourceManager;
+import net.minecraft.world.World;
+import net.minecraftforge.client.ClientCommandHandler;
+
+import org.lwjgl.opengl.Display;
+
 import serverutils.serverlib.ServerLib;
 import serverutils.serverlib.ServerLibCommon;
 import serverutils.serverlib.ServerLibConfig;
@@ -15,15 +24,10 @@ import serverutils.serverlib.lib.client.ParticleColoredDust;
 import serverutils.serverlib.lib.gui.misc.ChunkSelectorMap;
 import serverutils.serverlib.lib.icon.PlayerHeadIcon;
 import serverutils.serverlib.lib.net.MessageToClient;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.IReloadableResourceManager;
-import net.minecraft.world.World;
-import net.minecraftforge.client.ClientCommandHandler;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import org.lwjgl.opengl.Display;
 
-import java.util.HashMap;
-import java.util.Map;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.Loader;
 
 public class ServerLibClient extends ServerLibCommon {
 	public static final Map<String, ClientConfig> CLIENT_CONFIG_MAP = new HashMap<>();
@@ -43,6 +47,11 @@ public class ServerLibClient extends ServerLibCommon {
 	}
 
 	@Override
+	public void init(FMLInitializationEvent event) {
+		super.init(event);
+	}
+
+	@Override
 	public void postInit() {
 		super.postInit();
 
@@ -54,10 +63,8 @@ public class ServerLibClient extends ServerLibCommon {
 	}
 
 	@Override
-	public void handleClientMessage(MessageToClient message)
-	{
-		if (ServerLibConfig.debugging.log_network)
-		{
+	public void handleClientMessage(MessageToClient message) {
+		if (ServerLibConfig.debugging.log_network) {
 			ServerLib.LOGGER.info("Net RX: " + message.getClass().getName());
 		}
 
@@ -65,8 +72,7 @@ public class ServerLibClient extends ServerLibCommon {
 	}
 
 	@Override
-	public void spawnDust(World world, double x, double y, double z, float r, float g, float b, float a)
-	{
+	public void spawnDust(World world, double x, double y, double z, float r, float g, float b, float a) {
 		ClientUtils.spawnParticle(new ParticleColoredDust(world, x, y, z, r, g, b, a));
 	}
 

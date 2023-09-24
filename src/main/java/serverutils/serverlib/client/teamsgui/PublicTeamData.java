@@ -1,12 +1,12 @@
 package serverutils.serverlib.client.teamsgui;
 
+import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.EnumTeamColor;
 import serverutils.serverlib.lib.data.ForgeTeam;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.util.FinalIDObject;
-import net.minecraft.util.IChatComponent;
 
 public class PublicTeamData extends FinalIDObject implements Comparable<PublicTeamData> {
 	public enum Type {

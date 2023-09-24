@@ -1,7 +1,7 @@
 package serverutils.serverlib.lib.gui;
 
 import net.minecraft.util.IChatComponent;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.io.Bits;

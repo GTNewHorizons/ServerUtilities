@@ -2,7 +2,7 @@ package serverutils.serverlib.lib.gui.misc;
 
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.IChatComponent;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.config.ConfigGroup;
 import serverutils.serverlib.lib.config.ConfigList;
 import serverutils.serverlib.lib.config.ConfigValue;

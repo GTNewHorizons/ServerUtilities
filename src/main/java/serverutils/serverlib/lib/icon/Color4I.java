@@ -1,6 +1,5 @@
 package serverutils.serverlib.lib.icon;
 
-import net.minecraft.client.shader.TesselatorVertexState;
 import net.minecraft.item.ItemDye;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.Vec3;
@@ -9,14 +8,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.client.renderer.IImageBuffer;  //BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import cpw.mods.fml.client.config.GuiUtils;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.ATHelper;
 import serverutils.serverlib.lib.client.IPixelBuffer;
 import serverutils.serverlib.lib.client.PixelBuffer;

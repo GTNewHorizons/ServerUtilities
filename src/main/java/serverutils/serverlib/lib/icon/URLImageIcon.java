@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.ThreadDownloadImageData;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.client.IPixelBuffer;
 import serverutils.serverlib.lib.client.PixelBuffer;
 import serverutils.serverlib.lib.io.DataReader;

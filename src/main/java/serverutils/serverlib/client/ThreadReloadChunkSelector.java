@@ -1,5 +1,6 @@
 package serverutils.serverlib.client;
 
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.client.PixelBuffer;
 import serverutils.serverlib.lib.gui.misc.ChunkSelectorMap;
 import serverutils.serverlib.lib.icon.Color4I;

@@ -1,6 +1,6 @@
 package serverutils.serverlib.lib.icon;
 
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.client.ServerLibClientEventHandler;
 import serverutils.serverlib.lib.client.IPixelBuffer;
 import javafx.scene.image.Image;

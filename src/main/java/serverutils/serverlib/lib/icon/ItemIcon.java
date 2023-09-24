@@ -11,7 +11,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.ForgeHooksClient;
 import serverutils.serverlib.ServerLibConfig;
-import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.item.ItemStackSerializer;
 import serverutils.serverlib.lib.util.InvUtils;
