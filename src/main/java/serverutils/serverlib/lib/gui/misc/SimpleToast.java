@@ -9,7 +9,6 @@ import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.gui.GuiIcons;
 import serverutils.serverlib.lib.icon.Icon;
-import serverutils.serverlib.lib.math.MathHelper;
 
 import java.util.List;
 

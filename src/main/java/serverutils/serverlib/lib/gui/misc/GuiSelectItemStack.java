@@ -35,7 +35,6 @@ import serverutils.serverlib.lib.gui.WrappedIngredient;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.icon.ItemIcon;
-import serverutils.serverlib.lib.math.MathHelper;
 import serverutils.serverlib.lib.util.InvUtils;
 import serverutils.serverlib.lib.util.NBTUtils;
 import serverutils.serverlib.lib.util.misc.MouseButton;

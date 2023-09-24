@@ -10,7 +10,6 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.oredict.OreDictionary;
-import serverutils.serverlib.lib.math.MathHelper;
 
 import javax.annotation.Nullable;
 

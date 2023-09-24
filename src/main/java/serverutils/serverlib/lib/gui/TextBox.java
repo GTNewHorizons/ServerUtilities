@@ -10,7 +10,6 @@ import org.lwjgl.input.Keyboard;
 import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.Icon;
-import serverutils.serverlib.lib.math.MathHelper;
 import serverutils.serverlib.lib.util.misc.MouseButton;
 
 public class TextBox extends Widget

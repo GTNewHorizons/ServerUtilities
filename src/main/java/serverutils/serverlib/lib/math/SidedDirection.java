@@ -2,8 +2,8 @@ package serverutils.serverlib.lib.math;
 
 import net.minecraft.util.EnumFacing;
 
-public enum SidedDirection
-{
+public enum SidedDirection {
+
 	BOTTOM(EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.DOWN, EnumFacing.DOWN, EnumFacing.DOWN, EnumFacing.DOWN),
 	TOP(EnumFacing.SOUTH, EnumFacing.NORTH, EnumFacing.UP, EnumFacing.UP, EnumFacing.UP, EnumFacing.UP),
 	BACK(EnumFacing.UP, EnumFacing.DOWN, EnumFacing.SOUTH, EnumFacing.NORTH, EnumFacing.EAST, EnumFacing.WEST),
@@ -16,16 +16,11 @@ public enum SidedDirection
 
 	private static final SidedDirection[] CACHED_SIDES = new SidedDirection[36];
 
-	static
-	{
-		for (EnumFacing side : EnumFacing.values())
-		{
-			for (EnumFacing rot : EnumFacing.values())
-			{
-				for (SidedDirection d : VALUES)
-				{
-					if (d.directions[rot.ordinal()] == side)
-					{
+	static {
+		for (EnumFacing side : EnumFacing.faceList) {
+			for (EnumFacing rot : EnumFacing.faceList) {
+				for (SidedDirection d : VALUES) {
+					if (d.directions[rot.ordinal()] == side) {
 						CACHED_SIDES[side.ordinal() + rot.ordinal() * 6] = d;
 						break;
 					}
@@ -36,58 +31,37 @@ public enum SidedDirection
 
 	// Static //
 
-	SidedDirection(EnumFacing a, EnumFacing b, EnumFacing c, EnumFacing d, EnumFacing e, EnumFacing f)
-	{
-		directions = new EnumFacing[] {a, b, c, d, e, f};
+	SidedDirection(EnumFacing a, EnumFacing b, EnumFacing c, EnumFacing d, EnumFacing e, EnumFacing f) {
+		directions = new EnumFacing[] { a, b, c, d, e, f };
 	}
 
-	public static SidedDirection getSide(EnumFacing side, EnumFacing rot)
-	{
+	public static SidedDirection getSide(EnumFacing side, EnumFacing rot) {
 		return CACHED_SIDES[side.ordinal() + rot.ordinal() * 6];
 	}
 
-	public static SidedDirection get(EnumFacing side, EnumFacing rot3D, EnumFacing rot2D)
-	{
-		if (side == rot3D)
-		{
+	public static SidedDirection get(EnumFacing side, EnumFacing rot3D, EnumFacing rot2D) {
+		if (side == rot3D) {
 			return FRONT;
-		}
-		else if (side == rot3D.getOpposite())
-		{
+		} else if (side == EnumFacing.faceList[rot3D.order_b]) {
 			return BACK;
-		}
-		else if (rot3D == EnumFacing.DOWN)
-		{
-			if (rot2D == side)
-			{
+		} else if (rot3D == EnumFacing.DOWN) {
+			if (rot2D == side) {
 				return TOP;
-			}
-			else if (rot2D == side.getOpposite())
-			{
+			} else if (rot2D == EnumFacing.faceList[side.order_b]) {
 				return BOTTOM;
 			}
 			return getSide(side, rot2D);
-		}
-		else if (rot3D == EnumFacing.UP)
-		{
-			if (rot2D == side)
-			{
+		} else if (rot3D == EnumFacing.UP) {
+			if (rot2D == side) {
 				return BOTTOM;
-			}
-			else if (rot2D == side.getOpposite())
-			{
+			} else if (rot2D == EnumFacing.faceList[side.order_b]) {
 				return TOP;
 			}
 			return getSide(side, rot2D);
-		}
-		else
-		{
-			if (side == EnumFacing.DOWN)
-			{
+		} else {
+			if (side == EnumFacing.DOWN) {
 				return BOTTOM;
-			}
-			else if (side == EnumFacing.UP)
-			{
+			} else if (side == EnumFacing.UP) {
 				return TOP;
 			}
 			return getSide(side, rot3D);

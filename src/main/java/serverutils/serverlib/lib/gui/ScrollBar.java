@@ -1,7 +1,6 @@
 package serverutils.serverlib.lib.gui;
 
 import net.minecraft.util.EnumChatFormatting;
-import serverutils.serverlib.lib.math.MathHelper;
 import serverutils.serverlib.lib.math.MathUtils;
 import serverutils.serverlib.lib.util.misc.MouseButton;
 

@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
-import serverutils.serverlib.lib.math.MathHelper;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;

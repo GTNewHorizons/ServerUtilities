@@ -8,7 +8,6 @@ import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
-import serverutils.serverlib.lib.math.MathHelper;
 import serverutils.serverlib.lib.util.StringUtils;
 import com.google.gson.JsonElement;
 

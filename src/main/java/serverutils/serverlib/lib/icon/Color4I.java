@@ -20,7 +20,6 @@ import serverutils.serverlib.lib.client.IPixelBuffer;
 import serverutils.serverlib.lib.client.PixelBuffer;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.math.MathUtils;
-import serverutils.serverlib.lib.math.MathHelper;
 import serverutils.serverlib.lib.util.JsonUtils;
 import serverutils.serverlib.lib.util.StringUtils;
 

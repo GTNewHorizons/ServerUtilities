@@ -1,58 +1,52 @@
 package serverutils.serverlib.client;
 
-import serverutils.serverlib.lib.client.GlStateManager;
-import serverutils.serverlib.lib.client.PixelBuffer;
-import serverutils.serverlib.lib.gui.misc.ChunkSelectorMap;
-import serverutils.serverlib.lib.icon.Color4I;
-import serverutils.serverlib.lib.math.ChunkDimPos;
-import serverutils.serverlib.lib.math.MathUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockWood;
-import net.minecraft.block.material.MapColor;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.TextureUtil;
-import net.minecraft.init.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
-
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public class ThreadReloadChunkSelector extends Thread
-{
+import net.minecraft.block.Block;
+import net.minecraft.block.material.MapColor;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureUtil;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+
+import serverutils.serverlib.lib.client.GlStateManager;
+import serverutils.serverlib.lib.client.PixelBuffer;
+import serverutils.serverlib.lib.gui.misc.ChunkSelectorMap;
+import serverutils.serverlib.lib.icon.Color4I;
+import serverutils.serverlib.lib.math.MathUtils;
+
+public class ThreadReloadChunkSelector extends Thread {
 	private static ByteBuffer pixelBuffer = null;
 	private static final int PIXEL_SIZE = ChunkSelectorMap.TILES_TEX * 16;
 	private static final PixelBuffer PIXELS = new PixelBuffer(PIXEL_SIZE, PIXEL_SIZE);
-	private static final Map<IBlockState, Color4I> COLOR_CACHE = new HashMap<>();
-	private static final BlockPos.MutableBlockPos CURRENT_BLOCK_POS = new BlockPos.MutableBlockPos(0, 0, 0);
+	private static final Map<Pair<Block, Integer>, Color4I> COLOR_CACHE = new HashMap<>();
+	private static final ChunkCoordinates CURRENT_BLOCK_POS = new ChunkCoordinates(0, 0, 0);
 	private static World world = null;
-	private static final Function<IBlockState, Color4I> COLOR_GETTER = state1 -> Color4I.rgb(getBlockColor0(state1));
+	private static final Function<Pair<Block, Integer>, Color4I> COLOR_GETTER = state1 -> Color4I.rgb(getBlockColor0(state1));
 	private static ThreadReloadChunkSelector instance;
 	private static int textureID = -1;
 	private static final int[] HEIGHT_MAP = new int[PIXEL_SIZE * PIXEL_SIZE];
 
-	static int getTextureId()
-	{
-		if (textureID == -1)
-		{
+	static int getTextureId() {
+		if (textureID == -1) {
 			textureID = TextureUtil.glGenTextures();
 		}
-
 		return textureID;
 	}
 
-	static void updateTexture()
-	{
-		if (pixelBuffer != null)
-		{
+	static void updateTexture() {
+		if (pixelBuffer != null) {
 			//boolean hasBlur = false;
 			//int filter = hasBlur ? GL11.GL_LINEAR : GL11.GL_NEAREST;
 			GlStateManager.bindTexture(getTextureId());
@@ -65,10 +59,8 @@ public class ThreadReloadChunkSelector extends Thread
 		}
 	}
 
-	static void reloadArea(World w, int sx, int sz)
-	{
-		if (instance != null)
-		{
+	static void reloadArea(World w, int sx, int sz) {
+		if (instance != null) {
 			instance.cancelled = true;
 			instance = null;
 		}
@@ -91,158 +83,121 @@ public class ThreadReloadChunkSelector extends Thread
 		startZ = sz;
 	}
 
-	private static int getBlockColor0(IBlockState state)
-	{
-		Block b = state.getBlock();
+	private static int getBlockColor0(Pair<Block, Integer> state) {
+		Block b = state.getLeft();
 
-		if (b == Blocks.sandstone || b == Blocks.end_stone)
-		{
+		if (b == Blocks.sandstone || b == Blocks.end_stone) {
 			return MapColor.sandColor.colorValue;
-		}
-		else if (b == Blocks.fire)
-		{
+		} else if (b == Blocks.fire) {
 			return MapColor.redColor.colorValue;
-		}
-		else if (b == Blocks.yellow_flower)
-		{
+		} else if (b == Blocks.yellow_flower) {
 			return MapColor.yellowColor.colorValue;
-		}
-		else if (b == Blocks.lava)
-		{
+		} else if (b == Blocks.lava) {
 			return MapColor.adobeColor.colorValue;
-		}
-		else if (b == Blocks.obsidian)
-		{
+		} else if (b == Blocks.obsidian) {
 			return 0x150047;
-		}
-		else if (b == Blocks.gravel)
-		{
+		} else if (b == Blocks.gravel) {
 			return 0x8D979B;
-		}
-		else if (b == Blocks.grass)
-		{
+		} else if (b == Blocks.grass) {
 			return 0x549954;
-		}
-		else if (b == Blocks.GRASS_PATH)
-		{
-			return 0xB7A14B;
-		}
-		else if (b == Blocks.torch)
-		{
+		} else if (b == Blocks.torch) {
 			return 0xFFA530;
-		}
-		else if (b == Blocks.netherrack || b == Blocks.quartz_ore)
-		{
+		} else if (b == Blocks.netherrack || b == Blocks.quartz_ore) {
 			return 0x7F1321;
+		} else if (b == Blocks.red_flower) {
+			switch (state.getRight()){ //"poppy", "blueOrchid", "allium", "houstonia", "tulipRed", "tulipOrange", "tulipWhite", "tulipPink", "oxeyeDaisy"
+			 case 0: //dandelion
+			 return MapColor.yellowColor.colorValue;
+			 case 1: //poppy
+			 return MapColor.redColor.colorValue;
+			 case 2: //blue orchid
+			 return MapColor.lightBlueColor.colorValue;
+			 case 3: //allium
+			 return MapColor.magentaColor.colorValue;
+			 case 4: //houstonia
+			 return MapColor.silverColor.colorValue;
+			 case 5: //tulipRed
+			 return MapColor.redColor.colorValue;
+			 case 6: //tulipOrange
+			 return MapColor.adobeColor.colorValue;
+			 case 7: //tulipWhite
+			 return MapColor.snowColor.colorValue;
+			 case 8: //tulipPink
+			 return MapColor.pinkColor.colorValue;
+			 case 9: //oxeyeDaisy
+			 return MapColor.silverColor.colorValue;
+			 }
 		}
-		else if (b == Blocks.red_flower)
-		{
-			switch (state.getValue(Blocks.red_flower.getTypeProperty()))
-			{
-				case DANDELION:
-					return MapColor.yellowColor.colorValue;
-				case POPPY:
-					return MapColor.redColor.colorValue;
-				case BLUE_ORCHID:
-					return MapColor.lightBlueColor.colorValue;
-				case ALLIUM:
-					return MapColor.magentaColor.colorValue;
-				case HOUSTONIA:
-					return MapColor.silverColor.colorValue;
-				case RED_TULIP:
-					return MapColor.redColor.colorValue;
-				case ORANGE_TULIP:
-					return MapColor.adobeColor.colorValue;
-				case WHITE_TULIP:
-					return MapColor.snowColor.colorValue;
-				case PINK_TULIP:
-					return MapColor.pinkColor.colorValue;
-				case OXEYE_DAISY:
-					return MapColor.silverColor.colorValue;
-			}
-		}
-		else if (b == Blocks.planks)
-		{
-			switch (state.getValue(BlockWood.field_150096_a))
-			{
-				case OAK:
+		else if (b == Blocks.planks) {
+			switch (state.getRight()) {
+				case 0: //oak
 					return 0xC69849;
-				case SPRUCE:
+				case 1: //Spruce
 					return 0x7C5E2E;
-				case BIRCH:
+				case 2: //Birch
 					return 0xF2E093;
-				case JUNGLE:
+				case 3: //Jungle
 					return 0xC67653;
-				case ACACIA:
+				case 4: //Acacia
 					return 0xE07F3E;
-				case DARK_OAK:
+				case 5: //Dark Oak
 					return 0x512D14;
 			}
 		}
 
-		return state.getMapColor(world, CURRENT_BLOCK_POS).colorValue;
+		return state.getLeft().getMapColor(state.getRight()).colorValue;
 	}
 
-	private static int getHeight(int x, int z)
-	{
+	private static int getHeight(int x, int z) {
 		int index = x + z * PIXEL_SIZE;
 		return index < 0 || index >= HEIGHT_MAP.length ? -1 : HEIGHT_MAP[index];
 	}
 
 	@Override
-	public void run()
-	{
-		Arrays.fill(PIXELS.getPixels(), Color4I.rgb(world.getSkyColor(Minecraft.getMinecraft().player, 0)).rgba());
+	public void run() {
+		Arrays.fill(PIXELS.getPixels(), Color4I.rgb(world.getSkyColor(Minecraft.getMinecraft().thePlayer, 0)).rgba());
 		Arrays.fill(HEIGHT_MAP, -1);
 		pixelBuffer = PIXELS.toByteBuffer(false);
 
 		Chunk chunk;
 		int x, z, wi, wx, wz, by, topY;
 		Color4I color;
-		IBlockState state;
+		Pair<Block, Integer> state;
 
-		int startY = Minecraft.getMinecraft().thePlayer.getPosition().getY();
+		int startY = (int) Minecraft.getMinecraft().thePlayer.getPosition(1).yCoord;
 
-		try
-		{
-			for (int index = 0; index < ChunkSelectorMap.TILES_GUI * ChunkSelectorMap.TILES_GUI + 1; index++)
-			{
+		try {
+			for (int index = 0; index < ChunkSelectorMap.TILES_GUI * ChunkSelectorMap.TILES_GUI + 1; index++) {
 				World w = world;
 
-				if (w == null)
-				{
+				if (w == null) {
 					break;
 				}
 
-				ChunkDimPos pos = MathUtils.getSpiralPoint(index);
-				int cx = pos.posX + ChunkSelectorMap.TILES_GUI2;
-				int cz = pos.posZ + ChunkSelectorMap.TILES_GUI2;
+				ChunkCoordIntPair pos = MathUtils.getSpiralPoint(index);
+				int cx = pos.chunkXPos + ChunkSelectorMap.TILES_GUI2;
+				int cz = pos.chunkZPos + ChunkSelectorMap.TILES_GUI2;
 
-				chunk = w.getChunkProvider().loadChunk(startX + cx, startZ + cz); //getLoadedChunk(startX + cx, startZ + cz);
+				chunk = w.getChunkProvider().provideChunk(startX + cx, startZ + cz);
 
-				if (chunk != null)
-				{
+				if (chunk != null) {
 					x = (startX + cx) << 4;
 					z = (startZ + cz) << 4;
 					topY = (w.provider.dimensionId == -1) ? startY + 5 : Math.max(w.getActualHeight(), chunk.getTopFilledSegment() + 15);
 
-					for (wi = 0; wi < 256; wi++)
-					{
+					for (wi = 0; wi < 256; wi++) {
 						wx = wi % 16;
 						wz = wi / 16;
 
-						for (by = topY; by > 0; --by)
-						{
-							if (cancelled)
-							{
+						for (by = topY; by > 0; --by) {
+							if (cancelled) {
 								return;
 							}
 
-							CURRENT_BLOCK_POS.setPos(x + wx, by, z + wz);
-							state = chunk.getBlockState(wx, by, wz);
+							CURRENT_BLOCK_POS.set(x + wx, by, z + wz);
+							state = Pair.of(chunk.getBlock(wx, by, wz), chunk.getBlockMetadata(wx, by, wz));
 
-							if (state.getBlock() != Blocks.tallgrass && !state.getBlock().isAir(state, w, CURRENT_BLOCK_POS))
-							{
+							if (state.getLeft() != Blocks.tallgrass && !state.getLeft().isAir(w, CURRENT_BLOCK_POS.posX, CURRENT_BLOCK_POS.posY, CURRENT_BLOCK_POS.posZ)) {
 								HEIGHT_MAP[(cx * 16 + wx) + (cz * 16 + wz) * PIXEL_SIZE] = by;
 								break;
 							}
@@ -260,33 +215,30 @@ public class ThreadReloadChunkSelector extends Thread
 					break;
 				}
 
-				ChunkDimPos pos = MathUtils.getSpiralPoint(index);
-				int cx = pos.posX + ChunkSelectorMap.TILES_GUI2;
-				int cz = pos.posZ + ChunkSelectorMap.TILES_GUI2;
+				ChunkCoordIntPair pos = MathUtils.getSpiralPoint(index);
+				int cx = pos.chunkXPos + ChunkSelectorMap.TILES_GUI2;
+				int cz = pos.chunkZPos + ChunkSelectorMap.TILES_GUI2;
 
 				chunk = w.getChunkProvider().loadChunk(startX + cx, startZ + cz);
 
-				if (chunk == null)
-				{
+				if (chunk == null) {
 					continue;
 				}
 
 				x = (startX + cx) << 4;
 				z = (startZ + cz) << 4;
 
-				for (wi = 0; wi < 256; wi++)
-				{
+				for (wi = 0; wi < 256; wi++) {
 					wx = wi % 16;
 					wz = wi / 16;
 					by = getHeight(cx * 16 + wx, cz * 16 + wz);
 
-					if (by < 0)
-					{
+					if (by < 0) {
 						continue;
 					}
 
-					CURRENT_BLOCK_POS.setPos(x + wx, by, z + wz);
-					state = chunk.getBlockState(wx, by, wz);
+					CURRENT_BLOCK_POS.set(x + wx, by, z + wz);
+					state = Pair.of(chunk.getBlock(wx, by, wz), chunk.getBlockMetadata(wx, by, wz));
 
 					color = COLOR_CACHE.computeIfAbsent(state, COLOR_GETTER).addBrightness(MathUtils.RAND.nextFloat() * 0.04F);
 

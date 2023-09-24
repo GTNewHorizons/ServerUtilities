@@ -1,7 +1,5 @@
 package serverutils.serverlib.lib.icon;
 
-import serverutils.serverlib.lib.math.MathHelper;
-
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;

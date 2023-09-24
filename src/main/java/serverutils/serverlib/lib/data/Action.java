@@ -6,7 +6,6 @@ import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
-import serverutils.serverlib.lib.math.MathHelper;
 
 
 public abstract class Action
