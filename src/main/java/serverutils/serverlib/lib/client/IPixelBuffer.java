@@ -1,13 +1,14 @@
 package serverutils.serverlib.lib.client;
 
-import org.lwjgl.BufferUtils;
-
-import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public interface IPixelBuffer
-{
+import javax.annotation.Nullable;
+
+import org.lwjgl.BufferUtils;
+
+public interface IPixelBuffer {
+
 	int getWidth();
 
 	int getHeight();
@@ -20,44 +21,35 @@ public interface IPixelBuffer
 
 	int getRGB(int x, int y);
 
-	default void setRGB(int startX, int startY, int w, int h, int[] rgbArray)
-	{
-		if (startX == 0 && startY == 0 && w == getWidth() && h == getHeight())
-		{
+	default void setRGB(int startX, int startY, int w, int h, int[] rgbArray) {
+		if (startX == 0 && startY == 0 && w == getWidth() && h == getHeight()) {
 			setPixels(rgbArray);
 			return;
 		}
 
 		int off = -1;
-		for (int y = startY; y < startY + h; y++)
-		{
-			for (int x = startX; x < startX + w; x++)
-			{
+		for (int y = startY; y < startY + h; y++) {
+			for (int x = startX; x < startX + w; x++) {
 				setRGB(x, y, rgbArray[++off]);
 			}
 		}
 	}
 
-	default void setRGB(int startX, int startY, IPixelBuffer buffer)
-	{
+	default void setRGB(int startX, int startY, IPixelBuffer buffer) {
 		setRGB(startX, startY, buffer.getWidth(), buffer.getHeight(), buffer.getPixels());
 	}
 
 	int[] getRGB(int startX, int startY, int w, int h, @Nullable int[] p);
 
-	default void fill(int col)
-	{
+	default void fill(int col) {
 		int[] pixels = getPixels();
 		Arrays.fill(pixels, col);
 		setPixels(pixels);
 	}
 
-	default void fill(int startX, int startY, int w, int h, int col)
-	{
-		for (int y = startY; y < startY + h; y++)
-		{
-			for (int x = startX; x < startX + w; x++)
-			{
+	default void fill(int startX, int startY, int w, int h, int col) {
+		for (int y = startY; y < startY + h; y++) {
+			for (int x = startX; x < startX + w; x++) {
 				setRGB(x, y, col);
 			}
 		}
@@ -67,14 +59,12 @@ public interface IPixelBuffer
 
 	IPixelBuffer getSubimage(int x, int y, int w, int h);
 
-	default ByteBuffer toByteBuffer(boolean alpha)
-	{
+	default ByteBuffer toByteBuffer(boolean alpha) {
 		int[] pixels = getPixels();
 		ByteBuffer bb = BufferUtils.createByteBuffer(pixels.length * 4);
 		byte alpha255 = (byte) 255;
 
-		for (int c : pixels)
-		{
+		for (int c : pixels) {
 			bb.put((byte) (c >> 16));
 			bb.put((byte) (c >> 8));
 			bb.put((byte) c);
