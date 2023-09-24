@@ -20,6 +20,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -28,7 +29,6 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import serverutils.serverlib.ServerLib;
-import serverutils.serverlib.ServerLibConfig;
 import serverutils.serverlib.events.client.CustomClickEvent;
 import serverutils.serverlib.lib.client.ClientUtils;
 import serverutils.serverlib.lib.client.GlStateManager;
@@ -46,13 +46,14 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 
 public class ServerLibClientEventHandler {
+
 	public static final ServerLibClientEventHandler INST = new ServerLibClientEventHandler();
 	private static Temp currentNotification;
 	public static Rectangle lastDrawnArea = new Rectangle();
-	public static boolean shouldRenderIcons = false;		 
+	public static boolean shouldRenderIcons = false;
 
 	public static class NotificationWidget {
-		
+
 		public final IChatComponent notification;
 		public final ResourceLocation id;
 		public final List<String> text;
@@ -72,8 +73,7 @@ public class ServerLibClientEventHandler {
 
 			try {
 				s0 = notification.getFormattedText();
-			}
-			catch (Exception ex) {
+			} catch (Exception ex) {
 				s0 = EnumChatFormatting.RED + ex.toString();
 			}
 
@@ -100,7 +100,6 @@ public class ServerLibClientEventHandler {
 
 	private static class Temp {
 		private static final LinkedHashMap<ResourceLocation, IChatComponent> MAP = new LinkedHashMap<>();
-
 		private long tick, endTick;
 		private NotificationWidget widget;
 
@@ -109,17 +108,14 @@ public class ServerLibClientEventHandler {
 			tick = endTick = -1L;
 		}
 
-		public void render(ScaledResolution screen, float partialTicks)
-		{
-			if (tick == -1L || tick >= endTick)
-			{
+		public void render(ScaledResolution screen, float partialTicks) {
+			if (tick == -1L || tick >= endTick) {
 				return;
 			}
 
 			int alpha = (int) Math.min(255F, (endTick - tick - partialTicks) * 255F / 20F);
 
-			if (alpha <= 2)
-			{
+			if (alpha <= 2) {
 				return;
 			}
 
@@ -133,10 +129,9 @@ public class ServerLibClientEventHandler {
 
 			int offy = -(widget.text.size() * 11) / 2;
 
-			for (int i = 0; i < widget.text.size(); i++)
-			{
+			for (int i = 0; i < widget.text.size(); i++) {
 				String string = widget.text.get(i);
-				widget.font.drawStringWithShadow(string, -widget.font.getStringWidth(string) / 2, offy + i * 11, 0xFFFFFF | (alpha << 24));
+				widget.font.drawStringWithShadow(string, (int) (-widget.font.getStringWidth(string) / 2F), offy + i * 11, 0xFFFFFF | (alpha << 24));
 			}
 
 			GlStateManager.depthMask(true);
@@ -146,53 +141,56 @@ public class ServerLibClientEventHandler {
 			GlStateManager.enableDepth();
 		}
 
-		private boolean tick()
-		{
+		private boolean tick() {
 			tick = Minecraft.getMinecraft().theWorld.getTotalWorldTime();
 
-			if (endTick == -1L)
-			{
+			if (endTick == -1L) {
 				endTick = tick + widget.timer;
 			}
-
 			return tick >= endTick || Math.min(255F, (endTick - tick) * 255F / 20F) <= 2F;
 		}
 
-		private boolean isImportant()
-		{
+		private boolean isImportant() {
 			return widget.notification instanceof Notification && ((Notification) widget.notification).isImportant();
 		}
 	}
 
-	@SubscribeEvent
-	public static void onConnected(FMLNetworkEvent.ClientConnectedToServerEvent event) {
-		SidedUtils.UNIVERSE_UUID_CLIENT = null;
-		currentNotification = null;
-		Temp.MAP.clear();
-		ClientATHelper.getChatListeners().get(ChatType.GAME_INFO).clear();
-		ClientATHelper.getChatListeners().get(ChatType.GAME_INFO).add(CHAT_LISTENER);
+	public void onNotify(Notification notification) {
+		ResourceLocation id = notification.getId();
+		Temp.MAP.remove(id);
+		if (currentNotification != null && currentNotification.widget.id.equals(id)) {
+			currentNotification = null;
+		}
+		Temp.MAP.put(id, notification);
 	}
 
 	@SubscribeEvent
-	public static void onTooltip(ItemTooltipEvent event)
-	{
-		if (ServerLibClientConfig.item_ore_names)
-		{
-			Collection<String> ores = InvUtils.getOreNames(null, event.itemStack); //getItemStack());
+	public void onClientChatEvent(ClientChatReceivedEvent event) {
+		IChatComponent component = event.message;
+		if (component instanceof Notification) {
+			Notification notification = (Notification) component;
+			onNotify(notification);
+			event.message = null;
+		}
+	}
 
-			if (!ores.isEmpty())
-			{
+	@SubscribeEvent
+	public void onTooltip(ItemTooltipEvent event) {
+		if (ServerLibClientConfig.item_ore_names) {
+			Collection<String> ores = InvUtils.getOreNames(null, event.itemStack);
+
+			if (!ores.isEmpty()) {
 				event.toolTip.add(I18n.format("serverlib_client.general.item_ore_names.item_tooltip"));
 
-				for (String or : ores)
-				{
+				for (String or : ores) {
 					event.toolTip.add("> " + or);
 				}
 			}
 		}
 
 		if (ServerLibClientConfig.item_nbt && GuiScreen.isShiftKeyDown()) {
-			NBTTagCompound nbt = Widget.isAltKeyDown() ? event.itemStack.getTagCompound() : null;
+			NBTTagCompound nbt = Widget.isAltKeyDown() ? event.itemStack.writeToNBT(new NBTTagCompound()) : event.itemStack.getTagCompound();
+
 			if (nbt != null) {
 				event.toolTip.add(NBTUtils.getColoredNBTString(nbt));
 			}
@@ -200,65 +198,50 @@ public class ServerLibClientEventHandler {
 	}
 
 	@SubscribeEvent
-	public static void onGuiInit(final GuiScreenEvent.InitGuiEvent.Post event)
-	{
-		//sidebarButtonScale = 0D;
-
-		if (areButtonsVisible(event.gui)) //getGui
-		{
+	public void onGuiInit(final GuiScreenEvent.InitGuiEvent.Post event) {
+		if (areButtonsVisible(event.gui)) {
 			event.buttonList.add(new GuiButtonSidebarGroup((InventoryEffectRenderer) event.gui));
 		}
 	}
 
-	public static boolean areButtonsVisible(@Nullable GuiScreen gui)
-	{
-		return ServerLibClientConfig.action_buttons != EnumSidebarButtonPlacement.DISABLED && gui instanceof InventoryEffectRenderer && !SidebarButtonManager.INSTANCE.groups.isEmpty();
+
+	public static boolean areButtonsVisible(@Nullable GuiScreen gui) {
+		return ServerLibClientConfig.action_buttons != EnumSidebarButtonPlacement.DISABLED
+				&& gui instanceof InventoryEffectRenderer
+				&& !SidebarButtonManager.INSTANCE.groups.isEmpty();
 	}
 
 	@SubscribeEvent
-	public static void onClientTick(TickEvent.ClientTickEvent event)
-	{
-		if (event.phase == TickEvent.Phase.START)
-		{
-			if (Minecraft.getMinecraft().theWorld == null)
-			{
+	public void onClientTick(TickEvent.ClientTickEvent event) {
+		if (event.phase == TickEvent.Phase.START) {
+			if (Minecraft.getMinecraft().theWorld == null) {
 				currentNotification = null;
 				Temp.MAP.clear();
 			}
 
-			if (currentNotification != null)
-			{
-				if (currentNotification.tick())
-				{
+			if (currentNotification != null) {
+				if (currentNotification.tick()) {
 					currentNotification = null;
 				}
 			}
 
-			if (currentNotification == null && !Temp.MAP.isEmpty())
-			{
+			if (currentNotification == null && !Temp.MAP.isEmpty()) {
 				currentNotification = new Temp(Temp.MAP.values().iterator().next());
 				Temp.MAP.remove(currentNotification.widget.id);
 			}
-		}
-		else if (event.phase == TickEvent.Phase.END)
-		{
-			if (!ClientUtils.RUN_LATER.isEmpty())
-			{
-				for (Runnable runnable : new ArrayList<>(ClientUtils.RUN_LATER))
-				{
+		} else if (event.phase == TickEvent.Phase.END) {
+			if (!ClientUtils.RUN_LATER.isEmpty()) {
+				for (Runnable runnable : new ArrayList<>(ClientUtils.RUN_LATER)) {
 					runnable.run();
 				}
-
 				ClientUtils.RUN_LATER.clear();
 			}
 		}
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
-	public static void onGameOverlayRender(RenderGameOverlayEvent.Text event)
-	{
-		if (currentNotification != null && !currentNotification.isImportant())
-		{
+	public void onGameOverlayRender(RenderGameOverlayEvent.Text event) {
+		if (currentNotification != null && !currentNotification.isImportant()) {
 			currentNotification.render(event.resolution, event.partialTicks);
 			GlStateManager.color(1F, 1F, 1F, 1F);
 			GlStateManager.disableLighting();
@@ -268,18 +251,16 @@ public class ServerLibClientEventHandler {
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
-	public static void onRenderTick(TickEvent.RenderTickEvent event)
-	{
-		if (event.phase == TickEvent.Phase.START)
-		{
-			if (shouldRenderIcons)
-			{
+	public void onRenderTick(TickEvent.RenderTickEvent event) {
+
+		if (event.phase == TickEvent.Phase.START) {
+			if (shouldRenderIcons) {
 				IconRenderer.render();
 			}
-		}
-		else if (currentNotification != null && currentNotification.isImportant())
-		{
-			currentNotification.render(new ScaledResolution(Minecraft.getMinecraft(), Minecraft.getMinecraft().displayHeight, Minecraft.getMinecraft().displayWidth), event.renderTickTime);
+		} else if (currentNotification != null && currentNotification.isImportant()) {
+			Minecraft mc = Minecraft.getMinecraft();
+			currentNotification
+					.render(new ScaledResolution(mc, mc.displayWidth, mc.displayHeight), event.renderTickTime);
 			GlStateManager.color(1F, 1F, 1F, 1F);
 			GlStateManager.disableLighting();
 			GlStateManager.enableBlend();
@@ -288,46 +269,40 @@ public class ServerLibClientEventHandler {
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
-	public void onFrameStart(TickEvent.RenderTickEvent e)
-	{
-	}
+	public void onFrameStart(TickEvent.RenderTickEvent e) {}
 
 	@SubscribeEvent
-	public static void onDebugInfoEvent(RenderGameOverlayEvent.Text event)
-	{
-		if (ServerLibClientConfig.debug_helper && !Minecraft.getMinecraft().gameSettings.showDebugInfo && Keyboard.isKeyDown(Keyboard.KEY_F3))
-		{
+	public void onDebugInfoEvent(RenderGameOverlayEvent.Text event) {
+		if (ServerLibClientConfig.debug_helper && !Minecraft.getMinecraft().gameSettings.showDebugInfo
+				&& Keyboard.isKeyDown(Keyboard.KEY_F3)) {
 			event.left.add(I18n.format("debug.help.help"));
 		}
 	}
 
-	//@SubscribeEvent
-	//public static void onBeforeTexturesStitched(TextureStitchEvent.Pre event) {
-	//	try {
-	//		for (Field field : GuiIcons.class.getDeclaredFields()) {
-	//			field.setAccessible(true);
-	//			Object o = field.get(null);
-	//			if (o instanceof AtlasSpriteIcon) {
-	//				AtlasSpriteIcon a = (AtlasSpriteIcon) o;
-	//				event.map.registerIcon(new ResourceLocation(a.name).toString()); //getMap().registerSprite(new ResourceLocation(a.name));
-	//				IconPresets.MAP.put(a.name, a);
-	//			}
-	//		}
-	//	}
-	//	catch (Exception ex) {
-	//		if (ServerLibConfig.debugging.print_more_errors) {
-	//			ex.printStackTrace();
-	//		}
-	//	}
-	//}
+	// @SubscribeEvent
+	// public void onBeforeTexturesStitched(TextureStitchEvent.Pre event) {
+	// 	try {
+	// 		for (Field field : GuiIcons.class.getDeclaredFields()) {
+	// 			field.setAccessible(true);
+	// 			Object o = field.get(null);
+	//
+	// 			if (o instanceof AtlasSpriteIcon) {
+	// 				AtlasSpriteIcon a = (AtlasSpriteIcon) o;
+	// 				event.map.registerIcon(a.name);
+	// 				IconPresets.MAP.put(a.name, a);
+	// 			}
+	// 		}
+	// 	} catch (Exception ex) {
+	// 		if (FTBLibConfig.debugging.print_more_errors) {
+	// 		ex.printStackTrace();
+	// 		}
+	// 	}
+	// }
 
 	@SubscribeEvent
-	public static void onCustomClick(CustomClickEvent event)
-	{
-		if (event.getID().getResourceDomain().equals(ServerLib.MOD_ID))
-		{
-			switch (event.getID().getResourcePath())
-			{
+	public void onCustomClick(CustomClickEvent event) {
+		if (event.getID().getResourceDomain().equals(ServerLib.MOD_ID)) {
+			switch (event.getID().getResourcePath()) {
 				case "client_config_gui":
 					new GuiClientConfig().openGui();
 					break;
@@ -343,28 +318,24 @@ public class ServerLibClientEventHandler {
 		}
 	}
 
-	private static class GuiButtonSidebar
-	{
+	private static class GuiButtonSidebar {
 		public final int buttonX, buttonY;
 		public final SidebarButton button;
 		public int x, y;
 
-		public GuiButtonSidebar(int x, int y, SidebarButton b)
-		{
+		public GuiButtonSidebar(int x, int y, SidebarButton b) {
 			buttonX = x;
 			buttonY = y;
 			button = b;
 		}
 	}
 
-	private static class GuiButtonSidebarGroup extends GuiButton
-	{
+	private static class GuiButtonSidebarGroup extends GuiButton {
 		private final InventoryEffectRenderer gui;
 		public final List<GuiButtonSidebar> buttons;
 		private GuiButtonSidebar mouseOver;
 
-		public GuiButtonSidebarGroup(InventoryEffectRenderer g)
-		{
+		public GuiButtonSidebarGroup(InventoryEffectRenderer g) {
 			super(495829, 0, 0, 0, 0, "");
 			gui = g;
 			buttons = new ArrayList<>();
@@ -377,6 +348,7 @@ public class ServerLibClientEventHandler {
 			int rx, ry = 0;
 			boolean addedAny;
 			boolean top = ServerLibClientConfig.action_buttons.top() || !gui.mc.thePlayer.getActivePotionEffects().isEmpty();
+			// || (gui instanceof GuiInventory && ((GuiInventory) gui).func_194310_f().isVisible());
 
 			for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
 				rx = 0;
@@ -403,8 +375,7 @@ public class ServerLibClientEventHandler {
 					button.x = 1 + button.buttonX * 17;
 					button.y = 1 + button.buttonY * 17;
 				}
-			}
-			else {
+			} else {
 				int offsetY = 8;
 
 				if (gui instanceof GuiContainerCreative) {
@@ -423,8 +394,7 @@ public class ServerLibClientEventHandler {
 			int maxY = Integer.MIN_VALUE;
 
 			for (GuiButtonSidebar b : buttons) {
-				if (b.x >= 0 && b.y >= 0)
-				{
+				if (b.x >= 0 && b.y >= 0) {
 					x = Math.min(x, b.x);
 					y = Math.min(y, b.y);
 					maxX = Math.max(maxX, b.x + 16);
@@ -444,9 +414,9 @@ public class ServerLibClientEventHandler {
 			width = maxX - x;
 			height = maxY - y;
 			zLevel = 0F;
-			
+
 			xPosition = x;
-            yPosition = y;
+			yPosition = y;
 
 			GlStateManager.pushMatrix();
 			GlStateManager.translate(0, 0, 500);
@@ -503,7 +473,6 @@ public class ServerLibClientEventHandler {
 				for (int i = 0; i < list.size(); i++) {
 					font.drawString(list.get(i), mx1, my1 + i * 10, 0xFFFFFFFF);
 				}
-
 				GlStateManager.color(1F, 1F, 1F, 1F);
 				GlStateManager.popMatrix();
 			}
@@ -512,7 +481,7 @@ public class ServerLibClientEventHandler {
 			GlStateManager.popMatrix();
 			zLevel = 0F;
 
-			lastDrawnArea = new Rectangle(x, y, width, height);
+			lastDrawnArea = new Rectangle(xPosition, yPosition, width, height);
 		}
 
 		@Override
@@ -521,10 +490,8 @@ public class ServerLibClientEventHandler {
 				if (mouseOver != null) {
 					mouseOver.button.onClicked(GuiScreen.isShiftKeyDown());
 				}
-
 				return true;
 			}
-
 			return false;
 		}
 	}

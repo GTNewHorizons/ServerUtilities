@@ -1,25 +1,28 @@
 package serverutils.serverlib.client;
 
-import serverutils.serverlib.ServerLibConfig;
-import serverutils.serverlib.events.SidebarButtonCreatedEvent;
-import serverutils.serverlib.lib.io.DataReader;
-import serverutils.serverlib.lib.util.JsonUtils;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.IResource;
-import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.resource.IResourceType;
-import net.minecraftforge.client.resource.ISelectiveResourceReloadListener;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.util.ResourceLocation;
+
+import serverutils.serverlib.ServerLibConfig;
+import serverutils.serverlib.client.resource.IResourceType;
+import serverutils.serverlib.client.resource.ISelectiveResourceReloadListener;
+import serverutils.serverlib.events.SidebarButtonCreatedEvent;
+import serverutils.serverlib.lib.io.DataReader;
+import serverutils.serverlib.lib.util.JsonUtils;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 	INSTANCE;
@@ -46,8 +49,7 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 
 		Map<ResourceLocation, SidebarButtonGroup> groupMap = new HashMap<>();
 
-		for (Object d : manager.getResourceDomains()) {
-			String domain = (String) d;
+		for (String domain : (Set<String>) manager.getResourceDomains()) {
 			try {
 				for (Object r : manager.getAllResources(new ResourceLocation(domain, "sidebar_button_groups.json"))) {
 					IResource resource = (IResource) r;
@@ -75,8 +77,7 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 			}
 		}
 
-		for (Object d : manager.getResourceDomains()) {
-			String domain = (String) d;
+		for (String domain : (Set<String>)  manager.getResourceDomains()) {
 			try {
 				for (Object r : manager.getAllResources(new ResourceLocation(domain, "sidebar_buttons.json"))) {
 					IResource resource = (IResource) r;

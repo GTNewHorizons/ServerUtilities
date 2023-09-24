@@ -5,11 +5,7 @@ import net.minecraft.util.ResourceLocation;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
-public class SidebarButtonGroup implements Comparable<SidebarButtonGroup>
-{
+public class SidebarButtonGroup implements Comparable<SidebarButtonGroup> {
 	private final ResourceLocation id;
 	private final int y;
 	private final List<SidebarButton> buttons;
@@ -21,24 +17,20 @@ public class SidebarButtonGroup implements Comparable<SidebarButtonGroup>
 		buttons = new ArrayList<>();
 	}
 
-	public ResourceLocation getId()
-	{
+	public ResourceLocation getId() {
 		return id;
 	}
 
-	public int getY()
-	{
+	public int getY() {
 		return y;
 	}
 
-	public List<SidebarButton> getButtons()
-	{
+	public List<SidebarButton> getButtons() {
 		return buttons;
 	}
 
 	@Override
-	public int compareTo(SidebarButtonGroup group)
-	{
+	public int compareTo(SidebarButtonGroup group) {
 		return getY() - group.getY();
 	}
 }

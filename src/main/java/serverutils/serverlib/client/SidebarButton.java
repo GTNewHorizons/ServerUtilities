@@ -1,5 +1,17 @@
 package serverutils.serverlib.client;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.Supplier;	
+
+import javax.annotation.Nullable;
+
+import net.minecraft.client.resources.I18n;
+import net.minecraft.util.ResourceLocation;
+
 import serverutils.serverlib.lib.OtherMods;
 import serverutils.serverlib.lib.client.ClientUtils;
 import serverutils.serverlib.lib.gui.GuiHelper;
@@ -11,20 +23,11 @@ import serverutils.serverlib.lib.util.JsonUtils;
 import serverutils.serverlib.lib.util.SidedUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.ResourceLocation;
+
 import cpw.mods.fml.common.Loader;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 public class SidebarButton implements Comparable<SidebarButton> {
-	private static final BooleanSupplier NEI_NOT_LOADED = () -> !Loader.isModLoaded(OtherMods.NEI);
+	private static final BooleanSupplier NEI_NOT_LOADED = () -> !(Loader.isModLoaded(OtherMods.NEI)|| (Loader.isModLoaded(OtherMods.NEI_GTNH)));
 
 	public final ResourceLocation id;
 	public final SidebarButtonGroup group;
