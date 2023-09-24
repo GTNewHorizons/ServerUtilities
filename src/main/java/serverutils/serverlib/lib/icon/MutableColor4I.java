@@ -1,16 +1,13 @@
 package serverutils.serverlib.lib.icon;
 
-import serverutils.serverlib.lib.client.IPixelBuffer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
-import net.minecraft.util.math.MathHelper;
+import serverutils.serverlib.lib.client.IPixelBuffer;
+import serverutils.serverlib.lib.math.MathHelper;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class MutableColor4I extends Color4I
 {
 	public static final Color4I TEMP = new MutableColor4I(255, 255, 255, 255);
@@ -137,7 +134,7 @@ public class MutableColor4I extends Color4I
 
 	public Color4I addBrightness(int b)
 	{
-		return set(MathHelper.clamp(red + b, 0, 255), MathHelper.clamp(green + b, 0, 255), MathHelper.clamp(blue + b, 0, 255), alpha);
+		return set((int) MathHelper.clamp(red + b, 0, 255), (int) MathHelper.clamp(green + b, 0, 255), (int) MathHelper.clamp(blue + b, 0, 255), alpha);
 	}
 
 	private static int toint(float f)

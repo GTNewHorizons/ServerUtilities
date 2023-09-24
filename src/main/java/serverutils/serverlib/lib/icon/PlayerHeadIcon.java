@@ -1,12 +1,10 @@
 package serverutils.serverlib.lib.icon;
 
-import serverutils.serverlib.lib.gui.GuiHelper;
-import serverutils.serverlib.lib.io.DataReader;
-import serverutils.serverlib.lib.util.StringUtils;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.IImageBuffer;
 import net.minecraft.client.renderer.ImageBufferDownload;
 import net.minecraft.client.renderer.texture.ITextureObject;
@@ -16,8 +14,10 @@ import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.gui.GuiHelper;
+import serverutils.serverlib.lib.io.DataReader;
+import serverutils.serverlib.lib.util.StringUtils;
 
 import javax.annotation.Nullable;
 import java.awt.image.BufferedImage;
@@ -27,9 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
 
-/**
- * @author LatvianModder
- */
 public class PlayerHeadIcon extends ImageIcon
 {
 	private static class ThreadLoadSkin extends SimpleTexture

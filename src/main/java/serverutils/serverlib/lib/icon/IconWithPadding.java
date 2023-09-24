@@ -2,12 +2,10 @@ package serverutils.serverlib.lib.icon;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * @author LatvianModder
- */
+
 public class IconWithPadding extends IconWithParent
 {
 	public int padding;

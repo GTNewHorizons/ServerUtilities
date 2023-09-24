@@ -1,7 +1,7 @@
 package serverutils.serverlib.lib.math;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.util.ChunkCoordinates; // ChunkPos;
+import net.minecraft.util.ChunkCoordinates;
 
 public final class ChunkDimPos
 {

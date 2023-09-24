@@ -1,5 +1,6 @@
 package serverutils.serverlib.lib.icon;
 
+import serverutils.serverlib.client.GlStateManager;
 import serverutils.serverlib.client.ServerLibClientEventHandler;
 import serverutils.serverlib.lib.client.IPixelBuffer;
 import javafx.scene.image.Image;
@@ -7,9 +8,8 @@ import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraftforge.fml.common.Loader;
+import cpw.mods.fml.common.Loader;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -24,11 +24,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-/**
- * @author LatvianModder
- * @author elytra
- * @see <a href='https://github.com/elytra/BlockRenderer'>elytra/BlockRenderer</a>
- */
 public class IconRenderer
 {
 	private static class IconCallbackPair implements Runnable

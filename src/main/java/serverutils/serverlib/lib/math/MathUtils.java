@@ -247,8 +247,8 @@ public class MathUtils
 	@Nullable
 	public static MovingObjectPosition rayTrace(Entity entity, double dist, boolean useLiquids)
 	{
-		Float eyes = (Float) entity.getEyeHeight();
-		Vec3 start = entity.getEyeHeight(); //getPositionEyes(1F);
+		Float eyes = entity.getEyeHeight();
+		Vec3 start = Vec3.createVectorHelper(entity.posX, entity.posY, entity.posZ + 1F); //getPositionEyes(1F);
 		Vec3 look = entity.getLookVec();
 		Vec3 end = start.addVector(look.xCoord * dist, look.yCoord * dist, look.zCoord * dist);
 		return entity.worldObj.rayTraceBlocks(start, end, false);

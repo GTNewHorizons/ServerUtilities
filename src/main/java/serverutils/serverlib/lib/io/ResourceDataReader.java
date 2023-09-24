@@ -12,9 +12,6 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class ResourceDataReader extends DataReader
 {
 	public final IResource resource;

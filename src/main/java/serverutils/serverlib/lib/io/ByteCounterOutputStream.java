@@ -2,9 +2,6 @@ package serverutils.serverlib.lib.io;
 
 import java.io.OutputStream;
 
-/**
- * @author LatvianModder
- */
 public class ByteCounterOutputStream extends OutputStream
 {
 	private long size = 0L;

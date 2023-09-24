@@ -7,9 +7,6 @@ import net.minecraft.util.Vec3;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public final class BlockDimPos
 {
 	public final int posX, posY, posZ, dim;

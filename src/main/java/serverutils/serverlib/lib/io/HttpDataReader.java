@@ -21,9 +21,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class HttpDataReader extends DataReader
 {
 	public interface HttpDataOutput

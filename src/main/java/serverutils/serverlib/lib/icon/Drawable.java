@@ -1,12 +1,9 @@
 package serverutils.serverlib.lib.icon;
 
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import serverutils.serverlib.client.GlStateManager;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * @author LatvianModder
- */
 public interface Drawable
 {
 	@SideOnly(Side.CLIENT)

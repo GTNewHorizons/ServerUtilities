@@ -13,9 +13,6 @@ import serverutils.serverlib.lib.gui.GuiHelper;
 
 import org.lwjgl.opengl.GL11;
 
-/**
- * @author LatvianModder
- */
 public class BulletIcon extends Icon
 {
 	private static final MutableColor4I DEFAULT_COLOR = Color4I.rgb(0xEDEDED).mutable();

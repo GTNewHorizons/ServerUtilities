@@ -15,9 +15,6 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class StringDataReader extends DataReader
 {
 	public final String string;

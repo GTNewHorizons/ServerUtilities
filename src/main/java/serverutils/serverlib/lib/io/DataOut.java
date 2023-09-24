@@ -20,13 +20,12 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.common.util.Constants;
 
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.math.BlockDimPos;
+import serverutils.serverlib.lib.math.ChunkDimPos;
 import serverutils.serverlib.lib.util.BlockUtils;
 import serverutils.serverlib.lib.util.JsonUtils;
 
@@ -41,9 +40,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.UUID;
 
-/**
- * @author LatvianModder
- */
+
 public class DataOut
 {
 	@FunctionalInterface
@@ -63,10 +60,10 @@ public class DataOut
 	public static final Serializer<ResourceLocation> RESOURCE_LOCATION = DataOut::writeResourceLocation;
 	public static final Serializer<ItemStack> ITEM_STACK = DataOut::writeItemStack;
 
-	public static final DataOut.Serializer<ChunkPos> CHUNK_POS = (data, pos) ->
+	public static final DataOut.Serializer<ChunkDimPos> CHUNK_POS = (data, pos) ->
 	{
-		data.writeVarInt(pos.x);
-		data.writeVarInt(pos.z);
+		data.writeVarInt(pos.posX);
+		data.writeVarInt(pos.posZ);
 	};
 
 	private final ByteBuf byteBuf;
@@ -126,11 +123,11 @@ public class DataOut
 		byteBuf.writeDouble(value);
 	}
 
-	public void writePos(Vec3i pos)
+	public void writePos(Vec3 pos)
 	{
-		writeVarInt(pos.getX());
-		writeVarInt(pos.getY());
-		writeVarInt(pos.getZ());
+		writeVarInt((int) pos.xCoord);
+		writeVarInt((int) pos.yCoord);
+		writeVarInt((int) pos.zCoord);
 	}
 
 	public void writeDimPos(BlockDimPos pos)
@@ -213,15 +210,15 @@ public class DataOut
 
 	public void writeItemStack(ItemStack stack)
 	{
-		if (stack.isEmpty() || stack.getItem().getRegistryName() == null)
+		if (stack.isEmpty() || stack.getItem().getUnlocalizedName() == null)
 		{
 			writeVarInt(0);
 			return;
 		}
 
 		writeVarInt(Item.getIdFromItem(stack.getItem()));
-		writeVarInt(stack.getCount());
-		writeVarInt(stack.getMetadata());
+		writeVarInt(stack.stackSize);
+		writeVarInt(stack.getItemDamage());
 		writeNBT(stack.getItem().isDamageable() || stack.getItem().getShareTag() ? stack.getItem().getNBTShareTag(stack) : null);
 	}
 

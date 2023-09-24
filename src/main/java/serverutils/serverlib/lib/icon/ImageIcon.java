@@ -1,31 +1,28 @@
 package serverutils.serverlib.lib.icon;
 
-import serverutils.serverlib.FTBLib;
-import serverutils.serverlib.lib.client.IPixelBuffer;
-import serverutils.serverlib.lib.client.PixelBuffer;
-import serverutils.serverlib.lib.gui.GuiHelper;
 import com.google.common.base.Objects;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.SimpleTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
+import serverutils.serverlib.ServerLib;
+import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.IPixelBuffer;
+import serverutils.serverlib.lib.client.PixelBuffer;
+import serverutils.serverlib.lib.gui.GuiHelper;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class ImageIcon extends Icon
 {
-	public static final ResourceLocation MISSING_IMAGE = new ResourceLocation(FTBLib.MOD_ID, "textures/gui/missing_image.png");
+	public static final ResourceLocation MISSING_IMAGE = new ResourceLocation(ServerLib.MOD_ID, "textures/gui/missing_image.png");
 
 	public final ResourceLocation texture;
 	public double minU, minV, maxU, maxV;
@@ -99,7 +96,7 @@ public class ImageIcon extends Icon
 			int b = color.bluei();
 			int a = color.alphai();
 
-			Tessellator tessellator = Tessellator.getInstance();
+			Tessellator tessellator = Tessellator.instance;
 			BufferBuilder buffer = tessellator.getBuffer();
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
 			buffer.pos(x, y + h, 0).tex(x / tileSize, (y + h) / tileSize).color(r, g, b, a).endVertex();

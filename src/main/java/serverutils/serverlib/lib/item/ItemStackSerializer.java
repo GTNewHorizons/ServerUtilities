@@ -8,9 +8,9 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.oredict.OreDictionary;
+import serverutils.serverlib.lib.math.MathHelper;
 
 import javax.annotation.Nullable;
 
@@ -25,7 +25,7 @@ public class ItemStackSerializer
 		}
 		else if (input.startsWith("{"))
 		{
-			NBTTagCompound nbt = JsonToNBT.getTagFromJson(input);
+			NBTTagCompound nbt = (NBTTagCompound) JsonToNBT.func_150315_a(input); //.getTagFromJson(input);
 
 			if (nbt.getByte("Count") <= 0)
 			{
@@ -36,7 +36,7 @@ public class ItemStackSerializer
 		}
 
 		String[] s1 = input.split(" ", 4);
-		Item item = Item.REGISTRY.getObject(new ResourceLocation(s1[0]));
+		Item item = (Item) Item.itemRegistry.getObject(new ResourceLocation(s1[0]));
 
 		if (item == null)
 		{
@@ -63,7 +63,7 @@ public class ItemStackSerializer
 
 		if (s1.length >= 4)
 		{
-			itemstack.setTagCompound(JsonToNBT.getTagFromJson(s1[3]));
+			itemstack.setTagCompound((NBTTagCompound) JsonToNBT.func_150315_a(s1[3]));
 		}
 
 		return itemstack.isEmpty() ? ItemStack.EMPTY : itemstack;
@@ -95,10 +95,10 @@ public class ItemStackSerializer
 			return nbt.toString();
 		}
 
-		StringBuilder builder = new StringBuilder(String.valueOf(Item.REGISTRY.getNameForObject(stack.getItem())));
+		StringBuilder builder = new StringBuilder(String.valueOf(Item.itemRegistry.getNameForObject(stack.getItem())));
 
-		int count = stack.getCount();
-		int meta = stack.getMetadata();
+		int count = stack.stackSize;
+		int meta = stack.getItemDamage();
 		NBTTagCompound tag = stack.getTagCompound();
 
 		if (count > 1 || meta != 0 || tag != null)
@@ -164,7 +164,7 @@ public class ItemStackSerializer
 		}
 		else if (nbtBase instanceof NBTTagString)
 		{
-			return parseItem(((NBTTagString) nbtBase).getString());
+			return parseItem(((NBTTagString) nbtBase).func_150285_a_());
 		}
 		else if (!(nbtBase instanceof NBTTagCompound))
 		{

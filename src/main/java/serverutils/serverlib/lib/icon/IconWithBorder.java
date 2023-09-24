@@ -1,15 +1,13 @@
 package serverutils.serverlib.lib.icon;
 
-import serverutils.serverlib.lib.gui.GuiHelper;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.gui.GuiHelper;
 
-/**
- * @author LatvianModder
- */
 public class IconWithBorder extends IconWithParent
 {
 	public static final Icon BUTTON_GRAY = Color4I.rgb(0x212121).withBorder(Color4I.rgb(0x141414), false);

@@ -1,27 +1,24 @@
 package serverutils.serverlib.lib.icon;
 
-import serverutils.serverlib.ServerLibConfig;
-import serverutils.serverlib.lib.gui.GuiHelper;
-import serverutils.serverlib.lib.item.ItemStackSerializer;
-import serverutils.serverlib.lib.util.InvUtils;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.IBakedModel;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import serverutils.serverlib.ServerLibConfig;
+import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.gui.GuiHelper;
+import serverutils.serverlib.lib.item.ItemStackSerializer;
+import serverutils.serverlib.lib.util.InvUtils;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-/**
- * @author LatvianModder
- */
 public class ItemIcon extends Icon
 {
 	private static class LazyItemIcon extends ItemIcon

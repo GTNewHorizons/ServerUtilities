@@ -6,9 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Made by LatvianModder
- */
 public class Bits
 {
 	private static final int MAX_BYTE = 0xFF;

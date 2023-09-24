@@ -6,9 +6,6 @@ import net.minecraftforge.items.ItemHandlerHelper;
 
 import java.util.Arrays;
 
-/**
- * @author LatvianModder
- */
 public class ItemStackArrayHandler implements IItemHandlerModifiable
 {
 	public final ItemStack[] items;

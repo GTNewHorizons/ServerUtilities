@@ -6,9 +6,6 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
-/**
- * @author LatvianModder
- */
 public class SlotOnlyInsertItem extends Slot
 {
 	private final IItemHandler itemHandler;

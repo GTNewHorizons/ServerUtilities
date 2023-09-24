@@ -3,6 +3,7 @@ package serverutils.serverlib.client;
 import serverutils.serverlib.lib.client.PixelBuffer;
 import serverutils.serverlib.lib.gui.misc.ChunkSelectorMap;
 import serverutils.serverlib.lib.icon.Color4I;
+import serverutils.serverlib.lib.math.ChunkDimPos;
 import serverutils.serverlib.lib.math.MathUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockWood;
@@ -212,11 +213,11 @@ public class ThreadReloadChunkSelector extends Thread
 					break;
 				}
 
-				ChunkPos pos = MathUtils.getSpiralPoint(index);
-				int cx = pos.x + ChunkSelectorMap.TILES_GUI2;
-				int cz = pos.z + ChunkSelectorMap.TILES_GUI2;
+				ChunkDimPos pos = MathUtils.getSpiralPoint(index);
+				int cx = pos.posX + ChunkSelectorMap.TILES_GUI2;
+				int cz = pos.posZ + ChunkSelectorMap.TILES_GUI2;
 
-				chunk = w.getChunkProvider().getLoadedChunk(startX + cx, startZ + cz);
+				chunk = w.getChunkProvider().loadChunk(startX + cx, startZ + cz); //getLoadedChunk(startX + cx, startZ + cz);
 
 				if (chunk != null)
 				{
@@ -258,11 +259,11 @@ public class ThreadReloadChunkSelector extends Thread
 					break;
 				}
 
-				ChunkPos pos = MathUtils.getSpiralPoint(index);
-				int cx = pos.x + ChunkSelectorMap.TILES_GUI2;
-				int cz = pos.z + ChunkSelectorMap.TILES_GUI2;
+				ChunkDimPos pos = MathUtils.getSpiralPoint(index);
+				int cx = pos.posX + ChunkSelectorMap.TILES_GUI2;
+				int cz = pos.posZ + ChunkSelectorMap.TILES_GUI2;
 
-				chunk = w.getChunkProvider().getLoadedChunk(startX + cx, startZ + cz);
+				chunk = w.getChunkProvider().loadChunk(startX + cx, startZ + cz);
 
 				if (chunk == null)
 				{

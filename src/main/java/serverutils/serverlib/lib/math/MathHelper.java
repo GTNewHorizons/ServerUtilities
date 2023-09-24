@@ -5,9 +5,6 @@ import java.util.Random;
 
 import latmod.lib.util.VecLM;
 
-/**
- * Made by LatvianModder
- */
 public class MathHelper {
 
     public static final Random rand = new Random();

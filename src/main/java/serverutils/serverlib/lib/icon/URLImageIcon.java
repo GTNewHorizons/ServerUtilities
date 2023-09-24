@@ -1,23 +1,20 @@
 package serverutils.serverlib.lib.icon;
 
-import serverutils.serverlib.lib.client.IPixelBuffer;
-import serverutils.serverlib.lib.client.PixelBuffer;
-import serverutils.serverlib.lib.io.DataReader;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.ThreadDownloadImageData;
 import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.client.IPixelBuffer;
+import serverutils.serverlib.lib.client.PixelBuffer;
+import serverutils.serverlib.lib.io.DataReader;
 
 import java.io.File;
 import java.net.URI;
 
-/**
- * @author LatvianModder
- */
 public class URLImageIcon extends ImageIcon
 {
 	public final URI uri;

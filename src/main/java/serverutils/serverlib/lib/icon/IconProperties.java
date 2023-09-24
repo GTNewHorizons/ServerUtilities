@@ -1,14 +1,11 @@
 package serverutils.serverlib.lib.icon;
 
-import net.minecraft.util.math.MathHelper;
+import serverutils.serverlib.lib.math.MathHelper;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * @author LatvianModder
- */
 public class IconProperties
 {
 	private final Map<String, String> map = new LinkedHashMap<>();
@@ -28,7 +25,7 @@ public class IconProperties
 	{
 		if (map.containsKey(key))
 		{
-			return MathHelper.clamp(Integer.parseInt(map.get(key)), min, max);
+			return (int) MathHelper.clamp(Integer.parseInt(map.get(key)), min, max);
 		}
 
 		return def;

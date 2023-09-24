@@ -16,9 +16,6 @@ import org.lwjgl.opengl.GL11;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class AtlasSpriteIcon extends Icon
 {
 	public final String name;
