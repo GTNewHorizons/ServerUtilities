@@ -25,11 +25,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
+
 	INSTANCE;
 
 	public final List<SidebarButtonGroup> groups = new ArrayList<>();
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void onResourceManagerReload(IResourceManager manager, Predicate<IResourceType> resourcePredicate) {
 		if (!resourcePredicate.test(ServerLibResourceType.SERVERLIB_CONFIG)) {
 			return;
@@ -51,8 +53,7 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 
 		for (String domain : (Set<String>) manager.getResourceDomains()) {
 			try {
-				for (Object r : manager.getAllResources(new ResourceLocation(domain, "sidebar_button_groups.json"))) {
-					IResource resource = (IResource) r;
+				for (IResource resource : (List<IResource>) manager.getAllResources(new ResourceLocation(domain, "sidebar_button_groups.json"))) {
 					JsonElement json = DataReader.get(resource).json();
 
 					for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject().entrySet()) {
@@ -77,10 +78,9 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 			}
 		}
 
-		for (String domain : (Set<String>)  manager.getResourceDomains()) {
+		for (String domain : (Set<String>) manager.getResourceDomains()) {
 			try {
-				for (Object r : manager.getAllResources(new ResourceLocation(domain, "sidebar_buttons.json"))) {
-					IResource resource = (IResource) r;
+				for (IResource resource : (List<IResource>) manager.getAllResources(new ResourceLocation(domain, "sidebar_buttons.json"))) {
 					JsonElement json = DataReader.get(resource).json();
 
 					if (json.isJsonObject()) {
@@ -113,8 +113,7 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 										button.setConfig(e.getAsJsonObject().get(button.id.getResourcePath()).getAsBoolean());
 									}
 								}
-								else if (sidebarButtonConfig.has(button.id.toString()))
-								{
+								else if (sidebarButtonConfig.has(button.id.toString())) {
 									button.setConfig(sidebarButtonConfig.get(button.id.toString()).getAsBoolean());
 								}
 							}
