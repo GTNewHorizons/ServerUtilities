@@ -1,13 +1,15 @@
 package serverutils.serverlib.lib.config;
 
-import com.mojang.authlib.GameProfile;
-import net.minecraft.server.MinecraftServer;
-
-import javax.annotation.Nullable;
 import java.util.Collection;
 
-public interface IRankConfigHandler
-{
+import javax.annotation.Nullable;
+
+import net.minecraft.server.MinecraftServer;
+
+import com.mojang.authlib.GameProfile;
+
+public interface IRankConfigHandler {
+
 	void registerRankConfig(RankConfigValueInfo info);
 
 	Collection<RankConfigValueInfo> getRegisteredConfigs();

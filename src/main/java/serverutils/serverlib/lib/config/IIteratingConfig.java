@@ -1,7 +1,7 @@
 package serverutils.serverlib.lib.config;
 
 @FunctionalInterface
-public interface IIteratingConfig
-{
+public interface IIteratingConfig {
+
 	ConfigValue getIteration(boolean next);
 }

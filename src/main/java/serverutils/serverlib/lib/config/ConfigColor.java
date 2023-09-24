@@ -1,153 +1,125 @@
 package serverutils.serverlib.lib.config;
 
+import javax.annotation.Nullable;
+
+import net.minecraft.command.ICommandSender;
+import net.minecraft.nbt.NBTTagCompound;
+
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.MutableColor4I;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.nbt.NBTTagCompound;
 
-import javax.annotation.Nullable;
+public class ConfigColor extends ConfigValue {
 
-public class ConfigColor extends ConfigValue
-{
 	public static final String ID = "color";
 
 	private final MutableColor4I value = Color4I.WHITE.mutable();
 
-	public ConfigColor(Color4I v)
-	{
+	public ConfigColor(Color4I v) {
 		value.set(v, 255);
 	}
 
-	public ConfigColor(int col)
-	{
+	public ConfigColor(int col) {
 		value.set(0xFF000000 | col);
 	}
 
 	@Override
-	public String getId()
-	{
+	public String getId() {
 		return ID;
 	}
 
 	@Override
-	public MutableColor4I getColor()
-	{
+	public MutableColor4I getColor() {
 		return value;
 	}
 
 	@Override
-	public String getString()
-	{
+	public String getString() {
 		return getColor().toString();
 	}
 
 	@Override
-	public boolean getBoolean()
-	{
+	public boolean getBoolean() {
 		return !getColor().isEmpty();
 	}
 
 	@Override
-	public int getInt()
-	{
+	public int getInt() {
 		return getColor().rgba();
 	}
 
 	@Override
-	public ConfigColor copy()
-	{
+	public ConfigColor copy() {
 		return new ConfigColor(getColor());
 	}
 
 	@Override
-	public boolean setValueFromString(@Nullable ICommandSender sender, String string, boolean simulate)
-	{
-		try
-		{
-			if (string.indexOf(',') != -1)
-			{
-				if (string.length() < 5)
-				{
+	public boolean setValueFromString(@Nullable ICommandSender sender, String string, boolean simulate) {
+		try {
+			if (string.indexOf(',') != -1) {
+				if (string.length() < 5) {
 					return false;
 				}
 
 				String[] s = string.split(",");
 
-				if (s.length == 3 || s.length == 4)
-				{
+				if (s.length == 3 || s.length == 4) {
 					int[] c = new int[4];
 					c[3] = 255;
 
-					for (int i = 0; i < s.length; i++)
-					{
+					for (int i = 0; i < s.length; i++) {
 						c[i] = Integer.parseInt(s[i]);
 					}
 
-					if (!simulate)
-					{
+					if (!simulate) {
 						getColor().set(c[0], c[1], c[2], c[3]);
 					}
 
 					return true;
 				}
-			}
-			else
-			{
-				if (string.length() < 6)
-				{
+			} else {
+				if (string.length() < 6) {
 					return false;
-				}
-				else if (string.startsWith("#"))
-				{
+				} else if (string.startsWith("#")) {
 					string = string.substring(1);
 				}
 
 				int hex = Integer.parseInt(string, 16);
 
-				if (!simulate)
-				{
+				if (!simulate) {
 					getColor().set(0xFF000000 | hex);
 				}
 
 				return true;
 			}
-		}
-		catch (Exception ex)
-		{
-		}
+		} catch (Exception ex) {}
 
 		return false;
 	}
 
 	@Override
-	public void writeToNBT(NBTTagCompound nbt, String key)
-	{
+	public void writeToNBT(NBTTagCompound nbt, String key) {
 		nbt.setInteger(key, getInt());
 	}
 
 	@Override
-	public void readFromNBT(NBTTagCompound nbt, String key)
-	{
+	public void readFromNBT(NBTTagCompound nbt, String key) {
 		getColor().set(0xFF000000 | nbt.getInteger(key));
 	}
 
 	@Override
-	public void writeData(DataOut data)
-	{
+	public void writeData(DataOut data) {
 		data.writeInt(getInt());
 	}
 
 	@Override
-	public void readData(DataIn data)
-	{
+	public void readData(DataIn data) {
 		getColor().set(data.readInt());
 	}
 
 	@Override
-	public void setValueFromOtherValue(ConfigValue value)
-	{
+	public void setValueFromOtherValue(ConfigValue value) {
 		getColor().set(value.getColor());
 	}
 }
