@@ -3,48 +3,36 @@ package serverutils.serverlib.lib.command;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.server.command.CommandTreeBase;
 
-/**
- * @author LatvianModder
- */
-public class CmdTreeBase extends CommandTreeBase implements ICommandWithParent
-{
+public class CmdTreeBase extends CommandTreeBase implements ICommandWithParent {
+
 	private final String name;
 	private ICommand parent;
 
-	public CmdTreeBase(String n)
-	{
+	public CmdTreeBase(String n) {
 		name = n;
 	}
 
 	@Override
-	public void addSubcommand(ICommand command)
-	{
+	public void addSubcommand(ICommand command) {
 		super.addSubcommand(command);
 
-		if (command instanceof ICommandWithParent)
-		{
+		if (command instanceof ICommandWithParent) {
 			((ICommandWithParent) command).setParent(this);
 		}
 	}
 
 	@Override
-	public final String getCommandName()
-	{
+	public final String getCommandName() {
 		return name;
 	}
 
 	@Override
-	public int getRequiredPermissionLevel()
-	{
+	public int getRequiredPermissionLevel() {
 		int level = 4;
 
-		for (ICommand command : getSubCommands())
-		{
-			if (command instanceof CommandBase)
-			{
+		for (ICommand command : getSubCommands()) {
+			if (command instanceof CommandBase) {
 				level = Math.min(level, ((CommandBase) command).getRequiredPermissionLevel());
 			}
 		}
@@ -53,12 +41,9 @@ public class CmdTreeBase extends CommandTreeBase implements ICommandWithParent
 	}
 
 	@Override
-	public boolean checkPermission(MinecraftServer server, ICommandSender sender)
-	{
-		for (ICommand command : getSubCommands())
-		{
-			if (command.checkPermission(server, sender))
-			{
+	public boolean canCommandSenderUseCommand(ICommandSender sender) {
+		for (ICommand command : getSubCommands()) {
+			if (command.canCommandSenderUseCommand(sender)) {
 				return true;
 			}
 		}
@@ -67,14 +52,12 @@ public class CmdTreeBase extends CommandTreeBase implements ICommandWithParent
 	}
 
 	@Override
-	public ICommand getParent()
-	{
+	public ICommand getParent() {
 		return parent;
 	}
 
 	@Override
-	public void setParent(ICommand c)
-	{
+	public void setParent(ICommand c) {
 		parent = c;
 	}
 }
