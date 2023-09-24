@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib.data;
 
-/**
- * @author LatvianModder
- */
 public abstract class TeamData implements NBTDataStorage.Data
 {
 	public final ForgeTeam team;

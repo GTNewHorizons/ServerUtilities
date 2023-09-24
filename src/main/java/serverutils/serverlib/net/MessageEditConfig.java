@@ -10,9 +10,6 @@ import serverutils.serverlib.lib.net.NetworkWrapper;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * @author LatvianModder
- */
 public class MessageEditConfig extends MessageToClient
 {
 	private static final IConfigCallback RX_CONFIG_TREE = (group, sender) -> new MessageEditConfigResponse(group.serializeNBT()).sendToServer();

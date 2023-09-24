@@ -3,9 +3,6 @@ package serverutils.serverlib.lib.data;
 import serverutils.serverlib.lib.util.misc.NameMap;
 import net.minecraft.util.IStringSerializable;
 
-/**
- * @author LatvianModder
- */
 public enum TeamType implements IStringSerializable
 {
 	PLAYER("player", true, false, true, false),

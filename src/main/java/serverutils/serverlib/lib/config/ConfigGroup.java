@@ -27,9 +27,6 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-/**
- * @author LatvianModder
- */
 public class ConfigGroup extends FinalIDObject
 {
 	public static final ConfigGroup DEFAULT = newGroup("default");

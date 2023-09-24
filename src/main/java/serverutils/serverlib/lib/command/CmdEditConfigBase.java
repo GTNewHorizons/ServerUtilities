@@ -7,6 +7,7 @@ import serverutils.serverlib.lib.config.ConfigValue;
 import serverutils.serverlib.lib.config.ConfigValueInstance;
 import serverutils.serverlib.lib.config.IConfigCallback;
 import serverutils.serverlib.lib.data.ServerLibAPI;
+import serverutils.serverlib.lib.math.BlockDimPos;
 import serverutils.serverlib.lib.util.StringUtils;
 import serverutils.serverlib.lib.util.text_components.Notification;
 import net.minecraft.command.CommandException;
@@ -37,7 +38,7 @@ public abstract class CmdEditConfigBase extends CmdBase
 	}
 
 	@Override
-	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockPos pos)
+	public List<String> getTabCompletions(MinecraftServer server, ICommandSender sender, String[] args, @Nullable BlockDimPos pos)
 	{
 		try
 		{

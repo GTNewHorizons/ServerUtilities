@@ -1,20 +1,17 @@
 package serverutils.serverlib.lib.config;
 
+import com.google.gson.JsonElement;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.nbt.NBTTagCompound;
 import serverutils.serverlib.lib.gui.IOpenableGui;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import com.google.gson.JsonElement;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.nbt.NBTTagCompound;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class ConfigNull extends ConfigValue
 {
 	public static final String ID = "null";

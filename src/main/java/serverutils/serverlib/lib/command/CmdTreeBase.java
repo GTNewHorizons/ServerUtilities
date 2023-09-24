@@ -31,7 +31,7 @@ public class CmdTreeBase extends CommandTreeBase implements ICommandWithParent
 	}
 
 	@Override
-	public final String getName()
+	public final String getCommandName()
 	{
 		return name;
 	}

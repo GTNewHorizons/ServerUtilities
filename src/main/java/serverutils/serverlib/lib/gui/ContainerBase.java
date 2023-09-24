@@ -5,9 +5,6 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
-/**
- * @author LatvianModder
- */
 public abstract class ContainerBase extends Container
 {
 	public final EntityPlayer player;
@@ -73,7 +70,7 @@ public abstract class ContainerBase extends Container
 		}
 
 		ItemStack stack = ItemStack.EMPTY;
-		Slot slot = inventorySlots.get(index);
+		Slot slot = (Slot) inventorySlots.get(index);
 
 		if (slot != null && slot.getHasStack())
 		{

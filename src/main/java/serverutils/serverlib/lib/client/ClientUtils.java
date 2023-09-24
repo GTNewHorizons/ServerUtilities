@@ -8,7 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.particle.EntityReddustFX; // Particle;
 import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.texture.LayeredTexture RenderBlocks; //BlockRenderLayer;
+import net.minecraft.client.renderer.texture.LayeredTexture; //RenderBlocks; //BlockRenderLayer;
 import net.minecraftforge.client.ClientCommandHandler;
 
 import javax.annotation.Nullable;

@@ -1,5 +1,6 @@
 package serverutils.serverlib.lib.block;
 
+import serverutils.serverlib.lib.math.BlockDimPos;
 import serverutils.serverlib.lib.tile.TileBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
@@ -24,10 +25,10 @@ public class BlockSpecialDrop extends Block
 
 	@Override
 	@Deprecated
-	public ItemStack getItem(World world, BlockPos pos, IBlockState state)
+	public ItemStack getItem(World world, BlockDimPos pos, IBlockState state)
 	{
 		ItemStack stack = super.getItem(world, pos, state);
-		TileEntity tileEntity = world.getTileEntity(pos);
+		TileEntity tileEntity = world.getTileEntity(pos.posX, pos.posY, pos.posZ);
 
 		if (tileEntity instanceof TileBase)
 		{
@@ -38,11 +39,11 @@ public class BlockSpecialDrop extends Block
 	}
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
+	public void onBlockPlacedBy(World world, BlockDimPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
 	{
 		if (hasTileEntity(state))
 		{
-			TileEntity tile = world.getTileEntity(pos);
+			TileEntity tile = world.getTileEntity(pos.posX, pos.posY, pos.posZ);
 
 			if (tile instanceof TileBase)
 			{
@@ -52,16 +53,16 @@ public class BlockSpecialDrop extends Block
 	}
 
 	@Override
-	public void dropBlockAsItemWithChance(World world, BlockPos pos, IBlockState state, float chance, int fortune)
+	public void dropBlockAsItemWithChance(World world, BlockDimPos pos, IBlockState state, float chance, int fortune)
 	{
 	}
 
 	@Override
-	public void onBlockHarvested(World world, BlockPos pos, IBlockState state, EntityPlayer player)
+	public void onBlockHarvested(World world, BlockDimPos pos, IBlockState state, EntityPlayer player)
 	{
 		if (player.capabilities.isCreativeMode)
 		{
-			TileEntity tileEntity = world.getTileEntity(pos);
+			TileEntity tileEntity = world.getTileEntity(pos.posX, pos.posY, pos.posZ);
 
 			if (tileEntity instanceof TileBase)
 			{
@@ -72,10 +73,10 @@ public class BlockSpecialDrop extends Block
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public void breakBlock(World world, BlockPos pos, IBlockState state)
+	public void breakBlock(World world, BlockDimPos pos, Block IBlockState state)
 	{
 		ItemStack stack = super.getItem(world, pos, state);
-		TileEntity tileEntity = world.getTileEntity(pos);
+		TileEntity tileEntity = world.getTileEntity(pos.posX, pos.posY, pos.posZ);
 
 		if (tileEntity instanceof TileBase)
 		{
@@ -87,7 +88,7 @@ public class BlockSpecialDrop extends Block
 			((TileBase) tileEntity).writeToItem(stack);
 		}
 
-		spawnAsEntity(world, pos, stack);
-		super.breakBlock(world, pos, state);
+		dropBlockAsItem(world, pos.posX, pos.posY, pos.posZ, stack);
+		super.breakBlock(world, pos.posX, pos.posY, pos.posZ, state);
 	}
 }

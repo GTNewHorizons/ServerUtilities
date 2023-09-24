@@ -1,5 +1,10 @@
 package serverutils.serverlib.lib.config;
 
+import net.minecraft.command.ICommandSender;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.gui.GuiBase;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.gui.IOpenableGui;
@@ -12,26 +17,18 @@ import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.math.MathUtils;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class ConfigStringEnum extends ConfigValue implements IIteratingConfig
 {
 	public static final class StringEnumValue
 	{
 		public final int index;
 		public final String id;
-		public ITextComponent customName = null;
+		public IChatComponent customName = null;
 		public Color4I customColor = Icon.EMPTY;
 
 		public StringEnumValue(int idx, String i)
@@ -124,9 +121,9 @@ public class ConfigStringEnum extends ConfigValue implements IIteratingConfig
 	}
 
 	@Override
-	public ITextComponent getStringForGUI()
+	public IChatComponent getStringForGUI()
 	{
-		return value == null ? new TextComponentString("null") : value.customName == null ? new TextComponentString(getString()) : value.customName.createCopy();
+		return value == null ? new ChatComponentText("null") : value.customName == null ? new ChatComponentText(getString()) : value.customName.createCopy();
 	}
 
 	@Override
@@ -159,15 +156,15 @@ public class ConfigStringEnum extends ConfigValue implements IIteratingConfig
 		if (inst.getCanEdit() && !inst.getDefaultValue().isNull())
 		{
 			StringEnumValue value = get(inst.getDefaultValue().getString());
-			ITextComponent component = value == null ? null : value.customName;
-			list.add(TextFormatting.AQUA + "Default: " + TextFormatting.RESET + (component == null ? inst.getDefaultValue() : component.getFormattedText()));
+			IChatComponent component = value == null ? null : value.customName;
+			list.add(EnumChatFormatting.AQUA + "Default: " + EnumChatFormatting.RESET + (component == null ? inst.getDefaultValue() : component.getFormattedText()));
 		}
 
 		list.add("");
 
 		for (StringEnumValue v : values)
 		{
-			list.add((v == value ? (TextFormatting.AQUA + "+ ") : (TextFormatting.DARK_GRAY + "- ")) + (v.customName == null ? v.id : v.customName.getUnformattedText()));
+			list.add((v == value ? (EnumChatFormatting.AQUA + "+ ") : (EnumChatFormatting.DARK_GRAY + "- ")) + (v.customName == null ? v.id : v.customName.getUnformattedText()));
 		}
 	}
 

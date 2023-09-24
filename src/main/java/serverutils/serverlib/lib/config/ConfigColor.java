@@ -9,9 +9,6 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class ConfigColor extends ConfigValue
 {
 	public static final String ID = "color";

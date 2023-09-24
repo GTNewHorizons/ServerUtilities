@@ -7,12 +7,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.IGuiHandler;
+import serverutils.serverlib.lib.math.BlockDimPos;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class BlockGuiHandler implements IGuiHandler
 {
 	private final Int2ObjectOpenHashMap<BlockGuiSupplier> map = new Int2ObjectOpenHashMap<>();
@@ -30,7 +28,7 @@ public class BlockGuiHandler implements IGuiHandler
 
 		if (supplier != null)
 		{
-			TileEntity tileEntity = world.getTileEntity(new BlockPos(x, y, z));
+			TileEntity tileEntity = world.getTileEntity(new BlockDimPos(x, y, z, ID));
 
 			if (tileEntity != null)
 			{
@@ -49,7 +47,7 @@ public class BlockGuiHandler implements IGuiHandler
 
 		if (supplier != null)
 		{
-			TileEntity tileEntity = world.getTileEntity(new BlockPos(x, y, z));
+			TileEntity tileEntity = world.getTileEntity(new BlockDimPos(x, y, z, ID));
 
 			if (tileEntity != null)
 			{

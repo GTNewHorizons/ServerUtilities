@@ -1,13 +1,13 @@
 package serverutils.serverlib.lib.config;
 
+import net.minecraft.command.ICommandSender;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -15,9 +15,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-/**
- * @author LatvianModder
- */
 public class ConfigString extends ConfigValue
 {
 	public static final String ID = "string";
@@ -127,9 +124,9 @@ public class ConfigString extends ConfigValue
 	}
 
 	@Override
-	public ITextComponent getStringForGUI()
+	public IChatComponent getStringForGUI()
 	{
-		return new TextComponentString('"' + getString() + '"');
+		return new ChatComponentText('"' + getString() + '"');
 	}
 
 	@Override
@@ -160,7 +157,7 @@ public class ConfigString extends ConfigValue
 
 		if (getPattern() != null)
 		{
-			list.add(TextFormatting.AQUA + "Regex: " + TextFormatting.RESET + getPattern().pattern());
+			list.add(EnumChatFormatting.AQUA + "Regex: " + EnumChatFormatting.RESET + getPattern().pattern());
 		}
 	}
 

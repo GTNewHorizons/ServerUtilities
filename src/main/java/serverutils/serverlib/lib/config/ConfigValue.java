@@ -1,5 +1,11 @@
 package serverutils.serverlib.lib.config;
 
+import net.minecraft.command.ICommandSender;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.gui.IOpenableGui;
 import serverutils.serverlib.lib.gui.misc.GuiEditConfigValue;
 import serverutils.serverlib.lib.icon.Color4I;
@@ -11,20 +17,12 @@ import serverutils.serverlib.lib.util.IWithID;
 import serverutils.serverlib.lib.util.JsonUtils;
 import serverutils.serverlib.lib.util.misc.MouseButton;
 import com.google.gson.JsonElement;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
+
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public abstract class ConfigValue implements IWithID
 {
 	public abstract String getString();
@@ -64,7 +62,7 @@ public abstract class ConfigValue implements IWithID
 	{
 		if (inst.getCanEdit() && !inst.getDefaultValue().isNull())
 		{
-			list.add(TextFormatting.AQUA + "Default: " + TextFormatting.RESET + inst.getDefaultValue().getStringForGUI().getFormattedText());
+				list.add(EnumChatFormatting.AQUA + "Default: " + EnumChatFormatting.RESET + inst.getDefaultValue().getStringForGUI().getFormattedText());
 		}
 	}
 
@@ -153,9 +151,9 @@ public abstract class ConfigValue implements IWithID
 		return getString();
 	}
 
-	public ITextComponent getStringForGUI()
+	public IChatComponent getStringForGUI()
 	{
-		return new TextComponentString(getString());
+		return new ChatComponentText(getString());
 	}
 
 	public abstract void writeToNBT(NBTTagCompound nbt, String key);

@@ -1,5 +1,8 @@
 package serverutils.serverlib.lib.gui.misc;
 
+import net.minecraft.client.resources.I18n;
+import net.minecraft.util.IChatComponent;
+import serverutils.serverlib.client.GlStateManager;
 import serverutils.serverlib.lib.config.ConfigGroup;
 import serverutils.serverlib.lib.config.ConfigList;
 import serverutils.serverlib.lib.config.ConfigValue;
@@ -17,15 +20,9 @@ import serverutils.serverlib.lib.gui.WidgetLayout;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.MutableColor4I;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.ITextComponent;
 
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class GuiEditConfigList extends GuiBase
 {
 	public class ButtonConfigValue extends Button
@@ -167,8 +164,8 @@ public class GuiEditConfigList extends GuiBase
 		callback = cb;
 		configList = (ConfigList<ConfigValue>) originalConfigList.getValue().copy();
 
-		ITextComponent title0 = originalConfigList.getDisplayName().createCopy();
-		title0.getStyle().setBold(true);
+		IChatComponent title0 = originalConfigList.getDisplayName().createCopy();
+		title0.getChatStyle().setBold(true);
 		title = title0.getFormattedText();
 
 		configPanel = new Panel(this)

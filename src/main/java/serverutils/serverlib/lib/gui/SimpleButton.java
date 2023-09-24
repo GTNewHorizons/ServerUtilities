@@ -3,9 +3,6 @@ package serverutils.serverlib.lib.gui;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.util.misc.MouseButton;
 
-/**
- * @author LatvianModder
- */
 public class SimpleButton extends Button
 {
 	public interface Callback

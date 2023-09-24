@@ -48,7 +48,7 @@ public abstract class CmdBase extends CommandBase implements ICommandWithParent
 	}
 
 	@Override
-	public final String getName()
+	public final String getCommandName()
 	{
 		return name;
 	}

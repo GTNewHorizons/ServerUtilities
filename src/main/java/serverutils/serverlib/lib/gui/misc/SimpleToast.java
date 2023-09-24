@@ -1,21 +1,18 @@
 package serverutils.serverlib.lib.gui.misc;
 
-import serverutils.serverlib.lib.gui.GuiHelper;
-import serverutils.serverlib.lib.gui.GuiIcons;
-import serverutils.serverlib.lib.icon.Icon;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.toasts.GuiToast;
 import net.minecraft.client.gui.toasts.IToast;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.util.math.MathHelper;
+import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.gui.GuiHelper;
+import serverutils.serverlib.lib.gui.GuiIcons;
+import serverutils.serverlib.lib.icon.Icon;
+import serverutils.serverlib.lib.math.MathHelper;
 
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class SimpleToast implements IToast
 {
 	private boolean hasPlayedSound = false;
@@ -26,7 +23,7 @@ public class SimpleToast implements IToast
 		GuiHelper.setupDrawing();
 		Minecraft mc = gui.getMinecraft();
 		mc.getTextureManager().bindTexture(TEXTURE_TOASTS);
-		GlStateManager.color(1F, 1F, 1F);
+		GlStateManager.color(1F, 1F, 1F, 1F);
 		gui.drawTexturedModalRect(0, 0, 0, 0, 160, 32);
 
 		List<String> list = mc.fontRenderer.listFormattedStringToWidth(getSubtitle(), 125);

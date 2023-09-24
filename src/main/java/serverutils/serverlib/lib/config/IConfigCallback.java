@@ -2,9 +2,6 @@ package serverutils.serverlib.lib.config;
 
 import net.minecraft.command.ICommandSender;
 
-/**
- * @author LatvianModder
- */
 @FunctionalInterface
 public interface IConfigCallback
 {

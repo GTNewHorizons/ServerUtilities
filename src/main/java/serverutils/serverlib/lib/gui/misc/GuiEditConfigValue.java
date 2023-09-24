@@ -1,5 +1,8 @@
 package serverutils.serverlib.lib.gui.misc;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.resources.I18n;
 import serverutils.serverlib.lib.config.ConfigGroup;
 import serverutils.serverlib.lib.config.ConfigValue;
 import serverutils.serverlib.lib.config.ConfigValueInstance;
@@ -11,9 +14,6 @@ import serverutils.serverlib.lib.gui.TextBox;
 import serverutils.serverlib.lib.gui.WidgetType;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.resources.I18n;
 
 public class GuiEditConfigValue extends GuiBase
 {
@@ -58,7 +58,7 @@ public class GuiEditConfigValue extends GuiBase
 			{
 				GuiHelper.playClickSound();
 
-				if (value.setValueFromString(Minecraft.getMinecraft().player, textBox.getText(), false))
+				if (value.setValueFromString(Minecraft.getMinecraft().thePlayer, textBox.getText(), false))
 				{
 					callback.onCallback(value, true);
 				}
@@ -95,7 +95,7 @@ public class GuiEditConfigValue extends GuiBase
 			@Override
 			public boolean isValid(String txt)
 			{
-				return value.setValueFromString(Minecraft.getMinecraft().player, txt, true);
+				return value.setValueFromString(Minecraft.getMinecraft().thePlayer, txt, true);
 			}
 
 			@Override

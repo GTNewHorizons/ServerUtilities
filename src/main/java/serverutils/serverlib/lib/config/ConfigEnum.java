@@ -18,8 +18,6 @@ import com.google.gson.JsonElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextFormatting;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -27,9 +25,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * @author LatvianModder
- */
 public class ConfigEnum<E> extends ConfigValue implements IIteratingConfig
 {
 	public static final String ID = "enum";
@@ -162,7 +157,7 @@ public class ConfigEnum<E> extends ConfigValue implements IIteratingConfig
 				{
 					for (E v : getNameMap())
 					{
-						panel.add(new SimpleTextButton(panel, getNameMap().getDisplayName(Minecraft.getMinecraft().player, v).getUnformattedText(), Icon.EMPTY)
+						panel.add(new SimpleTextButton(panel, getNameMap().getDisplayName(Minecraft.getMinecraft().thePlayer, v).getUnformattedText(), Icon.EMPTY)
 						{
 							@Override
 							public void onClicked(MouseButton button)

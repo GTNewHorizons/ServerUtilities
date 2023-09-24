@@ -1,9 +1,9 @@
 package serverutils.serverlib.lib.config;
 
-import serverutils.serverlib.lib.util.ServerUtils;
 import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
+import serverutils.serverlib.lib.util.ServerUtils;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -11,9 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author LatvianModder
- */
 public enum DefaultRankConfigHandler implements IRankConfigHandler
 {
 	INSTANCE;

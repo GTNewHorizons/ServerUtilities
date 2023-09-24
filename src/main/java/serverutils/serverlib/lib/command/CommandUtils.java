@@ -1,5 +1,6 @@
 package serverutils.serverlib.lib.command;
 
+import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.ServerLib;
 import serverutils.serverlib.lib.data.ForgePlayer;
@@ -12,7 +13,7 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.EntitySelector;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.server.permission.PermissionAPI;
 
@@ -20,9 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 
-/**
- * @author LatvianModder
- */
 public class CommandUtils
 {
 	public static CommandException error(IChatComponent component)
@@ -78,8 +76,8 @@ public class CommandUtils
 					}
 					else
 					{
-						Vec3d pos = sender.getPositionVector();
-						double d = p1.getPlayer().getDistanceSq(pos.x, pos.y, pos.z);
+						ChunkCoordinates pos = sender.getPlayerCoordinates(); //Vec3 .getPositionVector();
+						double d = p1.getPlayer().getDistanceSq(pos.posX, pos.posY, pos.posZ);
 
 						if (d < dist)
 						{
@@ -191,7 +189,7 @@ public class CommandUtils
 			case "*":
 				return OptionalInt.empty();
 			default:
-				return OptionalInt.of(CommandBase.parseInt(args[index]));
+				return OptionalInt.of(CommandBase.parseInt(sender, args[index]));
 		}
 	}
 }

@@ -4,9 +4,6 @@ import serverutils.serverlib.lib.client.ClientUtils;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public interface IOpenableGui extends Runnable
 {
 	void openGui();

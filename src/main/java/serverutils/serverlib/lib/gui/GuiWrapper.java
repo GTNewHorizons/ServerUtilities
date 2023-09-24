@@ -1,21 +1,18 @@
 package serverutils.serverlib.lib.gui;
 
-import serverutils.serverlib.integration.ServerLibNEIIntegration;
-import serverutils.serverlib.lib.util.misc.MouseButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.client.config.GuiUtils;
-import net.minecraftforge.fml.common.Loader;
+import cpw.mods.fml.client.config.GuiUtils;
+import cpw.mods.fml.common.Loader;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import serverutils.serverlib.integration.ServerLibNEIIntegration;
+import serverutils.serverlib.lib.util.misc.MouseButton;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class GuiWrapper extends GuiScreen implements IGuiWrapper
 {
 	private GuiBase wrappedGui;
@@ -94,7 +91,7 @@ public class GuiWrapper extends GuiScreen implements IGuiWrapper
 	}
 
 	@Override
-	public void handleMouseInput() throws IOException
+	public void handleMouseInput()
 	{
 		super.handleMouseInput();
 		int scroll = Mouse.getEventDWheel();
@@ -106,7 +103,7 @@ public class GuiWrapper extends GuiScreen implements IGuiWrapper
 	}
 
 	@Override
-	public void handleKeyboardInput() throws IOException
+	public void handleKeyboardInput()
 	{
 		if (!(Keyboard.getEventKey() == 0 && Keyboard.getEventCharacter() >= ' ' || Keyboard.getEventKeyState()))
 		{

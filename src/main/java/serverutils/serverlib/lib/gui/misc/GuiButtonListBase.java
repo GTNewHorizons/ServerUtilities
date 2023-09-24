@@ -1,5 +1,6 @@
 package serverutils.serverlib.lib.gui.misc;
 
+import net.minecraft.client.resources.I18n;
 import serverutils.serverlib.lib.gui.GuiBase;
 import serverutils.serverlib.lib.gui.Panel;
 import serverutils.serverlib.lib.gui.PanelScrollBar;
@@ -7,11 +8,7 @@ import serverutils.serverlib.lib.gui.TextBox;
 import serverutils.serverlib.lib.gui.Theme;
 import serverutils.serverlib.lib.gui.Widget;
 import serverutils.serverlib.lib.gui.WidgetLayout;
-import net.minecraft.client.resources.I18n;
 
-/**
- * @author LatvianModder
- */
 public abstract class GuiButtonListBase extends GuiBase
 {
 	private final Panel panelButtons;

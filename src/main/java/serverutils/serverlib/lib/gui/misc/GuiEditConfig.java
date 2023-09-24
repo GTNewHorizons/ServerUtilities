@@ -1,5 +1,11 @@
 package serverutils.serverlib.lib.gui.misc;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+import serverutils.serverlib.client.GlStateManager;
 import serverutils.serverlib.lib.config.ConfigGroup;
 import serverutils.serverlib.lib.config.ConfigValueInstance;
 import serverutils.serverlib.lib.config.IConfigCallback;
@@ -18,12 +24,6 @@ import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.MutableColor4I;
 import serverutils.serverlib.lib.io.Bits;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.TextFormatting;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -117,7 +117,7 @@ public class GuiEditConfig extends GuiBase
 		public void setCollapsed(boolean v)
 		{
 			collapsed = v;
-			setTitle((collapsed ? (TextFormatting.RED + "[-] ") : (TextFormatting.GREEN + "[v] ")) + TextFormatting.RESET + title);
+			setTitle((collapsed ? (EnumChatFormatting.RED + "[-] ") : (EnumChatFormatting.GREEN + "[v] ")) + EnumChatFormatting.RESET + title);
 		}
 
 		@Override
@@ -166,8 +166,8 @@ public class GuiEditConfig extends GuiBase
 
 			if (!inst.getCanEdit())
 			{
-				ITextComponent c = inst.getDisplayName().createCopy();
-				c.getStyle().setColor(TextFormatting.GRAY);
+				IChatComponent c = inst.getDisplayName().createCopy();
+				c.getChatStyle().setColor(EnumChatFormatting.GRAY);
 				keyText = c.getFormattedText();
 			}
 			else
@@ -240,14 +240,14 @@ public class GuiEditConfig extends GuiBase
 		{
 			if (getMouseY() > 18)
 			{
-				list.add(TextFormatting.UNDERLINE + keyText);
-				ITextComponent infoText = inst.getInfo();
+				list.add(EnumChatFormatting.UNDERLINE + keyText);
+				IChatComponent infoText = inst.getInfo();
 
-				if (!(infoText instanceof TextComponentTranslation) || I18n.hasKey(((TextComponentTranslation) infoText).getKey()))
+				if (!(infoText instanceof ChatComponentTranslation) || I18n.hasKey(((ChatComponentTranslation) infoText).getKey()))
 				{
 					for (String s : infoText.getFormattedText().split("\\\n"))
 					{
-						list.add(TextFormatting.GRAY.toString() + TextFormatting.ITALIC + s);
+						list.add(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + s);
 					}
 				}
 
@@ -275,8 +275,8 @@ public class GuiEditConfig extends GuiBase
 		originalGroup = group.copy();
 		callback = c;
 
-		ITextComponent title0 = g.getDisplayName().createCopy();
-		title0.getStyle().setBold(true);
+		IChatComponent title0 = g.getDisplayName().createCopy();
+		title0.getChatStyle().setBold(true);
 		title = title0.getFormattedText();
 
 		configEntryButtons = new ArrayList<>();
@@ -450,7 +450,7 @@ public class GuiEditConfig extends GuiBase
 			group.deserializeNBT(originalGroup.serializeNBT());
 		}
 
-		callback.onConfigSaved(group, Minecraft.getMinecraft().player);
+		callback.onConfigSaved(group, Minecraft.getMinecraft().thePlayer);
 	}
 
 	@Override

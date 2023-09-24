@@ -4,9 +4,6 @@ import serverutils.serverlib.lib.icon.Icon;
 
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public abstract class SimpleTextButton extends Button
 {
 	public SimpleTextButton(Panel panel, String txt, Icon icon)

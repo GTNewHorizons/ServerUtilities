@@ -2,9 +2,6 @@ package serverutils.serverlib.lib.config;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public final class RankConfigValueInfo implements Comparable<RankConfigValueInfo>
 {
 	public final String node;

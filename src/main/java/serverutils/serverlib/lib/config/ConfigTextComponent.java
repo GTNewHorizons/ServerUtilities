@@ -1,18 +1,15 @@
 package serverutils.serverlib.lib.config;
 
+import net.minecraft.command.ICommandSender;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.io.DataReader;
 import serverutils.serverlib.lib.util.JsonUtils;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.IChatComponent;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class ConfigTextComponent extends ConfigValue
 {
 	public static final String ID = "text_component";

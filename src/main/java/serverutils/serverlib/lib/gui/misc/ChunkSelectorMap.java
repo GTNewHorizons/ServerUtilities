@@ -2,9 +2,6 @@ package serverutils.serverlib.lib.gui.misc;
 
 import serverutils.serverlib.lib.gui.GuiBase;
 
-/**
- * @author LatvianModder
- */
 public abstract class ChunkSelectorMap
 {
 	private static ChunkSelectorMap INSTANCE;

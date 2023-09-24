@@ -4,9 +4,6 @@ import serverutils.serverlib.lib.util.ServerUtils;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-/**
- * @author LatvianModder
- */
 public class FakeForgePlayer extends ForgePlayer
 {
 	public FakeForgePlayer(Universe u)

@@ -1,6 +1,6 @@
 package serverutils.serverlib.lib.config;
 
-import serverutils.serverlib.FTBLib;
+import serverutils.serverlib.ServerLib;
 import serverutils.serverlib.events.RegisterRankConfigEvent;
 import serverutils.serverlib.events.RegisterRankConfigHandlerEvent;
 import com.google.common.base.Preconditions;
@@ -8,9 +8,6 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 
-/**
- * @author LatvianModder
- */
 public class RankConfigAPI
 {
 	private static IRankConfigHandler handler = null;
@@ -18,7 +15,7 @@ public class RankConfigAPI
 	private static void setHandler(IRankConfigHandler h)
 	{
 		Preconditions.checkNotNull(h, "Permission handler can't be null!");
-		FTBLib.LOGGER.warn("Replacing " + handler.getClass().getName() + " with " + h.getClass().getName());
+		ServerLib.LOGGER.warn("Replacing " + handler.getClass().getName() + " with " + h.getClass().getName());
 		handler = h;
 	}
 
@@ -45,7 +42,7 @@ public class RankConfigAPI
 	{
 		Preconditions.checkNotNull(player, "Player can't be null!");
 		Preconditions.checkNotNull(node, "Config node can't be null!");
-		return get(player.server, player.getGameProfile(), node);
+		return get(player.mcServer, player.getGameProfile(), node);
 	}
 
 	public static ConfigValue getConfigValue(String node, boolean op)

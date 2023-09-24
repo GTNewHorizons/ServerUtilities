@@ -1,22 +1,19 @@
 package serverutils.serverlib.lib.gui.misc;
 
+import net.minecraft.client.resources.I18n;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.ResourceLocation;
 import serverutils.serverlib.lib.data.Action;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.gui.Panel;
 import serverutils.serverlib.lib.gui.SimpleTextButton;
 import serverutils.serverlib.lib.gui.WidgetType;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TextFormatting;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-/**
- * @author LatvianModder
- */
 public class GuiActionList extends GuiButtonListBase
 {
 	private class ActionButton extends SimpleTextButton
@@ -36,8 +33,8 @@ public class GuiActionList extends GuiButtonListBase
 
 			if (action.requiresConfirm)
 			{
-				String key = "team_action." + action.id.getNamespace() + "." + action.id.getPath() + ".confirmation";
-				openYesNo(action.title.getFormattedText() + "?", I18n.hasKey(key) ? (TextFormatting.RED + I18n.format(key)) : "", () -> callback.accept(action.id));
+				String key = "team_action." + action.id.getResourceDomain() + "." + action.id.getResourcePath() + ".confirmation";
+				openYesNo(action.title.getFormattedText() + "?", I18n.hasKey(key) ? (EnumChatFormatting.RED + I18n.format(key)) : "", () -> callback.accept(action.id));
 			}
 			else
 			{

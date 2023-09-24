@@ -1,22 +1,19 @@
 package serverutils.serverlib.lib.config;
 
-import com.mojang.realmsclient.gui.ChatFormatting;
-import serverutils.serverlib.lib.icon.Color4I;
-import serverutils.serverlib.lib.io.DataIn;
-import serverutils.serverlib.lib.io.DataOut;
 import com.google.gson.JsonElement;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.EnumChatFormatting;
+import serverutils.serverlib.lib.math.MathHelper;
+import serverutils.serverlib.lib.icon.Color4I;
+import serverutils.serverlib.lib.io.DataIn;
+import serverutils.serverlib.lib.io.DataOut;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.IntConsumer;
 import java.util.function.IntSupplier;
 
-/**
- * @author LatvianModder
- */
 public class ConfigInt extends ConfigValue implements IntSupplier
 {
 	public static final String ID = "int";
@@ -62,7 +59,7 @@ public class ConfigInt extends ConfigValue implements IntSupplier
 
 	public ConfigInt(int v, int mn, int mx)
 	{
-		this(MathHelper.clamp(v, mn, mx));
+		this((int) MathHelper.clamp(v, mn, mx));
 		min = mn;
 		max = mx;
 	}
@@ -97,7 +94,7 @@ public class ConfigInt extends ConfigValue implements IntSupplier
 
 	public void setInt(int v)
 	{
-		value = MathHelper.clamp(v, getMin(), getMax());
+		value = (int) MathHelper.clamp(v, getMin(), getMax());
 	}
 
 	@Override
@@ -145,14 +142,14 @@ public class ConfigInt extends ConfigValue implements IntSupplier
 
 		if (m != Integer.MIN_VALUE)
 		{
-			list.add(ChatFormatting.AQUA + "Min: " + ChatFormatting.RESET + m);
+			list.add(EnumChatFormatting.AQUA + "Min: " + EnumChatFormatting.RESET + m);
 		}
 
 		m = getMax();
 
 		if (m != Integer.MAX_VALUE)
 		{
-			list.add(ChatFormatting.AQUA + "Max: " + ChatFormatting.RESET + m);
+			list.add(EnumChatFormatting.AQUA + "Max: " + EnumChatFormatting.RESET + m);
 		}
 	}
 

@@ -29,7 +29,8 @@ public class ServerReloadEvent extends UniverseEvent
 		reloadId = id;
 		failed = f;
 		clientReloadRequired = false;
-		onlinePlayers = u.server.getPlayerList() != null ? u.server.getPlayerList().getPlayers() : Collections.emptyList();
+		//onlinePlayers = u.server.getPlayerList() != null ? u.server.getPlayerList().getPlayers() : Collections.emptyList();
+		onlinePlayers = u.server.getConfigurationManager().getPlayerList(u.server.getWorldName()) != null ? u.server.getConfigurationManager().getPlayerList(u.getOnlinePlayers().toString()) : Collections.emptyList();
 	}
 
 	public ICommandSender getSender()

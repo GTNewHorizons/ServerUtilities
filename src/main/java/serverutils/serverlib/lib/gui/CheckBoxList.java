@@ -1,14 +1,11 @@
 package serverutils.serverlib.lib.gui;
 
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.renderer.GlStateManager;
+import serverutils.serverlib.client.GlStateManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class CheckBoxList extends Button
 {
 	public static class CheckBoxEntry

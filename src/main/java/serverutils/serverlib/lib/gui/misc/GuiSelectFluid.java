@@ -1,5 +1,9 @@
 package serverutils.serverlib.lib.gui.misc;
 
+import net.minecraft.client.resources.I18n;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.gui.GuiIcons;
 import serverutils.serverlib.lib.gui.IOpenableGui;
@@ -8,17 +12,10 @@ import serverutils.serverlib.lib.gui.SimpleTextButton;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.resources.I18n;
-import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidRegistry;
-import net.minecraftforge.fluids.FluidStack;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * @author LatvianModder
- */
 public class GuiSelectFluid extends GuiButtonListBase
 {
 	private final IOpenableGui callbackGui;
@@ -55,7 +52,7 @@ public class GuiSelectFluid extends GuiButtonListBase
 		{
 			FluidStack fluidStack = new FluidStack(fluid, Fluid.BUCKET_VOLUME);
 
-			panel.add(new SimpleTextButton(panel, fluid.getLocalizedName(fluidStack), Icon.getIcon(fluid.getStill(fluidStack).toString()).withTint(Color4I.rgb(fluid.getColor(fluidStack))))
+			panel.add(new SimpleTextButton(panel, fluid.getLocalizedName(fluidStack), Icon.getIcon(fluid.getStillIcon().toString()).withTint(Color4I.rgb(fluid.getColor(fluidStack))))
 			{
 				@Override
 				public void onClicked(MouseButton button)

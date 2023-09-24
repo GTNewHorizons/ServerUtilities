@@ -11,9 +11,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-/**
- * @author LatvianModder
- */
 public class NBTDataStorage implements INBTSerializable<NBTTagCompound>, Consumer<NBTDataStorage.Data>
 {
 	public interface Data extends IWithID, INBTSerializable<NBTTagCompound>

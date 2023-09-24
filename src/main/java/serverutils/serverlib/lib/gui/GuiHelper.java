@@ -1,35 +1,32 @@
 package serverutils.serverlib.lib.gui;
 
-import serverutils.serverlib.lib.ClientATHelper;
-import serverutils.serverlib.lib.icon.Color4I;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.client.renderer.ItemRenderer; //RenderItem;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.event.ClickEvent;
+import net.minecraft.event.ClickEvent;
 import org.lwjgl.opengl.GL11;
+import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.ClientATHelper;
+import serverutils.serverlib.lib.icon.Color4I;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Stack;
 
-/**
- * @author LatvianModder
- */
 public class GuiHelper
 {
 	private static class Scissor
@@ -101,7 +98,7 @@ public class GuiHelper
 	{
 		if (u0 == u1 || v0 == v1)
 		{
-			Tessellator tessellator = Tessellator.getInstance();
+			Tessellator tessellator = Tessellator.instance;
 			BufferBuilder buffer = tessellator.getBuffer();
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
 			addRectToBuffer(buffer, x, y, w, h, col);
@@ -109,7 +106,7 @@ public class GuiHelper
 		}
 		else
 		{
-			Tessellator tessellator = Tessellator.getInstance();
+			Tessellator tessellator = Tessellator.instance;
 			BufferBuilder buffer = tessellator.getBuffer();
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
 			addRectToBufferWithUV(buffer, x, y, w, h, col, u0, v0, u1, v1);
@@ -150,7 +147,7 @@ public class GuiHelper
 		}
 
 		GlStateManager.disableTexture2D();
-		Tessellator tessellator = Tessellator.getInstance();
+		Tessellator tessellator = Tessellator.instance;
 		BufferBuilder buffer = tessellator.getBuffer();
 		buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
 
@@ -175,7 +172,7 @@ public class GuiHelper
 	public static void drawRectWithShade(int x, int y, int w, int h, Color4I col, int intensity)
 	{
 		GlStateManager.disableTexture2D();
-		Tessellator tessellator = Tessellator.getInstance();
+		Tessellator tessellator = Tessellator.instance;
 		BufferBuilder buffer = tessellator.getBuffer();
 		buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
 		addRectToBuffer(buffer, x, y, w - 1, 1, col);
@@ -299,8 +296,8 @@ public class GuiHelper
 		switch (event.getAction())
 		{
 			case OPEN_URL:
-			case CHANGE_PAGE:
-				return event.getValue();
+			//case CHANGE_PAGE:
+			//	return event.getValue();
 			case OPEN_FILE:
 				return "file:" + event.getValue();
 			case RUN_COMMAND:
@@ -319,12 +316,12 @@ public class GuiHelper
 
 	public static void addStackTooltip(ItemStack stack, List<String> list, String prefix)
 	{
-		List<String> tooltip = stack.getTooltip(Minecraft.getMinecraft().player, Minecraft.getMinecraft().gameSettings.advancedItemTooltips ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL);
-		list.add((prefix.isEmpty() ? stack.getRarity().color.toString() : prefix) + tooltip.get(0));
+		List<String> tooltip = stack.getTooltip(Minecraft.getMinecraft().thePlayer, Minecraft.getMinecraft().gameSettings.advancedItemTooltips ? ITooltipFlag.TooltipFlags.ADVANCED : ITooltipFlag.TooltipFlags.NORMAL);
+		list.add((prefix.isEmpty() ? stack.getRarity().rarityColor.toString() : prefix) + tooltip.get(0));
 
 		for (int i = 1; i < tooltip.size(); i++)
 		{
-			list.add(TextFormatting.GRAY + tooltip.get(i));
+			list.add(EnumChatFormatting.GRAY + tooltip.get(i));
 		}
 	}
 }

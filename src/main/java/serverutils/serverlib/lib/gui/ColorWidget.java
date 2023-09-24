@@ -4,9 +4,6 @@ import serverutils.serverlib.lib.icon.Color4I;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class ColorWidget extends Widget
 {
 	public final Color4I color;

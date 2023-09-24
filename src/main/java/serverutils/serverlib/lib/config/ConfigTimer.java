@@ -1,20 +1,18 @@
 package serverutils.serverlib.lib.config;
 
+import net.minecraft.command.ICommandSender;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.math.Ticks;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.TextFormatting;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.LongSupplier;
 
-/**
- * @author LatvianModder
- */
+
 public class ConfigTimer extends ConfigValue implements LongSupplier
 {
 	public static final String ID = "timer";
@@ -113,7 +111,7 @@ public class ConfigTimer extends ConfigValue implements LongSupplier
 
 		if (max.hasTicks())
 		{
-			list.add(TextFormatting.AQUA + "Max: " + TextFormatting.RESET + max);
+			list.add(EnumChatFormatting.AQUA + "Max: " + EnumChatFormatting.RESET + max);
 		}
 	}
 

@@ -1,6 +1,17 @@
 package serverutils.serverlib.lib.gui.misc;
 
-import serverutils.serverlib.FTBLib;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.NonNullList;
+import serverutils.serverlib.ServerLib;
 import serverutils.serverlib.lib.config.ConfigInt;
 import serverutils.serverlib.lib.config.ConfigItemStack;
 import serverutils.serverlib.lib.config.ConfigNBT;
@@ -24,29 +35,15 @@ import serverutils.serverlib.lib.gui.WrappedIngredient;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.icon.ItemIcon;
+import serverutils.serverlib.lib.math.MathHelper;
 import serverutils.serverlib.lib.util.InvUtils;
 import serverutils.serverlib.lib.util.NBTUtils;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * @author LatvianModder
- */
 public class GuiSelectItemStack extends GuiBase
 {
 	private static boolean allItems = true;
@@ -110,7 +107,7 @@ public class GuiSelectItemStack extends GuiBase
 		@Override
 		public void drawIcon(Theme theme, int x, int y, int w, int h)
 		{
-			if (stack.getItem() == FTBLib.CUSTOM_ICON_ITEM && stack.hasTagCompound() && !stack.getTagCompound().getString("icon").isEmpty())
+			if (stack.getItem() == ServerLib.CUSTOM_ICON_ITEM && stack.hasTagCompound() && !stack.getTagCompound().getString("icon").isEmpty())
 			{
 				Icon.getIcon(stack.getTagCompound().getString("icon")).draw(x, y, w, h);
 			}
@@ -136,8 +133,8 @@ public class GuiSelectItemStack extends GuiBase
 
 	private class ButtonSwitchMode extends Button
 	{
-		private final Icon ICON_ALL = ItemIcon.getItemIcon(Items.COMPASS);
-		private final Icon ICON_INV = ItemIcon.getItemIcon(Blocks.CHEST);
+		private final Icon ICON_ALL = ItemIcon.getItemIcon(Items.compass);
+		private final Icon ICON_INV = ItemIcon.getItemIcon(Blocks.chest);
 
 		public ButtonSwitchMode(Panel panel)
 		{
@@ -153,7 +150,7 @@ public class GuiSelectItemStack extends GuiBase
 		@Override
 		public String getTitle()
 		{
-			return I18n.format("ftblib.select_item.list_mode", TextFormatting.GRAY + (allItems ? I18n.format("ftblib.select_item.list_mode.all") : I18n.format("ftblib.select_item.list_mode.inv"))) + TextFormatting.DARK_GRAY + " [" + (panelStacks.widgets.size() - 1) + "]";
+			return I18n.format("Serverlib.select_item.list_mode", EnumChatFormatting.GRAY + (allItems ? I18n.format("serverlib.select_item.list_mode.all") : I18n.format("serverlib.select_item.list_mode.inv"))) + EnumChatFormatting.DARK_GRAY + " [" + (panelStacks.widgets.size() - 1) + "]";
 		}
 
 		@Override
@@ -221,7 +218,7 @@ public class GuiSelectItemStack extends GuiBase
 	{
 		public ButtonCount(Panel panel)
 		{
-			super(panel, I18n.format("ftblib.select_item.count"), ItemIcon.getItemIcon(Items.PAPER));
+			super(panel, I18n.format("serverlib.select_item.count"), ItemIcon.getItemIcon(Items.paper));
 		}
 
 		@Override
@@ -234,7 +231,7 @@ public class GuiSelectItemStack extends GuiBase
 		public void onClicked(MouseButton button)
 		{
 			GuiHelper.playClickSound();
-			new GuiEditConfigValue("count", new ConfigInt(selected.getCount(), 1, selected.getMaxStackSize()), this).openGui();
+			new GuiEditConfigValue("count", new ConfigInt(selected.stackSize, 1, selected.getMaxStackSize()), this).openGui();
 		}
 
 		@Override
@@ -242,7 +239,7 @@ public class GuiSelectItemStack extends GuiBase
 		{
 			if (set)
 			{
-				selected.setCount(value.getInt());
+				selected.stackSize = value.getInt();
 			}
 
 			openGui();
@@ -253,14 +250,14 @@ public class GuiSelectItemStack extends GuiBase
 	{
 		public ButtonMeta(Panel panel)
 		{
-			super(panel, I18n.format("ftblib.select_item.meta"), ItemIcon.getItemIcon(new ItemStack(Blocks.STONEBRICK, 1, 2)));
+			super(panel, I18n.format("ftblib.select_item.meta"), ItemIcon.getItemIcon(new ItemStack(Blocks.stonebrick, 1, 2)));
 		}
 
 		@Override
 		public void onClicked(MouseButton button)
 		{
 			GuiHelper.playClickSound();
-			new GuiEditConfigValue("meta", new ConfigInt(selected.getMetadata(), 0, Short.MAX_VALUE), this).openGui();
+			new GuiEditConfigValue("meta", new ConfigInt(selected.getItemDamage(), 0, Short.MAX_VALUE), this).openGui();
 		}
 
 		@Override
@@ -279,7 +276,7 @@ public class GuiSelectItemStack extends GuiBase
 	{
 		public ButtonNBT(Panel panel)
 		{
-			super(panel, I18n.format("ftblib.select_item.nbt"), ItemIcon.getItemIcon(Items.NAME_TAG));
+			super(panel, I18n.format("ftblib.select_item.nbt"), ItemIcon.getItemIcon(Items.name_tag));
 		}
 
 		@Override
@@ -305,7 +302,7 @@ public class GuiSelectItemStack extends GuiBase
 	{
 		public ButtonCaps(Panel panel)
 		{
-			super(panel, I18n.format("ftblib.select_item.caps"), ItemIcon.getItemIcon(Blocks.ANVIL));
+			super(panel, I18n.format("ftblib.select_item.caps"), ItemIcon.getItemIcon(Blocks.anvil));
 		}
 
 		@Override
@@ -345,7 +342,7 @@ public class GuiSelectItemStack extends GuiBase
 	{
 		public ButtonDisplayName(Panel panel)
 		{
-			super(panel, I18n.format("ftblib.select_item.display_name"), ItemIcon.getItemIcon(Items.SIGN));
+			super(panel, I18n.format("ftblib.select_item.display_name"), ItemIcon.getItemIcon(Items.sign));
 		}
 
 		@Override
@@ -394,20 +391,21 @@ public class GuiSelectItemStack extends GuiBase
 
 			if (allItems)
 			{
-				for (Item item : Item.REGISTRY)
+				for (Object i : Item.itemRegistry)
 				{
+					Item item = (Item) i;
 					item.getSubItems(CreativeTabs.SEARCH, list);
 				}
 
-				list.add(new ItemStack(Blocks.COMMAND_BLOCK));
-				list.add(new ItemStack(Blocks.BARRIER));
-				list.add(new ItemStack(Blocks.STRUCTURE_VOID));
+				list.add(new ItemStack(Blocks.command_block));
+				//list.add(new ItemStack(Blocks.BARRIER));
+				//list.add(new ItemStack(Blocks.STRUCTURE_VOID));
 			}
 			else
 			{
-				for (int i = 0; i < Minecraft.getMinecraft().player.inventory.getSizeInventory(); i++)
+				for (int i = 0; i < Minecraft.getMinecraft().thePlayer.inventory.getSizeInventory(); i++)
 				{
-					ItemStack stack = Minecraft.getMinecraft().player.inventory.getStackInSlot(i);
+					ItemStack stack = Minecraft.getMinecraft().thePlayer.inventory.getStackInSlot(i);
 
 					if (!stack.isEmpty())
 					{

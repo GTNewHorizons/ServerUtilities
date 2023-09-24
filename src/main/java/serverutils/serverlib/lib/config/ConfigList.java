@@ -1,5 +1,12 @@
 package serverutils.serverlib.lib.config;
 
+import com.google.gson.JsonElement;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.util.Constants;
 import serverutils.serverlib.lib.data.ServerLibAPI;
 import serverutils.serverlib.lib.gui.IOpenableGui;
 import serverutils.serverlib.lib.gui.misc.GuiEditConfigList;
@@ -7,13 +14,6 @@ import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import com.google.gson.JsonElement;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.common.util.Constants;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,9 +21,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * @author LatvianModder
- */
 public class ConfigList<T extends ConfigValue> extends ConfigValue implements Iterable<T>
 {
 	public static final String ID = "list";
@@ -232,22 +229,22 @@ public class ConfigList<T extends ConfigValue> extends ConfigValue implements It
 	@Override
 	public void addInfo(ConfigValueInstance inst, List<String> l)
 	{
-		l.add(TextFormatting.AQUA + "Type: " + TextFormatting.RESET + type.getId());
+		l.add(EnumChatFormatting.AQUA + "Type: " + EnumChatFormatting.RESET + type.getId());
 
 		if (list.isEmpty())
 		{
-			l.add(TextFormatting.AQUA + "Value: []");
+			l.add(EnumChatFormatting.AQUA + "Value: []");
 		}
 		else
 		{
-			l.add(TextFormatting.AQUA + "Value: [");
+			l.add(EnumChatFormatting.AQUA + "Value: [");
 
 			for (T value : list)
 			{
 				l.add("  " + value.getStringForGUI().getFormattedText());
 			}
 
-			l.add(TextFormatting.AQUA + "]");
+			l.add(EnumChatFormatting.AQUA + "]");
 		}
 
 		if (inst.getCanEdit() && inst.getDefaultValue() instanceof ConfigList)
@@ -256,18 +253,18 @@ public class ConfigList<T extends ConfigValue> extends ConfigValue implements It
 
 			if (val.list.isEmpty())
 			{
-				l.add(TextFormatting.AQUA + "Default: []");
+				l.add(EnumChatFormatting.AQUA + "Default: []");
 			}
 			else
 			{
-				l.add(TextFormatting.AQUA + "Default: [");
+				l.add(EnumChatFormatting.AQUA + "Default: [");
 
 				for (T value : val.list)
 				{
 					l.add("  " + value.getStringForGUI().getFormattedText());
 				}
 
-				l.add(TextFormatting.AQUA + "]");
+				l.add(EnumChatFormatting.AQUA + "]");
 			}
 		}
 	}
@@ -279,9 +276,9 @@ public class ConfigList<T extends ConfigValue> extends ConfigValue implements It
 	}
 
 	@Override
-	public ITextComponent getStringForGUI()
+	public IChatComponent getStringForGUI()
 	{
-		return new TextComponentString("...");
+		return new ChatComponentText("...");
 	}
 
 	@Override

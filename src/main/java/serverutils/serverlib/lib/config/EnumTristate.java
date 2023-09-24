@@ -1,22 +1,19 @@
 package serverutils.serverlib.lib.config;
 
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IStringSerializable;
+import net.minecraftforge.fml.common.eventhandler.Event;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.util.misc.NameMap;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraftforge.fml.common.eventhandler.Event;
 
-/**
- * @author LatvianModder
- */
 public enum EnumTristate implements IStringSerializable
 {
 	TRUE("true", Event.Result.ALLOW, ConfigBoolean.COLOR_TRUE, 1),
 	FALSE("false", Event.Result.DENY, ConfigBoolean.COLOR_FALSE, 0),
 	DEFAULT("default", Event.Result.DEFAULT, ConfigEnum.COLOR, 2);
 
-	public static final NameMap<EnumTristate> NAME_MAP = NameMap.createWithNameAndColor(DEFAULT, (sender, value) -> new TextComponentTranslation(value.getName()), EnumTristate::getColor, values());
+	public static final NameMap<EnumTristate> NAME_MAP = NameMap.createWithNameAndColor(DEFAULT, (sender, value) -> new ChatComponentTranslation(value.getName()), EnumTristate::getColor, values());
 
 	public static EnumTristate read(NBTTagCompound nbt, String key)
 	{

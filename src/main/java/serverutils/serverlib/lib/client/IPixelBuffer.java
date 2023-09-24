@@ -6,9 +6,6 @@ import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-/**
- * @author LatvianModder
- */
 public interface IPixelBuffer
 {
 	int getWidth();

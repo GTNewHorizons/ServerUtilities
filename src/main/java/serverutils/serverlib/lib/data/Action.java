@@ -6,7 +6,7 @@ import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
-import net.minecraft.util.MathHelper;
+import serverutils.serverlib.lib.math.MathHelper;
 
 
 public abstract class Action
@@ -142,7 +142,7 @@ public abstract class Action
 
 	public Action setOrder(int o)
 	{
-		order = MathHelper.clamp(o, Short.MIN_VALUE, Short.MAX_VALUE);
+		order = (int) MathHelper.clamp(o, Short.MIN_VALUE, Short.MAX_VALUE);
 		return this;
 	}
 

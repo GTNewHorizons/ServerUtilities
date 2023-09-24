@@ -46,9 +46,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.UUID;
 
-/**
- * @author LatvianModder
- */
 public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable<ForgePlayer>, IConfigCallback
 {
 	private static FakePlayer playerForStats;

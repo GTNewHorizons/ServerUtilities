@@ -1,24 +1,21 @@
 package serverutils.serverlib.lib.config;
 
+import com.google.gson.JsonElement;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.util.StringUtils;
-import com.google.gson.JsonElement;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.LongConsumer;
 import java.util.function.LongSupplier;
 
-/**
- * @author LatvianModder
- */
 public class ConfigLong extends ConfigValue implements LongSupplier
 {
 	public static final String ID = "long";
@@ -104,9 +101,9 @@ public class ConfigLong extends ConfigValue implements LongSupplier
 	}
 
 	@Override
-	public ITextComponent getStringForGUI()
+	public IChatComponent getStringForGUI()
 	{
-		return new TextComponentString(StringUtils.formatDouble(getLong(), true));
+		return new ChatComponentText(StringUtils.formatDouble(getLong(), true));
 	}
 
 	@Override
@@ -154,14 +151,14 @@ public class ConfigLong extends ConfigValue implements LongSupplier
 
 		if (m != Long.MIN_VALUE)
 		{
-			list.add(TextFormatting.AQUA + "Min: " + TextFormatting.RESET + StringUtils.formatDouble(m));
+			list.add(EnumChatFormatting.AQUA + "Min: " + EnumChatFormatting.RESET + StringUtils.formatDouble(m));
 		}
 
 		m = getMax();
 
 		if (m != Long.MAX_VALUE)
 		{
-			list.add(TextFormatting.AQUA + "Max: " + TextFormatting.RESET + StringUtils.formatDouble(m));
+			list.add(EnumChatFormatting.AQUA + "Max: " + EnumChatFormatting.RESET + StringUtils.formatDouble(m));
 		}
 	}
 

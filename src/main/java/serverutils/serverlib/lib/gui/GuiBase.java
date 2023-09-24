@@ -1,5 +1,17 @@
 package serverutils.serverlib.lib.gui;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiChat;
+import net.minecraft.client.gui.GuiConfirmOpenLink;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import serverutils.serverlib.ServerLibConfig;
 import serverutils.serverlib.events.client.CustomClickEvent;
 import serverutils.serverlib.lib.client.ClientUtils;
@@ -7,26 +19,11 @@ import serverutils.serverlib.lib.gui.misc.GuiLoading;
 import serverutils.serverlib.lib.gui.misc.YesNoCallback;
 import serverutils.serverlib.lib.util.NetUtils;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiChat;
-import net.minecraft.client.gui.GuiConfirmOpenLink;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiYesNo;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.util.text.event.HoverEvent;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public abstract class GuiBase extends Panel implements IOpenableGui
 {
 	public static class PositionedTextData
@@ -35,17 +32,17 @@ public abstract class GuiBase extends Panel implements IOpenableGui
 		public final int width, height;
 		public final ClickEvent clickEvent;
 		public final HoverEvent hoverEvent;
-		public final String insertion;
+		//public final String insertion;
 
-		public PositionedTextData(int x, int y, int w, int h, Style s)
+		public PositionedTextData(int x, int y, int w, int h, ChatStyle s)
 		{
 			posX = x;
 			posY = y;
 			width = w;
 			height = h;
-			clickEvent = s.getClickEvent();
-			hoverEvent = s.getHoverEvent();
-			insertion = s.getInsertion();
+			clickEvent = s.getChatClickEvent();
+			hoverEvent = s.getChatHoverEvent();
+			//insertion = s.getInsertion();
 		}
 	}
 
@@ -86,7 +83,7 @@ public abstract class GuiBase extends Panel implements IOpenableGui
 		}
 		else
 		{
-			screen = new ScaledResolution(Minecraft.getMinecraft());
+			screen = new ScaledResolution(Minecraft.getMinecraft(), Minecraft.getMinecraft().displayWidth, Minecraft.getMinecraft().displayHeight);
 		}
 
 		if (onInit())
@@ -176,9 +173,9 @@ public abstract class GuiBase extends Panel implements IOpenableGui
 
 		Minecraft mc = Minecraft.getMinecraft();
 
-		if (mc.player != null)
+		if (mc.thePlayer != null)
 		{
-			mc.player.closeScreen();
+			mc.thePlayer.closeScreen();
 
 			if (mc.currentScreen == null)
 			{

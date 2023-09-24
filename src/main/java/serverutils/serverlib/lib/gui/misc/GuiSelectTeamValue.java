@@ -1,16 +1,13 @@
 package serverutils.serverlib.lib.gui.misc;
 
+import net.minecraft.client.resources.I18n;
 import serverutils.serverlib.lib.config.ConfigTeamClient;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.gui.IOpenableGui;
 import serverutils.serverlib.lib.gui.Panel;
 import serverutils.serverlib.lib.gui.SimpleTextButton;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.resources.I18n;
 
-/**
- * @author LatvianModder
- */
 public class GuiSelectTeamValue extends GuiButtonListBase
 {
 	private final ConfigTeamClient value;
@@ -19,7 +16,7 @@ public class GuiSelectTeamValue extends GuiButtonListBase
 
 	public GuiSelectTeamValue(ConfigTeamClient v, IOpenableGui c, Runnable cb)
 	{
-		setTitle(I18n.format("ftblib.select_team.gui"));
+		setTitle(I18n.format("serverlib.select_team.gui"));
 		setHasSearchBox(true);
 		value = v;
 		callbackGui = c;

@@ -3,13 +3,10 @@ package serverutils.serverlib.lib.gui.misc;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
+import serverutils.serverlib.lib.math.BlockDimPos;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public abstract class BlockGuiSupplier
 {
 	public final Object mod;
@@ -21,9 +18,9 @@ public abstract class BlockGuiSupplier
 		id = _id;
 	}
 
-	public void open(EntityPlayer player, BlockPos pos)
+	public void open(EntityPlayer player, BlockDimPos pos)
 	{
-		player.openGui(mod, id, player.world, pos.getX(), pos.getY(), pos.getZ());
+		player.openGui(mod, id, player.worldObj, pos.posX, pos.posY, pos.posZ);
 	}
 
 	@Nullable

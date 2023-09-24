@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib.gui;
 
-/**
- * @author LatvianModder
- */
 @FunctionalInterface
 public interface WidgetLayout
 {

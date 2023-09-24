@@ -8,9 +8,6 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 
-/**
- * @author LatvianModder
- */
 public class ContextMenuItem implements Comparable<ContextMenuItem>
 {
 	public static final ContextMenuItem SEPARATOR = new ContextMenuItem("", Icon.EMPTY, () -> {})

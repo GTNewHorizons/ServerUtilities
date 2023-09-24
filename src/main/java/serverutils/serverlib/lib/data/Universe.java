@@ -1,5 +1,26 @@
 package serverutils.serverlib.lib.data;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.authlib.GameProfile;
+import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.event.world.WorldEvent;
+import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.PlayerEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 import serverutils.serverlib.ServerLib;
 import serverutils.serverlib.ServerLibConfig;
 import serverutils.serverlib.events.ServerReloadEvent;
@@ -25,27 +46,6 @@ import serverutils.serverlib.lib.util.ServerUtils;
 import serverutils.serverlib.lib.util.StringUtils;
 import serverutils.serverlib.lib.util.misc.IScheduledTask;
 import serverutils.serverlib.lib.util.misc.TimeType;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.mojang.authlib.GameProfile;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.event.world.WorldEvent;
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
-import cpw.mods.fml.common.event.FMLServerStartedEvent;
-import cpw.mods.fml.common.event.FMLServerStoppingEvent;
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -60,9 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * @author LatvianModder
- */
 @Mod.EventBusSubscriber(modid = ServerLib.MOD_ID)
 public class Universe
 {

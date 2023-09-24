@@ -17,9 +17,6 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * @author LatvianModder
- */
 public class ConfigItemStack extends ConfigValue
 {
 	public static final String ID = "item_stack";
@@ -62,9 +59,9 @@ public class ConfigItemStack extends ConfigValue
 		value = is.isEmpty() ? ItemStack.EMPTY : is;
 		singleItemOnly = b;
 
-		if (singleItemOnly && value.getCount() > 1)
+		if (singleItemOnly && value.stackSize > 1)
 		{
-			value.setCount(1);
+			value.stackSize = 1;
 		}
 	}
 
@@ -88,9 +85,9 @@ public class ConfigItemStack extends ConfigValue
 	{
 		value = is.isEmpty() ? ItemStack.EMPTY : is;
 
-		if (getSingleItemOnly() && value.getCount() > 1)
+		if (getSingleItemOnly() && value.stackSize > 1)
 		{
-			value.setCount(1);
+			value.stackSize = 1;
 		}
 	}
 
@@ -119,7 +116,7 @@ public class ConfigItemStack extends ConfigValue
 	@Override
 	public int getInt()
 	{
-		return getStack().getCount();
+		return getStack().stackSize;
 	}
 
 	@Override
@@ -179,12 +176,12 @@ public class ConfigItemStack extends ConfigValue
 	{
 		value = getStack();
 
-		if (value.getCount() <= 1)
+		if (value.stackSize <= 1)
 		{
 			return new ChatComponentText(value.getDisplayName());
 		}
 
-		return new ChatComponentText(value.getCount() + "x " + value.getDisplayName());
+		return new ChatComponentText(value.stackSize + "x " + value.getDisplayName());
 	}
 
 	@Override
@@ -211,7 +208,7 @@ public class ConfigItemStack extends ConfigValue
 		{
 			ItemStack stack = ItemStackSerializer.parseItemThrowingException(string);
 
-			if (stack.getCount() > 1 && getSingleItemOnly())
+			if (stack.stackSize > 1 && getSingleItemOnly())
 			{
 				return false;
 			}

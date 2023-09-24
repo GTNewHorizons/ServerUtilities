@@ -81,11 +81,11 @@ public interface GuiIcons
 
 	static Icon get(String id)
 	{
-		return Icon.getIcon("ftblib:icons/" + id);
+		return Icon.getIcon("serverlib:icons/" + id);
 	}
 
 	static Icon getImage(String id)
 	{
-		return Icon.getIcon("ftblib:textures/icons/" + id + ".png");
+		return Icon.getIcon("serverlib:textures/icons/" + id + ".png");
 	}
 }

@@ -16,7 +16,7 @@ public interface ICommandWithParent extends ICommand
 	void setParent(@Nullable ICommand p);
 
 	@Override
-	default String getUsage(ICommandSender sender)
+	default String getCommandUsage(ICommandSender sender)
 	{
 		return "commands." + getCommandPath(this) + ".usage";
 	}

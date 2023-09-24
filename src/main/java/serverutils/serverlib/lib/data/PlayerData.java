@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib.data;
 
-/**
- * @author LatvianModder
- */
 public abstract class PlayerData implements NBTDataStorage.Data
 {
 	public final ForgePlayer player;

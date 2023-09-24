@@ -1,23 +1,20 @@
 package serverutils.serverlib.lib.config;
 
-import serverutils.serverlib.lib.io.DataIn;
-import serverutils.serverlib.lib.io.DataOut;
-import serverutils.serverlib.lib.util.JsonUtils;
-import serverutils.serverlib.lib.util.NBTUtils;
 import com.google.gson.JsonElement;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+import serverutils.serverlib.lib.io.DataIn;
+import serverutils.serverlib.lib.io.DataOut;
+import serverutils.serverlib.lib.util.JsonUtils;
+import serverutils.serverlib.lib.util.NBTUtils;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class ConfigNBT extends ConfigValue
 {
 	public static final String ID = "nbt";
@@ -74,9 +71,9 @@ public class ConfigNBT extends ConfigValue
 	}
 
 	@Override
-	public ITextComponent getStringForGUI()
+	public IChatComponent getStringForGUI()
 	{
-		return new TextComponentString(getNBT() == null ? "null" : "{...}");
+		return new ChatComponentText(getNBT() == null ? "null" : "{...}");
 	}
 
 	@Override
@@ -112,11 +109,11 @@ public class ConfigNBT extends ConfigValue
 	@Override
 	public void addInfo(ConfigValueInstance inst, List<String> list)
 	{
-		list.add(TextFormatting.AQUA + "Value: " + TextFormatting.RESET + NBTUtils.getColoredNBTString(getNBT()));
+		list.add(EnumChatFormatting.AQUA + "Value: " + EnumChatFormatting.RESET + NBTUtils.getColoredNBTString(getNBT()));
 
 		if (inst.getCanEdit() && inst.getDefaultValue() instanceof ConfigNBT)
 		{
-			list.add(TextFormatting.AQUA + "Default: " + TextFormatting.RESET + NBTUtils.getColoredNBTString(((ConfigNBT) inst.getDefaultValue()).getNBT()));
+			list.add(EnumChatFormatting.AQUA + "Default: " + EnumChatFormatting.RESET + NBTUtils.getColoredNBTString(((ConfigNBT) inst.getDefaultValue()).getNBT()));
 		}
 	}
 

@@ -4,7 +4,7 @@ import net.minecraft.command.CommandHelp;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.server.command.CommandTreeBase;
+import net.minecraftforge.server.command.ForgeCommand; //.command.CommandTreeBase;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +33,7 @@ public class CmdTreeHelp extends CommandHelp
 
 		for (ICommand command : parent.getSubCommands())
 		{
-			if (command.checkPermission(server, sender))
+			if (command.canCommandSenderUseCommand(sender))
 			{
 				list.add(command);
 			}

@@ -1,5 +1,9 @@
 package serverutils.serverlib.lib.config;
 
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.data.ForgeTeam;
 import serverutils.serverlib.lib.gui.IOpenableGui;
 import serverutils.serverlib.lib.gui.misc.GuiSelectTeamValue;
@@ -9,26 +13,18 @@ import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.util.FinalIDObject;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTPrimitive;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.text.ITextComponent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author LatvianModder
- */
 public class ConfigTeamClient extends ConfigString
 {
 	public static class TeamInst extends FinalIDObject
 	{
 		public final short uid;
-		public ITextComponent title;
+		public IChatComponent title;
 		public Icon icon;
 
 		public TeamInst(short u, String id)
@@ -53,7 +49,7 @@ public class ConfigTeamClient extends ConfigString
 	}
 
 	@Override
-	public ITextComponent getStringForGUI()
+	public IChatComponent getStringForGUI()
 	{
 		TeamInst inst = map.get(getString());
 
@@ -120,12 +116,12 @@ public class ConfigTeamClient extends ConfigString
 
 		if (id instanceof NBTTagString)
 		{
-			setString(((NBTTagString) id).getString());
+			setString(((NBTTagString) id).func_150285_a_());
 		}
-		else if (id instanceof NBTPrimitive)
+		else if (id instanceof NBTBase.NBTPrimitive)
 		{
 			ForgeTeam team = null;
-			short ids = ((NBTPrimitive) id).getShort();
+			short ids = ((NBTBase.NBTPrimitive) id).func_150289_e();
 
 			for (TeamInst inst : map.values())
 			{

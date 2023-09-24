@@ -6,9 +6,6 @@ import net.minecraft.server.MinecraftServer;
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-/**
- * @author LatvianModder
- */
 public interface IRankConfigHandler
 {
 	void registerRankConfig(RankConfigValueInfo info);

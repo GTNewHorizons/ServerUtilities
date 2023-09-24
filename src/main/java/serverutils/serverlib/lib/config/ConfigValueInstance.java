@@ -1,5 +1,6 @@
 package serverutils.serverlib.lib.config;
 
+import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.data.ServerLibAPI;
 import serverutils.serverlib.lib.gui.GuiIcons;
 import serverutils.serverlib.lib.icon.Icon;
@@ -7,13 +8,9 @@ import serverutils.serverlib.lib.io.Bits;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.util.FinalIDObject;
-import net.minecraft.util.text.ITextComponent;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public final class ConfigValueInstance extends FinalIDObject
 {
 	private static final int HAS_NAME = 1;
@@ -27,7 +24,7 @@ public final class ConfigValueInstance extends FinalIDObject
 	private final ConfigValue value;
 	private ConfigValue defaultValue;
 	private int flags;
-	private ITextComponent displayName, info;
+	private IChatComponent displayName, info;
 	private int order;
 	private Icon icon;
 
@@ -93,26 +90,26 @@ public final class ConfigValueInstance extends FinalIDObject
 		return defaultValue;
 	}
 
-	public ConfigValueInstance setDisplayName(@Nullable ITextComponent name)
+	public ConfigValueInstance setDisplayName(@Nullable IChatComponent name)
 	{
 		displayName = name;
 		flags = Bits.setFlag(flags, HAS_NAME, displayName != null);
 		return this;
 	}
 
-	public ITextComponent getDisplayName()
+	public IChatComponent getDisplayName()
 	{
 		return displayName == null ? group.getDisplayNameOf(this) : displayName;
 	}
 
-	public ConfigValueInstance setInfo(@Nullable ITextComponent component)
+	public ConfigValueInstance setInfo(@Nullable IChatComponent component)
 	{
 		info = component;
 		flags = Bits.setFlag(flags, HAS_INFO, info != null);
 		return this;
 	}
 
-	public ITextComponent getInfo()
+	public IChatComponent getInfo()
 	{
 		return info == null ? group.getInfoOf(this) : info;
 	}

@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib.gui;
 
-/**
- * @author LatvianModder
- */
 public class MismatchingParentPanelException extends IllegalArgumentException
 {
 	public final Panel panel;

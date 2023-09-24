@@ -1,16 +1,15 @@
 package serverutils.serverlib.lib.config;
 
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagString;
+import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.data.ForgeTeam;
 import serverutils.serverlib.lib.gui.IOpenableGui;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTPrimitive;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.text.ITextComponent;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,9 +17,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-/**
- * @author LatvianModder
- */
 public class ConfigTeam extends ConfigValue
 {
 	public static final String TEAM_ID = "team";
@@ -41,7 +37,7 @@ public class ConfigTeam extends ConfigValue
 	}
 
 	@Override
-	public ITextComponent getStringForGUI()
+	public IChatComponent getStringForGUI()
 	{
 		return get.get().getTitle();
 	}
@@ -113,11 +109,11 @@ public class ConfigTeam extends ConfigValue
 
 		if (id instanceof NBTTagString)
 		{
-			set.accept(get.get().universe.getTeam(((NBTTagString) id).getString()));
+			set.accept(get.get().universe.getTeam(((NBTTagString) id).func_150285_a_()));
 		}
-		else if (id instanceof NBTPrimitive)
+		else if (id instanceof NBTBase.NBTPrimitive)
 		{
-			set.accept(get.get().universe.getTeam(((NBTPrimitive) id).getShort()));
+			set.accept(get.get().universe.getTeam(((NBTBase.NBTPrimitive) id).func_150289_e()));
 		}
 	}
 

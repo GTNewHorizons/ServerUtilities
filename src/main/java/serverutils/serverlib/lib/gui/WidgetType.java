@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib.gui;
 
-/**
- * @author LatvianModder
- */
 public enum WidgetType
 {
 	NORMAL,

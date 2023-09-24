@@ -1,17 +1,17 @@
 package serverutils.serverlib.lib.gui;
 
-import serverutils.serverlib.lib.icon.Color4I;
-import serverutils.serverlib.lib.icon.Icon;
-import serverutils.serverlib.lib.util.misc.MouseButton;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ChatAllowedCharacters;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.EnumChatFormatting;
 import org.lwjgl.input.Keyboard;
+import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.icon.Color4I;
+import serverutils.serverlib.lib.icon.Icon;
+import serverutils.serverlib.lib.math.MathHelper;
+import serverutils.serverlib.lib.util.misc.MouseButton;
 
 public class TextBox extends Widget
 {
@@ -88,7 +88,7 @@ public class TextBox extends Widget
 	{
 		cursorPosition = pos;
 		int i = text.length();
-		cursorPosition = MathHelper.clamp(cursorPosition, 0, i);
+		cursorPosition = (int) MathHelper.clamp(cursorPosition, 0, i);
 		setSelectionPos(cursorPosition);
 	}
 
@@ -105,7 +105,7 @@ public class TextBox extends Widget
 		}
 
 		String s = "";
-		String s1 = ChatAllowedCharacters.filterAllowedCharacters(textToWrite);
+		String s1 = ChatAllowedCharacters.filerAllowedCharacters(textToWrite);
 		int i = Math.min(cursorPosition, selectionEnd);
 		int j = Math.max(cursorPosition, selectionEnd);
 		int k = charLimit - text.length() - (i - j);
@@ -177,7 +177,7 @@ public class TextBox extends Widget
 			lineScrollOffset -= lineScrollOffset - position;
 		}
 
-		lineScrollOffset = MathHelper.clamp(lineScrollOffset, 0, i);
+		lineScrollOffset = (int) MathHelper.clamp(lineScrollOffset, 0, i);
 	}
 
 	public int getNthWordFromCursor(int numWords)
@@ -483,7 +483,7 @@ public class TextBox extends Widget
 	{
 		drawTextBox(theme, x, y, w, h);
 		boolean drawGhostText = !isFocused() && text.isEmpty() && !ghostText.isEmpty();
-		String textToDraw = drawGhostText ? (TextFormatting.ITALIC + ghostText) : text;
+		String textToDraw = drawGhostText ? (EnumChatFormatting.ITALIC + ghostText) : text;
 		GuiHelper.pushScissor(getScreen(), x, y, w, h);
 
 		Color4I col = validText ? (textColor.isEmpty() ? theme.getContentColor(WidgetType.NORMAL) : textColor).withAlpha(drawGhostText ? 120 : 255) : Color4I.RED;
@@ -565,7 +565,7 @@ public class TextBox extends Widget
 				startX = x + w;
 			}
 
-			Tessellator tessellator = Tessellator.getInstance();
+			Tessellator tessellator = Tessellator.instance;
 			BufferBuilder vertexbuffer = tessellator.getBuffer();
 			GlStateManager.color(0F, 0F, 255F, 255F);
 			GlStateManager.disableTexture2D();

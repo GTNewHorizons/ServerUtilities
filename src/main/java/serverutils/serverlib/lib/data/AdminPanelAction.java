@@ -5,8 +5,6 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 import serverutils.serverlib.lib.icon.Icon;
 
-
-
 public abstract class AdminPanelAction extends Action
 {
 	public AdminPanelAction(String mod, String id, Icon icon, int order)

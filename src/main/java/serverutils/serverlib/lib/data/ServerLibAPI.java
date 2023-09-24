@@ -1,6 +1,10 @@
 package serverutils.serverlib.lib.data;
 
-import serverutils.serverlib.FTBLib;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.ResourceLocation;
+import serverutils.serverlib.ServerLib;
 import serverutils.serverlib.ServerLibCommon;
 import serverutils.serverlib.ServerLibConfig;
 import serverutils.serverlib.ServerLibNotifications;
@@ -19,19 +23,12 @@ import serverutils.serverlib.net.MessageCloseGui;
 import serverutils.serverlib.net.MessageEditConfig;
 import serverutils.serverlib.net.MessageSyncData;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * @author LatvianModder
- */
 public class ServerLibAPI
 {
 	public static void reloadServer(Universe universe, ICommandSender sender, EnumReloadType type, ResourceLocation id)
@@ -77,22 +74,22 @@ public class ServerLibAPI
 			for (EntityPlayerMP player : universe.server.getPlayerList().getPlayers())
 			{
 				Notification notification = Notification.of(ServerLibNotifications.RELOAD_SERVER);
-				notification.addLine(FTBLib.lang(player, "ftblib.lang.reload_server", millis));
+				notification.addLine(ServerLib.lang(player, "ftblib.lang.reload_server", millis));
 
 				if (event.isClientReloadRequired())
 				{
-					notification.addLine(FTBLib.lang(player, "ftblib.lang.reload_client", StringUtils.color(new TextComponentString("F3 + T"), TextFormatting.GOLD)));
+					notification.addLine(ServerLib.lang(player, "ftblib.lang.reload_client", StringUtils.color(new ChatComponentText("F3 + T"), EnumChatFormatting.GOLD)));
 				}
 
 				if (!failed.isEmpty())
 				{
-					notification.addLine(StringUtils.color(FTBLib.lang(player, "ftblib.lang.reload_failed"), TextFormatting.RED));
-					FTBLib.LOGGER.warn("These IDs failed to reload:");
+					notification.addLine(StringUtils.color(ServerLib.lang(player, "ftblib.lang.reload_failed"), EnumChatFormatting.RED));
+					ServerLib.LOGGER.warn("These IDs failed to reload:");
 
 					for (ResourceLocation f : failed)
 					{
-						notification.addLine(StringUtils.color(new TextComponentString(f.toString()), TextFormatting.RED));
-						FTBLib.LOGGER.warn("- " + f);
+						notification.addLine(StringUtils.color(new ChatComponentText(f.toString()), EnumChatFormatting.RED));
+						ServerLib.LOGGER.warn("- " + f);
 					}
 				}
 
@@ -103,7 +100,7 @@ public class ServerLibAPI
 		}
 
 		universe.server.reload();
-		FTBLib.LOGGER.info("Reloaded server in " + millis);
+		ServerLib.LOGGER.info("Reloaded server in " + millis);
 	}
 
 	public static void editServerConfig(EntityPlayerMP player, ConfigGroup group, IConfigCallback callback)

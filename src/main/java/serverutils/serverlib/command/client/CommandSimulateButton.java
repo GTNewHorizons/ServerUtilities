@@ -10,7 +10,7 @@ import net.minecraft.server.MinecraftServer;
 public class CommandSimulateButton extends CmdBase {
 	public CommandSimulateButton()
 	{
-		super("ftblib_simulate_button", Level.ALL);
+		super("serverlib_simulate_button", Level.ALL);
 	}
 
 	@Override

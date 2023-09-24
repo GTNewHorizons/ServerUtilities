@@ -1,9 +1,9 @@
 package serverutils.serverlib.lib.gui;
 
+import net.minecraft.util.EnumChatFormatting;
+import serverutils.serverlib.lib.math.MathHelper;
 import serverutils.serverlib.lib.math.MathUtils;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
 
 import java.util.List;
 
@@ -116,9 +116,9 @@ public class ScrollBar extends Widget
 
 		if (Theme.renderDebugBoxes)
 		{
-			list.add(TextFormatting.DARK_GRAY + "Size: " + getScrollBarSize());
-			list.add(TextFormatting.DARK_GRAY + "Max: " + getMaxValue());
-			list.add(TextFormatting.DARK_GRAY + "Value: " + getValue());
+			list.add(EnumChatFormatting.DARK_GRAY + "Size: " + getScrollBarSize());
+			list.add(EnumChatFormatting.DARK_GRAY + "Max: " + getMaxValue());
+			list.add(EnumChatFormatting.DARK_GRAY + "Value: " + getValue());
 		}
 	}
 
@@ -199,7 +199,7 @@ public class ScrollBar extends Widget
 
 	public void setValue(int v)
 	{
-		v = MathHelper.clamp(v, getMinValue(), getMaxValue());
+		v = (int) MathHelper.clamp(v, getMinValue(), getMaxValue());
 
 		if (value != v)
 		{

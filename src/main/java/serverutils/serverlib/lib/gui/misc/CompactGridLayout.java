@@ -3,9 +3,6 @@ package serverutils.serverlib.lib.gui.misc;
 import serverutils.serverlib.lib.gui.Panel;
 import serverutils.serverlib.lib.gui.WidgetLayout;
 
-/**
- * @author LatvianModder
- */
 public class CompactGridLayout implements WidgetLayout
 {
 	public static final int[][] LAYOUTS = {

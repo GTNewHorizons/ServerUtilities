@@ -9,17 +9,12 @@ import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.util.misc.MouseButton;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class ConfigFluid extends ConfigValue
 {
 	public static final String ID = "fluid";

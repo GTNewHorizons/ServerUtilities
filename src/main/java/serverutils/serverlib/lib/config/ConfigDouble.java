@@ -1,19 +1,16 @@
 package serverutils.serverlib.lib.config;
 
-import com.mojang.realmsclient.gui.ChatFormatting;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.io.DataIn;
 import serverutils.serverlib.lib.io.DataOut;
+import serverutils.serverlib.lib.math.MathHelper;
 import serverutils.serverlib.lib.util.StringUtils;
 import com.google.gson.JsonElement;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentString;
-import net.minecraft.util.text.TextFormatting;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -162,12 +159,12 @@ public class ConfigDouble extends ConfigValue implements DoubleSupplier
 
 		if (min != Double.NEGATIVE_INFINITY)
 		{
-			list.add(ChatFormatting.AQUA + "Min: " + ChatFormatting.RESET + StringUtils.formatDouble(min));
+			list.add(EnumChatFormatting.AQUA + "Min: " + EnumChatFormatting.RESET + StringUtils.formatDouble(min));
 		}
 
 		if (max != Double.POSITIVE_INFINITY)
 		{
-			list.add(ChatFormatting.AQUA + "Max: " + ChatFormatting.RESET + StringUtils.formatDouble(max));
+			list.add(EnumChatFormatting.AQUA + "Max: " + EnumChatFormatting.RESET + StringUtils.formatDouble(max));
 		}
 	}
 

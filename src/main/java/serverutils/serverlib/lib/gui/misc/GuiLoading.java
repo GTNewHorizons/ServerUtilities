@@ -1,19 +1,16 @@
 package serverutils.serverlib.lib.gui.misc;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import org.lwjgl.opengl.GL11;
+import serverutils.serverlib.client.GlStateManager;
 import serverutils.serverlib.lib.gui.GuiBase;
 import serverutils.serverlib.lib.gui.GuiHelper;
 import serverutils.serverlib.lib.gui.Theme;
 import serverutils.serverlib.lib.icon.Color4I;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import org.lwjgl.opengl.GL11;
 
-/**
- * @author LatvianModder
- */
 public class GuiLoading extends GuiBase
 {
 	private boolean startedLoading = false;
@@ -57,7 +54,7 @@ public class GuiLoading extends GuiBase
 
 			Color4I col = Color4I.WHITE;
 			GlStateManager.disableTexture2D();
-			Tessellator tessellator = Tessellator.getInstance();
+			Tessellator tessellator = Tessellator.instance;
 			BufferBuilder buffer = tessellator.getBuffer();
 			buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
 
