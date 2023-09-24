@@ -2,15 +2,12 @@ package serverutils.serverlib.lib.block;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.MathHelper;
 
-/**
- * @author LatvianModder
- */
-public enum EnumRotation implements IStringSerializable
-{
+import serverutils.serverlib.lib.util.IStringSerializable;
+
+public enum EnumRotation implements IStringSerializable {
+
 	NORMAL("normal"),
 	FACING_DOWN("down"),
 	UPSIDE_DOWN("upside_down"),
@@ -20,34 +17,26 @@ public enum EnumRotation implements IStringSerializable
 
 	private final String name;
 
-	EnumRotation(String n)
-	{
+	EnumRotation(String n) {
 		name = n;
 	}
 
-	public int getModelRotationIndexFromFacing(EnumFacing facing)
-	{
-		return ordinal() << 2 | facing.getOpposite().getHorizontalIndex();
+	public int getModelRotationIndexFromFacing(EnumFacing facing) {
+		return ordinal() << 2 | facing.order_b;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public static EnumRotation getRotationFromEntity(BlockPos pos, EntityLivingBase placer)
-	{
-		if (MathHelper.abs((float) (placer.posX - pos.getX())) < 2F && MathHelper.abs((float) (placer.posZ - pos.getZ())) < 2F)
-		{
+	public static EnumRotation getRotationFromEntity(int posx, int posy, int posz, EntityLivingBase placer) {
+		if (MathHelper.abs((float) (placer.posX - posx)) < 2F && MathHelper.abs((float) (placer.posZ - posz)) < 2F) {
 			double d = placer.posY + placer.getEyeHeight();
 
-			if (d - pos.getY() > 2D)
-			{
+			if (d - posy > 2D) {
 				return FACING_UP;
-			}
-			else if (pos.getY() - d > 0D)
-			{
+			} else if (posy - d > 0D) {
 				return FACING_DOWN;
 			}
 		}

@@ -1,15 +1,13 @@
 package serverutils.serverlib.lib.block;
 
+import net.minecraft.util.Vec3;
+
+import serverutils.serverlib.lib.util.IStringSerializable;
 import serverutils.serverlib.lib.util.misc.EnumScreenPosition;
 import serverutils.serverlib.lib.util.misc.NameMap;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.math.BlockPos;
 
-/**
- * @author LatvianModder
- */
-public enum EnumHorizontalOffset implements IStringSerializable
-{
+public enum EnumHorizontalOffset implements IStringSerializable {
+
 	CENTER("center", EnumScreenPosition.CENTER),
 	NORTH("north", EnumScreenPosition.BOTTOM),
 	NORTH_EAST("north_east", EnumScreenPosition.BOTTOM_RIGHT),
@@ -21,38 +19,38 @@ public enum EnumHorizontalOffset implements IStringSerializable
 	NORTH_WEST("north_west", EnumScreenPosition.BOTTOM_LEFT);
 
 	public static final EnumHorizontalOffset[] VALUES = values();
-	private static final EnumHorizontalOffset[] OPPOSITES = {CENTER, SOUTH, SOUTH_WEST, WEST, NORTH_WEST, NORTH, NORTH_EAST, EAST, SOUTH_EAST};
+	private static final EnumHorizontalOffset[] OPPOSITES = { CENTER, SOUTH, SOUTH_WEST, WEST, NORTH_WEST, NORTH,
+			NORTH_EAST, EAST, SOUTH_EAST };
 	public static final NameMap<EnumHorizontalOffset> NAME_MAP = NameMap.create(CENTER, VALUES);
 
 	private final String name;
 	public final EnumScreenPosition screenPosition;
-	public final BlockPos offset;
+	public final int x_offset;
+	public final int y_offset;
+	public final int z_offset;
 
-	EnumHorizontalOffset(String n, EnumScreenPosition p)
-	{
+	EnumHorizontalOffset(String n, EnumScreenPosition p) {
 		name = n;
 		screenPosition = p;
-		offset = new BlockPos(p.offsetX, 0, p.offsetY);
+		x_offset = p.offsetX;
+		y_offset = 0;
+		z_offset = p.offsetY;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public BlockPos offset(BlockPos pos)
-	{
-		return pos.add(offset);
+	public Vec3 offset(int posx, int posy, int posz) {
+		return Vec3.createVectorHelper(x_offset + posx, y_offset + posy, z_offset + posz);
 	}
 
-	public boolean isCenter()
-	{
+	public boolean isCenter() {
 		return this == CENTER;
 	}
 
-	public EnumHorizontalOffset opposite()
-	{
+	public EnumHorizontalOffset opposite() {
 		return OPPOSITES[ordinal()];
 	}
 }

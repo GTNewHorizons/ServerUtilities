@@ -1,94 +1,76 @@
 package serverutils.serverlib.lib.block;
 
-import serverutils.serverlib.lib.math.BlockDimPos;
-import serverutils.serverlib.lib.tile.TileBase;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-/**
- * @author LatvianModder
- */
-public class BlockSpecialDrop extends Block
-{
-	public BlockSpecialDrop(Material material, MapColor color)
-	{
-		super(material, color);
+import serverutils.serverlib.lib.tile.TileBase;
+
+public class BlockSpecialDrop extends Block {
+
+	public BlockSpecialDrop(Material material, MapColor color) {
+		super(material);
 	}
 
-	@Override
-	@Deprecated
-	public ItemStack getItem(World world, BlockDimPos pos, IBlockState state)
-	{
-		ItemStack stack = super.getItem(world, pos, state);
-		TileEntity tileEntity = world.getTileEntity(pos.posX, pos.posY, pos.posZ);
+	// @Override
+	// @Deprecated
+	// public ItemStack getItem(World world, int posx, int posy, int posz) {
+	// ItemStack stack = super.getItem(world, posx, posy, posz);
+	// TileEntity tileEntity = world.getTileEntity(pos);
 
-		if (tileEntity instanceof TileBase)
-		{
-			((TileBase) tileEntity).writeToPickBlock(stack);
-		}
+	// if (tileEntity instanceof TileBase) {
+	// ((TileBase) tileEntity).writeToPickBlock(stack);
+	// }
 
-		return stack;
-	}
+	// return stack;
+	// }
 
 	@Override
-	public void onBlockPlacedBy(World world, BlockDimPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack)
-	{
-		if (hasTileEntity(state))
-		{
-			TileEntity tile = world.getTileEntity(pos.posX, pos.posY, pos.posZ);
+	public void onBlockPlacedBy(World world, int posx, int posy, int posz, EntityLivingBase placer, ItemStack stack) {
+		if (hasTileEntity(0)) {
+			TileEntity tile = world.getTileEntity(posx, posy, posz);
 
-			if (tile instanceof TileBase)
-			{
+			if (tile instanceof TileBase) {
 				((TileBase) tile).readFromItem(stack);
 			}
 		}
 	}
 
 	@Override
-	public void dropBlockAsItemWithChance(World world, BlockDimPos pos, IBlockState state, float chance, int fortune)
-	{
-	}
+	public void dropBlockAsItemWithChance(World world, int posx, int posy, int posz, int meta, float chance,
+										  int fortune) {}
 
 	@Override
-	public void onBlockHarvested(World world, BlockDimPos pos, IBlockState state, EntityPlayer player)
-	{
-		if (player.capabilities.isCreativeMode)
-		{
-			TileEntity tileEntity = world.getTileEntity(pos.posX, pos.posY, pos.posZ);
+	public void onBlockHarvested(World world, int posx, int posy, int posz, int meta, EntityPlayer player) {
+		if (player.capabilities.isCreativeMode) {
+			TileEntity tileEntity = world.getTileEntity(posx, posy, posz);
 
-			if (tileEntity instanceof TileBase)
-			{
+			if (tileEntity instanceof TileBase) {
 				((TileBase) tileEntity).brokenByCreative = true;
 			}
 		}
 	}
 
-	@Override
-	@SuppressWarnings("deprecation")
-	public void breakBlock(World world, BlockDimPos pos, Block IBlockState state)
-	{
-		ItemStack stack = super.getItem(world, pos, state);
-		TileEntity tileEntity = world.getTileEntity(pos.posX, pos.posY, pos.posZ);
+	// @Override
+	// @SuppressWarnings("deprecation")
+	// public void breakBlock(World world, int posx, int posy, int posz, Block block, int meta) {
+	// ItemStack stack = super.getItem(world, posx, posy, posz);
+	// TileEntity tileEntity = world.getTileEntity(pos);
 
-		if (tileEntity instanceof TileBase)
-		{
-			if (((TileBase) tileEntity).brokenByCreative)
-			{
-				return;
-			}
+	// if (tileEntity instanceof TileBase) {
+	// if (((TileBase) tileEntity).brokenByCreative) {
+	// return;
+	// }
 
-			((TileBase) tileEntity).writeToItem(stack);
-		}
+	// ((TileBase) tileEntity).writeToItem(stack);
+	// }
 
-		dropBlockAsItem(world, pos.posX, pos.posY, pos.posZ, stack);
-		super.breakBlock(world, pos.posX, pos.posY, pos.posZ, state);
-	}
+	// spawnAsEntity(world, pos, stack);
+	// super.breakBlock(world, pos, state);
+	// }
 }
