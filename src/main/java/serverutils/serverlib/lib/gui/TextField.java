@@ -1,20 +1,17 @@
 package serverutils.serverlib.lib.gui;
 
+import net.minecraft.util.IChatComponent;
+import serverutils.serverlib.client.GlStateManager;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.io.Bits;
 import serverutils.serverlib.lib.util.StringUtils;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.text.ITextComponent;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class TextField extends Widget
 {
 	public String[] text;
@@ -107,7 +104,7 @@ public class TextField extends Widget
 		return this;
 	}
 
-	public TextField setText(ITextComponent component)
+	public TextField setText(IChatComponent component)
 	{
 		setText(component.getFormattedText());
 

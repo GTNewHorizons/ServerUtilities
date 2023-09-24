@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib.gui;
 
-/**
- * @author LatvianModder
- */
 public class WidgetVerticalSpace extends Widget
 {
 	public WidgetVerticalSpace(Panel p, int h)

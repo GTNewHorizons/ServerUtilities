@@ -1,22 +1,19 @@
 package serverutils.serverlib.lib.gui;
 
-import serverutils.serverlib.lib.util.misc.MouseButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.client.config.GuiUtils;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import serverutils.serverlib.client.GlStateManager;
+import serverutils.serverlib.lib.util.misc.MouseButton;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class GuiContainerWrapper extends GuiContainer implements IGuiWrapper
 {
 	private GuiBase wrappedGui;
@@ -97,7 +94,7 @@ public class GuiContainerWrapper extends GuiContainer implements IGuiWrapper
 	}
 
 	@Override
-	public void handleMouseInput() throws IOException
+	public void handleMouseInput()
 	{
 		super.handleMouseInput();
 		int scroll = Mouse.getEventDWheel();
@@ -109,7 +106,7 @@ public class GuiContainerWrapper extends GuiContainer implements IGuiWrapper
 	}
 
 	@Override
-	public void handleKeyboardInput() throws IOException
+	public void handleKeyboardInput()
 	{
 		if (!(Keyboard.getEventKey() == 0 && Keyboard.getEventCharacter() >= ' ' || Keyboard.getEventKeyState()))
 		{
@@ -139,9 +136,10 @@ public class GuiContainerWrapper extends GuiContainer implements IGuiWrapper
 		{
 			GuiHelper.setupDrawing();
 
-			for (Slot slot : inventorySlots.inventorySlots)
+			for (Object s : inventorySlots.inventorySlots)
 			{
-				theme.drawContainerSlot(guiLeft + slot.xPos, guiTop + slot.yPos, 16, 16);
+				Slot slot = (Slot) s;
+				theme.drawContainerSlot(guiLeft + slot.xDisplayPosition, guiTop + slot.yDisplayPosition, 16, 16);
 			}
 		}
 

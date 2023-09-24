@@ -1,8 +1,5 @@
 package serverutils.serverlib.lib.gui;
 
-/**
- * @author LatvianModder
- */
 public class PanelScrollBar extends ScrollBar
 {
 	public final Panel panel;

@@ -1,7 +1,10 @@
 package serverutils.serverlib.lib.gui;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.IChatComponent;
-import serverutils.serverlib.FTBLib;
+import serverutils.serverlib.ServerLib;
+import serverutils.serverlib.client.GlStateManager;
 import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.icon.ImageIcon;
@@ -9,18 +12,11 @@ import serverutils.serverlib.lib.icon.PartIcon;
 import serverutils.serverlib.lib.io.Bits;
 import it.unimi.dsi.fastutil.booleans.BooleanArrayList;
 import it.unimi.dsi.fastutil.booleans.BooleanStack;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.util.text.ITextComponent;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author LatvianModder
- */
 public class Theme
 {
 	public static final Theme DEFAULT = new Theme();
@@ -37,7 +33,7 @@ public class Theme
 	private static final Color4I CONTENT_COLOR_DISABLED = Color4I.rgb(10526880);
 	private static final Color4I CONTENT_COLOR_DARK = Color4I.rgb(4210752);
 
-	public static final ImageIcon BACKGROUND_SQUARES = (ImageIcon) Icon.getIcon(FTBLib.MOD_ID + ":textures/gui/background_squares.png");
+	public static final ImageIcon BACKGROUND_SQUARES = (ImageIcon) Icon.getIcon(ServerLib.MOD_ID + ":textures/gui/background_squares.png");
 	private static final ImageIcon TEXTURE_BEACON = (ImageIcon) Icon.getIcon("textures/gui/container/beacon.png");
 	private static final ImageIcon TEXTURE_WIDGETS = (ImageIcon) Icon.getIcon("textures/gui/widgets.png");
 	private static final ImageIcon TEXTURE_RECIPE_BOOK = (ImageIcon) Icon.getIcon("textures/gui/recipe_book.png");
@@ -221,7 +217,7 @@ public class Theme
 		getFont().setUnicodeFlag(fontUnicode.pop());
 	}
 
-	public List<GuiBase.PositionedTextData> createDataFrom(ITextComponent component, int width)
+	public List<GuiBase.PositionedTextData> createDataFrom(IChatComponent component, int width)
 	{
 		if (width <= 0 || component.getUnformattedText().isEmpty())
 		{
@@ -233,8 +229,9 @@ public class Theme
 		int line = 0;
 		int currentWidth = 0;
 
-		for (IChatComponent t : component.createCopy())
+		for (Object te : component.createCopy())
 		{
+			IChatComponent t = (IChatComponent) te;
 			String text = t.getUnformattedTextForChat();
 			int textWidth = getStringWidth(text);
 
@@ -246,7 +243,7 @@ public class Theme
 					w = width - currentWidth;
 				}
 
-				list.add(new GuiBase.PositionedTextData(currentWidth, line * 10, w, 10, t.getStyle()));
+				list.add(new GuiBase.PositionedTextData(currentWidth, line * 10, w, 10, t.getChatStyle()));
 
 				currentWidth += w;
 				textWidth -= w;

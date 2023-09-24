@@ -1,10 +1,10 @@
 package serverutils.serverlib.lib.gui;
 
-import serverutils.serverlib.lib.util.misc.MouseButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import serverutils.serverlib.lib.util.misc.MouseButton;
 
 import javax.annotation.Nullable;
 import java.util.List;

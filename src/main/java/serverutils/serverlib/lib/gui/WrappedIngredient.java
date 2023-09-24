@@ -2,9 +2,6 @@ package serverutils.serverlib.lib.gui;
 
 import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public final class WrappedIngredient
 {
 	@Nullable
