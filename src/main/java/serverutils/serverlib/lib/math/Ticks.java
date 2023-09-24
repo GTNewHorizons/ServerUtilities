@@ -12,35 +12,25 @@ public class Ticks {
 	public static final Ticks DAY = HOUR.x(24L);
 	public static final Ticks WEEK = DAY.x(7L);
 
-	public static Ticks get(long ticks)
-	{
-		if (ticks == 0L)
-		{
+	public static Ticks get(long ticks) {
+		if (ticks == 0L) {
 			return NO_TICKS;
-		}
-		else if (ticks == 1L)
-		{
+		} else if (ticks == 1L) {
 			return ONE_TICK;
 		}
 
 		return new Ticks(Math.max(0L, ticks));
 	}
 
-	public static Ticks getFromMillis(long millis)
-	{
+	public static Ticks getFromMillis(long millis) {
 		return get(millis / TICK_MS);
 	}
 
-	public static Ticks get(String value) throws NumberFormatException
-	{
-		if (value.isEmpty() || value.equals("0s"))
-		{
+	public static Ticks get(String value) throws NumberFormatException {
+		if (value.isEmpty() || value.equals("0s")) {
 			return NO_TICKS;
-		}
-		else if (value.length() == 2 && value.charAt(0) == '1')
-		{
-			switch (value.charAt(1))
-			{
+		} else if (value.length() == 2 && value.charAt(0) == '1') {
+			switch (value.charAt(1)) {
 				case 't':
 				case 'T':
 					return ONE_TICK;
@@ -64,14 +54,10 @@ public class Ticks {
 
 		Ticks ticks = Ticks.NO_TICKS;
 
-		for (String s : value.split(" "))
-		{
-			if (!s.isEmpty())
-			{
-				try
-				{
-					switch (s.charAt(s.length() - 1))
-					{
+		for (String s : value.split(" ")) {
+			if (!s.isEmpty()) {
+				try {
+					switch (s.charAt(s.length() - 1)) {
 						case 't':
 						case 'T':
 							ticks = ticks.add(Long.parseLong(s.substring(0, s.length() - 1)));
@@ -99,9 +85,7 @@ public class Ticks {
 						default:
 							ticks = ticks.add(Long.parseLong(s));
 					}
-				}
-				catch (Exception ex)
-				{
+				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
 			}
@@ -112,123 +96,99 @@ public class Ticks {
 
 	private final long ticks;
 
-	private Ticks(long t)
-	{
+	private Ticks(long t) {
 		ticks = t;
 	}
 
-	public long ticks()
-	{
+	public long ticks() {
 		return ticks;
 	}
 
-	public boolean hasTicks()
-	{
+	public boolean hasTicks() {
 		return ticks > 0L;
 	}
 
-	public Ticks x(long x)
-	{
+	public Ticks x(long x) {
 		return x == 1L ? this : get(ticks * x);
 	}
 
-	public Ticks x(double x)
-	{
+	public Ticks x(double x) {
 		return x == 1D ? this : get((long) (ticks * x));
 	}
 
-	public Ticks add(long t)
-	{
+	public Ticks add(long t) {
 		return t == 0L ? this : get(ticks + t);
 	}
 
-	public Ticks add(Ticks t)
-	{
+	public Ticks add(Ticks t) {
 		return add(t.ticks);
 	}
 
-	public long millis()
-	{
+	public long millis() {
 		return ticks * TICK_MS;
 	}
 
-	public long seconds()
-	{
+	public long seconds() {
 		return ticks / SECOND.ticks;
 	}
 
-	public double secondsd()
-	{
+	public double secondsd() {
 		return (double) ticks / (double) SECOND.ticks;
 	}
 
-	public long minutes()
-	{
+	public long minutes() {
 		return ticks / MINUTE.ticks;
 	}
 
-	public double minutesd()
-	{
+	public double minutesd() {
 		return (double) ticks / (double) MINUTE.ticks;
 	}
 
-	public long hours()
-	{
+	public long hours() {
 		return ticks / HOUR.ticks;
 	}
 
-	public double hoursd()
-	{
+	public double hoursd() {
 		return (double) ticks / (double) HOUR.ticks;
 	}
 
-	public long days()
-	{
+	public long days() {
 		return ticks / DAY.ticks;
 	}
 
-	public double daysd()
-	{
+	public double daysd() {
 		return (double) ticks / (double) DAY.ticks;
 	}
 
-	public long weeks()
-	{
+	public long weeks() {
 		return ticks / WEEK.ticks;
 	}
 
-	public double weeksd()
-	{
+	public double weeksd() {
 		return (double) ticks / (double) WEEK.ticks;
 	}
 
 	@Override
-	public boolean equals(Object o)
-	{
+	public boolean equals(Object o) {
 		return o == this || o instanceof Ticks && equalsTimer((Ticks) o);
 	}
 
-	public boolean equalsTimer(Ticks t)
-	{
+	public boolean equalsTimer(Ticks t) {
 		return ticks == t.ticks;
 	}
 
-	public int hashCode()
-	{
+	public int hashCode() {
 		return Long.hashCode(ticks);
 	}
 
-	public String toString()
-	{
-		if (ticks <= 0L)
-		{
+	public String toString() {
+		if (ticks <= 0L) {
 			return "0s";
 		}
 
 		StringBuilder builder = new StringBuilder();
 
-		if (ticks < 20L)
-		{
+		if (ticks < 20L) {
 			builder.append(ticks);
 			builder.append('t');
 			return builder.toString();
@@ -237,8 +197,7 @@ public class Ticks {
 		long weeks = weeks();
 		boolean hasWeeks = weeks > 0L;
 
-		if (hasWeeks)
-		{
+		if (hasWeeks) {
 			builder.append(weeks);
 			builder.append('w');
 		}
@@ -246,10 +205,8 @@ public class Ticks {
 		long days = days() % 7L;
 		boolean hasDays = hasWeeks || days != 0L;
 
-		if (days != 0L)
-		{
-			if (hasWeeks)
-			{
+		if (days != 0L) {
+			if (hasWeeks) {
 				builder.append(' ');
 			}
 
@@ -260,10 +217,8 @@ public class Ticks {
 		long hours = hours() % 24L;
 		boolean hasHours = hasDays || hours != 0L;
 
-		if (hours != 0L)
-		{
-			if (hasDays)
-			{
+		if (hours != 0L) {
+			if (hasDays) {
 				builder.append(' ');
 			}
 
@@ -274,10 +229,8 @@ public class Ticks {
 		long minutes = minutes() % 60L;
 		boolean hasMinutes = hasHours || minutes != 0L;
 
-		if (minutes != 0L)
-		{
-			if (hasHours)
-			{
+		if (minutes != 0L) {
+			if (hasHours) {
 				builder.append(' ');
 			}
 
@@ -288,10 +241,8 @@ public class Ticks {
 		long seconds = seconds() % 60L;
 		boolean hasSeconds = hasMinutes || seconds != 0L;
 
-		if (seconds != 0L)
-		{
-			if (hasMinutes)
-			{
+		if (seconds != 0L) {
+			if (hasMinutes) {
 				builder.append(' ');
 			}
 
@@ -301,10 +252,8 @@ public class Ticks {
 
 		long t = ticks % 20L;
 
-		if (t != 0L)
-		{
-			if (hasSeconds)
-			{
+		if (t != 0L) {
+			if (hasSeconds) {
 				builder.append(' ');
 			}
 
@@ -315,8 +264,7 @@ public class Ticks {
 		return builder.toString();
 	}
 
-	public String toTimeString()
-	{
+	public String toTimeString() {
 		return StringUtils.getTimeString(millis());
 	}
 }
