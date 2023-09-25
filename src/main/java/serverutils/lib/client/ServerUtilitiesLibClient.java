@@ -35,7 +35,7 @@ public class ServerUtilitiesLibClient extends ServerUtilitiesLibCommon {
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
-        ServerUtilitiesLibClientConfig.sync();
+        ServerUtilitiesLibClientConfig.init(event);
         ClientUtils.localPlayerHead = new PlayerHeadIcon(Minecraft.getMinecraft().getSession().func_148256_e().getId());
         ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager())
                 .registerReloadListener(ServerUtilitiesLibClientConfigManager.INSTANCE);

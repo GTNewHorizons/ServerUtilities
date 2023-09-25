@@ -84,7 +84,7 @@ public class ServerUtilitiesLib {
     @Mod.EventHandler
     public void onPreInit(FMLPreInitializationEvent event) {
         Locale.setDefault(Locale.US);
-        ServerUtilitiesLibConfig.sync();
+        ServerUtilitiesLibConfig.init(event);
         PROXY.preInit(event);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesLibConfig.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesLibEventHandler.INST);
