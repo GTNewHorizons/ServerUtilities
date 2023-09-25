@@ -1,7 +1,7 @@
 package serverutils.serverlib.lib;
 
-public enum EnumReloadType
-{
+public enum EnumReloadType {
+
 	/**
 	 * On client side - logged in, on server side - world created
 	 */
@@ -14,13 +14,11 @@ public enum EnumReloadType
 
 	private final boolean command;
 
-	EnumReloadType(boolean b)
-	{
+	EnumReloadType(boolean b) {
 		command = b;
 	}
 
-	public boolean command()
-	{
+	public boolean command() {
 		return command;
 	}
 }

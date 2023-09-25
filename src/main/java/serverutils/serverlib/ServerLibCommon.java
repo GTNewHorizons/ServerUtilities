@@ -51,6 +51,7 @@ import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.math.Ticks;
 import serverutils.serverlib.lib.net.MessageToClient;
 import serverutils.serverlib.lib.util.BlockUtils;
+import serverutils.serverlib.lib.util.InvUtils;
 import serverutils.serverlib.net.ServerLibNetHandler;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -175,12 +176,10 @@ public class ServerLibCommon {
 	}
 
 	/*
-	public void reloadConfig(LoaderState.ModState state)
-	{
+	public void reloadConfig(LoaderState.ModState state) {
 		JsonElement overridesE = JsonUtils.fromJson(new File(CommonUtils.folderConfig, "config_overrides.json"));
 
-		if (overridesE.isJsonObject())
-		{
+		if (overridesE.isJsonObject()) {
 		}
 	}*/
 

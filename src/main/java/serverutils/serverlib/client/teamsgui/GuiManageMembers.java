@@ -1,5 +1,12 @@
 package serverutils.serverlib.client.teamsgui;
 
+import java.util.Collection;
+import java.util.List;
+
+import net.minecraft.client.resources.I18n;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.EnumChatFormatting;
+
 import serverutils.serverlib.lib.EnumTeamStatus;
 import serverutils.serverlib.lib.data.ServerLibTeamGuiActions;
 import serverutils.serverlib.lib.gui.GuiHelper;
@@ -8,22 +15,17 @@ import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.util.misc.MouseButton;
 import serverutils.serverlib.net.MessageMyTeamAction;
 import serverutils.serverlib.net.MessageMyTeamPlayerList;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumChatFormatting;
-
-import java.util.Collection;
-import java.util.List;
 
 public class GuiManageMembers extends GuiManagePlayersBase {
+
 	private static class ButtonPlayer extends ButtonPlayerBase {
-		private ButtonPlayer(Panel panel, MessageMyTeamPlayerList.Entry m)
-		{
+
+		private ButtonPlayer(Panel panel, MessageMyTeamPlayerList.Entry m) {
 			super(panel, m);
 		}
 
 		@Override
-        Color4I getPlayerColor() {
+		Color4I getPlayerColor() {
 			if (entry.requestingInvite) {
 				return Color4I.getChatFormattingColor(EnumChatFormatting.GOLD);
 			}
@@ -38,6 +40,8 @@ public class GuiManageMembers extends GuiManagePlayersBase {
 					return Color4I.getChatFormattingColor(EnumChatFormatting.BLUE);
 				case ALLY:
 					return Color4I.getChatFormattingColor(EnumChatFormatting.DARK_AQUA);
+				default:
+					break;
 			}
 
 			return getDefaultPlayerColor();
@@ -47,27 +51,24 @@ public class GuiManageMembers extends GuiManagePlayersBase {
 		public void addMouseOverText(List<String> list) {
 			if (!entry.status.isNone()) {
 				list.add(I18n.format(entry.status.getLangKey()));
-			}
-			else if (entry.requestingInvite) {
-				list.add(I18n.format("ftblib.lang.team_status.requesting_invite"));
+			} else if (entry.requestingInvite) {
+				list.add(I18n.format("serverlib.lang.team_status.requesting_invite"));
 			}
 
 			if (entry.requestingInvite) {
-				list.add(I18n.format("ftblib.lang.team.gui.members.requesting_invite"));
-			}
-			else if (entry.status.isEqualOrGreaterThan(EnumTeamStatus.MEMBER)) {
-				list.add(I18n.format("ftblib.lang.team.gui.members.kick"));
-			}
-			else if (entry.status == EnumTeamStatus.INVITED) {
-				list.add(I18n.format("ftblib.lang.team.gui.members.cancel_invite"));
+				list.add(I18n.format("serverlib.lang.team.gui.members.requesting_invite"));
+			} else if (entry.status.isEqualOrGreaterThan(EnumTeamStatus.MEMBER)) {
+				list.add(I18n.format("serverlib.lang.team.gui.members.kick"));
+			} else if (entry.status == EnumTeamStatus.INVITED) {
+				list.add(I18n.format("serverlib.lang.team.gui.members.cancel_invite"));
 			}
 
 			if (entry.status == EnumTeamStatus.NONE || entry.requestingInvite) {
-				list.add(I18n.format("ftblib.lang.team.gui.members.invite"));
+				list.add(I18n.format("serverlib.lang.team.gui.members.invite"));
 			}
 
 			if (entry.requestingInvite) {
-				list.add(I18n.format("ftblib.lang.team.gui.members.deny_request"));
+				list.add(I18n.format("serverlib.lang.team.gui.members.deny_request"));
 			}
 		}
 
@@ -81,28 +82,24 @@ public class GuiManageMembers extends GuiManagePlayersBase {
 				if (button.isLeft()) {
 					data.setString("action", "invite");
 					entry.status = EnumTeamStatus.MEMBER;
-				}
-				else {
+				} else {
 					data.setString("action", "deny_request");
 					entry.status = EnumTeamStatus.NONE;
 				}
 
 				entry.requestingInvite = false;
-			}
-			else if (entry.status == EnumTeamStatus.NONE) {
+			} else if (entry.status == EnumTeamStatus.NONE) {
 				if (button.isLeft()) {
 					data.setString("action", "invite");
 					entry.status = EnumTeamStatus.INVITED;
 				}
-			}
-			else if (entry.status.isEqualOrGreaterThan(EnumTeamStatus.MEMBER)) {
+			} else if (entry.status.isEqualOrGreaterThan(EnumTeamStatus.MEMBER)) {
 				if (!button.isLeft()) {
 					data.setString("action", "kick");
 					entry.requestingInvite = true;
 					entry.status = EnumTeamStatus.NONE;
 				}
-			}
-			else if (entry.status == EnumTeamStatus.INVITED) {
+			} else if (entry.status == EnumTeamStatus.INVITED) {
 				if (!button.isLeft()) {
 					data.setString("action", "cancel_invite");
 					entry.status = EnumTeamStatus.NONE;
@@ -112,11 +109,12 @@ public class GuiManageMembers extends GuiManagePlayersBase {
 			if (data.hasKey("action")) {
 				new MessageMyTeamAction(ServerLibTeamGuiActions.MEMBERS.getId(), data).sendToServer();
 			}
+
 			updateIcon();
 		}
 	}
 
 	public GuiManageMembers(Collection<MessageMyTeamPlayerList.Entry> m) {
-		super(I18n.format("team_action.ftblib.members"), m, ButtonPlayer::new);
+		super(I18n.format("team_action.serverlib.members"), m, ButtonPlayer::new);
 	}
 }

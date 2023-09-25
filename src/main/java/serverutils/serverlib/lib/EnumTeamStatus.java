@@ -1,22 +1,20 @@
 package serverutils.serverlib.lib;
 
-import net.minecraft.command.ICommandSender;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.IChatComponent;
-import serverutils.serverlib.ServerLib;
-import serverutils.serverlib.lib.util.StringUtils;
-import serverutils.serverlib.lib.util.misc.NameMap;
-
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.function.BiFunction;
 
-/**
- * @author LatvianModder
- */
-public enum EnumTeamStatus implements IStringSerializable
-{
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+
+import serverutils.serverlib.ServerLib;
+import serverutils.serverlib.lib.util.IStringSerializable;
+import serverutils.serverlib.lib.util.StringUtils;
+import serverutils.serverlib.lib.util.misc.NameMap;
+
+public enum EnumTeamStatus implements IStringSerializable {
+
 	ENEMY(-10, "enemy", EnumChatFormatting.RED, true),
 	NONE(0, "none", EnumChatFormatting.WHITE, true),
 	INVITED(10, "invited", EnumChatFormatting.DARK_AQUA, true),
@@ -28,15 +26,13 @@ public enum EnumTeamStatus implements IStringSerializable
 	public static final EnumTeamStatus[] VALUES = values();
 	public static final BiFunction<ICommandSender, EnumTeamStatus, IChatComponent> NAME_GETTER = (sender, value) -> StringUtils.color(ServerLib.lang(sender, value.getLangKey()), value.getColor());
 	public static final NameMap<EnumTeamStatus> NAME_MAP = NameMap.createWithName(NONE, NAME_GETTER, VALUES);
-	public static final NameMap<EnumTeamStatus> NAME_MAP_PERMS = NameMap.createWithName(ALLY, NAME_GETTER, NONE, ALLY, MEMBER);
+	public static final NameMap<EnumTeamStatus> NAME_MAP_PERMS = NameMap
+			.createWithName(ALLY, NAME_GETTER, NONE, ALLY, MEMBER);
 	public static final Collection<EnumTeamStatus> VALID_VALUES = new LinkedHashSet<>();
 
-	static
-	{
-		for (EnumTeamStatus s : VALUES)
-		{
-			if (s.canBeSet)
-			{
+	static {
+		for (EnumTeamStatus s : VALUES) {
+			if (s.canBeSet) {
 				VALID_VALUES.add(s);
 			}
 		}
@@ -48,8 +44,7 @@ public enum EnumTeamStatus implements IStringSerializable
 	private final String langKey;
 	private final boolean canBeSet;
 
-	EnumTeamStatus(int s, String n, EnumChatFormatting c, boolean cs)
-	{
+	EnumTeamStatus(int s, String n, EnumChatFormatting c, boolean cs) {
 		name = n;
 		status = s;
 		color = c;
@@ -58,43 +53,35 @@ public enum EnumTeamStatus implements IStringSerializable
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public int getStatus()
-	{
+	public int getStatus() {
 		return status;
 	}
 
-	public EnumChatFormatting getColor()
-	{
+	public EnumChatFormatting getColor() {
 		return color;
 	}
 
-	public String getLangKey()
-	{
+	public String getLangKey() {
 		return langKey;
 	}
 
-	public boolean canBeSet()
-	{
+	public boolean canBeSet() {
 		return canBeSet;
 	}
 
-	public boolean isNone()
-	{
+	public boolean isNone() {
 		return this == NONE;
 	}
 
-	public boolean isEqualOrGreaterThan(EnumTeamStatus s)
-	{
+	public boolean isEqualOrGreaterThan(EnumTeamStatus s) {
 		return status >= s.status;
 	}
 
-	public String toString()
-	{
+	public String toString() {
 		return getName();
 	}
 }

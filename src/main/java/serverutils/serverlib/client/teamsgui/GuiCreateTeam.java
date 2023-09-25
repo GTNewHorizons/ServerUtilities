@@ -1,5 +1,11 @@
 package serverutils.serverlib.client.teamsgui;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
+
 import serverutils.serverlib.lib.EnumTeamColor;
 import serverutils.serverlib.lib.client.ClientUtils;
 import serverutils.serverlib.lib.data.ForgeTeam;
@@ -13,13 +19,9 @@ import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.math.MathUtils;
 import serverutils.serverlib.lib.util.StringUtils;
 import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class GuiCreateTeam extends GuiBase {
+
 	private EnumTeamColor color;
 	private final Button buttonAccept, buttonCancel;
 	private final List<Button> colorButtons;
@@ -31,6 +33,7 @@ public class GuiCreateTeam extends GuiBase {
 
 		int bwidth = width / 2 - 10;
 		buttonAccept = new SimpleTextButton(this, I18n.format("gui.accept"), Icon.EMPTY) {
+
 			@Override
 			public void onClicked(MouseButton button) {
 				GuiHelper.playClickSound();
@@ -42,8 +45,7 @@ public class GuiCreateTeam extends GuiBase {
 			}
 
 			@Override
-			public boolean renderTitleInCenter()
-			{
+			public boolean renderTitleInCenter() {
 				return true;
 			}
 		};
@@ -51,6 +53,7 @@ public class GuiCreateTeam extends GuiBase {
 		buttonAccept.setPosAndSize(width - bwidth - 9, height - 24, bwidth, 16);
 
 		buttonCancel = new SimpleTextButton(this, I18n.format("gui.cancel"), Icon.EMPTY) {
+
 			@Override
 			public void onClicked(MouseButton button) {
 				GuiHelper.playClickSound();
@@ -58,8 +61,7 @@ public class GuiCreateTeam extends GuiBase {
 			}
 
 			@Override
-			public boolean renderTitleInCenter()
-			{
+			public boolean renderTitleInCenter() {
 				return true;
 			}
 		};
@@ -67,16 +69,16 @@ public class GuiCreateTeam extends GuiBase {
 		buttonCancel.setPosAndSize(8, height - 24, bwidth, 16);
 
 		textBoxId = new TextBox(this) {
+
 			@Override
-			public void onTextChanged()
-			{
+			public void onTextChanged() {
 				setText(StringUtils.getID(getText(), StringUtils.FLAG_ID_DEFAULTS), false);
 			}
 		};
 
 		textBoxId.setPosAndSize(8, 8, width - 16, 16);
 		textBoxId.writeText(Minecraft.getMinecraft().thePlayer.getGameProfile().getName().toLowerCase());
-		textBoxId.ghostText = "Enter ID"; //LANG
+		textBoxId.ghostText = "Enter ID"; // LANG
 		textBoxId.textColor = color.getColor();
 		textBoxId.setFocused(true);
 		textBoxId.charLimit = ForgeTeam.MAX_TEAM_ID_LENGTH;
@@ -85,8 +87,8 @@ public class GuiCreateTeam extends GuiBase {
 		int i = 0;
 
 		for (EnumTeamColor col : EnumTeamColor.NAME_MAP) {
-			Button b = new Button(this)
-			{
+			Button b = new Button(this) {
+
 				@Override
 				public void onClicked(MouseButton button) {
 					color = col;
@@ -101,7 +103,7 @@ public class GuiCreateTeam extends GuiBase {
 			};
 
 			b.setPosAndSize(8 + (i % 5) * 30, 32 + (i / 5) * 30, 25, 25);
-			b.setTitle(col.getTextFormatting() + I18n.format(col.getLangKey()));
+			b.setTitle(col.getEnumChatFormatting() + I18n.format(col.getLangKey()));
 			colorButtons.add(b);
 			i++;
 		}

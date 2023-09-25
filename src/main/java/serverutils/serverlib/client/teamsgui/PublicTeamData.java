@@ -1,6 +1,7 @@
 package serverutils.serverlib.client.teamsgui;
 
 import net.minecraft.util.IChatComponent;
+
 import serverutils.serverlib.lib.EnumTeamColor;
 import serverutils.serverlib.lib.data.ForgeTeam;
 import serverutils.serverlib.lib.icon.Icon;
@@ -9,6 +10,7 @@ import serverutils.serverlib.lib.io.DataOut;
 import serverutils.serverlib.lib.util.FinalIDObject;
 
 public class PublicTeamData extends FinalIDObject implements Comparable<PublicTeamData> {
+
 	public enum Type {
 		CAN_JOIN,
 		REQUESTING_INVITE,
@@ -58,6 +60,7 @@ public class PublicTeamData extends FinalIDObject implements Comparable<PublicTe
 		if (i == 0) {
 			i = displayName.getUnformattedText().compareToIgnoreCase(o.displayName.getUnformattedText());
 		}
+
 		return i;
 	}
 }

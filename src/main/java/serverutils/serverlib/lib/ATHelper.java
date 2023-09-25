@@ -1,100 +1,82 @@
 package serverutils.serverlib.lib;
 
-import net.minecraft.command.CommandHandler;
-import net.minecraft.command.ICommand;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.IContainerListener;
-import net.minecraft.server.management.ServerConfigurationManager;  //PlayerList;
-import net.minecraft.util.ChatStyle;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.event.ClickEvent;
-import net.minecraft.event.HoverEvent;
-
-import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
 
-/**
- * @author LatvianModder
- */
-public final class ATHelper
-{
-	public static List<IContainerListener> getContainerListeners(Container container)
-	{
-		return container.listeners;
+import javax.annotation.Nullable;
+
+import net.minecraft.command.CommandHandler;
+import net.minecraft.command.ICommand;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.event.HoverEvent;
+import net.minecraft.server.management.ServerConfigurationManager;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
+
+public final class ATHelper {
+	// public static List<IContainerListener> getContainerListeners(Container
+	// container) {
+	// return container.listeners;
+	// }
+
+	public static EnumChatFormatting getEnumChatFormattingFromDyeColor(EnumDyeColor color) {
+		return color.chatFormatting;
 	}
 
-	public static EnumChatFormatting getTextFormattingFromDyeColor(ChatStyle color)
-	{
-		return color.getColor();
+	public static char getEnumChatFormattingChar(EnumChatFormatting formatting) {
+		return formatting.formattingCode;
 	}
 
-	public static char getTextFormattingChar(EnumChatFormatting formatting)
-	{
-		return formatting.getFormattingCode();
+	@SuppressWarnings("unchecked")
+	public static Set<ICommand> getCommandSet(CommandHandler handler) {
+		return handler.getCommands().keySet();
 	}
 
-	public static Set<ICommand> getCommandSet(CommandHandler handler)
-	{
-		return handler.commandSet;
-	}
-
-	public static boolean areCommandsAllowedForAll(PlayerList playerList)
-	{
-		return playerList.commandsAllowedForAll;
-	}
-
-	@Nullable
-	public static Boolean getBold(ChatStyle style)
-	{
-		return style.getBold();
+	public static boolean areCommandsAllowedForAll(ServerConfigurationManager ServerConfigurationManager) {
+		return ServerConfigurationManager.commandsAllowedForAll;
 	}
 
 	@Nullable
-	public static Boolean getItalic(ChatStyle style)
-	{
-		return style.getItalic();
+	public static Boolean getBold(ChatStyle style) {
+		return style.bold;
 	}
 
 	@Nullable
-	public static Boolean getStriketrough(ChatStyle style)
-	{
-		return style.getStrikethrough();
+	public static Boolean getItalic(ChatStyle style) {
+		return style.italic;
 	}
 
 	@Nullable
-	public static Boolean getUnderlined(ChatStyle style)
-	{
-		return style.getUnderlined();
+	public static Boolean getStriketrough(ChatStyle style) {
+		return style.strikethrough;
 	}
 
 	@Nullable
-	public static Boolean getObfuscated(ChatStyle style)
-	{
-		return style.getObfuscated();
+	public static Boolean getUnderlined(ChatStyle style) {
+		return style.underlined;
 	}
 
 	@Nullable
-	public static EnumChatFormatting getColor(ChatStyle style)
-	{
-		return style.getColor();
+	public static Boolean getObfuscated(ChatStyle style) {
+		return style.obfuscated;
 	}
 
 	@Nullable
-	public static ClickEvent getClickEvent(ChatStyle style)
-	{
-		return style.getChatClickEvent();
+	public static EnumChatFormatting getColor(ChatStyle style) {
+		return style.color;
 	}
 
 	@Nullable
-	public static HoverEvent getHoverEvent(ChatStyle style)
-	{
-		return style.getChatHoverEvent();
+	public static ClickEvent getClickEvent(ChatStyle style) {
+		return style.chatClickEvent;
 	}
 
-	//@Nullable
-	//public static String getInsertion(ChatStyle style)
-	//{
-	//	return style.insertion;
-	//}
+	@Nullable
+	public static HoverEvent getHoverEvent(ChatStyle style) {
+		return style.chatHoverEvent;
+	}
+
+	// @Nullable
+	// public static String getInsertion(ChatStyle style) {
+	// return style.insertion;
+	// }
 }
