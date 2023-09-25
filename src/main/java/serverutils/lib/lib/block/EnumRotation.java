@@ -4,6 +4,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 
+import net.minecraftforge.common.util.ForgeDirection;
+
 import serverutils.lib.lib.util.IStringSerializable;
 
 public enum EnumRotation implements IStringSerializable {
@@ -21,9 +23,10 @@ public enum EnumRotation implements IStringSerializable {
         name = n;
     }
 
-    public int getModelRotationIndexFromFacing(EnumFacing facing) {
-        return ordinal() << 2 | facing.order_b;
-    }
+    //TODO: Fix
+    //public int getModelRotationIndexFromFacing(ForgeDirection facing) {
+    //     return ordinal() << 2 | facing.order_b;
+    //}
 
     @Override
     public String getName() {
