@@ -4,6 +4,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
 import net.minecraft.event.ClickEvent;
@@ -23,7 +24,7 @@ public final class ATHelper {
     }
 
     public static char getEnumChatFormattingChar(EnumChatFormatting formatting) {
-        return formatting.formattingCode;
+        return formatting.getFormattingCode();  //formattingCode
     }
 
     @SuppressWarnings("unchecked")
@@ -37,42 +38,42 @@ public final class ATHelper {
 
     @Nullable
     public static Boolean getBold(ChatStyle style) {
-        return style.bold;
+        return style.getBold();
     }
 
     @Nullable
     public static Boolean getItalic(ChatStyle style) {
-        return style.italic;
+        return style.getItalic();
     }
 
     @Nullable
     public static Boolean getStriketrough(ChatStyle style) {
-        return style.strikethrough;
+        return style.getStrikethrough();
     }
 
     @Nullable
     public static Boolean getUnderlined(ChatStyle style) {
-        return style.underlined;
+        return style.getUnderlined();
     }
 
     @Nullable
     public static Boolean getObfuscated(ChatStyle style) {
-        return style.obfuscated;
+        return style.getObfuscated();
     }
 
     @Nullable
     public static EnumChatFormatting getColor(ChatStyle style) {
-        return style.color;
+        return style.getColor();
     }
 
     @Nullable
     public static ClickEvent getClickEvent(ChatStyle style) {
-        return style.chatClickEvent;
+        return style.getChatClickEvent();
     }
 
     @Nullable
     public static HoverEvent getHoverEvent(ChatStyle style) {
-        return style.chatHoverEvent;
+        return style.getChatHoverEvent();
     }
 
     // @Nullable

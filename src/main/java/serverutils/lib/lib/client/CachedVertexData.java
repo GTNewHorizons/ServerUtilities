@@ -187,13 +187,35 @@ public class CachedVertexData {
     public void centeredCube(double x, double y, double z, double rx, double ry, double rz) {
         cube(x - rx, y - ry, z - rz, x + rx, y + ry, z + rz);
         /*
-         * pos(x + rx, y + ry, z - rz); pos(x - rx, y + ry, z - rz); pos(x - rx, y + ry, z + rz); pos(x + rx, y + ry, z
-         * + rz); pos(x + rx, y - ry, z + rz); pos(x - rx, y - ry, z + rz); pos(x - rx, y - ry, z - rz); pos(x + rx, y -
-         * ry, z - rz); pos(x + rx, y + ry, z + rz); pos(x - rx, y + ry, z + rz); pos(x - rx, y - ry, z + rz); pos(x +
-         * rx, y - ry, z + rz); pos(x + rx, y - ry, z - rz); pos(x - rx, y - ry, z - rz); pos(x - rx, y + ry, z - rz);
-         * pos(x + rx, y + ry, z - rz); pos(x - rx, y + ry, z + rz); pos(x - rx, y + ry, z - rz); pos(x - rx, y - ry, z
-         * - rz); pos(x - rx, y - ry, z + rz); pos(x + rx, y + ry, z - rz); pos(x + rx, y + ry, z + rz); pos(x + rx, y -
-         * ry, z + rz); pos(x + rx, y - ry, z - rz);
+         pos(x + rx, y + ry, z - rz);
+         pos(x - rx, y + ry, z - rz);
+         pos(x - rx, y + ry, z + rz);
+         pos(x + rx, y + ry, z + rz);
+
+         pos(x + rx, y - ry, z + rz);
+         pos(x - rx, y - ry, z + rz);
+         pos(x - rx, y - ry, z - rz);
+         pos(x + rx, y - ry, z - rz);
+
+         pos(x + rx, y + ry, z + rz);
+         pos(x - rx, y + ry, z + rz);
+         pos(x - rx, y - ry, z + rz);
+         pos(x + rx, y - ry, z + rz);
+
+         pos(x + rx, y - ry, z - rz);
+         pos(x - rx, y - ry, z - rz);
+         pos(x - rx, y + ry, z - rz);
+         pos(x + rx, y + ry, z - rz);
+
+         pos(x - rx, y + ry, z + rz);
+         pos(x - rx, y + ry, z - rz);
+         pos(x - rx, y - ry, z - rz);
+         pos(x - rx, y - ry, z + rz);
+
+         pos(x + rx, y + ry, z - rz);
+         pos(x + rx, y + ry, z + rz);
+         pos(x + rx, y - ry, z + rz);
+         pos(x + rx, y - ry, z - rz);
          */
     }
 
