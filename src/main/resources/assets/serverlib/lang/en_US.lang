@@ -51,7 +51,7 @@ relative_facing.left=Left
 relative_facing.right=Right
 
 # ServerUtilitiesLib Lang
-serverutilitieslib=FTB Library
+serverutilitieslib=Server Utilities Library
 wip=Work In Progress!
 deprecated=This method is deprecated, please use %s
 example=Example:
@@ -65,7 +65,7 @@ server_forced=Server overrides to '%s'
 commands=Commands
 my_permissions=My Permissions
 all_permissions=All Permissions
-key.categories.ftbmods=FTB Mods
+key.categories.serverutilitiesmods=Server Utilities Mods
 stand_still=Please, stand still for %d seconds.
 stand_still_failed=You moved! Teleport cancelled.
 teleporting=Teleporting...

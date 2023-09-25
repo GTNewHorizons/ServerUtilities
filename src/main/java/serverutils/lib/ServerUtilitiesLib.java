@@ -44,7 +44,7 @@ import serverutils.lib.lib.util.SidedUtils;
         dependencies = "")
 public class ServerUtilitiesLib {
 
-    public static final String MOD_ID = "Serverlib";
+    public static final String MOD_ID = "serverutilitieslib";
     public static final String MOD_NAME = "Server Utilities Library";
     public static final String VERSION = "GRADLETOKEN_VERSION";
     public static final String THIS_DEP = "required-after:" + MOD_ID + "@[" + VERSION + ",)";

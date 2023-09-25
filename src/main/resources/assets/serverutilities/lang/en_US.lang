@@ -1,5 +1,5 @@
 # Config
-serverutilities=FTB Utilities Common
+serverutilities=Server Utilities Common
 serverutilities.auto_shutdown=Auto Shutdown
 serverutilities.auto_shutdown.enabled_singleplayer=Enabled in Singleplayer
 serverutilities.auto_shutdown.times=Shutdown Times
@@ -63,7 +63,7 @@ serverutilities.ranks.tags.default_op_rank=Default OP Rank
 
 serverutilities.debugging.log_chunkloading=Log Chunkloading
 
-ftbutilities_client=FTB Utilities Client
+serverutilities_client=Server Utilities Client
 serverutilities.general.render_badges=Show Badges
 serverutilities.general.journeymap_overlay=Enable Journeymap Integration
 serverutilities.general.scan_items_whitelist=/scan_items Whitelist

@@ -101,7 +101,7 @@ public class Universe {
 
     public static Universe get() {
         if (INSTANCE == null) {
-            throw new NullPointerException("FTBLib Universe == null!");
+            throw new NullPointerException("ServerUtilitiesLib Universe == null!");
         }
 
         return INSTANCE;

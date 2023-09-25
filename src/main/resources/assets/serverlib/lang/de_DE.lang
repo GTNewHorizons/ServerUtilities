@@ -46,8 +46,8 @@ relative_facing.front=Vorne
 relative_facing.left=Links
 relative_facing.right=Rechts
 
-# FTBLib Lang
-serverutilitieslib=FTBLib
+# ServerUtilitiesLib Lang
+serverutilitieslib=Server Utilities Library
 wip=In Arbeit!
 deprecated=Diese Methode ist veraltet, bitte benutze: %s
 example=Beispiel:
@@ -61,7 +61,7 @@ server_forced=Durch den Server zu '%s' überschrieben
 commands=Befehle
 my_permissions=Meine Berechtigungen
 all_permissions=Alle Berechtigungen
-key.categories.ftbmods=FTB Mods
+key.categories.serverutilitiesmods=Server Utilities Mods
 stand_still=Bitte warte für %d Sekunden.
 stand_still_failed=Du hast dich bewegt. Teleport abgebrochen.
 teleporting=Teleportieren...
@@ -73,7 +73,7 @@ nothing_changed=Nichts geändert!
 player_must_be_online=Spieler muss online sein!
 
 serverutilitieslib.lang.reload_server_button=Server neuladen!
-serverutilitieslib.lang.reload_server=FTBLib: Server neugeladen in: %s
+serverutilitieslib.lang.reload_server=ServerUtilitiesLib: Server neugeladen in: %s
 serverutilitieslib.lang.reload_client=Du kannst %s drücken um den Client neuzuladen.
 serverutilitieslib.lang.reload_failed=Diese IDs konnten nicht neugeladen werden.
 

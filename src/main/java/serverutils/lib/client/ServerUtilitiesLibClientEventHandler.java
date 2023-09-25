@@ -299,7 +299,7 @@ public class ServerUtilitiesLibClientEventHandler {
     // }
     // }
     // } catch (Exception ex) {
-    // if (FTBLibConfig.debugging.print_more_errors) {
+    // if (ServerUtilitiesLibConfig.debugging.print_more_errors) {
     // ex.printStackTrace();
     // }
     // }
