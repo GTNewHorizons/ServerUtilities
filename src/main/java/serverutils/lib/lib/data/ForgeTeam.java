@@ -225,7 +225,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
 
 		if (title.isEmpty()) {
 			cachedTitle = getOwner() != null ? getOwner().getDisplayName().appendText("'s Team")
-					: new ChatComponentTranslation("ftblib.lang.team.no_team");
+					: new ChatComponentTranslation("serverutilitieslib.lang.team.no_team");
 		} else {
 			cachedTitle = new ChatComponentText(title);
 		}
@@ -615,7 +615,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
 	}
 
 	public File getDataFile(String ext) {
-		File dir = new File(universe.getWorldDirectory(), "data/ftb_lib/teams/");
+		File dir = new File(universe.getWorldDirectory(), "data/serverutilities_lib/teams/");
 
 		if (ext.isEmpty()) {
 			return new File(dir, getId() + ".dat");

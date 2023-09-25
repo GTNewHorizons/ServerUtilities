@@ -48,7 +48,7 @@ public enum EnumTeamStatus implements IStringSerializable {
 		name = n;
 		status = s;
 		color = c;
-		langKey = "ftblib.lang.team_status." + name;
+		langKey = "serverutilitieslib.lang.team_status." + name;
 		canBeSet = cs;
 	}
 

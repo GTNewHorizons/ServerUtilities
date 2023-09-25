@@ -65,11 +65,11 @@ public class ServerUtils {
 	public static IChatComponent getDimensionName(int dim) {
 		switch (dim) {
 			case 0:
-				return new ChatComponentTranslation("ftblib.world.dimension.overworld");
+				return new ChatComponentTranslation("serverutilitieslib.world.dimension.overworld");
 			case -1:
-				return new ChatComponentTranslation("ftblib.world.dimension.nether");
+				return new ChatComponentTranslation("serverutilitieslib.world.dimension.nether");
 			case 1:
-				return new ChatComponentTranslation("ftblib.world.dimension.end");
+				return new ChatComponentTranslation("serverutilitieslib.world.dimension.end");
 			default:
 				return new ChatComponentText("dim_" + dim);
 		}

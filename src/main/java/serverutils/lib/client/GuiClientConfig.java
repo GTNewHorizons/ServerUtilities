@@ -92,7 +92,7 @@ public class GuiClientConfig extends GuiButtonListBase {
 
 	public GuiClientConfig()
 	{
-		setTitle(I18n.format("sidebar_button.ftblib.settings"));
+		setTitle(I18n.format("sidebar_button.serverutilitieslib.settings"));
 	}
 
 	@Override
@@ -111,7 +111,7 @@ public class GuiClientConfig extends GuiButtonListBase {
 			}
 		});
 
-		panel.add(new SimpleTextButton(panel, I18n.format("sidebar_button"), Icon.getIcon("ftblib:textures/gui/teams.png")) {
+		panel.add(new SimpleTextButton(panel, I18n.format("sidebar_button"), Icon.getIcon("serverutilitieslib:textures/gui/teams.png")) {
 			@Override
 			public void onClicked(MouseButton button) {
 				GuiHelper.playClickSound();

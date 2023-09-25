@@ -288,7 +288,7 @@ public class Universe {
 	}
 
 	private void load() {
-		File folder = new File(getWorldDirectory(), "data/ftb_lib/");
+		File folder = new File(getWorldDirectory(), "data/serverutilities_lib/");
 		NBTTagCompound universeData = NBTUtils.readNBT(new File(folder, "universe.dat"));
 
 		if (universeData == null) {
@@ -486,7 +486,7 @@ public class Universe {
 			universeData.setTag("PersistentScheduledTasks", taskTag);
 			universeData.setTag("FakePlayer", fakePlayer.serializeNBT());
 			universeData.setTag("FakeTeam", fakePlayerTeam.serializeNBT());
-			NBTUtils.writeNBTSafe(new File(getWorldDirectory(), "data/ftb_lib/universe.dat"), universeData);
+			NBTUtils.writeNBTSafe(new File(getWorldDirectory(), "data/serverutilities_lib/universe.dat"), universeData);
 			needsSaving = false;
 		}
 
@@ -734,7 +734,7 @@ public class Universe {
 	}
 
 	public void removeTeam(ForgeTeam team) {
-		File folder = new File(getWorldDirectory(), "data/ftb_lib/teams/");
+		File folder = new File(getWorldDirectory(), "data/serverutilities_lib/teams/");
 		new ForgeTeamDeletedEvent(team, folder).post();
 		teamMap.remove(team.getUID());
 		teams.remove(team.getId());

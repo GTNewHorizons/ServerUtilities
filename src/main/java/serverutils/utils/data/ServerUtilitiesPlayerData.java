@@ -40,7 +40,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
 
     public static final String TAG_FLY = "fly";
     public static final String TAG_MUTED = "muted";
-    public static final String TAG_LAST_CHUNK = "ftbu_lchunk";
+    public static final String TAG_LAST_CHUNK = "serveru_lchunk";
 
     public enum Timer {
 

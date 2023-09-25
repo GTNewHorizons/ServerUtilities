@@ -70,7 +70,7 @@ public class GuiWrapper extends GuiScreen implements IGuiWrapper {
 	}
 
 	private void handleIngredientKey(int key, Object object) {
-		// TODO: this was a hack from ftblib
+		// TODO: this was a hack from serverutilitieslib
 		// FTBLibJEIIntegration.handleIngredientKey(key, object);
 	}
 

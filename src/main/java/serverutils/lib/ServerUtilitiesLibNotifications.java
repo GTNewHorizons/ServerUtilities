@@ -9,5 +9,5 @@ public class ServerUtilitiesLibNotifications {
 	public static final ResourceLocation RELOAD_SERVER = new ResourceLocation(ServerUtilitiesLib.MOD_ID, "reload_server");
 	public static final Notification NO_TEAM = Notification.of(
 			new ResourceLocation(ServerUtilitiesLib.MOD_ID, "no_team"),
-			new ChatComponentTranslation("ftblib.lang.team.error.no_team")).setError();
+			new ChatComponentTranslation("serverutilitieslib.lang.team.error.no_team")).setError();
 }

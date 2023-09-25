@@ -89,7 +89,7 @@ public class ServerUtilitiesLibTeamGuiActions {
 						}
 					} else if (p.isOnline()) {
 						IChatComponent component = new ChatComponentTranslation(
-								"ftblib.lang.team.invited_you",
+								"serverutilitieslib.lang.team.invited_you",
 								player.team,
 								player.getDisplayName());
 						component.getChatStyle().setChatClickEvent(

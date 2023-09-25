@@ -59,7 +59,7 @@ public class IconRenderer {
 							IconRenderer.class.getResourceAsStream("/assets/itemfilters/textures/items/missing.png"));
 				} else {
 					nullImage = ImageIO
-							.read(IconRenderer.class.getResourceAsStream("/assets/ftblib/textures/icons/cancel.png"));
+							.read(IconRenderer.class.getResourceAsStream("/assets/serverutilitieslib/textures/icons/cancel.png"));
 				}
 			} catch (IOException e) {
 				// nop
