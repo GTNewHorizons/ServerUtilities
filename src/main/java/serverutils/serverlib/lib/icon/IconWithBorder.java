@@ -1,15 +1,15 @@
 package serverutils.serverlib.lib.icon;
 
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.gui.GuiHelper;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
-public class IconWithBorder extends IconWithParent
-{
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+public class IconWithBorder extends IconWithParent {
+
 	public static final Icon BUTTON_GRAY = Color4I.rgb(0x212121).withBorder(Color4I.rgb(0x141414), false);
 	public static final Icon BUTTON_RED = Color4I.rgb(0x1581B6).withBorder(Color4I.rgb(0xBF3726), false);
 	public static final Icon BUTTON_GREEN = Color4I.rgb(0x98C600).withBorder(Color4I.rgb(0x438700), false);
@@ -23,8 +23,7 @@ public class IconWithBorder extends IconWithParent
 	public Color4I color;
 	public boolean roundEdges;
 
-	IconWithBorder(Icon i, Color4I c, boolean r)
-	{
+	IconWithBorder(Icon i, Color4I c, boolean r) {
 		super(i);
 		color = c;
 		roundEdges = r;
@@ -32,23 +31,20 @@ public class IconWithBorder extends IconWithParent
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void draw(int x, int y, int w, int h)
-	{
+	public void draw(int x, int y, int w, int h) {
 		parent.draw(x + 1, y + 1, w - 2, h - 2);
 		GuiHelper.drawHollowRect(x, y, w, h, color, roundEdges);
 		GlStateManager.color(1F, 1F, 1F, 1F);
 	}
 
 	@Override
-	public JsonElement getJson()
-	{
+	public JsonElement getJson() {
 		JsonObject o = new JsonObject();
 		o.addProperty("id", "border");
 		o.add("icon", parent.getJson());
 		o.add("color", color.getJson());
 
-		if (roundEdges)
-		{
+		if (roundEdges) {
 			o.addProperty("round_edges", true);
 		}
 
@@ -56,20 +52,17 @@ public class IconWithBorder extends IconWithParent
 	}
 
 	@Override
-	public IconWithBorder copy()
-	{
+	public IconWithBorder copy() {
 		return new IconWithBorder(parent.copy(), color.copy(), roundEdges);
 	}
 
 	@Override
-	public IconWithBorder withTint(Color4I c)
-	{
+	public IconWithBorder withTint(Color4I c) {
 		return new IconWithBorder(parent, color.withTint(c), roundEdges);
 	}
 
 	@Override
-	public IconWithBorder withColor(Color4I c)
-	{
+	public IconWithBorder withColor(Color4I c) {
 		return new IconWithBorder(parent, c, roundEdges);
 	}
 }

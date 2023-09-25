@@ -1,84 +1,74 @@
 package serverutils.serverlib.lib.icon;
 
+import javax.annotation.Nullable;
+
+import net.minecraft.util.MathHelper;
+
+import serverutils.serverlib.lib.client.IPixelBuffer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
-import serverutils.serverlib.lib.client.IPixelBuffer;
 
-import javax.annotation.Nullable;
+public class MutableColor4I extends Color4I {
 
-public class MutableColor4I extends Color4I
-{
 	public static final Color4I TEMP = new MutableColor4I(255, 255, 255, 255);
 
-	static class None extends MutableColor4I
-	{
+	static class None extends MutableColor4I {
+
 		private boolean hasColor = false;
 
-		None()
-		{
+		None() {
 			super(255, 255, 255, 255);
 		}
 
 		@Override
-		public Color4I set(int r, int g, int b, int a)
-		{
+		public Color4I set(int r, int g, int b, int a) {
 			hasColor = true;
 			return super.set(r, g, b, a);
 		}
 
 		@Override
-		public boolean isEmpty()
-		{
+		public boolean isEmpty() {
 			return !hasColor;
 		}
 
 		@Override
 		@Nullable
-		public IPixelBuffer createPixelBuffer()
-		{
+		public IPixelBuffer createPixelBuffer() {
 			return null;
 		}
 
-		public int hashCode()
-		{
+		public int hashCode() {
 			return 0;
 		}
 
-		public boolean equals(Object o)
-		{
+		public boolean equals(Object o) {
 			return o == this;
 		}
 	}
 
-	MutableColor4I(int r, int g, int b, int a)
-	{
+	MutableColor4I(int r, int g, int b, int a) {
 		super(r, g, b, a);
 	}
 
 	@Override
-	public MutableColor4I copy()
-	{
+	public MutableColor4I copy() {
 		return new MutableColor4I(red, green, blue, alpha);
 	}
 
 	@Override
-	public boolean isMutable()
-	{
+	public boolean isMutable() {
 		return true;
 	}
 
 	@Override
-	public MutableColor4I mutable()
-	{
+	public MutableColor4I mutable() {
 		return this;
 	}
 
 	@Override
-	public JsonElement getJson()
-	{
-		if (isEmpty())
-		{
+	public JsonElement getJson() {
+		if (isEmpty()) {
 			return JsonNull.INSTANCE;
 		}
 
@@ -87,8 +77,7 @@ public class MutableColor4I extends Color4I
 		json.addProperty("green", green);
 		json.addProperty("blue", blue);
 
-		if (alpha < 255)
-		{
+		if (alpha < 255) {
 			json.addProperty("alpha", alpha);
 		}
 
@@ -96,8 +85,7 @@ public class MutableColor4I extends Color4I
 		return json;
 	}
 
-	public Color4I set(int r, int g, int b, int a)
-	{
+	public Color4I set(int r, int g, int b, int a) {
 		red = r & 0xFF;
 		green = g & 0xFF;
 		blue = b & 0xFF;
@@ -105,68 +93,60 @@ public class MutableColor4I extends Color4I
 		return this;
 	}
 
-	public Color4I set(Color4I col, int a)
-	{
+	public Color4I set(Color4I col, int a) {
 		return set(col.red, col.green, col.blue, a);
 	}
 
-	public Color4I set(Color4I col)
-	{
+	public Color4I set(Color4I col) {
 		return set(col, col.alpha);
 	}
 
-	public Color4I set(int col, int a)
-	{
+	public Color4I set(int col, int a) {
 		return set(col >> 16, col >> 8, col, a);
 	}
 
-	public Color4I set(int col)
-	{
+	public Color4I set(int col) {
 		return set(col, col >> 24);
 	}
 
-	public Color4I setAlpha(int a)
-	{
+	public Color4I setAlpha(int a) {
 		alpha = a;
 		return this;
 	}
 
-	public Color4I addBrightness(int b)
-	{
-		return set((int) MathHelper.clamp(red + b, 0, 255), (int) MathHelper.clamp(green + b, 0, 255), (int) MathHelper.clamp(blue + b, 0, 255), alpha);
+	public Color4I addBrightness(int b) {
+		return set(
+				MathHelper.clamp_int(red + b, 0, 255),
+				MathHelper.clamp_int(green + b, 0, 255),
+				MathHelper.clamp_int(blue + b, 0, 255),
+				alpha);
 	}
 
-	private static int toint(float f)
-	{
+	private static int toint(float f) {
 		return (int) (f * 255F + 0.5F);
 	}
 
-	public Color4I setFromHSB(float h, float s, float b)
-	{
+	public Color4I setFromHSB(float h, float s, float b) {
 		red = green = blue = 0;
-		if (s <= 0 || b <= 0)
-		{
+		if (s <= 0 || b <= 0) {
 			red = green = blue = toint(b);
 			return this;
 		}
 
-		if (s > 1F)
-		{
+		if (s > 1F) {
 			s = 1F;
 		}
 
-		if (b > 1F)
-		{
+		if (b > 1F) {
 			b = 1F;
 		}
 
-		float h6 = (h - MathHelper.floor(h)) * 6F;
-		float f = h6 - MathHelper.floor(h6);
+		float h6 = (h - MathHelper.floor_float(h)) * 6F;
+		float f = h6 - MathHelper.floor_float(h6);
 		float p = b * (1F - s);
 		float q = b * (1F - s * f);
 		float t = b * (1F - (s * (1F - f)));
-		switch ((int) h6)
-		{
+		switch ((int) h6) {
 			case 0:
 				red = toint(b);
 				green = toint(t);

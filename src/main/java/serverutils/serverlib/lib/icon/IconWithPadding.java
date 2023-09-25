@@ -2,24 +2,22 @@ package serverutils.serverlib.lib.icon;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+public class IconWithPadding extends IconWithParent {
 
-public class IconWithPadding extends IconWithParent
-{
 	public int padding;
 
-	IconWithPadding(Icon p, int b)
-	{
+	IconWithPadding(Icon p, int b) {
 		super(p);
 		padding = b;
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void draw(int x, int y, int w, int h)
-	{
+	public void draw(int x, int y, int w, int h) {
 		x += padding;
 		y += padding;
 		w -= padding * 2;
@@ -28,10 +26,8 @@ public class IconWithPadding extends IconWithParent
 	}
 
 	@Override
-	public JsonElement getJson()
-	{
-		if (padding == 0)
-		{
+	public JsonElement getJson() {
+		if (padding == 0) {
 			return parent.getJson();
 		}
 
@@ -43,20 +39,17 @@ public class IconWithPadding extends IconWithParent
 	}
 
 	@Override
-	public IconWithPadding copy()
-	{
+	public IconWithPadding copy() {
 		return new IconWithPadding(parent.copy(), padding);
 	}
 
 	@Override
-	public IconWithPadding withTint(Color4I color)
-	{
+	public IconWithPadding withTint(Color4I color) {
 		return new IconWithPadding(parent.withTint(color), padding);
 	}
 
 	@Override
-	public IconWithPadding withColor(Color4I color)
-	{
+	public IconWithPadding withColor(Color4I color) {
 		return new IconWithPadding(parent.withColor(color), padding);
 	}
 }

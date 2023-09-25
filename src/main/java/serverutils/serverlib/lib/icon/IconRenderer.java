@@ -1,39 +1,43 @@
 package serverutils.serverlib.lib.icon;
 
-import serverutils.serverlib.lib.client.GlStateManager;
-import serverutils.serverlib.client.ServerLibClientEventHandler;
-import serverutils.serverlib.lib.client.IPixelBuffer;
-import javafx.scene.image.Image;
-import javafx.scene.image.PixelFormat;
-import javafx.scene.image.WritableImage;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.RenderHelper;
-import cpw.mods.fml.common.Loader;
-import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL12;
-
-import javax.annotation.Nullable;
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-public class IconRenderer
-{
-	private static class IconCallbackPair implements Runnable
-	{
+import javax.annotation.Nullable;
+import javax.imageio.ImageIO;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.entity.RenderItem;
+
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
+
+import serverutils.serverlib.client.ServerLibClientEventHandler;
+import serverutils.serverlib.lib.client.GlStateManager;
+import serverutils.serverlib.lib.client.IPixelBuffer;
+
+import cpw.mods.fml.common.Loader;
+
+public class IconRenderer {
+
+	private static class IconCallbackPair implements Runnable {
+
 		private Icon icon;
 		private ImageCallback callback;
 
 		@Override
-		public void run()
-		{
+		public void run() {
 			QUEUE.add(this);
 			ServerLibClientEventHandler.shouldRenderIcons = true;
 		}
@@ -43,63 +47,55 @@ public class IconRenderer
 	private static Image nullImage = null;
 	private static Map<Icon, Image> imageCache = new HashMap<>();
 
-	public static void clearCache()
-	{
+	public static void clearCache() {
 		imageCache = new HashMap<>();
 	}
 
-	public static Image getNullImage()
-	{
-		if (nullImage == null)
-		{
-			if (Loader.isModLoaded("itemfilters"))
-			{
-				nullImage = new Image(IconRenderer.class.getResourceAsStream("/assets/itemfilters/textures/items/missing.png"));
-			}
-			else
-			{
-				nullImage = new Image(IconRenderer.class.getResourceAsStream("/assets/ftblib/textures/icons/cancel.png"));
+	public static Image getNullImage() {
+		if (nullImage == null) {
+			try {
+				if (Loader.isModLoaded("itemfilters")) {
+					nullImage = ImageIO.read(
+							IconRenderer.class.getResourceAsStream("/assets/itemfilters/textures/items/missing.png"));
+				} else {
+					nullImage = ImageIO
+							.read(IconRenderer.class.getResourceAsStream("/assets/ftblib/textures/icons/cancel.png"));
+				}
+			} catch (IOException e) {
+				// nop
 			}
 		}
 
 		return nullImage;
 	}
 
-	public static boolean load(@Nullable Icon icon, ImageCallback callback)
-	{
-		if (icon == null)
-		{
+	public static boolean load(@Nullable Icon icon, ImageCallback callback) {
+		if (icon == null) {
 			callback.imageLoaded(false, null);
 			return true;
-		}
-		else if (icon.isEmpty())
-		{
+		} else if (icon.isEmpty()) {
 			callback.imageLoaded(false, getNullImage());
 			return true;
 		}
 
 		Image image = imageCache.get(icon);
 
-		if (image != null)
-		{
+		if (image != null) {
 			callback.imageLoaded(false, image);
 			return true;
 		}
 
-		if (icon.hasPixelBuffer())
-		{
+		if (icon.hasPixelBuffer()) {
 			IPixelBuffer buffer = icon.createPixelBuffer();
 
-			if (buffer == null)
-			{
+			if (buffer == null) {
 				image = getNullImage();
-			}
-			else
-			{
+			} else {
 				int w = buffer.getWidth();
 				int h = buffer.getHeight();
-				image = new WritableImage(w, h);
-				((WritableImage) image).getPixelWriter().setPixels(0, 0, w, h, PixelFormat.getIntArgbInstance(), buffer.getPixels(), 0, w);
+				BufferedImage image_ = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+				image_.setRGB(0, 0, w, h, buffer.getPixels(), 0, w);
+				image = image_;
 			}
 
 			imageCache.put(icon, image);
@@ -113,7 +109,7 @@ public class IconRenderer
 		IconCallbackPair pair = new IconCallbackPair();
 		pair.icon = icon;
 		pair.callback = callback;
-		Minecraft.getMinecraft().addScheduledTask(pair);
+		Minecraft.getMinecraft().func_152344_a(pair);
 
 		return false;
 	}
@@ -121,10 +117,8 @@ public class IconRenderer
 	/**
 	 * Modified version of BlockRenderer mod code
 	 */
-	public static void render()
-	{
-		if (QUEUE.isEmpty())
-		{
+	public static void render() {
+		if (QUEUE.isEmpty()) {
 			return;
 		}
 
@@ -132,7 +126,7 @@ public class IconRenderer
 		QUEUE.clear();
 
 		Minecraft mc = Minecraft.getMinecraft();
-		ScaledResolution res = new ScaledResolution(mc);
+		ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
 		int size = Math.min(Math.min(mc.displayHeight, mc.displayWidth), 64);
 
 		mc.entityRenderer.setupOverlayRendering();
@@ -142,8 +136,9 @@ public class IconRenderer
 
 		GlStateManager.scale(scale, scale, scale);
 
-		float oldZLevel = mc.getRenderItem().zLevel;
-		mc.getRenderItem().zLevel = -50;
+		RenderItem renderItem = RenderItem.getInstance();
+		float oldZLevel = renderItem.zLevel;
+		renderItem.zLevel = -50;
 
 		GlStateManager.enableRescaleNormal();
 		GlStateManager.enableColorMaterial();
@@ -159,19 +154,18 @@ public class IconRenderer
 		at.concatenate(AffineTransform.getTranslateInstance(0, -size));
 		BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
 
-		for (IconCallbackPair pair : queued)
-		{
+		for (IconCallbackPair pair : queued) {
 			GlStateManager.pushMatrix();
 			GlStateManager.clearColor(0F, 0F, 0F, 0F);
 			GlStateManager.clear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 			pair.icon.drawStatic(0, 0, 16, 16);
 			GlStateManager.popMatrix();
 
-			try
-			{
+			try {
 				ByteBuffer buf = BufferUtils.createByteBuffer(size * size * 4);
 				GL11.glReadBuffer(GL11.GL_BACK);
-				GlStateManager.glGetError(); //FIXME: For some reason it throws error here, but it still works. Calling this to not spam console
+				GlStateManager.glGetError(); // FIXME: For some reason it throws error here, but it still works. Calling
+				// this to not spam console
 				GL11.glReadPixels(0, Minecraft.getMinecraft().displayHeight - size, size, size, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, buf);
 				buf.asIntBuffer().get(pixels);
 				img.setRGB(0, 0, size, size, pixels, 0, size);
@@ -181,13 +175,12 @@ public class IconRenderer
 				g.drawImage(img, 0, 0, null);
 				g.dispose();
 				pixels = flipped.getRGB(0, 0, size, size, pixels, 0, size);
-				WritableImage image = new WritableImage(size, size);
-				image.getPixelWriter().setPixels(0, 0, size, size, PixelFormat.getIntArgbInstance(), pixels, 0, size);
+
+				BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+				image.setRGB(0, 0, size, size, pixels, 0, size);
 				imageCache.put(pair.icon, image);
 				pair.callback.imageLoaded(true, image);
-			}
-			catch (Exception ex)
-			{
+			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
 		}
@@ -196,6 +189,6 @@ public class IconRenderer
 		GlStateManager.disableColorMaterial();
 		GlStateManager.disableDepth();
 		GlStateManager.disableBlend();
-		Minecraft.getMinecraft().getRenderItem().zLevel = oldZLevel;
+		renderItem.zLevel = oldZLevel;
 	}
 }

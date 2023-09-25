@@ -3,12 +3,11 @@ package serverutils.serverlib.lib.icon;
 import java.util.HashMap;
 import java.util.Map;
 
-public class IconPresets
-{
+public class IconPresets {
+
 	public static final Map<String, Icon> MAP = new HashMap<>();
 
-	static
-	{
+	static {
 		MAP.put("#gray_button", IconWithBorder.BUTTON_GRAY);
 		MAP.put("#red_button", IconWithBorder.BUTTON_RED);
 		MAP.put("#green_button", IconWithBorder.BUTTON_GREEN);
