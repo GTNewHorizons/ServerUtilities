@@ -1,26 +1,24 @@
 package serverutils.utils.net;
 
-import java.util.UUID;
+import net.minecraft.client.Minecraft;
+import net.minecraft.stats.StatList;
 
 import com.feed_the_beast.ftblib.lib.io.DataIn;
 import com.feed_the_beast.ftblib.lib.io.DataOut;
 import com.feed_the_beast.ftblib.lib.net.MessageToClient;
 import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
-import serverutils.utils.handlers.FTBUtilitiesClientEventHandler;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class MessageSendBadge extends MessageToClient {
+public class MessageUpdatePlayTime extends MessageToClient {
 
-    private UUID playerId;
-    private String badgeURL;
+    private int time;
 
-    public MessageSendBadge() {}
+    public MessageUpdatePlayTime() {}
 
-    public MessageSendBadge(UUID player, String url) {
-        playerId = player;
-        badgeURL = url;
+    public MessageUpdatePlayTime(int t) {
+        time = t;
     }
 
     @Override
@@ -30,19 +28,18 @@ public class MessageSendBadge extends MessageToClient {
 
     @Override
     public void writeData(DataOut data) {
-        data.writeUUID(playerId);
-        data.writeString(badgeURL);
+        data.writeVarInt(time);
     }
 
     @Override
     public void readData(DataIn data) {
-        playerId = data.readUUID();
-        badgeURL = data.readString();
+        time = data.readVarInt();
     }
 
     @Override
     @SideOnly(Side.CLIENT)
     public void onMessage() {
-        FTBUtilitiesClientEventHandler.setBadge(playerId, badgeURL);
+        Minecraft.getMinecraft().thePlayer.getStatFileWriter()
+                .func_150871_b(Minecraft.getMinecraft().thePlayer, StatList.minutesPlayedStat, time);
     }
 }

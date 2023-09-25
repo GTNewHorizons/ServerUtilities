@@ -2,31 +2,43 @@ package serverutils.utils.net;
 
 import java.util.UUID;
 
-import cpw.mods.fml.common.network.simpleimpl.IMessage;
-import cpw.mods.fml.common.network.simpleimpl.MessageContext;
-import latmod.lib.ByteCount;
-import serverutils.lib.api.net.LMNetworkWrapper;
-import serverutils.utils.badges.Badge;
-import serverutils.utils.badges.ServerBadges;
+import net.minecraft.entity.player.EntityPlayerMP;
 
-public class MessageRequestBadge extends MessageServerUtilities {
+import com.feed_the_beast.ftblib.lib.data.Universe;
+import com.feed_the_beast.ftblib.lib.io.DataIn;
+import com.feed_the_beast.ftblib.lib.io.DataOut;
+import com.feed_the_beast.ftblib.lib.net.MessageToServer;
+import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
+import serverutils.utils.data.FTBUtilitiesUniverseData;
 
-    public MessageRequestBadge() {
-        super(ByteCount.BYTE);
+public class MessageRequestBadge extends MessageToServer {
+
+    private UUID playerId;
+
+    public MessageRequestBadge() {}
+
+    public MessageRequestBadge(UUID player) {
+        playerId = player;
     }
 
-    public MessageRequestBadge(UUID id) {
-        this();
-        io.writeUUID(id);
+    @Override
+    public NetworkWrapper getWrapper() {
+        return FTBUtilitiesNetHandler.GENERAL;
     }
 
-    public LMNetworkWrapper getWrapper() {
-        return ServerUtilitiesNetHandler.NET_INFO;
+    @Override
+    public void writeData(DataOut data) {
+        data.writeUUID(playerId);
     }
 
-    public IMessage onMessage(MessageContext ctx) {
-        UUID id = io.readUUID();
-        Badge b = ServerBadges.getServerBadge(id);
-        return (b == null || b == Badge.emptyBadge) ? null : new MessageSendBadge(id, b.getID());
+    @Override
+    public void readData(DataIn data) {
+        playerId = data.readUUID();
+    }
+
+    @Override
+    public void onMessage(EntityPlayerMP player) {
+        String badge = FTBUtilitiesUniverseData.getBadge(Universe.get(), playerId);
+        new MessageSendBadge(playerId, badge).sendTo(player);
     }
 }
