@@ -16,19 +16,22 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.ChunkCoordIntPair;
 
 public class MathUtils {
+
 	public static final Random RAND = new Random();
 
-	public static final float[] NORMALS_X = new float[] {0F, 0F, 0F, 0F, -1F, 1F};
-	public static final float[] NORMALS_Y = new float[] {-1F, 1F, 0F, 0F, 0F, 0F};
-	public static final float[] NORMALS_Z = new float[] {0F, 0F, -1F, 1F, 0F, 0F};
+	public static final float[] NORMALS_X = new float[] { 0F, 0F, 0F, 0F, -1F, 1F };
+	public static final float[] NORMALS_Y = new float[] { -1F, 1F, 0F, 0F, 0F, 0F };
+	public static final float[] NORMALS_Z = new float[] { 0F, 0F, -1F, 1F, 0F, 0F };
 
-	public static final int ROTATION_X[] = {90, 270, 0, 0, 0, 0};
-	public static final int ROTATION_Y[] = {0, 0, 180, 0, 90, 270};
+	public static final int ROTATION_X[] = { 90, 270, 0, 0, 0, 0 };
+	public static final int ROTATION_Y[] = { 0, 0, 180, 0, 90, 270 };
+
 	private static final AxisAlignedBB FULL_BLOCK = AxisAlignedBB.getBoundingBox(0, 0, 0, 1, 1, 1);
-	private static final AxisAlignedBB[] FULL_BLOCK_AABB_ROTATED_BOXES = { FULL_BLOCK, FULL_BLOCK, FULL_BLOCK, FULL_BLOCK, FULL_BLOCK, FULL_BLOCK };
 
-	public static boolean isNumberBetween(int num, int num1, int num2)
-	{
+	private static final AxisAlignedBB[] FULL_BLOCK_AABB_ROTATED_BOXES = { FULL_BLOCK, FULL_BLOCK, FULL_BLOCK,
+			FULL_BLOCK, FULL_BLOCK, FULL_BLOCK };
+
+	public static boolean isNumberBetween(int num, int num1, int num2) {
 		int min = Math.min(num1, num2);
 		int max = Math.max(num1, num2);
 		return num >= min && num <= max;
@@ -51,7 +54,8 @@ public class MathUtils {
 		return 3;
 	}
 
-	public static boolean isPosBetween(int posx, int posy, int posz, int pos1x, int pos1y, int pos1z, int pos2x, int pos2y, int pos2z) {
+	public static boolean isPosBetween(int posx, int posy, int posz, int pos1x, int pos1y, int pos1z, int pos2x,
+									   int pos2y, int pos2z) {
 
 		if (posx == pos1x && posy == pos1y && posz == pos1z) {
 			return true;
@@ -208,7 +212,8 @@ public class MathUtils {
 	}
 
 	@Nullable
-	public static MovingObjectPosition collisionRayTrace(int posx, int posy, int posz, Vec3 start, Vec3 end, Iterable<AxisAlignedBB> boxes) {
+	public static MovingObjectPosition collisionRayTrace(int posx, int posy, int posz, Vec3 start, Vec3 end,
+														 Iterable<AxisAlignedBB> boxes) {
 		MovingObjectPosition result = null;
 		double dist = Double.POSITIVE_INFINITY;
 		int i = 0;
@@ -231,7 +236,8 @@ public class MathUtils {
 	}
 
 	@Nullable
-	public static MovingObjectPosition collisionRayTrace(int posx, int posy, int posz, Vec3 start, Vec3 end, @Nullable AxisAlignedBB box, int subHit, @Nullable Object hitInfo) {
+	public static MovingObjectPosition collisionRayTrace(int posx, int posy, int posz, Vec3 start, Vec3 end,
+														 @Nullable AxisAlignedBB box, int subHit, @Nullable Object hitInfo) {
 		if (box == null) {
 			return null;
 		}
@@ -249,7 +255,8 @@ public class MathUtils {
 	}
 
 	@Nullable
-	public static MovingObjectPosition collisionRayTrace(int posx, int posy, int posz, Vec3 start, Vec3 end, AxisAlignedBB box) {
+	public static MovingObjectPosition collisionRayTrace(int posx, int posy, int posz, Vec3 start, Vec3 end,
+														 AxisAlignedBB box) {
 		return collisionRayTrace(posx, posy, posz, start, end, box, -1, null);
 	}
 
@@ -258,12 +265,19 @@ public class MathUtils {
 			case DOWN:
 				return box;
 			case UP:
-				return AxisAlignedBB.getBoundingBox(1D - box.minX, 1D - box.minY, 1D - box.minZ, 1D - box.maxX, 1D - box.maxY, 1D - box.maxZ);
+				return AxisAlignedBB.getBoundingBox(
+						1D - box.minX,
+						1D - box.minY,
+						1D - box.minZ,
+						1D - box.maxX,
+						1D - box.maxY,
+						1D - box.maxZ);
 			case NORTH:
 				return AxisAlignedBB.getBoundingBox(box.minX, box.minZ, box.minY, box.maxX, box.maxZ, box.maxY);
 			case SOUTH: {
 				box = rotateAABB(box, EnumFacing.NORTH);
-				return AxisAlignedBB.getBoundingBox(1D - box.minX, box.minY, 1D - box.minZ, 1D - box.maxX, box.maxY, 1D - box.maxZ);
+				return AxisAlignedBB
+						.getBoundingBox(1D - box.minX, box.minY, 1D - box.minZ, 1D - box.maxX, box.maxY, 1D - box.maxZ);
 			}
 			case WEST:
 				return rotateCW(rotateAABB(box, EnumFacing.SOUTH));
@@ -296,7 +310,8 @@ public class MathUtils {
 		return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
 	}
 
-	public static boolean intersects(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2, double by2) {
+	public static boolean intersects(double ax1, double ay1, double ax2, double ay2, double bx1, double by1, double bx2,
+									 double by2) {
 		return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
 	}
 

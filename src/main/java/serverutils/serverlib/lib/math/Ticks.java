@@ -3,6 +3,7 @@ package serverutils.serverlib.lib.math;
 import serverutils.serverlib.lib.util.StringUtils;
 
 public class Ticks {
+
 	public static final Ticks NO_TICKS = new Ticks(0L);
 	public static final Ticks ONE_TICK = new Ticks(1L);
 	public static final Ticks SECOND = ONE_TICK.x(20L);

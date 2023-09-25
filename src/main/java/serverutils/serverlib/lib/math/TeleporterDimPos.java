@@ -1,13 +1,15 @@
 package serverutils.serverlib.lib.math;
 
-import serverutils.serverlib.ServerLib;
-import serverutils.serverlib.ServerLibConfig;
-import serverutils.serverlib.lib.util.ServerUtils;
+import javax.annotation.Nullable;
+
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
 
-import javax.annotation.Nullable;
+import serverutils.serverlib.ServerLib;
+import serverutils.serverlib.ServerLibConfig;
+import serverutils.serverlib.lib.util.ITeleporter;
+import serverutils.serverlib.lib.util.ServerUtils;
 
 public class TeleporterDimPos implements ITeleporter {
 
@@ -43,7 +45,8 @@ public class TeleporterDimPos implements ITeleporter {
 		entity.fallDistance = 0F;
 
 		if (entity instanceof EntityPlayerMP && ((EntityPlayerMP) entity).playerNetServerHandler != null) {
-			((EntityPlayerMP) entity).playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, entity.rotationPitch);
+			((EntityPlayerMP) entity).playerNetServerHandler
+					.setPlayerLocation(posX, posY, posZ, yaw, entity.rotationPitch);
 		} else {
 			entity.setLocationAndAngles(posX, posY, posZ, yaw, entity.rotationPitch);
 		}
