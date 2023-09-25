@@ -1,265 +1,209 @@
 package serverutils.serverlib.lib.tile;
 
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
-import serverutils.serverlib.lib.math.BlockDimPos;
-import serverutils.serverlib.lib.util.BlockUtils;
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import net.minecraft.network.NetworkManager;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity; SPacketUpdateTileEntity;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.client.audio.SoundCategory;
-import net.minecraft.client.audio.SoundEventAccessor; //SoundEvent;
-import net.minecraft.world.IWorldAccess; //IWorldNameable;
-import net.minecraft.world.World;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
+import serverutils.serverlib.lib.util.BlockUtils;
 
-public abstract class TileBase extends TileEntity implements IWorldNameable, IChangeCallback
-{
+
+//TODO: FIX
+public abstract class TileBase extends TileEntity implements IChangeCallback {
+
 	public boolean brokenByCreative = false;
 	private boolean isDirty = true;
-	private IBlockState currentState;
 
 	protected abstract void writeData(NBTTagCompound nbt, EnumSaveType type);
 
 	protected abstract void readData(NBTTagCompound nbt, EnumSaveType type);
 
-	@Override
-	public String getName()
-	{
-		return getDisplayName().getFormattedText();
-	}
+	// public String getName() {
+	// return getDisplayName().getFormattedText();
+	// }
 
-	@Override
-	public boolean hasCustomName()
-	{
+	public boolean hasCustomName() {
 		return false;
 	}
 
-	@Override
-	@Nonnull
-	public IChatComponent getDisplayName()
-	{
-		return new ChatComponentTranslation(getBlockType().getUnlocalizedName() + ".name");
+	public IChatComponent getDisplayName() {
+	 return new ChatComponentTranslation(getBlockType().getUnlocalizedName() + ".name");
 	}
 
 	@Override
-	public final NBTTagCompound writeToNBT(NBTTagCompound nbt)
-	{
-		nbt = super.writeToNBT(nbt);
+	public final void writeToNBT(NBTTagCompound nbt) {
+		super.writeToNBT(nbt);
 		writeData(nbt, EnumSaveType.SAVE);
-		return nbt;
 	}
 
 	@Override
-	public final void readFromNBT(NBTTagCompound nbt)
-	{
+	public final void readFromNBT(NBTTagCompound nbt) {
 		super.readFromNBT(nbt);
 		readData(nbt, EnumSaveType.SAVE);
 	}
 
-	@Override
-	@Nullable
-	public final S35PacketUpdateTileEntity getUpdatePacket()
-	{
-		NBTTagCompound nbt = super.writeToNBT(new NBTTagCompound());
+	public final S35PacketUpdateTileEntity getUpdatePacket() {
+		NBTTagCompound nbt = new NBTTagCompound();
+		super.writeToNBT(nbt);
 		writeData(nbt, EnumSaveType.NET_UPDATE);
 		nbt.removeTag("id");
 		nbt.removeTag("x");
 		nbt.removeTag("y");
 		nbt.removeTag("z");
-		return nbt.isEmpty() ? null : new S35PacketUpdateTileEntity(getDimPos().posX, getDimPos().posY, getDimPos().posZ, 0, nbt);
+		return nbt.hasNoTags() ? null : new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, nbt);
 	}
 
 	@Override
-	public final void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt)
-	{
+	public final void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt) {
 		readData(pkt.func_148857_g(), EnumSaveType.NET_UPDATE);
 		onUpdatePacket(EnumSaveType.NET_UPDATE);
 	}
 
-	@Override
-	public final NBTTagCompound getUpdateTag()
-	{
-		NBTTagCompound nbt = super.getUpdateTag();
+	public final NBTTagCompound getUpdateTag() {
+		NBTTagCompound nbt = new NBTTagCompound();
+		super.writeToNBT(nbt);
 		writeData(nbt, EnumSaveType.NET_FULL);
 		nbt.removeTag("id");
 		return nbt;
 	}
 
-	@Override
-	public final void handleUpdateTag(NBTTagCompound tag)
-	{
+	public final void handleUpdateTag(NBTTagCompound tag) {
 		readData(tag, EnumSaveType.NET_FULL);
 		onUpdatePacket(EnumSaveType.NET_FULL);
 	}
 
-	public void onUpdatePacket(EnumSaveType type)
-	{
+	public void onUpdatePacket(EnumSaveType type) {
 		markDirty();
 	}
 
-	protected boolean notifyBlock()
-	{
+	protected boolean notifyBlock() {
 		return true;
 	}
 
-	public boolean updateComparator()
-	{
+	public boolean updateComparator() {
 		return false;
 	}
 
-	@Override
-	public void onLoad()
-	{
+	public void onLoad() {
 		isDirty = true;
 	}
 
 	@Override
-	public void markDirty()
-	{
+	public void markDirty() {
 		isDirty = true;
 	}
 
 	@Override
-	public void onContentsChanged(boolean majorChange)
-	{
+	public void onContentsChanged(boolean majorChange) {
 		markDirty();
 	}
 
-	public final void checkIfDirty()
-	{
-		if (isDirty)
-		{
-			sendDirtyUpdate();
-			isDirty = false;
-		}
-	}
+	// public final void checkIfDirty() {
+	// if (isDirty) {
+	// sendDirtyUpdate();
+	// isDirty = false;
+	// }
+	// }
 
-	@Override
-	public final Block getBlockType()
-	{
-		return getBlockState().getBlock();
-	}
+	// @Override
+	// public final Block getBlockType() {
+	// return getBlockState().getBlock();
+	// }
 
-	@Override
-	public final int getBlockMetadata()
-	{
-		return getBlockState().getBlock().getMetaFromState(getBlockState());
-	}
+	// @Override
+	// public final int getBlockMetadata() {
+	// return getBlockState().getBlock().getMetaFromState(getBlockState());
+	// }
 
-	protected void sendDirtyUpdate()
-	{
-		updateContainingBlockInfo();
+	// protected void sendDirtyUpdate() {
+	// updateContainingBlockInfo();
 
-		if (world != null)
-		{
-			world.markChunkDirty(pos, this);
+	// if (worldObj != null) {
+	// worldObj.markChunkDirty(pos, this);
 
-			if (notifyBlock())
-			{
-				BlockUtils.notifyBlockUpdate(world, pos, getBlockState());
-			}
+	// if (notifyBlock()) {
+	// BlockUtils.notifyBlockUpdate(worldObj, xCoord, yCoord, zCoord);
+	// }
 
-			if (updateComparator() && getBlockType() != Blocks.AIR)
-			{
-				world.updateComparatorOutputLevel(pos, getBlockType());
-			}
-		}
-	}
+	// if (updateComparator() && getBlockType() != null) {
+	// worldObj.updateComparatorOutputLevel(xCoord, yCoord, zCoord, getBlockType());
+	// }
+	// }
+	// }
 
-	@Override
-	public void updateContainingBlockInfo()
-	{
-		super.updateContainingBlockInfo();
-		currentState = null;
-	}
+	// @Override
+	// public void updateContainingBlockInfo() {
+	// super.updateContainingBlockInfo();
+	// currentState = null;
+	// }
 
-	@Override
-	public boolean shouldRefresh(World world, BlockDimPos pos, IBlockState oldState, IBlockState newSate)
-	{
-		updateContainingBlockInfo();
-		return oldState.getBlock() != newSate.getBlock();
-	}
+	// @Override
+	// public boolean shouldRefresh(World world, int posx, int posy, int posz, IBlockState oldState, IBlockState
+	// newSate) {
+	// updateContainingBlockInfo();
+	// return oldState.getBlock() != newSate.getBlock();
+	// }
 
-	public IBlockState createState(IBlockState state)
-	{
-		return state;
-	}
+	// public IBlockState createState(IBlockState state) {
+	// return state;
+	// }
 
-	public IBlockState getBlockState()
-	{
-		if (currentState == null)
-		{
-			if (world == null)
-			{
-				return BlockUtils.AIR_STATE;
-			}
+	// public IBlockState getBlockState() {
+	// if (currentState == null) {
+	// if (world == null) {
+	// return BlockUtils.AIR_STATE;
+	// }
 
-			currentState = createState(world.getBlockState(getPos()));
-		}
+	// currentState = createState(world.getBlockState(getPos()));
+	// }
 
-		return currentState;
-	}
+	// return currentState;
+	// }
 
-	public void notifyNeighbors()
-	{
-		world.notifyNeighborsOfStateChange(getPos(), getBlockType(), false);
-	}
+	// public void notifyNeighbors() {
+	// world.notifyNeighborsOfStateChange(getPos(), getBlockType(), false);
+	// }
 
-	public void playSound(SoundEventAccessor event, SoundCategory category, float volume, float pitch)
-	{
-		world.playSound(null, getDimPos().posX + 0.5D, getDimPos().posY + 0.5D, getDimPos().posZ + 0.5D, event, category, volume, pitch);
-	}
+	// public void playSound(SoundEvent event, SoundCategory category, float volume, float pitch) {
+	// world.playSound(null, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, event, category, volume, pitch);
+	// }
 
-	public BlockDimPos getDimPos()
-	{
-		return new BlockDimPos(getDimPos(), hasWorld() ? worldObj.provider.getDimensionName() : 0);
-	}
+	// public BlockDimPos getDimPos() {
+	// return new BlockDimPos(pos, hasWorld() ? world.provider.getDimension() : 0);
+	// }
 
-	public void writeToPickBlock(ItemStack stack)
-	{
-		writeToItem(stack);
-	}
+	// public void writeToPickBlock(ItemStack stack) {
+	// writeToItem(stack);
+	// }
 
-	public void writeToItem(ItemStack stack)
-	{
-		NBTTagCompound nbt = new NBTTagCompound();
-		writeData(nbt, EnumSaveType.ITEM);
+	// public void writeToItem(ItemStack stack) {
+	// NBTTagCompound nbt = new NBTTagCompound();
+	// writeData(nbt, EnumSaveType.ITEM);
 
-		if (!nbt.hasNoTags())
-		{
-			ResourceLocation id = getKey(getClass());
+	// if (!nbt.hasNoTags()) {
+	// TileEntity.addMapping(getClass(), getName());
+	// ResourceLocation id = getKey(getClass());
 
-			if (id != null)
-			{
-				nbt.setString("id", id.toString());
-			}
+	// if (id != null) {
+	// nbt.setString("id", id.toString());
+	// }
 
-			NBTTagList lore = new NBTTagList();
-			lore.appendTag(new NBTTagString("(+NBT)"));
-			NBTTagCompound display = new NBTTagCompound();
-			display.setTag("Lore", lore);
-			stack.setTagInfo("display", display);
-			stack.setTagInfo(BlockUtils.DATA_TAG, nbt);
-		}
-	}
+	// NBTTagList lore = new NBTTagList();
+	// lore.appendTag(new NBTTagString("(+NBT)"));
+	// NBTTagCompound display = new NBTTagCompound();
+	// display.setTag("Lore", lore);
+	// stack.setTagInfo("display", display);
+	// stack.setTagInfo(BlockUtils.DATA_TAG, nbt);
+	// }
+	// }
 
-	public void readFromItem(ItemStack stack)
-	{
+	public void readFromItem(ItemStack stack) {
 		NBTTagCompound nbt = BlockUtils.getData(stack);
 
-		if (!nbt.hasNoTags())
-		{
+		if (!nbt.hasNoTags()) {
 			readData(nbt, EnumSaveType.ITEM);
 		}
 	}

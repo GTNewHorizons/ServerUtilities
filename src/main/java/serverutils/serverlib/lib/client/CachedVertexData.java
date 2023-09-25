@@ -13,9 +13,6 @@ import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.MutableColor4I;
 import serverutils.serverlib.lib.math.MathUtils;
 
-/**
- * @author LatvianModder
- */
 public class CachedVertexData {
 
 	private final int mode;

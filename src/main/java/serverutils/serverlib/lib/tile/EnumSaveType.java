@@ -1,10 +1,7 @@
 package serverutils.serverlib.lib.tile;
 
-/**
- * @author LatvianModder
- */
-public enum EnumSaveType
-{
+public enum EnumSaveType {
+
 	SAVE(true, true, false),
 	NET_FULL(false, true, false),
 	NET_UPDATE(false, false, false),
@@ -14,8 +11,7 @@ public enum EnumSaveType
 	public final boolean full;
 	public final boolean item;
 
-	EnumSaveType(boolean s, boolean f, boolean i)
-	{
+	EnumSaveType(boolean s, boolean f, boolean i) {
 		save = s;
 		full = f;
 		item = i;
