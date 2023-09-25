@@ -27,7 +27,7 @@ import com.google.gson.JsonObject;
 import cpw.mods.fml.common.Loader;
 
 public class SidebarButton implements Comparable<SidebarButton> {
-	private static final BooleanSupplier NEI_NOT_LOADED = () -> !(Loader.isModLoaded(OtherMods.NEI)|| (Loader.isModLoaded(OtherMods.NEI_GTNH)));
+	static final BooleanSupplier NEI_NOT_LOADED = () -> !(Loader.isModLoaded(OtherMods.NEI)|| (Loader.isModLoaded(OtherMods.NEI_GTNH)));
 
 	public final ResourceLocation id;
 	public final SidebarButtonGroup group;
