@@ -50,7 +50,7 @@ relative_facing.front=Front
 relative_facing.left=Left
 relative_facing.right=Right
 
-# FTBLib Lang
+# ServerUtilitiesLib Lang
 serverutilitieslib=FTB Library
 wip=Work In Progress!
 deprecated=This method is deprecated, please use %s

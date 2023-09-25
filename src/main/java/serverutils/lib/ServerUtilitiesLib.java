@@ -63,7 +63,7 @@ public class ServerUtilitiesLib {
 
     @SidedProxy(
             serverSide = "serverutils.lib.ServerUtilitiesLibCommon",
-            clientSide = "client.serverutils.ServerUtilitiesLibClient")
+            clientSide = "serverutils.lib.client.ServerUtilitiesLibClient")
     public static ServerUtilitiesLibCommon PROXY;
 
     @GameRegistry.ObjectHolder("serverlibquests:custom_icon")
