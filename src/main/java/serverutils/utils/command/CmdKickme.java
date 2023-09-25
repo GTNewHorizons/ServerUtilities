@@ -4,7 +4,7 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CmdBase;
 import serverutils.utils.ServerUtilities;
 
 public class CmdKickme extends CmdBase {
@@ -18,7 +18,7 @@ public class CmdKickme extends CmdBase {
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
         if (player.mcServer.isDedicatedServer()) {
             getCommandSenderAsPlayer(sender).playerNetServerHandler
-                    .kickPlayerFromServer(ServerUtilities.lang(sender, "ftbutilities.lang.kickme").getUnformattedText());
+                    .kickPlayerFromServer(ServerUtilities.lang(sender, "serverutilities.lang.kickme").getUnformattedText());
         } else {
             player.mcServer.initiateShutdown();
         }

@@ -11,12 +11,12 @@ import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.oredict.OreDictionary;
 
-import com.feed_the_beast.ftblib.lib.config.EnumTristate;
-import com.feed_the_beast.ftblib.lib.io.DataReader;
-import com.feed_the_beast.ftblib.lib.item.ItemStackSerializer;
-import com.feed_the_beast.ftblib.lib.math.Ticks;
-import com.feed_the_beast.ftblib.lib.util.JsonUtils;
-import com.feed_the_beast.ftblib.lib.util.ServerUtils;
+import serverutils.lib.lib.config.EnumTristate;
+import serverutils.lib.lib.io.DataReader;
+import serverutils.lib.lib.item.ItemStackSerializer;
+import serverutils.lib.lib.math.Ticks;
+import serverutils.lib.lib.util.JsonUtils;
+import serverutils.lib.lib.util.ServerUtils;
 import serverutils.utils.data.ClaimedChunks;
 
 import cpw.mods.fml.client.event.ConfigChangedEvent;
@@ -24,9 +24,6 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.GameData;
 
-/**
- * @author LatvianModder
- */
 public class ServerUtilitiesConfig {
 
     public static final ServerUtilitiesConfig INST = new ServerUtilitiesConfig();

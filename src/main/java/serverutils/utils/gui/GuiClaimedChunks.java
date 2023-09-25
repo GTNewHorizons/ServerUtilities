@@ -13,17 +13,17 @@ import net.minecraft.world.ChunkCoordIntPair;
 
 import org.lwjgl.opengl.GL11;
 
-import com.feed_the_beast.ftblib.lib.client.CachedVertexData;
-import com.feed_the_beast.ftblib.lib.client.ClientUtils;
-import com.feed_the_beast.ftblib.lib.gui.Button;
-import com.feed_the_beast.ftblib.lib.gui.GuiHelper;
-import com.feed_the_beast.ftblib.lib.gui.GuiIcons;
-import com.feed_the_beast.ftblib.lib.gui.Panel;
-import com.feed_the_beast.ftblib.lib.gui.misc.ChunkSelectorMap;
-import com.feed_the_beast.ftblib.lib.gui.misc.GuiChunkSelectorBase;
-import com.feed_the_beast.ftblib.lib.icon.Icon;
-import com.feed_the_beast.ftblib.lib.util.ServerUtils;
-import com.feed_the_beast.ftblib.lib.util.misc.MouseButton;
+import serverutils.lib.lib.client.CachedVertexData;
+import serverutils.lib.lib.client.ClientUtils;
+import serverutils.lib.lib.gui.Button;
+import serverutils.lib.lib.gui.GuiHelper;
+import serverutils.lib.lib.gui.GuiIcons;
+import serverutils.lib.lib.gui.Panel;
+import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
+import serverutils.lib.lib.gui.misc.GuiChunkSelectorBase;
+import serverutils.lib.lib.icon.Icon;
+import serverutils.lib.lib.util.ServerUtils;
+import serverutils.lib.lib.util.misc.MouseButton;
 import serverutils.utils.net.MessageClaimedChunksModify;
 import serverutils.utils.net.MessageClaimedChunksRequest;
 
@@ -125,13 +125,13 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
             panel.add(
                     new ButtonSide(
                             panel,
-                            I18n.format("ftbutilities.lang.chunks.unclaim_all_dim", currentDimName),
+                            I18n.format("serverutilities.lang.chunks.unclaim_all_dim", currentDimName),
                             GuiIcons.REMOVE) {
 
                         @Override
                         public void onClicked(MouseButton button) {
                             GuiHelper.playClickSound();
-                            String s = I18n.format("ftbutilities.lang.chunks.unclaim_all_dim_q", currentDimName);
+                            String s = I18n.format("serverutilities.lang.chunks.unclaim_all_dim_q", currentDimName);
                             openYesNo(
                                     s,
                                     "",
@@ -141,12 +141,12 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
                         }
                     });
 
-            panel.add(new ButtonSide(panel, I18n.format("ftbutilities.lang.chunks.unclaim_all"), GuiIcons.REMOVE) {
+            panel.add(new ButtonSide(panel, I18n.format("serverutilities.lang.chunks.unclaim_all"), GuiIcons.REMOVE) {
 
                 @Override
                 public void onClicked(MouseButton button) {
                     GuiHelper.playClickSound();
-                    String s = I18n.format("ftbutilities.lang.chunks.unclaim_all_q");
+                    String s = I18n.format("serverutilities.lang.chunks.unclaim_all_q");
                     openYesNo(s, "", () -> ClientUtils.execClientCommand("/chunks unclaim_all"));
                 }
             });
@@ -167,7 +167,7 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
         if (maxClaimedChunks < 0) {
             if (corner == Corner.BOTTOM_RIGHT) {
                 if (maxClaimedChunks == -2) {
-                    list.add(EnumChatFormatting.RED + I18n.format("ftblib.lang.team.error.no_team"));
+                    list.add(EnumChatFormatting.RED + I18n.format("serverutilitieslib.lang.team.error.no_team"));
                 } else {
                     list.add(EnumChatFormatting.RED + I18n.format("feature_disabled_server"));
                 }
@@ -180,12 +180,12 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
             case BOTTOM_RIGHT:
                 list.add(
                         I18n.format(
-                                "ftbutilities.lang.chunks.claimed_count",
+                                "serverutilities.lang.chunks.claimed_count",
                                 claimedChunks,
                                 maxClaimedChunks == Integer.MAX_VALUE ? "\u221E" : Integer.toString(maxClaimedChunks)));
                 list.add(
                         I18n.format(
-                                "ftbutilities.lang.chunks.loaded_count",
+                                "serverutilities.lang.chunks.loaded_count",
                                 loadedChunks,
                                 maxLoadedChunks == Integer.MAX_VALUE ? "\u221E" : Integer.toString(maxLoadedChunks)));
                 break;
@@ -198,13 +198,13 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
 
         if (data != null) {
             list.add(data.team.nameComponent.getFormattedText());
-            list.add(EnumChatFormatting.GREEN + I18n.format("ftbutilities.lang.chunks.claimed_area"));
+            list.add(EnumChatFormatting.GREEN + I18n.format("serverutilities.lang.chunks.claimed_area"));
 
             if (data.isLoaded()) {
-                list.add(EnumChatFormatting.RED + I18n.format("ftbutilities.lang.chunks.upgrade.loaded"));
+                list.add(EnumChatFormatting.RED + I18n.format("serverutilities.lang.chunks.upgrade.loaded"));
             }
         } else {
-            list.add(EnumChatFormatting.DARK_GREEN + I18n.format("ftbutilities.lang.chunks.wilderness"));
+            list.add(EnumChatFormatting.DARK_GREEN + I18n.format("serverutilities.lang.chunks.wilderness"));
         }
 
         if (isCtrlKeyDown()) {

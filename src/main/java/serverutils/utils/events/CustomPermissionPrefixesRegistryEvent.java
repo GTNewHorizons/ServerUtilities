@@ -2,13 +2,13 @@ package serverutils.utils.events;
 
 import java.util.function.Consumer;
 
-import com.feed_the_beast.ftblib.lib.util.permission.DefaultPermissionLevel;
+import serverutils.lib.lib.util.permission.DefaultPermissionLevel;
 import serverutils.utils.data.NodeEntry;
 
 /**
  * @author LatvianModder
  */
-public class CustomPermissionPrefixesRegistryEvent extends FTBUtilitiesEvent {
+public class CustomPermissionPrefixesRegistryEvent extends ServerUtilitiesEvent {
 
     private final Consumer<NodeEntry> callback;
 

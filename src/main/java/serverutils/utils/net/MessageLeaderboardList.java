@@ -7,9 +7,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
-import com.feed_the_beast.ftblib.lib.net.MessageToServer;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
-import com.feed_the_beast.ftblib.lib.util.permission.PermissionAPI;
+import serverutils.lib.lib.net.MessageToServer;
+import serverutils.lib.lib.net.NetworkWrapper;
+import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.utils.ServerUtilitiesCommon;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.Leaderboard;
@@ -18,7 +18,7 @@ public class MessageLeaderboardList extends MessageToServer {
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.STATS;
+        return ServerUtilitiesNetHandler.STATS;
     }
 
     @Override

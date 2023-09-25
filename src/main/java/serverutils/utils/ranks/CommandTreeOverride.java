@@ -8,14 +8,11 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 
-import com.feed_the_beast.ftblib.lib.command.CmdTreeBase;
-import com.feed_the_beast.ftblib.lib.command.CommandTreeBase;
+import serverutils.lib.lib.command.CmdTreeBase;
+import serverutils.lib.lib.command.CommandTreeBase;
 
 import cpw.mods.fml.common.ModContainer;
 
-/**
- * @author LatvianModder
- */
 public class CommandTreeOverride extends CmdTreeBase {
 
     public final CommandTreeBase mirrored;

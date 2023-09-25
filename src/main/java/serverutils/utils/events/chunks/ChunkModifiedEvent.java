@@ -2,17 +2,14 @@ package serverutils.utils.events.chunks;
 
 import javax.annotation.Nullable;
 
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.math.ChunkDimPos;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.math.ChunkDimPos;
 import serverutils.utils.data.ClaimedChunk;
-import serverutils.utils.events.FTBUtilitiesEvent;
+import serverutils.utils.events.ServerUtilitiesEvent;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 
-/**
- * @author LatvianModder
- */
-public abstract class ChunkModifiedEvent extends FTBUtilitiesEvent {
+public abstract class ChunkModifiedEvent extends ServerUtilitiesEvent {
 
     private final ClaimedChunk chunk;
     private final ForgePlayer player;
@@ -32,7 +29,7 @@ public abstract class ChunkModifiedEvent extends FTBUtilitiesEvent {
     }
 
     @Cancelable
-    public static class Claim extends FTBUtilitiesEvent {
+    public static class Claim extends ServerUtilitiesEvent {
 
         private final ChunkDimPos chunkDimPos;
         private final ForgePlayer player;

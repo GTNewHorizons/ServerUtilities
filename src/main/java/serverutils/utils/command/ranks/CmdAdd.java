@@ -8,15 +8,12 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.feed_the_beast.ftblib.FTBLib;
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.lib.command.CmdBase;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ranks.Rank;
 import serverutils.utils.ranks.Ranks;
 
-/**
- * @author LatvianModder
- */
 public class CmdAdd extends CmdBase {
 
     public CmdAdd() {
@@ -49,7 +46,7 @@ public class CmdAdd extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!Ranks.isActive()) {
-            throw FTBLib.errorFeatureDisabledServer(sender);
+            throw ServerUtilitiesLib.errorFeatureDisabledServer(sender);
         }
 
         checkArgs(sender, args, 2);

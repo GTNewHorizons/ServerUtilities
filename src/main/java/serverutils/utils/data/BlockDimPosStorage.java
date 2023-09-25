@@ -11,13 +11,10 @@ import javax.annotation.Nullable;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-import com.feed_the_beast.ftblib.lib.math.BlockDimPos;
-import com.feed_the_beast.ftblib.lib.util.INBTSerializable;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.lib.math.BlockDimPos;
+import serverutils.lib.lib.util.INBTSerializable;
+import serverutils.lib.lib.util.StringUtils;
 
-/**
- * @author LatvianModder
- */
 public final class BlockDimPosStorage implements INBTSerializable<NBTTagCompound> {
 
     private final Map<String, BlockDimPos> map = new HashMap<>();

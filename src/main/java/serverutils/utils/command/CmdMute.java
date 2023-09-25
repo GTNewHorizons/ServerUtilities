@@ -3,9 +3,9 @@ package serverutils.utils.command;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.util.NBTUtils;
-import serverutils.utils.data.FTBUtilitiesPlayerData;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.util.NBTUtils;
+import serverutils.utils.data.ServerUtilitiesPlayerData;
 
 public class CmdMute extends CmdBase {
 
@@ -20,6 +20,6 @@ public class CmdMute extends CmdBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        NBTUtils.getPersistedData(getPlayer(sender, args[0]), true).setBoolean(FTBUtilitiesPlayerData.TAG_MUTED, true);
+        NBTUtils.getPersistedData(getPlayer(sender, args[0]), true).setBoolean(ServerUtilitiesPlayerData.TAG_MUTED, true);
     }
 }

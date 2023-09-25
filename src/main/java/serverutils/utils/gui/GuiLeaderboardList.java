@@ -6,24 +6,21 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
-import com.feed_the_beast.ftblib.lib.gui.GuiHelper;
-import com.feed_the_beast.ftblib.lib.gui.Panel;
-import com.feed_the_beast.ftblib.lib.gui.SimpleTextButton;
-import com.feed_the_beast.ftblib.lib.gui.misc.GuiButtonListBase;
-import com.feed_the_beast.ftblib.lib.icon.Icon;
-import com.feed_the_beast.ftblib.lib.util.misc.MouseButton;
+import serverutils.lib.lib.gui.GuiHelper;
+import serverutils.lib.lib.gui.Panel;
+import serverutils.lib.lib.gui.SimpleTextButton;
+import serverutils.lib.lib.gui.misc.GuiButtonListBase;
+import serverutils.lib.lib.icon.Icon;
+import serverutils.lib.lib.util.misc.MouseButton;
 import serverutils.utils.net.MessageLeaderboard;
 
-/**
- * @author LatvianModder
- */
 public class GuiLeaderboardList extends GuiButtonListBase {
 
     private final Map<ResourceLocation, IChatComponent> leaderboards;
 
     public GuiLeaderboardList(Map<ResourceLocation, IChatComponent> l) {
         leaderboards = l;
-        setTitle(I18n.format("sidebar_button.ftbutilities.leaderboards"));
+        setTitle(I18n.format("sidebar_button.serverutilities.leaderboards"));
     }
 
     @Override

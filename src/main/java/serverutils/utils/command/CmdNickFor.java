@@ -4,13 +4,13 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.EnumChatFormatting;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesConfig;
-import serverutils.utils.data.FTBUtilitiesPlayerData;
+import serverutils.utils.data.ServerUtilitiesPlayerData;
 import serverutils.utils.net.MessageUpdateTabName;
 
 public class CmdNickFor extends CmdBase {
@@ -24,11 +24,11 @@ public class CmdNickFor extends CmdBase {
         checkArgs(sender, args, 2);
         ForgePlayer player = CommandUtils.getForgePlayer(sender, args[0]);
 
-        FTBUtilitiesPlayerData data = FTBUtilitiesPlayerData.get(player);
+        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(player);
         data.setNickname(StringUtils.joinSpaceUntilEnd(1, args).trim());
 
         if (data.getNickname().isEmpty()) {
-            sender.addChatMessage(ServerUtilities.lang(sender, "ftbutilities.lang.nickname_reset"));
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.nickname_reset"));
         } else {
             String name = StringUtils.addFormatting(data.getNickname());
 
@@ -36,7 +36,7 @@ public class CmdNickFor extends CmdBase {
                 name += EnumChatFormatting.RESET;
             }
 
-            sender.addChatMessage(ServerUtilities.lang(sender, "ftbutilities.lang.nickname_changed", name));
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.nickname_changed", name));
         }
 
         if (ServerUtilitiesConfig.chat.replace_tab_names) {

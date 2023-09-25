@@ -6,17 +6,15 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.FTBLib;
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.math.ChunkDimPos;
-import com.feed_the_beast.ftblib.lib.util.ServerUtils;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.math.ChunkDimPos;
+import serverutils.lib.lib.util.ServerUtils;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.data.ClaimedChunk;
 import serverutils.utils.data.ClaimedChunks;
 
-/**
- * @author LatvianModder
- */
+
 public class CmdInfo extends CmdBase {
 
     public CmdInfo() {
@@ -26,7 +24,7 @@ public class CmdInfo extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!ClaimedChunks.isActive()) {
-            throw FTBLib.error(sender, "feature_disabled_server");
+            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
         }
 
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);

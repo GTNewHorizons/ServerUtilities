@@ -1,8 +1,5 @@
 package serverutils.utils.integration.aurora;
 
-/**
- * @author LatvianModder
- */
 public class RankPage // extends HTTPWebPage
 {
 

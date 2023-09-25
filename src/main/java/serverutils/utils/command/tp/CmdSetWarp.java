@@ -5,12 +5,12 @@ import java.util.List;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.data.Universe;
-import com.feed_the_beast.ftblib.lib.math.BlockDimPos;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.data.Universe;
+import serverutils.lib.lib.math.BlockDimPos;
 import serverutils.utils.ServerUtilities;
-import serverutils.utils.data.FTBUtilitiesUniverseData;
+import serverutils.utils.data.ServerUtilitiesUniverseData;
 
 public class CmdSetWarp extends CmdBase {
 
@@ -49,8 +49,8 @@ public class CmdSetWarp extends CmdBase {
             pos = new BlockDimPos(sender);
         }
 
-        FTBUtilitiesUniverseData.WARPS.set(args[0], pos);
-        sender.addChatMessage(ServerUtilities.lang(sender, "ftbutilities.lang.warps.set", args[0]));
+        ServerUtilitiesUniverseData.WARPS.set(args[0], pos);
+        sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.warps.set", args[0]));
         Universe.get().markDirty();
     }
 }

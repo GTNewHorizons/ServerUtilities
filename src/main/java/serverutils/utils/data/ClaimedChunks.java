@@ -18,21 +18,19 @@ import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.data.ForgeTeam;
-import com.feed_the_beast.ftblib.lib.data.Universe;
-import com.feed_the_beast.ftblib.lib.gui.misc.ChunkSelectorMap;
-import com.feed_the_beast.ftblib.lib.math.ChunkDimPos;
-import com.feed_the_beast.ftblib.lib.util.permission.PermissionAPI;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.data.ForgeTeam;
+import serverutils.lib.lib.data.Universe;
+import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
+import serverutils.lib.lib.math.ChunkDimPos;
+import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.events.chunks.ChunkModifiedEvent;
 import serverutils.utils.net.MessageClaimedChunksUpdate;
 
-/**
- * @author LatvianModder
- */
+
 public class ClaimedChunks {
 
     public static ClaimedChunks instance;
@@ -89,7 +87,7 @@ public class ClaimedChunks {
             ClaimedChunk chunk = iterator.next();
 
             if (chunk.isInvalid()) {
-                FTBUtilitiesLoadedChunkManager.INSTANCE.unforceChunk(chunk);
+                ServerUtilitiesLoadedChunkManager.INSTANCE.unforceChunk(chunk);
                 iterator.remove();
             }
         }
@@ -106,7 +104,7 @@ public class ClaimedChunks {
 
             if (ServerUtilitiesConfig.world.chunk_loading) {
                 for (ForgeTeam team : universe.getTeams()) {
-                    FTBUtilitiesTeamData.get(team).canForceChunks = FTBUtilitiesLoadedChunkManager.INSTANCE
+                    ServerUtilitiesTeamData.get(team).canForceChunks = ServerUtilitiesLoadedChunkManager.INSTANCE
                             .canForceChunks(team);
                 }
 
@@ -115,9 +113,9 @@ public class ClaimedChunks {
 
                     if (chunk.forced == null || chunk.forced != force) {
                         if (force) {
-                            FTBUtilitiesLoadedChunkManager.INSTANCE.forceChunk(universe.server, chunk);
+                            ServerUtilitiesLoadedChunkManager.INSTANCE.forceChunk(universe.server, chunk);
                         } else {
-                            FTBUtilitiesLoadedChunkManager.INSTANCE.unforceChunk(chunk);
+                            ServerUtilitiesLoadedChunkManager.INSTANCE.unforceChunk(chunk);
                         }
                     }
                 }
@@ -200,11 +198,11 @@ public class ClaimedChunks {
             return true;
         } else if (target instanceof EntityPlayer) {
             if (ServerUtilitiesConfig.world.safe_spawn && player.worldObj.provider.dimensionId == 0
-                    && FTBUtilitiesUniverseData.isInSpawn(instance.universe.server, new ChunkDimPos(target))) {
+                    && ServerUtilitiesUniverseData.isInSpawn(instance.universe.server, new ChunkDimPos(target))) {
                 return false;
             } else if (ServerUtilitiesConfig.world.enable_pvp.isDefault()) {
-                return FTBUtilitiesPlayerData.get(instance.universe.getPlayer(player)).enablePVP()
-                        && FTBUtilitiesPlayerData.get(instance.universe.getPlayer((EntityPlayer) target)).enablePVP();
+                return ServerUtilitiesPlayerData.get(instance.universe.getPlayer(player)).enablePVP()
+                        && ServerUtilitiesPlayerData.get(instance.universe.getPlayer((EntityPlayer) target)).enablePVP();
             }
 
             return ServerUtilitiesConfig.world.enable_pvp.isTrue();
@@ -290,7 +288,7 @@ public class ClaimedChunks {
             return ClaimResult.DIMENSION_BLOCKED;
         }
 
-        FTBUtilitiesTeamData data = FTBUtilitiesTeamData.get(player.team);
+        ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(player.team);
 
         if (checkLimits && !player.hasPermission(ServerUtilitiesPermissions.CLAIMS_BYPASS_LIMITS)) {
             int max = data.getMaxClaimChunks();
@@ -353,7 +351,7 @@ public class ClaimedChunks {
             return false;
         }
 
-        int max = FTBUtilitiesTeamData.get(team).getMaxChunkloaderChunks();
+        int max = ServerUtilitiesTeamData.get(team).getMaxChunkloaderChunks();
 
         if (max == 0) {
             return false;

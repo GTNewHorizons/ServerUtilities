@@ -12,18 +12,18 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.feed_the_beast.ftblib.lib.config.ConfigNull;
-import com.feed_the_beast.ftblib.lib.config.ConfigValue;
-import com.feed_the_beast.ftblib.lib.config.RankConfigAPI;
-import com.feed_the_beast.ftblib.lib.config.RankConfigValueInfo;
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.data.Universe;
-import com.feed_the_beast.ftblib.lib.io.DataReader;
-import com.feed_the_beast.ftblib.lib.util.FileUtils;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
-import com.feed_the_beast.ftblib.lib.util.permission.DefaultPermissionHandler;
-import com.feed_the_beast.ftblib.lib.util.permission.DefaultPermissionLevel;
-import com.feed_the_beast.ftblib.lib.util.permission.PermissionAPI;
+import serverutils.lib.lib.config.ConfigNull;
+import serverutils.lib.lib.config.ConfigValue;
+import serverutils.lib.lib.config.RankConfigAPI;
+import serverutils.lib.lib.config.RankConfigValueInfo;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.data.Universe;
+import serverutils.lib.lib.io.DataReader;
+import serverutils.lib.lib.util.FileUtils;
+import serverutils.lib.lib.util.StringUtils;
+import serverutils.lib.lib.util.permission.DefaultPermissionHandler;
+import serverutils.lib.lib.util.permission.DefaultPermissionLevel;
+import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesCommon;
 import serverutils.utils.ServerUtilitiesConfig;
@@ -40,7 +40,7 @@ public class Ranks {
 
     public static boolean isActive() {
         return ServerUtilitiesConfig.ranks.enabled && INSTANCE != null
-                && PermissionAPI.getPermissionHandler() == FTBUtilitiesPermissionHandler.INSTANCE;
+                && PermissionAPI.getPermissionHandler() == ServerUtilitiesPermissionHandler.INSTANCE;
     }
 
     public static boolean isValidName(@Nullable String id) {
@@ -80,7 +80,7 @@ public class Ranks {
 
         boolean save = false;
 
-        ranksFile = universe.server.getFile("local/ftbutilities/ranks.txt");
+        ranksFile = universe.server.getFile("local/serverutilities/ranks.txt");
 
         if (!ranksFile.exists()) {
             Rank pRank = new Rank(this, "player");
@@ -94,7 +94,7 @@ public class Ranks {
             Rank vRank = new Rank(this, "vip");
             vRank.add();
             vRank.setPermission(Rank.NODE_POWER, 20);
-            vRank.setPermission("ftbutilities.chat.name_format", "<&bVIP {name}&r>");
+            vRank.setPermission("serverutilities.chat.name_format", "<&bVIP {name}&r>");
             vRank.setPermission("example.other_permission", true);
             vRank.setPermission("example.permission_with_value", 15);
 
@@ -102,7 +102,7 @@ public class Ranks {
             aRank.add();
             aRank.setPermission(Rank.NODE_DEFAULT_OP, true);
             aRank.setPermission(Rank.NODE_POWER, 100);
-            aRank.setPermission("ftbutilities.chat.name_format", "<&2{name}&r>");
+            aRank.setPermission("serverutilities.chat.name_format", "<&2{name}&r>");
             aRank.setPermission("example.permission_with_value", 100);
 
             PlayerRank fpRank = new PlayerRank(
@@ -203,7 +203,7 @@ public class Ranks {
             }
         }
 
-        File oldPlayerRanksFile = universe.server.getFile("local/ftbutilities/player_ranks.txt");
+        File oldPlayerRanksFile = universe.server.getFile("local/serverutilities/player_ranks.txt");
 
         if (oldPlayerRanksFile.exists()) {
             for (String s : DataReader.get(oldPlayerRanksFile).safeStringList()) {
@@ -230,7 +230,7 @@ public class Ranks {
             save = true;
         }
 
-        File badgeFile = universe.server.getFile("local/ftbutilities/server_badges.txt");
+        File badgeFile = universe.server.getFile("local/serverutilities/server_badges.txt");
 
         if (badgeFile.exists()) {
             for (String s : DataReader.get(badgeFile).safeStringList()) {
@@ -253,7 +253,7 @@ public class Ranks {
             save = true;
         }
 
-        playersFile = universe.server.getFile("local/ftbutilities/players.txt");
+        playersFile = universe.server.getFile("local/serverutilities/players.txt");
 
         currentRank = null;
         lastComment = "";
@@ -540,7 +540,7 @@ public class Ranks {
         if (permissionNodes == null) {
             permissionNodes = new LinkedHashSet<>();
 
-            for (String s : FTBUtilitiesPermissionHandler.INSTANCE.getRegisteredNodes()) {
+            for (String s : ServerUtilitiesPermissionHandler.INSTANCE.getRegisteredNodes()) {
                 DefaultPermissionLevel level = DefaultPermissionHandler.INSTANCE.getDefaultPermissionLevel(s);
                 String desc = DefaultPermissionHandler.INSTANCE.getNodeDescription(s);
                 boolean printNode = true;

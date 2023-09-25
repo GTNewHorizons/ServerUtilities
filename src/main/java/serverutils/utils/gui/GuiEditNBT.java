@@ -26,44 +26,41 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.util.Constants;
 
-import com.feed_the_beast.ftblib.lib.config.ConfigDouble;
-import com.feed_the_beast.ftblib.lib.config.ConfigInt;
-import com.feed_the_beast.ftblib.lib.config.ConfigString;
-import com.feed_the_beast.ftblib.lib.config.ConfigValue;
-import com.feed_the_beast.ftblib.lib.gui.Button;
-import com.feed_the_beast.ftblib.lib.gui.GuiBase;
-import com.feed_the_beast.ftblib.lib.gui.GuiIcons;
-import com.feed_the_beast.ftblib.lib.gui.Panel;
-import com.feed_the_beast.ftblib.lib.gui.PanelScrollBar;
-import com.feed_the_beast.ftblib.lib.gui.SimpleButton;
-import com.feed_the_beast.ftblib.lib.gui.Theme;
-import com.feed_the_beast.ftblib.lib.gui.Widget;
-import com.feed_the_beast.ftblib.lib.gui.WidgetLayout;
-import com.feed_the_beast.ftblib.lib.gui.WrappedIngredient;
-import com.feed_the_beast.ftblib.lib.gui.misc.GuiEditConfig;
-import com.feed_the_beast.ftblib.lib.gui.misc.GuiEditConfigValue;
-import com.feed_the_beast.ftblib.lib.gui.misc.IConfigValueEditCallback;
-import com.feed_the_beast.ftblib.lib.icon.Color4I;
-import com.feed_the_beast.ftblib.lib.icon.Icon;
-import com.feed_the_beast.ftblib.lib.icon.IconWithBorder;
-import com.feed_the_beast.ftblib.lib.icon.ItemIcon;
-import com.feed_the_beast.ftblib.lib.item.ItemEntryWithCount;
-import com.feed_the_beast.ftblib.lib.util.NBTUtils;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
-import com.feed_the_beast.ftblib.lib.util.misc.MouseButton;
+import serverutils.lib.lib.config.ConfigDouble;
+import serverutils.lib.lib.config.ConfigInt;
+import serverutils.lib.lib.config.ConfigString;
+import serverutils.lib.lib.config.ConfigValue;
+import serverutils.lib.lib.gui.Button;
+import serverutils.lib.lib.gui.GuiBase;
+import serverutils.lib.lib.gui.GuiIcons;
+import serverutils.lib.lib.gui.Panel;
+import serverutils.lib.lib.gui.PanelScrollBar;
+import serverutils.lib.lib.gui.SimpleButton;
+import serverutils.lib.lib.gui.Theme;
+import serverutils.lib.lib.gui.Widget;
+import serverutils.lib.lib.gui.WidgetLayout;
+import serverutils.lib.lib.gui.WrappedIngredient;
+import serverutils.lib.lib.gui.misc.GuiEditConfig;
+import serverutils.lib.lib.gui.misc.GuiEditConfigValue;
+import serverutils.lib.lib.gui.misc.IConfigValueEditCallback;
+import serverutils.lib.lib.icon.Color4I;
+import serverutils.lib.lib.icon.Icon;
+import serverutils.lib.lib.icon.IconWithBorder;
+import serverutils.lib.lib.icon.ItemIcon;
+import serverutils.lib.lib.item.ItemEntryWithCount;
+import serverutils.lib.lib.util.NBTUtils;
+import serverutils.lib.lib.util.StringUtils;
+import serverutils.lib.lib.util.misc.MouseButton;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.net.MessageEditNBTResponse;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
-/**
- * @author LatvianModder
- */
 public class GuiEditNBT extends GuiBase {
 
     private static Icon getIcon(String name) {
-        return Icon.getIcon("ftbutilities:textures/gui/nbt/" + name + ".png");
+        return Icon.getIcon("serverutilities:textures/gui/nbt/" + name + ".png");
     }
 
     public static final Icon NBT_BYTE = getIcon("byte");

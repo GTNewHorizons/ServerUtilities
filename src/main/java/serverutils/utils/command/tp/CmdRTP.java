@@ -9,14 +9,14 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.math.ChunkDimPos;
-import com.feed_the_beast.ftblib.lib.math.TeleporterDimPos;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.math.ChunkDimPos;
+import serverutils.lib.lib.math.TeleporterDimPos;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.data.ClaimedChunks;
-import serverutils.utils.data.FTBUtilitiesPlayerData;
+import serverutils.utils.data.ServerUtilitiesPlayerData;
 
 public class CmdRTP extends CmdBase {
 
@@ -27,9 +27,9 @@ public class CmdRTP extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
-        FTBUtilitiesPlayerData data = FTBUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
-        data.checkTeleportCooldown(sender, FTBUtilitiesPlayerData.Timer.RTP);
-        FTBUtilitiesPlayerData.Timer.RTP.teleport(
+        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
+        data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.RTP);
+        ServerUtilitiesPlayerData.Timer.RTP.teleport(
                 player,
                 playerMP -> findBlockPos(
                         playerMP.mcServer.worldServerForDimension(ServerUtilitiesConfig.world.spawn_dimension),
@@ -40,7 +40,7 @@ public class CmdRTP extends CmdBase {
 
     private TeleporterDimPos findBlockPos(World world, EntityPlayerMP player, int depth) {
         if (++depth > ServerUtilitiesConfig.world.rtp_max_tries) {
-            player.addChatMessage(ServerUtilities.lang(player, "ftbutilities.lang.rtp.fail"));
+            player.addChatMessage(ServerUtilities.lang(player, "serverutilities.lang.rtp.fail"));
             return TeleporterDimPos.of(player);
         }
 

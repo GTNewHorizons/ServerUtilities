@@ -8,17 +8,14 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.math.TeleporterDimPos;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.math.TeleporterDimPos;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesPermissions;
-import serverutils.utils.data.FTBUtilitiesPlayerData;
+import serverutils.utils.data.ServerUtilitiesPlayerData;
 
-/**
- * @author LatvianModder
- */
 public class CmdTPAccept extends CmdBase {
 
     public CmdTPAccept() {
@@ -34,8 +31,8 @@ public class CmdTPAccept extends CmdBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         checkArgs(sender, args, 1);
         EntityPlayerMP selfPlayer = getCommandSenderAsPlayer(sender);
-        FTBUtilitiesPlayerData self = FTBUtilitiesPlayerData.get(CommandUtils.getForgePlayer(selfPlayer));
-        FTBUtilitiesPlayerData other = FTBUtilitiesPlayerData.get(CommandUtils.getForgePlayer(sender, args[0]));
+        ServerUtilitiesPlayerData self = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(selfPlayer));
+        ServerUtilitiesPlayerData other = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(sender, args[0]));
 
         IChatComponent selfName = StringUtils
                 .color(new ChatComponentText(self.player.getPlayer().getDisplayName()), EnumChatFormatting.BLUE);
@@ -44,36 +41,36 @@ public class CmdTPAccept extends CmdBase {
 
         if (self.player.equalsPlayer(other.player) || !other.player.isOnline()
                 || !self.tpaRequestsFrom.contains(other.player)) {
-            throw ServerUtilities.error(sender, "ftbutilities.lang.tpa.no_request", otherName);
+            throw ServerUtilities.error(sender, "serverutilities.lang.tpa.no_request", otherName);
         }
 
         if (selfPlayer.dimension != other.player.getPlayer().dimension
                 && !other.player.hasPermission(ServerUtilitiesPermissions.TPA_CROSS_DIM)) {
             other.player.getPlayer().addChatMessage(
                     StringUtils.color(
-                            ServerUtilities.lang(other.player.getPlayer(), "ftbutilities.lang.homes.cross_dim"),
+                            ServerUtilities.lang(other.player.getPlayer(), "serverutilities.lang.homes.cross_dim"),
                             EnumChatFormatting.RED));
-            throw ServerUtilities.error(sender, "ftbutilities.lang.homes.cross_dim", otherName);
+            throw ServerUtilities.error(sender, "serverutilities.lang.homes.cross_dim", otherName);
         }
 
         self.tpaRequestsFrom.remove(other.player);
 
-        IChatComponent component = ServerUtilities.lang(sender, "ftbutilities.lang.tpa.request_accepted");
+        IChatComponent component = ServerUtilities.lang(sender, "serverutilities.lang.tpa.request_accepted");
         component.getChatStyle().setChatHoverEvent(
                 new HoverEvent(
                         HoverEvent.Action.SHOW_TEXT,
-                        ServerUtilities.lang(sender, "ftbutilities.lang.tpa.from_to", otherName, selfName)));
+                        ServerUtilities.lang(sender, "serverutilities.lang.tpa.from_to", otherName, selfName)));
         sender.addChatMessage(component);
 
-        component = ServerUtilities.lang(other.player.getPlayer(), "ftbutilities.lang.tpa.request_accepted");
+        component = ServerUtilities.lang(other.player.getPlayer(), "serverutilities.lang.tpa.request_accepted");
         component.getChatStyle().setChatHoverEvent(
                 new HoverEvent(
                         HoverEvent.Action.SHOW_TEXT,
                         ServerUtilities
-                                .lang(other.player.getPlayer(), "ftbutilities.lang.tpa.from_to", otherName, selfName)));
+                                .lang(other.player.getPlayer(), "serverutilities.lang.tpa.from_to", otherName, selfName)));
         other.player.getPlayer().addChatMessage(component);
 
-        FTBUtilitiesPlayerData.Timer.TPA
+        ServerUtilitiesPlayerData.Timer.TPA
                 .teleport(other.player.getPlayer(), playerMP -> TeleporterDimPos.of(selfPlayer), null);
     }
 }

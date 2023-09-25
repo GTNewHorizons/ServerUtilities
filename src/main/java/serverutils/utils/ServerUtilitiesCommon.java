@@ -9,19 +9,19 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
-import com.feed_the_beast.ftblib.lib.util.permission.PermissionAPI;
-import serverutils.utils.data.FTBUtilitiesLoadedChunkManager;
-import serverutils.utils.data.FTBUtilitiesUniverseData;
+import serverutils.lib.lib.util.permission.PermissionAPI;
+import serverutils.utils.data.ServerUtilitiesLoadedChunkManager;
+import serverutils.utils.data.ServerUtilitiesUniverseData;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.data.NodeEntry;
 import serverutils.utils.events.CustomPermissionPrefixesRegistryEvent;
 import serverutils.utils.events.LeaderboardRegistryEvent;
-import serverutils.utils.handlers.FTBUtilitiesPlayerEventHandler;
-import serverutils.utils.handlers.FTBUtilitiesRegistryEventHandler;
-import serverutils.utils.handlers.FTBUtilitiesServerEventHandler;
-import serverutils.utils.handlers.FTBUtilitiesWorldEventHandler;
-import serverutils.utils.net.FTBUtilitiesNetHandler;
-import serverutils.utils.ranks.FTBUtilitiesPermissionHandler;
+import serverutils.utils.handlers.ServerUtilitiesPlayerEventHandler;
+import serverutils.utils.handlers.ServerUtilitiesRegistryEventHandler;
+import serverutils.utils.handlers.ServerUtilitiesServerEventHandler;
+import serverutils.utils.handlers.ServerUtilitiesWorldEventHandler;
+import serverutils.utils.net.ServerUtilitiesNetHandler;
+import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInterModComms;
@@ -37,10 +37,10 @@ public class ServerUtilitiesCommon {
         ServerUtilitiesConfig.init(event);
 
         if (ServerUtilitiesConfig.ranks.enabled) {
-            PermissionAPI.setPermissionHandler(FTBUtilitiesPermissionHandler.INSTANCE);
+            PermissionAPI.setPermissionHandler(ServerUtilitiesPermissionHandler.INSTANCE);
         }
 
-        FTBUtilitiesNetHandler.init();
+        ServerUtilitiesNetHandler.init();
 
         if (!ForgeChunkManager.getConfig().hasCategory(ServerUtilities.MOD_ID)) {
             ForgeChunkManager.getConfig().get(ServerUtilities.MOD_ID, "maximumChunksPerTicket", 1000000).setMinValue(0);
@@ -48,7 +48,7 @@ public class ServerUtilitiesCommon {
             ForgeChunkManager.getConfig().save();
         }
 
-        ForgeChunkManager.setForcedChunkLoadingCallback(ServerUtilities.INST, FTBUtilitiesLoadedChunkManager.INSTANCE);
+        ForgeChunkManager.setForcedChunkLoadingCallback(ServerUtilities.INST, ServerUtilitiesLoadedChunkManager.INSTANCE);
         new CustomPermissionPrefixesRegistryEvent(CUSTOM_PERM_PREFIX_REGISTRY::add).post();
 
         // if (Loader.isModLoaded(ChiselsAndBits.MODID)) {
@@ -72,15 +72,15 @@ public class ServerUtilitiesCommon {
         // }
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesConfig.INST);
-        MinecraftForge.EVENT_BUS.register(FTBUtilitiesPlayerEventHandler.INST);
-        MinecraftForge.EVENT_BUS.register(FTBUtilitiesRegistryEventHandler.INST);
-        MinecraftForge.EVENT_BUS.register(FTBUtilitiesServerEventHandler.INST);
-        MinecraftForge.EVENT_BUS.register(FTBUtilitiesWorldEventHandler.INST);
-        MinecraftForge.EVENT_BUS.register(FTBUtilitiesUniverseData.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesPlayerEventHandler.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesRegistryEventHandler.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesServerEventHandler.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesWorldEventHandler.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesUniverseData.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPermissions.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesLeaderboards.INST);
 
-        FMLCommonHandler.instance().bus().register(FTBUtilitiesServerEventHandler.INST);
+        FMLCommonHandler.instance().bus().register(ServerUtilitiesServerEventHandler.INST);
     }
 
     public void init() {

@@ -1,8 +1,5 @@
 package serverutils.utils.integration.aurora;
 
-/**
- * @author LatvianModder
- */
 public class CommandListPage// extends HTTPWebPage
 {
     // private final MinecraftServer server;

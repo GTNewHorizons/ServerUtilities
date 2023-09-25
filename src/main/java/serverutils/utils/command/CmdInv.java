@@ -10,10 +10,10 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CmdTreeBase;
-import com.feed_the_beast.ftblib.lib.command.CmdTreeHelp;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CmdTreeBase;
+import serverutils.lib.lib.command.CmdTreeHelp;
+import serverutils.lib.lib.command.CommandUtils;
 import serverutils.utils.ServerUtilitiesConfig;
 
 public class CmdInv extends CmdTreeBase {

@@ -17,13 +17,10 @@ import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
 import serverutils.utils.ServerUtilities;
 
-/**
- * @author LatvianModder
- */
 public class CmdKillall extends CmdBase {
 
     private static final Predicate<Entity> ALL = entity -> true;
@@ -139,6 +136,6 @@ public class CmdKillall extends CmdBase {
             }
         }
 
-        sender.addChatMessage(ServerUtilities.lang(sender, "ftbutilities.lang.killed_entities", killed, type));
+        sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.killed_entities", killed, type));
     }
 }

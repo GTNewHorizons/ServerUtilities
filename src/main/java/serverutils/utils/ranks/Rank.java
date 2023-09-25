@@ -14,14 +14,14 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.MathHelper;
 
-import com.feed_the_beast.ftblib.lib.config.ConfigBoolean;
-import com.feed_the_beast.ftblib.lib.config.ConfigNull;
-import com.feed_the_beast.ftblib.lib.config.ConfigString;
-import com.feed_the_beast.ftblib.lib.config.ConfigValue;
-import com.feed_the_beast.ftblib.lib.config.RankConfigAPI;
-import com.feed_the_beast.ftblib.lib.config.RankConfigValueInfo;
-import com.feed_the_beast.ftblib.lib.util.FinalIDObject;
-import com.feed_the_beast.ftblib.lib.util.StringJoiner;
+import serverutils.lib.lib.config.ConfigBoolean;
+import serverutils.lib.lib.config.ConfigNull;
+import serverutils.lib.lib.config.ConfigString;
+import serverutils.lib.lib.config.ConfigValue;
+import serverutils.lib.lib.config.RankConfigAPI;
+import serverutils.lib.lib.config.RankConfigValueInfo;
+import serverutils.lib.lib.util.FinalIDObject;
+import serverutils.lib.lib.util.StringJoiner;
 
 public class Rank extends FinalIDObject implements Comparable<Rank> {
 

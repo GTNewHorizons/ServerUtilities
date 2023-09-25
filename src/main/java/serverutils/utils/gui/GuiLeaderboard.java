@@ -6,17 +6,14 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.gui.Panel;
-import com.feed_the_beast.ftblib.lib.gui.Theme;
-import com.feed_the_beast.ftblib.lib.gui.Widget;
-import com.feed_the_beast.ftblib.lib.gui.WidgetType;
-import com.feed_the_beast.ftblib.lib.gui.misc.GuiButtonListBase;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.lib.gui.Panel;
+import serverutils.lib.lib.gui.Theme;
+import serverutils.lib.lib.gui.Widget;
+import serverutils.lib.lib.gui.WidgetType;
+import serverutils.lib.lib.gui.misc.GuiButtonListBase;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.data.LeaderboardValue;
 
-/**
- * @author LatvianModder
- */
 public class GuiLeaderboard extends GuiButtonListBase {
 
     private final List<LeaderboardValue> leaderboard;
@@ -65,7 +62,7 @@ public class GuiLeaderboard extends GuiButtonListBase {
     }
 
     public GuiLeaderboard(IChatComponent c, List<LeaderboardValue> l) {
-        setTitle(I18n.format("sidebar_button.ftbutilities.leaderboards") + " > " + c.getFormattedText());
+        setTitle(I18n.format("sidebar_button.serverutilities.leaderboards") + " > " + c.getFormattedText());
         setHasSearchBox(true);
         leaderboard = l;
     }

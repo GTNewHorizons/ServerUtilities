@@ -1,11 +1,8 @@
 package serverutils.utils.command.ranks;
 
-import com.feed_the_beast.ftblib.lib.command.CmdTreeBase;
-import com.feed_the_beast.ftblib.lib.command.CmdTreeHelp;
+import serverutils.lib.lib.command.CmdTreeBase;
+import serverutils.lib.lib.command.CmdTreeHelp;
 
-/**
- * @author LatvianModder
- */
 public class CmdRanks extends CmdTreeBase {
 
     public CmdRanks() {

@@ -2,11 +2,11 @@ package serverutils.utils.net;
 
 import java.util.UUID;
 
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
-import com.feed_the_beast.ftblib.lib.net.MessageToClient;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
-import serverutils.utils.handlers.FTBUtilitiesClientEventHandler;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
+import serverutils.lib.lib.net.MessageToClient;
+import serverutils.lib.lib.net.NetworkWrapper;
+import serverutils.utils.handlers.ServerUtilitiesClientEventHandler;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -25,7 +25,7 @@ public class MessageSendBadge extends MessageToClient {
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.GENERAL;
+        return ServerUtilitiesNetHandler.GENERAL;
     }
 
     @Override
@@ -43,6 +43,6 @@ public class MessageSendBadge extends MessageToClient {
     @Override
     @SideOnly(Side.CLIENT)
     public void onMessage() {
-        FTBUtilitiesClientEventHandler.setBadge(playerId, badgeURL);
+        ServerUtilitiesClientEventHandler.setBadge(playerId, badgeURL);
     }
 }

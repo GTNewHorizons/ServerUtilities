@@ -13,27 +13,24 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.gui.Button;
-import com.feed_the_beast.ftblib.lib.gui.GuiBase;
-import com.feed_the_beast.ftblib.lib.gui.GuiIcons;
-import com.feed_the_beast.ftblib.lib.gui.Panel;
-import com.feed_the_beast.ftblib.lib.gui.PanelScrollBar;
-import com.feed_the_beast.ftblib.lib.gui.SimpleButton;
-import com.feed_the_beast.ftblib.lib.gui.TextField;
-import com.feed_the_beast.ftblib.lib.gui.Theme;
-import com.feed_the_beast.ftblib.lib.icon.Icon;
-import com.feed_the_beast.ftblib.lib.io.DataReader;
-import com.feed_the_beast.ftblib.lib.io.HttpDataReader;
-import com.feed_the_beast.ftblib.lib.io.RequestMethod;
-import com.feed_the_beast.ftblib.lib.util.FileUtils;
-import com.feed_the_beast.ftblib.lib.util.StringJoiner;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.lib.gui.Button;
+import serverutils.lib.lib.gui.GuiBase;
+import serverutils.lib.lib.gui.GuiIcons;
+import serverutils.lib.lib.gui.Panel;
+import serverutils.lib.lib.gui.PanelScrollBar;
+import serverutils.lib.lib.gui.SimpleButton;
+import serverutils.lib.lib.gui.TextField;
+import serverutils.lib.lib.gui.Theme;
+import serverutils.lib.lib.icon.Icon;
+import serverutils.lib.lib.io.DataReader;
+import serverutils.lib.lib.io.HttpDataReader;
+import serverutils.lib.lib.io.RequestMethod;
+import serverutils.lib.lib.util.FileUtils;
+import serverutils.lib.lib.util.StringJoiner;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.net.MessageViewCrashDelete;
 import com.google.gson.JsonElement;
 
-/**
- * @author LatvianModder
- */
 public class GuiViewCrash extends GuiBase {
 
     public class ThreadUploadCrash extends Thread {
@@ -43,7 +40,7 @@ public class GuiViewCrash extends GuiBase {
             try {
                 File urlFile = new File(
                         Minecraft.getMinecraft().mcDataDir,
-                        "local/ftbutilities/uploaded_crash_reports/crash-" + name.text[0] + ".txt");
+                        "local/serverutilities/uploaded_crash_reports/crash-" + name.text[0] + ".txt");
                 String url = DataReader.get(urlFile).safeString();
 
                 if (url.isEmpty()) {
@@ -69,7 +66,7 @@ public class GuiViewCrash extends GuiBase {
                             .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(url)));
                     link.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
                     Minecraft.getMinecraft().thePlayer
-                            .addChatMessage(new ChatComponentTranslation("ftbutilities.lang.uploaded_crash", link));
+                            .addChatMessage(new ChatComponentTranslation("serverutilities.lang.uploaded_crash", link));
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -132,7 +129,7 @@ public class GuiViewCrash extends GuiBase {
 
         upload = new SimpleButton(
                 this,
-                I18n.format("ftbutilities.lang.upload_crash"),
+                I18n.format("serverutilities.lang.upload_crash"),
                 GuiIcons.UP,
                 (widget, button) -> {
                     new ThreadUploadCrash().start();

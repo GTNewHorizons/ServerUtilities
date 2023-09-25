@@ -8,30 +8,27 @@ import java.util.OptionalInt;
 
 import net.minecraft.entity.player.EntityPlayer;
 
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.data.ForgeTeam;
-import com.feed_the_beast.ftblib.lib.data.Universe;
-import com.feed_the_beast.ftblib.lib.gui.misc.ChunkSelectorMap;
-import com.feed_the_beast.ftblib.lib.io.Bits;
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
-import com.feed_the_beast.ftblib.lib.math.ChunkDimPos;
-import com.feed_the_beast.ftblib.lib.net.MessageToClient;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
-import com.feed_the_beast.ftblib.lib.util.permission.PermissionAPI;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.data.ForgeTeam;
+import serverutils.lib.lib.data.Universe;
+import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
+import serverutils.lib.lib.io.Bits;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
+import serverutils.lib.lib.math.ChunkDimPos;
+import serverutils.lib.lib.net.MessageToClient;
+import serverutils.lib.lib.net.NetworkWrapper;
+import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ClaimedChunk;
 import serverutils.utils.data.ClaimedChunks;
-import serverutils.utils.data.FTBUtilitiesTeamData;
+import serverutils.utils.data.ServerUtilitiesTeamData;
 import serverutils.utils.events.chunks.UpdateClientDataEvent;
 import serverutils.utils.gui.ClientClaimedChunks;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * @author LatvianModder
- */
 public class MessageClaimedChunksUpdate extends MessageToClient {
 
     public int startX, startZ, claimedChunks, loadedChunks, maxClaimedChunks, maxLoadedChunks;
@@ -44,7 +41,7 @@ public class MessageClaimedChunksUpdate extends MessageToClient {
         startZ = sz;
 
         ForgePlayer p = Universe.get().getPlayer(player);
-        FTBUtilitiesTeamData teamData = FTBUtilitiesTeamData.get(p.team);
+        ServerUtilitiesTeamData teamData = ServerUtilitiesTeamData.get(p.team);
 
         Collection<ClaimedChunk> chunks = teamData.team.isValid()
                 ? ClaimedChunks.instance.getTeamChunks(teamData.team, OptionalInt.empty())
@@ -105,7 +102,7 @@ public class MessageClaimedChunksUpdate extends MessageToClient {
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.CLAIMS;
+        return ServerUtilitiesNetHandler.CLAIMS;
     }
 
     @Override

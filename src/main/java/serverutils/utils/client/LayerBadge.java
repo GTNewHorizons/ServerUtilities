@@ -11,7 +11,7 @@ public enum LayerBadge // implements LayerRenderer<AbstractClientPlayer>
     // if (ServerUtilitiesClientConfig.general.render_badges && !player.isInvisible())
     // {
     // UUID id = player.getGameProfile().getId();
-    // Icon tex = FTBUtilitiesClientEventHandler.getBadge(id);
+    // Icon tex = ServerUtilitiesClientEventHandler.getBadge(id);
     //
     // if (tex.isEmpty())
     // {

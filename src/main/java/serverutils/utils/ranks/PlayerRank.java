@@ -11,14 +11,11 @@ import java.util.UUID;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
-import com.feed_the_beast.ftblib.lib.config.ConfigValue;
-import com.feed_the_beast.ftblib.lib.util.ServerUtils;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.lib.config.ConfigValue;
+import serverutils.lib.lib.util.ServerUtils;
+import serverutils.lib.lib.util.StringUtils;
 import com.mojang.authlib.GameProfile;
 
-/**
- * @author LatvianModder
- */
 public class PlayerRank extends Rank {
 
     public final UUID uuid;

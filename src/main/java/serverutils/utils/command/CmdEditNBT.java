@@ -20,14 +20,14 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CmdTreeBase;
-import com.feed_the_beast.ftblib.lib.command.CmdTreeHelp;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.math.MathUtils;
-import com.feed_the_beast.ftblib.lib.util.NBTUtils;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CmdTreeBase;
+import serverutils.lib.lib.command.CmdTreeHelp;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.math.MathUtils;
+import serverutils.lib.lib.util.NBTUtils;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.net.MessageEditNBT;
 import serverutils.utils.net.MessageEditNBTRequest;
@@ -35,9 +35,6 @@ import serverutils.utils.net.MessageEditNBTRequest;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 
-/**
- * @author LatvianModder
- */
 public class CmdEditNBT extends CmdTreeBase {
 
     public static Map<UUID, NBTTagCompound> EDITING = new HashMap<>();
@@ -247,7 +244,7 @@ public class CmdEditNBT extends CmdTreeBase {
             addInfo(list, new ChatComponentText("Name"), new ChatComponentText(player.getGameProfile().getName()));
             addInfo(list, new ChatComponentText("Display Name"), new ChatComponentText(player.getDisplayName()));
             addInfo(list, new ChatComponentText("UUID"), new ChatComponentText(player.getUniqueID().toString()));
-            addInfo(list, new ChatComponentText("FTBLib Team"), new ChatComponentText(p.team.getId()));
+            addInfo(list, new ChatComponentText("ServerUtilitiesLib Team"), new ChatComponentText(p.team.getId()));
             info.setTag("text", list);
             info.setString(
                     "title",

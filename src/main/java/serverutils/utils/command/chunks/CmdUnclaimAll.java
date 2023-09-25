@@ -6,19 +6,16 @@ import java.util.OptionalInt;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import com.feed_the_beast.ftblib.FTBLib;
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.util.text_components.Notification;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ClaimedChunks;
 
-/**
- * @author LatvianModder
- */
 public class CmdUnclaimAll extends CmdBase {
 
     public CmdUnclaimAll() {
@@ -42,7 +39,7 @@ public class CmdUnclaimAll extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!ClaimedChunks.isActive()) {
-            throw FTBLib.error(sender, "feature_disabled_server");
+            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
         }
 
         ForgePlayer p = CommandUtils.getSelfOrOther(sender, args, 1, ServerUtilitiesPermissions.CLAIMS_OTHER_UNCLAIM);
@@ -53,10 +50,10 @@ public class CmdUnclaimAll extends CmdBase {
             Notification
                     .of(
                             ServerUtilitiesNotifications.UNCLAIMED_ALL,
-                            ServerUtilities.lang(sender, "ftbutilities.lang.chunks.unclaimed_all"))
+                            ServerUtilities.lang(sender, "serverutilities.lang.chunks.unclaimed_all"))
                     .send(getCommandSenderAsPlayer(sender).mcServer, sender);
         } else {
-            throw FTBLib.error(sender, "ftblib.lang.team.error.no_team");
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.no_team");
         }
     }
 }

@@ -12,17 +12,17 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.data.Universe;
-import com.feed_the_beast.ftblib.lib.math.BlockDimPos;
-import com.feed_the_beast.ftblib.lib.util.permission.PermissionAPI;
-import com.feed_the_beast.ftblib.lib.util.text_components.Notification;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.data.Universe;
+import serverutils.lib.lib.math.BlockDimPos;
+import serverutils.lib.lib.util.permission.PermissionAPI;
+import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
-import serverutils.utils.data.FTBUtilitiesPlayerData;
+import serverutils.utils.data.ServerUtilitiesPlayerData;
 
 public class CmdHome extends CmdBase {
 
@@ -35,7 +35,7 @@ public class CmdHome extends CmdBase {
         if (args.length == 1) {
             return getListOfStringsFromIterableMatchingLastWord(
                     args,
-                    FTBUtilitiesPlayerData.get(Universe.get().getPlayer(sender)).homes.list());
+                    ServerUtilitiesPlayerData.get(Universe.get().getPlayer(sender)).homes.list());
         }
 
         return super.addTabCompletionOptions(sender, args);
@@ -56,7 +56,7 @@ public class CmdHome extends CmdBase {
 
         if (args[0].equals("list")) {
             ForgePlayer p = CommandUtils.getSelfOrOther(sender, args, 1, ServerUtilitiesPermissions.HOMES_LIST_OTHER);
-            FTBUtilitiesPlayerData data = FTBUtilitiesPlayerData.get(p);
+            ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(p);
 
             Collection<String> list = data.homes.list();
             IChatComponent msg = p.getDisplayName().appendText(
@@ -96,28 +96,28 @@ public class CmdHome extends CmdBase {
         }
 
         ForgePlayer p = CommandUtils.getSelfOrOther(sender, args, 1, ServerUtilitiesPermissions.HOMES_TELEPORT_OTHER);
-        FTBUtilitiesPlayerData data = FTBUtilitiesPlayerData.get(p);
+        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(p);
         BlockDimPos pos = data.homes.get(args[0]);
 
         if (pos == null) {
-            throw ServerUtilities.error(sender, "ftbutilities.lang.homes.not_set", args[0]);
+            throw ServerUtilities.error(sender, "serverutilities.lang.homes.not_set", args[0]);
         }
 
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
 
         if (player.dimension != pos.dim
                 && !PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.HOMES_CROSS_DIM)) {
-            throw ServerUtilities.error(sender, "ftbutilities.lang.homes.cross_dim");
+            throw ServerUtilities.error(sender, "serverutilities.lang.homes.cross_dim");
         }
 
-        data.checkTeleportCooldown(sender, FTBUtilitiesPlayerData.Timer.HOME);
-        FTBUtilitiesPlayerData.Timer.HOME.teleport(
+        data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.HOME);
+        ServerUtilitiesPlayerData.Timer.HOME.teleport(
                 player,
                 playerMP -> pos.teleporter(),
                 universe -> Notification
                         .of(
                                 ServerUtilitiesNotifications.TELEPORT,
-                                ServerUtilities.lang(sender, "ftbutilities.lang.warps.tp", args[0]))
+                                ServerUtilities.lang(sender, "serverutilities.lang.warps.tp", args[0]))
                         .send(player.mcServer, player));
     }
 }

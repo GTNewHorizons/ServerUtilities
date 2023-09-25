@@ -1,6 +1,6 @@
 package serverutils.utils.command;
 
-import com.feed_the_beast.ftblib.FTBLibConfig;
+import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.command.chunks.CmdChunks;
 import serverutils.utils.command.ranks.CmdRanks;
@@ -19,9 +19,6 @@ import serverutils.utils.command.tp.CmdWarp;
 
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
-/**
- * @author LatvianModder
- */
 public class ServerUtilitiesCommands {
 
     public static void registerCommands(FMLServerStartingEvent event) {
@@ -97,7 +94,7 @@ public class ServerUtilitiesCommands {
             event.registerServerCommand(new CmdLeaderboard());
         }
 
-        if (FTBLibConfig.debugging.special_commands) {
+        if (ServerUtilitiesLibConfig.debugging.special_commands) {
             event.registerServerCommand(new CmdCycleBlockState());
             event.registerServerCommand(new CmdDumpChunkloaders());
         }

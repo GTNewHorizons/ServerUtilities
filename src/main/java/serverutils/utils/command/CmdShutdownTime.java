@@ -3,15 +3,12 @@ package serverutils.utils.command;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import com.feed_the_beast.ftblib.FTBLib;
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilities;
-import serverutils.utils.data.FTBUtilitiesUniverseData;
+import serverutils.utils.data.ServerUtilitiesUniverseData;
 
-/**
- * @author LatvianModder
- */
 public class CmdShutdownTime extends CmdBase {
 
     public CmdShutdownTime() {
@@ -20,15 +17,15 @@ public class CmdShutdownTime extends CmdBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        if (FTBUtilitiesUniverseData.shutdownTime > 0L) {
+        if (ServerUtilitiesUniverseData.shutdownTime > 0L) {
             sender.addChatMessage(
                     ServerUtilities.lang(
                             sender,
-                            "ftbutilities.lang.timer.shutdown",
+                            "serverutilities.lang.timer.shutdown",
                             StringUtils.getTimeString(
-                                    FTBUtilitiesUniverseData.shutdownTime - System.currentTimeMillis())));
+                                    ServerUtilitiesUniverseData.shutdownTime - System.currentTimeMillis())));
         } else {
-            throw FTBLib.errorFeatureDisabledServer(sender);
+            throw ServerUtilitiesLib.errorFeatureDisabledServer(sender);
         }
     }
 }

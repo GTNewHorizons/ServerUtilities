@@ -1,20 +1,17 @@
 package serverutils.utils.data;
 
-import com.feed_the_beast.ftblib.lib.data.ForgeTeam;
-import com.feed_the_beast.ftblib.lib.math.ChunkDimPos;
+import serverutils.lib.lib.data.ForgeTeam;
+import serverutils.lib.lib.math.ChunkDimPos;
 
-/**
- * @author LatvianModder
- */
 public final class ClaimedChunk {
 
     private final ChunkDimPos pos;
-    private final FTBUtilitiesTeamData teamData;
+    private final ServerUtilitiesTeamData teamData;
     private boolean loaded;
     private boolean invalid;
     public Boolean forced;
 
-    public ClaimedChunk(ChunkDimPos c, FTBUtilitiesTeamData t) {
+    public ClaimedChunk(ChunkDimPos c, ServerUtilitiesTeamData t) {
         pos = c;
         teamData = t;
         loaded = false;
@@ -41,7 +38,7 @@ public final class ClaimedChunk {
         return teamData.team;
     }
 
-    public FTBUtilitiesTeamData getData() {
+    public ServerUtilitiesTeamData getData() {
         return teamData;
     }
 

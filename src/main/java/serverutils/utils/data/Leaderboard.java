@@ -10,9 +10,9 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.math.Ticks;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.math.Ticks;
+import serverutils.lib.lib.util.StringUtils;
 
 /**
  * @author LatvianModder

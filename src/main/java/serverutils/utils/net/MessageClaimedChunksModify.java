@@ -5,13 +5,13 @@ import java.util.Collection;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.ChunkCoordIntPair;
 
-import com.feed_the_beast.ftblib.FTBLibNotifications;
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
-import com.feed_the_beast.ftblib.lib.math.ChunkDimPos;
-import com.feed_the_beast.ftblib.lib.net.MessageToServer;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
+import serverutils.lib.ServerUtilitiesLibNotifications;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
+import serverutils.lib.lib.math.ChunkDimPos;
+import serverutils.lib.lib.net.MessageToServer;
+import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ClaimedChunks;
 
@@ -37,7 +37,7 @@ public class MessageClaimedChunksModify extends MessageToServer {
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.CLAIMS;
+        return ServerUtilitiesNetHandler.CLAIMS;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class MessageClaimedChunksModify extends MessageToServer {
         ForgePlayer p = ClaimedChunks.instance.universe.getPlayer(player);
 
         if (!p.hasTeam()) {
-            FTBLibNotifications.NO_TEAM.send(player.mcServer, player);
+            ServerUtilitiesLibNotifications.NO_TEAM.send(player.mcServer, player);
             return;
         }
 

@@ -44,8 +44,8 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
         dependencies = ServerUtilitiesLib.THIS_DEP)
 public class ServerUtilities {
 
-    public static final String MOD_ID = "ftbutilities";
-    public static final String MOD_NAME = "FTB Utilities";
+    public static final String MOD_ID = "serverutilities";
+    public static final String MOD_NAME = "Server Utilities";
     public static final String VERSION = "GRADLETOKEN_VERSION";
     public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
 

@@ -5,12 +5,9 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.util.NBTUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.util.NBTUtils;
 
-/**
- * @author LatvianModder
- */
 public class CmdFly extends CmdBase {
 
     public CmdFly() {

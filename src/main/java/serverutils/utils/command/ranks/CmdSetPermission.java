@@ -11,19 +11,16 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.FTBLib;
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.config.RankConfigAPI;
-import com.feed_the_beast.ftblib.lib.config.RankConfigValueInfo;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.config.RankConfigAPI;
+import serverutils.lib.lib.config.RankConfigValueInfo;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilities;
-import serverutils.utils.ranks.FTBUtilitiesPermissionHandler;
+import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.utils.ranks.Rank;
 import serverutils.utils.ranks.Ranks;
 
-/**
- * @author LatvianModder
- */
 public class CmdSetPermission extends CmdBase {
 
     public static final List<String> PERM_VARIANTS = Arrays.asList("true", "false", "none");
@@ -47,7 +44,7 @@ public class CmdSetPermission extends CmdBase {
             return Ranks.matchPossibleNodes(
                     args[args.length - 1],
                     Ranks.isActive() ? Ranks.INSTANCE.getPermissionNodes()
-                            : FTBUtilitiesPermissionHandler.INSTANCE.getRegisteredNodes());
+                            : ServerUtilitiesPermissionHandler.INSTANCE.getRegisteredNodes());
         } else if (args.length == 3) {
             RankConfigValueInfo info = RankConfigAPI.getHandler().getInfo(args[1]);
 
@@ -71,7 +68,7 @@ public class CmdSetPermission extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!Ranks.isActive()) {
-            throw FTBLib.error(sender, "feature_disabled_server");
+            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
         }
 
         checkArgs(sender, args, 3);
@@ -86,7 +83,7 @@ public class CmdSetPermission extends CmdBase {
         }
 
         if (rank.setPermission(node, value) == null) {
-            sender.addChatMessage(FTBLib.lang(sender, "nothing_changed"));
+            sender.addChatMessage(ServerUtilitiesLib.lang(sender, "nothing_changed"));
         } else {
             rank.ranks.save();
             IChatComponent nodeText = new ChatComponentText(node);

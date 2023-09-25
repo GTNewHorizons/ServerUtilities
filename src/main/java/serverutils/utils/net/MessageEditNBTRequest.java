@@ -3,24 +3,21 @@ package serverutils.utils.net;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.MovingObjectPosition;
 
-import com.feed_the_beast.ftblib.lib.client.ClientUtils;
-import com.feed_the_beast.ftblib.lib.net.MessageToClient;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
-import com.feed_the_beast.ftblib.lib.util.StringJoiner;
+import serverutils.lib.lib.client.ClientUtils;
+import serverutils.lib.lib.net.MessageToClient;
+import serverutils.lib.lib.net.NetworkWrapper;
+import serverutils.lib.lib.util.StringJoiner;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * @author LatvianModder
- */
 public class MessageEditNBTRequest extends MessageToClient {
 
     public MessageEditNBTRequest() {}
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.FILES;
+        return ServerUtilitiesNetHandler.FILES;
     }
 
     @Override

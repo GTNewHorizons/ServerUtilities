@@ -4,14 +4,14 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.EnumChatFormatting;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
-import serverutils.utils.data.FTBUtilitiesPlayerData;
+import serverutils.utils.data.ServerUtilitiesPlayerData;
 import serverutils.utils.net.MessageUpdateTabName;
 
 public class CmdNick extends CmdBase {
@@ -28,12 +28,12 @@ public class CmdNick extends CmdBase {
             throw new CommandException("commands.generic.permission");
         }
 
-        FTBUtilitiesPlayerData data = FTBUtilitiesPlayerData.get(player);
+        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(player);
         data.setNickname(StringUtils.joinSpaceUntilEnd(0, args));
 
         if (data.getNickname().isEmpty()) {
             player.getPlayer()
-                    .addChatMessage(ServerUtilities.lang(player.getPlayer(), "ftbutilities.lang.nickname_reset"));
+                    .addChatMessage(ServerUtilities.lang(player.getPlayer(), "serverutilities.lang.nickname_reset"));
         } else {
             String name = StringUtils.addFormatting(data.getNickname());
 
@@ -44,7 +44,7 @@ public class CmdNick extends CmdBase {
             }
 
             player.getPlayer()
-                    .addChatMessage(ServerUtilities.lang(player.getPlayer(), "ftbutilities.lang.nickname_changed", name));
+                    .addChatMessage(ServerUtilities.lang(player.getPlayer(), "serverutilities.lang.nickname_changed", name));
         }
 
         if (ServerUtilitiesConfig.chat.replace_tab_names) {

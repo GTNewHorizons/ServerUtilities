@@ -4,8 +4,8 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.util.FileUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.util.FileUtils;
 
 public class CmdShutdown extends CmdBase {
 

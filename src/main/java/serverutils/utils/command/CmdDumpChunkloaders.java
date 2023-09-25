@@ -14,12 +14,9 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeChunkManager;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.util.NBTUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.util.NBTUtils;
 
-/**
- * @author LatvianModder
- */
 public class CmdDumpChunkloaders extends CmdBase {
 
     public CmdDumpChunkloaders() {
@@ -90,14 +87,7 @@ public class CmdDumpChunkloaders extends CmdBase {
                             new HoverEvent(
                                     HoverEvent.Action.SHOW_TEXT,
                                     new ChatComponentText(
-                                            "(" + x
-                                                    + ','
-                                                    + y
-                                                    + ','
-                                                    + z
-                                                    + ")"
-                                                    + " ; "
-                                                    + ticket.getChunkList().toString())));
+                                            "(" + x + ',' + y + ',' + z + ")" + " ; " + ticket.getChunkList().toString())));
                     chunks.getChatStyle().setChatClickEvent(
                             new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tp " + x + " " + y + " " + z));
 

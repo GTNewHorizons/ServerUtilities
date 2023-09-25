@@ -7,12 +7,12 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.data.Universe;
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
-import com.feed_the_beast.ftblib.lib.net.MessageToClient;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.data.Universe;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
+import serverutils.lib.lib.net.MessageToClient;
+import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.data.LeaderboardValue;
 import serverutils.utils.gui.GuiLeaderboard;
@@ -71,7 +71,7 @@ public class MessageLeaderboardResponse extends MessageToClient {
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.STATS;
+        return ServerUtilitiesNetHandler.STATS;
     }
 
     @Override

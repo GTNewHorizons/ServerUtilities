@@ -13,117 +13,114 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBucket;
 
-import com.feed_the_beast.ftblib.events.RegisterRankConfigEvent;
-import com.feed_the_beast.ftblib.events.RegisterRankConfigHandlerEvent;
-import com.feed_the_beast.ftblib.lib.config.ConfigBoolean;
-import com.feed_the_beast.ftblib.lib.config.ConfigEnum;
-import com.feed_the_beast.ftblib.lib.config.ConfigInt;
-import com.feed_the_beast.ftblib.lib.config.ConfigString;
-import com.feed_the_beast.ftblib.lib.config.ConfigTimer;
-import com.feed_the_beast.ftblib.lib.math.Ticks;
-import com.feed_the_beast.ftblib.lib.util.permission.DefaultPermissionLevel;
-import com.feed_the_beast.ftblib.lib.util.permission.PermissionAPI;
-import com.feed_the_beast.ftblib.lib.util.text_components.TextComponentParser;
+import serverutils.lib.events.RegisterRankConfigEvent;
+import serverutils.lib.events.RegisterRankConfigHandlerEvent;
+import serverutils.lib.lib.config.ConfigBoolean;
+import serverutils.lib.lib.config.ConfigEnum;
+import serverutils.lib.lib.config.ConfigInt;
+import serverutils.lib.lib.config.ConfigString;
+import serverutils.lib.lib.config.ConfigTimer;
+import serverutils.lib.lib.math.Ticks;
+import serverutils.lib.lib.util.permission.DefaultPermissionLevel;
+import serverutils.lib.lib.util.permission.PermissionAPI;
+import serverutils.lib.lib.util.text_components.TextComponentParser;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.events.CustomPermissionPrefixesRegistryEvent;
-import serverutils.utils.ranks.FTBUtilitiesPermissionHandler;
+import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.utils.ranks.Rank;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.GameData;
 
-/**
- * @author LatvianModder
- */
 public class ServerUtilitiesPermissions {
 
     public static final ServerUtilitiesPermissions INST = new ServerUtilitiesPermissions();
     // Display //
-    public static final String DISPLAY_ADMIN_INFO = "ftbutilities.display.admin_info";
-    public static final String BADGE = "ftbutilities.badge";
+    public static final String DISPLAY_ADMIN_INFO = "serverutilities.display.admin_info";
+    public static final String BADGE = "serverutilities.badge";
 
     // Homes //
-    public static final String HOMES_CROSS_DIM = "ftbutilities.homes.cross_dim";
-    public static final String HOMES_MAX = "ftbutilities.homes.max";
-    public static final String HOMES_COOLDOWN = "ftbutilities.homes.cooldown";
-    public static final String HOMES_WARMUP = "ftbutilities.homes.warmup";
-    public static final String HOMES_LIST_OTHER = "ftbutilities.other_player.homes.list";
-    public static final String HOMES_TELEPORT_OTHER = "ftbutilities.other_player.homes.teleport";
+    public static final String HOMES_CROSS_DIM = "serverutilities.homes.cross_dim";
+    public static final String HOMES_MAX = "serverutilities.homes.max";
+    public static final String HOMES_COOLDOWN = "serverutilities.homes.cooldown";
+    public static final String HOMES_WARMUP = "serverutilities.homes.warmup";
+    public static final String HOMES_LIST_OTHER = "serverutilities.other_player.homes.list";
+    public static final String HOMES_TELEPORT_OTHER = "serverutilities.other_player.homes.teleport";
 
     // Warps //
-    public static final String WARPS_COOLDOWN = "ftbutilities.warps.cooldown";
-    public static final String WARPS_WARMUP = "ftbutilities.warps.warmup";
+    public static final String WARPS_COOLDOWN = "serverutilities.warps.cooldown";
+    public static final String WARPS_WARMUP = "serverutilities.warps.warmup";
 
-    public static final String HOMES_BACK = "ftbutilities.back.home";
-    public static final String WARPS_BACK = "ftbutilities.back.warp";
-    public static final String SPAWN_BACK = "ftbutilities.back.spawn";
-    public static final String TPA_BACK = "ftbutilities.back.tpa";
-    public static final String RTP_BACK = "ftbutilities.back.rtp";
-    public static final String RESPAWN_BACK = "ftbutilities.back.respawn";
-    public static final String BACK_BACK = "ftbutilities.back.back";
+    public static final String HOMES_BACK = "serverutilities.back.home";
+    public static final String WARPS_BACK = "serverutilities.back.warp";
+    public static final String SPAWN_BACK = "serverutilities.back.spawn";
+    public static final String TPA_BACK = "serverutilities.back.tpa";
+    public static final String RTP_BACK = "serverutilities.back.rtp";
+    public static final String RESPAWN_BACK = "serverutilities.back.respawn";
+    public static final String BACK_BACK = "serverutilities.back.back";
 
     // Claims //
-    public static final String CLAIMS_OTHER_SEE_INFO = "ftbutilities.other_player.claims.see_info";
-    public static final String CLAIMS_OTHER_CLAIM = "ftbutilities.other_player.claims.claim";
-    public static final String CLAIMS_OTHER_UNCLAIM = "ftbutilities.other_player.claims.unclaim";
-    public static final String CLAIMS_OTHER_LOAD = "ftbutilities.other_player.claims.load";
-    public static final String CLAIMS_OTHER_UNLOAD = "ftbutilities.other_player.claims.unload";
-    public static final String CLAIMS_MAX_CHUNKS = "ftbutilities.claims.max_chunks";
-    public static final String CLAIMS_BLOCK_EDIT_PREFIX = "ftbutilities.claims.block.edit";
-    public static final String CLAIMS_BLOCK_INTERACT_PREFIX = "ftbutilities.claims.block.interact";
-    public static final String CLAIMS_ITEM_PREFIX = "ftbutilities.claims.item";
-    public static final String CLAIMS_BYPASS_LIMITS = "ftbutilities.claims.bypass_limits";
-    public static final String CLAIMS_ATTACK_ANIMALS = "ftbutilities.claims.attack_animals";
+    public static final String CLAIMS_OTHER_SEE_INFO = "serverutilities.other_player.claims.see_info";
+    public static final String CLAIMS_OTHER_CLAIM = "serverutilities.other_player.claims.claim";
+    public static final String CLAIMS_OTHER_UNCLAIM = "serverutilities.other_player.claims.unclaim";
+    public static final String CLAIMS_OTHER_LOAD = "serverutilities.other_player.claims.load";
+    public static final String CLAIMS_OTHER_UNLOAD = "serverutilities.other_player.claims.unload";
+    public static final String CLAIMS_MAX_CHUNKS = "serverutilities.claims.max_chunks";
+    public static final String CLAIMS_BLOCK_EDIT_PREFIX = "serverutilities.claims.block.edit";
+    public static final String CLAIMS_BLOCK_INTERACT_PREFIX = "serverutilities.claims.block.interact";
+    public static final String CLAIMS_ITEM_PREFIX = "serverutilities.claims.item";
+    public static final String CLAIMS_BYPASS_LIMITS = "serverutilities.claims.bypass_limits";
+    public static final String CLAIMS_ATTACK_ANIMALS = "serverutilities.claims.attack_animals";
 
     public static final HashSet<Block> CLAIMS_BLOCK_EDIT_WHITELIST = new HashSet<>();
     public static final HashSet<Block> CLAIMS_BLOCK_INTERACT_WHITELIST = new HashSet<>();
     public static final HashSet<Item> CLAIMS_ITEM_BLACKLIST = new HashSet<>();
 
     // Chunkloader //
-    public static final String CHUNKLOADER_MAX_CHUNKS = "ftbutilities.chunkloader.max_chunks";
+    public static final String CHUNKLOADER_MAX_CHUNKS = "serverutilities.chunkloader.max_chunks";
     // public static final String CHUNKLOADER_OFFLINE_TIMER = ServerUtilities.MOD_ID +
     // ".chunkloader.offline_timer";
-    public static final String CHUNKLOADER_LOAD_OFFLINE = "ftbutilities.chunkloader.load_offline";
+    public static final String CHUNKLOADER_LOAD_OFFLINE = "serverutilities.chunkloader.load_offline";
 
     // Chat //
-    public static final String CHAT_SPEAK = "ftbutilities.chat.speak";
-    public static final String CHAT_FORMATTING = "ftbutilities.chat.formatting";
-    public static final String CHAT_NICKNAME_SET = "ftbutilities.chat.nickname.set";
-    public static final String CHAT_NICKNAME_COLORS = "ftbutilities.chat.nickname.colors";
-    public static final String CHAT_NAME_FORMAT = "ftbutilities.chat.name_format";
-    public static final String CHAT_TEXT_COLOR = "ftbutilities.chat.text.color";
-    public static final String CHAT_TEXT_BOLD = "ftbutilities.chat.text.bold";
-    public static final String CHAT_TEXT_ITALIC = "ftbutilities.chat.text.italic";
-    public static final String CHAT_TEXT_UNDERLINED = "ftbutilities.chat.text.underlined";
-    public static final String CHAT_TEXT_STRIKETHROUGH = "ftbutilities.chat.text.strikethrough";
-    public static final String CHAT_TEXT_OBFUSCATED = "ftbutilities.chat.text.obfuscated";
+    public static final String CHAT_SPEAK = "serverutilities.chat.speak";
+    public static final String CHAT_FORMATTING = "serverutilities.chat.formatting";
+    public static final String CHAT_NICKNAME_SET = "serverutilities.chat.nickname.set";
+    public static final String CHAT_NICKNAME_COLORS = "serverutilities.chat.nickname.colors";
+    public static final String CHAT_NAME_FORMAT = "serverutilities.chat.name_format";
+    public static final String CHAT_TEXT_COLOR = "serverutilities.chat.text.color";
+    public static final String CHAT_TEXT_BOLD = "serverutilities.chat.text.bold";
+    public static final String CHAT_TEXT_ITALIC = "serverutilities.chat.text.italic";
+    public static final String CHAT_TEXT_UNDERLINED = "serverutilities.chat.text.underlined";
+    public static final String CHAT_TEXT_STRIKETHROUGH = "serverutilities.chat.text.strikethrough";
+    public static final String CHAT_TEXT_OBFUSCATED = "serverutilities.chat.text.obfuscated";
 
     // Other //
-    public static final String INFINITE_BACK_USAGE = "ftbutilities.back.infinite";
-    public static final String CRASH_REPORTS_VIEW = "admin_panel.ftbutilities.crash_reports.view";
-    public static final String CRASH_REPORTS_DELETE = "admin_panel.ftbutilities.crash_reports.delete";
-    private static final String LEADERBOARD_PREFIX = "ftbutilities.leaderboard.";
-    public static final String EDIT_WORLD_GAMERULES = "admin_panel.ftbutilities.edit_world.gamerules";
-    public static final String RANKS_VIEW = "admin_panel.ftbutilities.ranks.view";
+    public static final String INFINITE_BACK_USAGE = "serverutilities.back.infinite";
+    public static final String CRASH_REPORTS_VIEW = "admin_panel.serverutilities.crash_reports.view";
+    public static final String CRASH_REPORTS_DELETE = "admin_panel.serverutilities.crash_reports.delete";
+    private static final String LEADERBOARD_PREFIX = "serverutilities.leaderboard.";
+    public static final String EDIT_WORLD_GAMERULES = "admin_panel.serverutilities.edit_world.gamerules";
+    public static final String RANKS_VIEW = "admin_panel.serverutilities.ranks.view";
 
-    public static final String TPA_COOLDOWN = "ftbutilities.tpa.cooldown";
-    public static final String SPAWN_COOLDOWN = "ftbutilities.spawn.cooldown";
-    public static final String BACK_COOLDOWN = "ftbutilities.back.cooldown";
-    public static final String RTP_COOLDOWN = "ftbutilities.rtp.cooldown";
+    public static final String TPA_COOLDOWN = "serverutilities.tpa.cooldown";
+    public static final String SPAWN_COOLDOWN = "serverutilities.spawn.cooldown";
+    public static final String BACK_COOLDOWN = "serverutilities.back.cooldown";
+    public static final String RTP_COOLDOWN = "serverutilities.rtp.cooldown";
 
-    public static final String TPA_WARMUP = "ftbutilities.tpa.warmup";
-    public static final String SPAWN_WARMUP = "ftbutilities.spawn.warmup";
-    public static final String BACK_WARMUP = "ftbutilities.back.warmup";
-    public static final String RTP_WARMUP = "ftbutilities.rtp.warmup";
+    public static final String TPA_WARMUP = "serverutilities.tpa.warmup";
+    public static final String SPAWN_WARMUP = "serverutilities.spawn.warmup";
+    public static final String BACK_WARMUP = "serverutilities.back.warmup";
+    public static final String RTP_WARMUP = "serverutilities.rtp.warmup";
 
-    public static final String TPA_CROSS_DIM = "ftbutilities.tpa.cross_dim";
-    public static final String AFK_TIMER = "ftbutilities.afk.timer";
-    public static final String HEAL_OTHER = "ftbutilities.other_player.heal";
+    public static final String TPA_CROSS_DIM = "serverutilities.tpa.cross_dim";
+    public static final String AFK_TIMER = "serverutilities.afk.timer";
+    public static final String HEAL_OTHER = "serverutilities.other_player.heal";
 
     @SubscribeEvent
     public void registerRankConfigHandler(RegisterRankConfigHandlerEvent event) {
         if (ServerUtilitiesConfig.ranks.enabled) {
-            event.setHandler(FTBUtilitiesPermissionHandler.INSTANCE);
+            event.setHandler(ServerUtilitiesPermissionHandler.INSTANCE);
         }
     }
 

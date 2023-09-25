@@ -4,17 +4,14 @@ import java.util.Objects;
 
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.EnumTeamColor;
-import com.feed_the_beast.ftblib.lib.io.Bits;
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
+import serverutils.lib.lib.EnumTeamColor;
+import serverutils.lib.lib.io.Bits;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
-/**
- * @author LatvianModder
- */
 public class ClientClaimedChunks {
 
     public static class Team {

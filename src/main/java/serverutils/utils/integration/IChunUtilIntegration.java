@@ -7,9 +7,6 @@ package serverutils.utils.integration;
 // import net.minecraftforge.fml.common.eventhandler.EventPriority;
 // import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * @author LatvianModder
- */
 public class IChunUtilIntegration {
     // public static void init() {
     // MinecraftForge.EVENT_BUS.register(IChunUtilIntegration.class);

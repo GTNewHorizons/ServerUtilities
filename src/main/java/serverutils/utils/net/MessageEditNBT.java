@@ -2,20 +2,17 @@ package serverutils.utils.net;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-import com.feed_the_beast.ftblib.FTBLibConfig;
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
-import com.feed_the_beast.ftblib.lib.net.MessageToClient;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
+import serverutils.lib.ServerUtilitiesLibConfig;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
+import serverutils.lib.lib.net.MessageToClient;
+import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.gui.GuiEditNBT;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * @author LatvianModder
- */
 public class MessageEditNBT extends MessageToClient {
 
     private NBTTagCompound info, mainNbt;
@@ -26,14 +23,14 @@ public class MessageEditNBT extends MessageToClient {
         info = i;
         mainNbt = nbt;
 
-        if (FTBLibConfig.debugging.log_config_editing) {
+        if (ServerUtilitiesLibConfig.debugging.log_config_editing) {
             ServerUtilities.LOGGER.info("Editing NBT: " + mainNbt);
         }
     }
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.FILES;
+        return ServerUtilitiesNetHandler.FILES;
     }
 
     @Override

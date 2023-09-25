@@ -9,16 +9,13 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.math.Ticks;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.math.Ticks;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.events.LeaderboardRegistryEvent;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * @author LatvianModder
- */
 public class ServerUtilitiesLeaderboards {
 
     public static final ServerUtilitiesLeaderboards INST = new ServerUtilitiesLeaderboards();
@@ -53,7 +50,7 @@ public class ServerUtilitiesLeaderboards {
         event.register(
                 new Leaderboard(
                         new ResourceLocation(ServerUtilities.MOD_ID, "deaths_per_hour"),
-                        new ChatComponentTranslation("ftbutilities.stat.dph"),
+                        new ChatComponentTranslation("serverutilities.stat.dph"),
                         player -> {
                             double d = getDPH(player);
                             return new ChatComponentText(d < 0D ? "-" : String.format("%.2f", d));
@@ -64,7 +61,7 @@ public class ServerUtilitiesLeaderboards {
         event.register(
                 new Leaderboard(
                         new ResourceLocation(ServerUtilities.MOD_ID, "last_seen"),
-                        new ChatComponentTranslation("ftbutilities.stat.last_seen"),
+                        new ChatComponentTranslation("serverutilities.stat.last_seen"),
                         player -> {
                             if (player.isOnline()) {
                                 IChatComponent component = new ChatComponentTranslation("gui.online");

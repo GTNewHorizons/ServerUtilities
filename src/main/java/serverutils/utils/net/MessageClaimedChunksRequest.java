@@ -3,12 +3,12 @@ package serverutils.utils.net;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.feed_the_beast.ftblib.lib.gui.misc.ChunkSelectorMap;
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
-import com.feed_the_beast.ftblib.lib.math.MathUtils;
-import com.feed_the_beast.ftblib.lib.net.MessageToServer;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
+import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
+import serverutils.lib.lib.math.MathUtils;
+import serverutils.lib.lib.net.MessageToServer;
+import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.utils.data.ClaimedChunks;
 
 public class MessageClaimedChunksRequest extends MessageToServer {
@@ -30,7 +30,7 @@ public class MessageClaimedChunksRequest extends MessageToServer {
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.CLAIMS;
+        return ServerUtilitiesNetHandler.CLAIMS;
     }
 
     @Override

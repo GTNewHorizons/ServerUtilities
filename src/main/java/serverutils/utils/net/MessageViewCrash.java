@@ -4,18 +4,15 @@ import java.io.File;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.feed_the_beast.ftblib.FTBLibConfig;
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
-import com.feed_the_beast.ftblib.lib.io.DataReader;
-import com.feed_the_beast.ftblib.lib.net.MessageToServer;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
-import com.feed_the_beast.ftblib.lib.util.permission.PermissionAPI;
+import serverutils.lib.ServerUtilitiesLibConfig;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
+import serverutils.lib.lib.io.DataReader;
+import serverutils.lib.lib.net.MessageToServer;
+import serverutils.lib.lib.net.NetworkWrapper;
+import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.utils.ServerUtilitiesPermissions;
 
-/**
- * @author LatvianModder
- */
 public class MessageViewCrash extends MessageToServer {
 
     private String id;
@@ -28,7 +25,7 @@ public class MessageViewCrash extends MessageToServer {
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.FILES;
+        return ServerUtilitiesNetHandler.FILES;
     }
 
     @Override
@@ -51,7 +48,7 @@ public class MessageViewCrash extends MessageToServer {
                     new MessageViewCrashResponse(file.getName(), DataReader.get(file).stringList()).sendTo(player);
                 }
             } catch (Exception ex) {
-                if (FTBLibConfig.debugging.print_more_errors) {
+                if (ServerUtilitiesLibConfig.debugging.print_more_errors) {
                     ex.printStackTrace();
                 }
             }

@@ -4,20 +4,17 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.feed_the_beast.ftblib.FTBLib;
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
-import com.feed_the_beast.ftblib.lib.math.ChunkDimPos;
-import com.feed_the_beast.ftblib.lib.util.text_components.Notification;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.lib.lib.math.ChunkDimPos;
+import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ClaimedChunks;
 
-/**
- * @author LatvianModder
- */
 public class CmdLoad extends CmdBase {
 
     public CmdLoad() {
@@ -27,7 +24,7 @@ public class CmdLoad extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!ClaimedChunks.isActive()) {
-            throw FTBLib.error(sender, "feature_disabled_server");
+            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
         }
 
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
@@ -39,7 +36,7 @@ public class CmdLoad extends CmdBase {
             Notification
                     .of(
                             ServerUtilitiesNotifications.CHUNK_MODIFIED,
-                            ServerUtilities.lang(player, "ftbutilities.lang.chunks.chunk_loaded"))
+                            ServerUtilities.lang(player, "serverutilities.lang.chunks.chunk_loaded"))
                     .send(player.mcServer, player);
             ServerUtilitiesNotifications.updateChunkMessage(player, pos);
         } else {

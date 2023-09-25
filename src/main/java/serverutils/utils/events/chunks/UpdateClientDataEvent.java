@@ -1,12 +1,9 @@
 package serverutils.utils.events.chunks;
 
-import serverutils.utils.events.FTBUtilitiesEvent;
+import serverutils.utils.events.ServerUtilitiesEvent;
 import serverutils.utils.net.MessageClaimedChunksUpdate;
 
-/**
- * @author LatvianModder
- */
-public class UpdateClientDataEvent extends FTBUtilitiesEvent {
+public class UpdateClientDataEvent extends ServerUtilitiesEvent {
 
     private final MessageClaimedChunksUpdate message;
 

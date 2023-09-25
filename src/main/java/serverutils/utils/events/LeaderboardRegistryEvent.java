@@ -7,7 +7,7 @@ import serverutils.utils.data.Leaderboard;
 /**
  * @author LatvianModder
  */
-public class LeaderboardRegistryEvent extends FTBUtilitiesEvent {
+public class LeaderboardRegistryEvent extends ServerUtilitiesEvent {
 
     private final Consumer<Leaderboard> callback;
 

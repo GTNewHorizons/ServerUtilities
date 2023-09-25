@@ -4,18 +4,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
-import com.feed_the_beast.ftblib.lib.net.MessageToClient;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
+import serverutils.lib.lib.net.MessageToClient;
+import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.utils.gui.GuiViewCrashList;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-/**
- * @author LatvianModder
- */
 public class MessageViewCrashList extends MessageToClient {
 
     private Collection<String> list;
@@ -38,7 +35,7 @@ public class MessageViewCrashList extends MessageToClient {
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.FILES;
+        return ServerUtilitiesNetHandler.FILES;
     }
 
     @Override

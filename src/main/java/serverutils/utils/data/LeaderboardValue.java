@@ -3,9 +3,6 @@ package serverutils.utils.data;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-/**
- * @author LatvianModder
- */
 public class LeaderboardValue {
 
     public String username;

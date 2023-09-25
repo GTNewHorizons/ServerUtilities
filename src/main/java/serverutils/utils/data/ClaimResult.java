@@ -1,8 +1,5 @@
 package serverutils.utils.data;
 
-/**
- * @author LatvianModder
- */
 public enum ClaimResult {
     SUCCESS,
     NO_TEAM,

@@ -1,8 +1,8 @@
 package serverutils.utils.integration;
 
-// import com.feed_the_beast.ftblib.lib.client.ClientUtils;
-// import com.feed_the_beast.ftblib.lib.gui.misc.ChunkSelectorMap;
-// import com.feed_the_beast.ftblib.lib.math.MathUtils;
+// import serverutils.lib.lib.client.ClientUtils;
+// import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
+// import serverutils.lib.lib.math.MathUtils;
 // import serverutils.utils.ServerUtilities;
 // import serverutils.utils.client.ServerUtilitiesClientConfig;
 // import serverutils.utils.chunks.events.UpdateClientDataEvent;
@@ -31,9 +31,6 @@ package serverutils.utils.integration;
 // import java.util.HashMap;
 // import java.util.Map;
 
-/**
- * @author LatvianModder
- */
 // @ClientPlugin
 public class JourneyMapIntegration // implements IClientPlugin
 {
@@ -98,7 +95,7 @@ public class JourneyMapIntegration // implements IClientPlugin
     // (ShapeProperties) chunk.team.shapeProperties, poly);
     // p.setOverlayGroupName("claimed_chunks");
     // p.setTitle(chunk.team.nameComponent.getFormattedText() + '\n' + EnumChatFormatting.GREEN
-    // + I18n.format("ftbutilities.lang.chunks.claimed_area"));
+    // + I18n.format("serverutilities.lang.chunks.claimed_area"));
     // polygons.put(pos, p);
     // clientAPI.show(p);
     // }

@@ -4,11 +4,8 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CmdBase;
 
-/**
- * @author LatvianModder
- */
 public class CmdCycleBlockState extends CmdBase {
 
     public CmdCycleBlockState() {

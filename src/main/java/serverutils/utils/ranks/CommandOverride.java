@@ -10,14 +10,11 @@ import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.feed_the_beast.ftblib.lib.command.CommandTreeBase;
+import serverutils.lib.lib.command.CommandTreeBase;
 
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.eventhandler.Event;
 
-/**
- * @author LatvianModder
- */
 public class CommandOverride extends CommandBase {
 
     public static ICommand create(ICommand command, String parent, @Nullable ModContainer container) {

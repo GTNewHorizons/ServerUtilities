@@ -8,15 +8,12 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.data.Universe;
-import com.feed_the_beast.ftblib.lib.util.NBTUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.data.Universe;
+import serverutils.lib.lib.util.NBTUtils;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.net.MessageUpdateTabName;
 
-/**
- * @author LatvianModder
- */
 public class CmdRec extends CmdBase {
 
     public CmdRec() {

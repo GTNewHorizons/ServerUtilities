@@ -12,15 +12,12 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.FTBLib;
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ranks.Rank;
 import serverutils.utils.ranks.Ranks;
 
-/**
- * @author LatvianModder
- */
 public class CmdInfo extends CmdBase {
 
     public CmdInfo() {
@@ -46,7 +43,7 @@ public class CmdInfo extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!Ranks.isActive()) {
-            throw FTBLib.error(sender, "feature_disabled_server");
+            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
         }
 
         checkArgs(sender, args, 1);

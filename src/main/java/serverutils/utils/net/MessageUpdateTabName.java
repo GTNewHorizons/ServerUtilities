@@ -6,11 +6,11 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
-import com.feed_the_beast.ftblib.lib.net.MessageToClient;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
-import com.feed_the_beast.ftblib.lib.util.NBTUtils;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
+import serverutils.lib.lib.net.MessageToClient;
+import serverutils.lib.lib.net.NetworkWrapper;
+import serverutils.lib.lib.util.NBTUtils;
 import serverutils.utils.ServerUtilitiesConfig;
 
 import cpw.mods.fml.relauncher.Side;
@@ -35,7 +35,7 @@ public class MessageUpdateTabName extends MessageToClient {
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.GENERAL;
+        return ServerUtilitiesNetHandler.GENERAL;
     }
 
     @Override

@@ -4,20 +4,17 @@ import java.io.File;
 
 import net.minecraftforge.common.config.Configuration;
 
-import com.feed_the_beast.ftblib.lib.math.Ticks;
+import serverutils.lib.lib.math.Ticks;
 
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
-/**
- * @author LatvianModder
- */
 public class ServerUtilitiesClientConfig {
 
     public static Configuration config;
 
     public static void init(FMLPreInitializationEvent event) {
         config = new Configuration(
-                new File(event.getModConfigurationDirectory() + "/../local/client/ftbutilities.cfg"));
+                new File(event.getModConfigurationDirectory() + "/../local/client/serverutilities.cfg"));
         sync();
     }
 

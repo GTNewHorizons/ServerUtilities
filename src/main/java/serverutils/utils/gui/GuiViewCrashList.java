@@ -6,18 +6,15 @@ import java.util.List;
 
 import net.minecraft.client.resources.I18n;
 
-import com.feed_the_beast.ftblib.lib.gui.GuiHelper;
-import com.feed_the_beast.ftblib.lib.gui.Panel;
-import com.feed_the_beast.ftblib.lib.gui.SimpleTextButton;
-import com.feed_the_beast.ftblib.lib.gui.misc.GuiButtonListBase;
-import com.feed_the_beast.ftblib.lib.icon.Icon;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
-import com.feed_the_beast.ftblib.lib.util.misc.MouseButton;
+import serverutils.lib.lib.gui.GuiHelper;
+import serverutils.lib.lib.gui.Panel;
+import serverutils.lib.lib.gui.SimpleTextButton;
+import serverutils.lib.lib.gui.misc.GuiButtonListBase;
+import serverutils.lib.lib.icon.Icon;
+import serverutils.lib.lib.util.StringUtils;
+import serverutils.lib.lib.util.misc.MouseButton;
 import serverutils.utils.net.MessageViewCrash;
 
-/**
- * @author LatvianModder
- */
 public class GuiViewCrashList extends GuiButtonListBase {
 
     private static class ButtonFile extends SimpleTextButton {
@@ -42,8 +39,8 @@ public class GuiViewCrashList extends GuiButtonListBase {
 
     @Override
     public String getTitle() {
-        return I18n.format("sidebar_button.ftblib.admin_panel") + " > "
-                + I18n.format("admin_panel.ftbutilities.crash_reports");
+        return I18n.format("sidebar_button.serverutilitieslib.admin_panel") + " > "
+                + I18n.format("admin_panel.serverutilities.crash_reports");
     }
 
     @Override

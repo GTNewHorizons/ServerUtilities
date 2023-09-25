@@ -21,8 +21,8 @@ import net.minecraft.network.status.server.S01PacketPong;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.util.StringUtils;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilities;
 
 public class CommandPing extends CmdBase {

@@ -4,12 +4,12 @@ import java.util.UUID;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.feed_the_beast.ftblib.lib.data.Universe;
-import com.feed_the_beast.ftblib.lib.io.DataIn;
-import com.feed_the_beast.ftblib.lib.io.DataOut;
-import com.feed_the_beast.ftblib.lib.net.MessageToServer;
-import com.feed_the_beast.ftblib.lib.net.NetworkWrapper;
-import serverutils.utils.data.FTBUtilitiesUniverseData;
+import serverutils.lib.lib.data.Universe;
+import serverutils.lib.lib.io.DataIn;
+import serverutils.lib.lib.io.DataOut;
+import serverutils.lib.lib.net.MessageToServer;
+import serverutils.lib.lib.net.NetworkWrapper;
+import serverutils.utils.data.ServerUtilitiesUniverseData;
 
 public class MessageRequestBadge extends MessageToServer {
 
@@ -23,7 +23,7 @@ public class MessageRequestBadge extends MessageToServer {
 
     @Override
     public NetworkWrapper getWrapper() {
-        return FTBUtilitiesNetHandler.GENERAL;
+        return ServerUtilitiesNetHandler.GENERAL;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class MessageRequestBadge extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
-        String badge = FTBUtilitiesUniverseData.getBadge(Universe.get(), playerId);
+        String badge = ServerUtilitiesUniverseData.getBadge(Universe.get(), playerId);
         new MessageSendBadge(playerId, badge).sendTo(player);
     }
 }

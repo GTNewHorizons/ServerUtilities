@@ -9,17 +9,14 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.config.ConfigBoolean;
-import com.feed_the_beast.ftblib.lib.config.ConfigValue;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.config.ConfigBoolean;
+import serverutils.lib.lib.config.ConfigValue;
 import serverutils.utils.ServerUtilities;
-import serverutils.utils.ranks.FTBUtilitiesPermissionHandler;
+import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.utils.ranks.Rank;
 import serverutils.utils.ranks.Ranks;
 
-/**
- * @author LatvianModder
- */
 public class CmdGetPermission extends CmdBase {
 
     public CmdGetPermission() {
@@ -37,7 +34,7 @@ public class CmdGetPermission extends CmdBase {
             return Ranks.matchPossibleNodes(
                     args[args.length - 1],
                     Ranks.isActive() ? Ranks.INSTANCE.getPermissionNodes()
-                            : FTBUtilitiesPermissionHandler.INSTANCE.getRegisteredNodes());
+                            : ServerUtilitiesPermissionHandler.INSTANCE.getRegisteredNodes());
         }
 
         return super.addTabCompletionOptions(sender, args);

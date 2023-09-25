@@ -6,15 +6,12 @@ import java.util.List;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import com.feed_the_beast.ftblib.FTBLib;
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.lib.command.CmdBase;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ranks.Rank;
 import serverutils.utils.ranks.Ranks;
 
-/**
- * @author LatvianModder
- */
 public class CmdDelete extends CmdBase {
 
     public CmdDelete() {
@@ -43,7 +40,7 @@ public class CmdDelete extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!Ranks.isActive()) {
-            throw FTBLib.error(sender, "feature_disabled_server");
+            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
         }
 
         checkArgs(sender, args, 1);
@@ -54,7 +51,7 @@ public class CmdDelete extends CmdBase {
             rank.ranks.save();
             sender.addChatMessage(ServerUtilities.lang(sender, "commands.ranks.delete.deleted", rank.getDisplayName()));
         } else {
-            sender.addChatMessage(FTBLib.lang(sender, "nothing_changed"));
+            sender.addChatMessage(ServerUtilitiesLib.lang(sender, "nothing_changed"));
         }
     }
 }

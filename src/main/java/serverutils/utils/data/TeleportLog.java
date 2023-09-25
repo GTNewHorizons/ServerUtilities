@@ -4,9 +4,9 @@ import java.util.Comparator;
 
 import net.minecraft.nbt.NBTTagCompound;
 
-import com.feed_the_beast.ftblib.lib.math.BlockDimPos;
-import com.feed_the_beast.ftblib.lib.math.TeleporterDimPos;
-import com.feed_the_beast.ftblib.lib.util.INBTSerializable;
+import serverutils.lib.lib.math.BlockDimPos;
+import serverutils.lib.lib.math.TeleporterDimPos;
+import serverutils.lib.lib.util.INBTSerializable;
 
 public class TeleportLog implements INBTSerializable<NBTTagCompound>, Comparable<TeleportLog> {
 

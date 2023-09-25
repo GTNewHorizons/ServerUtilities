@@ -5,11 +5,11 @@ import java.util.List;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.data.Universe;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.data.Universe;
 import serverutils.utils.ServerUtilities;
-import serverutils.utils.data.FTBUtilitiesPlayerData;
+import serverutils.utils.data.ServerUtilitiesPlayerData;
 
 public class CmdDelHome extends CmdBase {
 
@@ -22,7 +22,7 @@ public class CmdDelHome extends CmdBase {
         if (args.length == 1) {
             return getListOfStringsFromIterableMatchingLastWord(
                     args,
-                    FTBUtilitiesPlayerData.get(Universe.get().getPlayer(sender)).homes.list());
+                    ServerUtilitiesPlayerData.get(Universe.get().getPlayer(sender)).homes.list());
         }
 
         return super.addTabCompletionOptions(sender, args);
@@ -30,7 +30,7 @@ public class CmdDelHome extends CmdBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        FTBUtilitiesPlayerData data = FTBUtilitiesPlayerData.get(CommandUtils.getForgePlayer(sender));
+        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(sender));
 
         if (args.length == 0) {
             args = new String[] { "home" };
@@ -39,10 +39,10 @@ public class CmdDelHome extends CmdBase {
         args[0] = args[0].toLowerCase();
 
         if (data.homes.set(args[0], null)) {
-            sender.addChatMessage(ServerUtilities.lang(sender, "ftbutilities.lang.homes.del", args[0]));
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.homes.del", args[0]));
             data.player.markDirty();
         } else {
-            throw ServerUtilities.error(sender, "ftbutilities.lang.homes.not_set", args[0]);
+            throw ServerUtilities.error(sender, "serverutilities.lang.homes.not_set", args[0]);
         }
     }
 }

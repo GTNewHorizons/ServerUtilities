@@ -1,6 +1,6 @@
 package serverutils.utils.integration.kubejs;
 
-// import com.feed_the_beast.ftblib.lib.data.ForgePlayer;
+// import serverutils.lib.lib.data.ForgePlayer;
 // import serverutils.utils.chunks.events.ChunkModifiedEvent;
 // import dev.latvian.kubejs.event.EventJS;
 // import dev.latvian.kubejs.player.PlayerJS;
@@ -9,9 +9,6 @@ package serverutils.utils.integration.kubejs;
 //
 // import javax.annotation.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class ChunkModifiedEventJS // extends EventJS
 {
     // public final ChunkModifiedEvent event;

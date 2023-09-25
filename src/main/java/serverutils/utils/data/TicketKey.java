@@ -2,9 +2,6 @@ package serverutils.utils.data;
 
 import java.util.Objects;
 
-/**
- * @author LatvianModder
- */
 public final class TicketKey {
 
     public final int dimension;

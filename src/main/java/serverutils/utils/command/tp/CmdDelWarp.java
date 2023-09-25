@@ -5,10 +5,10 @@ import java.util.List;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.data.Universe;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.data.Universe;
 import serverutils.utils.ServerUtilities;
-import serverutils.utils.data.FTBUtilitiesUniverseData;
+import serverutils.utils.data.ServerUtilitiesUniverseData;
 
 public class CmdDelWarp extends CmdBase {
 
@@ -19,7 +19,7 @@ public class CmdDelWarp extends CmdBase {
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 1) {
-            return getListOfStringsFromIterableMatchingLastWord(args, FTBUtilitiesUniverseData.WARPS.list());
+            return getListOfStringsFromIterableMatchingLastWord(args, ServerUtilitiesUniverseData.WARPS.list());
         }
 
         return super.addTabCompletionOptions(sender, args);
@@ -31,11 +31,11 @@ public class CmdDelWarp extends CmdBase {
 
         args[0] = args[0].toLowerCase();
 
-        if (FTBUtilitiesUniverseData.WARPS.set(args[0], null)) {
-            sender.addChatMessage(ServerUtilities.lang(sender, "ftbutilities.lang.warps.del", args[0]));
+        if (ServerUtilitiesUniverseData.WARPS.set(args[0], null)) {
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.warps.del", args[0]));
             Universe.get().markDirty();
         } else {
-            throw ServerUtilities.error(sender, "ftbutilities.lang.warps.not_set", args[0]);
+            throw ServerUtilities.error(sender, "serverutilities.lang.warps.not_set", args[0]);
         }
     }
 }

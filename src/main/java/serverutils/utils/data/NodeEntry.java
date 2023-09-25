@@ -2,13 +2,10 @@ package serverutils.utils.data;
 
 import javax.annotation.Nullable;
 
-import com.feed_the_beast.ftblib.lib.config.ConfigBoolean;
-import com.feed_the_beast.ftblib.lib.config.ConfigValue;
-import com.feed_the_beast.ftblib.lib.util.permission.DefaultPermissionLevel;
+import serverutils.lib.lib.config.ConfigBoolean;
+import serverutils.lib.lib.config.ConfigValue;
+import serverutils.lib.lib.util.permission.DefaultPermissionLevel;
 
-/**
- * @author LatvianModder
- */
 public final class NodeEntry implements Comparable<NodeEntry> {
 
     public final String node;

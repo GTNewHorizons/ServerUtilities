@@ -6,14 +6,14 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import com.feed_the_beast.ftblib.lib.command.CmdBase;
-import com.feed_the_beast.ftblib.lib.command.CommandUtils;
-import com.feed_the_beast.ftblib.lib.config.RankConfigAPI;
-import com.feed_the_beast.ftblib.lib.data.Universe;
-import com.feed_the_beast.ftblib.lib.math.BlockDimPos;
+import serverutils.lib.lib.command.CmdBase;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.config.RankConfigAPI;
+import serverutils.lib.lib.data.Universe;
+import serverutils.lib.lib.math.BlockDimPos;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesPermissions;
-import serverutils.utils.data.FTBUtilitiesPlayerData;
+import serverutils.utils.data.ServerUtilitiesPlayerData;
 
 public class CmdSetHome extends CmdBase {
 
@@ -26,7 +26,7 @@ public class CmdSetHome extends CmdBase {
         if (args.length == 1) {
             return getListOfStringsFromIterableMatchingLastWord(
                     args,
-                    FTBUtilitiesPlayerData.get(Universe.get().getPlayer(sender)).homes.list());
+                    ServerUtilitiesPlayerData.get(Universe.get().getPlayer(sender)).homes.list());
         }
 
         return super.addTabCompletionOptions(sender, args);
@@ -37,10 +37,10 @@ public class CmdSetHome extends CmdBase {
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
 
         // if (player.isSpectator()) {
-        // throw ServerUtilities.error(sender, "ftbutilities.lang.homes.spectator");
+        // throw ServerUtilities.error(sender, "serverutilities.lang.homes.spectator");
         // }
 
-        FTBUtilitiesPlayerData data = FTBUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
+        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
 
         if (args.length == 0) {
             args = new String[] { "home" };
@@ -52,12 +52,12 @@ public class CmdSetHome extends CmdBase {
 
         if (maxHomes <= 0 || data.homes.size() >= maxHomes) {
             if (maxHomes == 0 || data.homes.get(args[0]) == null) {
-                throw ServerUtilities.error(sender, "ftbutilities.lang.homes.limit");
+                throw ServerUtilities.error(sender, "serverutilities.lang.homes.limit");
             }
         }
 
         data.homes.set(args[0], new BlockDimPos(sender));
-        sender.addChatMessage(ServerUtilities.lang(sender, "ftbutilities.lang.homes.set", args[0]));
+        sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.homes.set", args[0]));
         data.player.markDirty();
     }
 }

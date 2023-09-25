@@ -1,15 +1,12 @@
 package serverutils.utils.integration;
 
-// import com.feed_the_beast.ftblib.lib.util.InvUtils;
+// import serverutils.lib.lib.util.InvUtils;
 // import serverutils.utils.data.ClaimedChunks;
 // import mod.chiselsandbits.api.EventBlockBitModification;
 // import net.minecraftforge.common.MinecraftForge;
 // import net.minecraftforge.fml.common.eventhandler.EventPriority;
 // import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * @author LatvianModder
- */
 public class ChiselsAndBitsIntegration {
     // public static void init()
     // {
