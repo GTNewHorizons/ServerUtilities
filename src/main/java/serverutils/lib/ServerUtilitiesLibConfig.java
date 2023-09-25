@@ -29,7 +29,7 @@ public class ServerUtilitiesLibConfig {
                         GEN_CAT,
                         "cheats_enabled",
                         false,
-                        "When this is enabled, players are able to use ServerUtilitiesLib cheat commands.")
+                        "When this is enabled, players are able to use ServerUtilitiesLib cheat commands. //Does Nothing Right Now")
                 .getBoolean();
         general.clientless_mode = config.get(
                 GEN_CAT,

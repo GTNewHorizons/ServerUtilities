@@ -33,7 +33,7 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
     @Override
     @SuppressWarnings("unchecked")
     public void onResourceManagerReload(IResourceManager manager, Predicate<IResourceType> resourcePredicate) {
-        if (!resourcePredicate.test(ServerLibResourceType.SERVERLIB_CONFIG)) {
+        if (!resourcePredicate.test(ServerUtilitiesLibResourceType.SERVERUTILSLIB_CONFIG)) {
             return;
         }
 

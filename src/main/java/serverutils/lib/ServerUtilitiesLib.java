@@ -45,7 +45,7 @@ import serverutils.lib.lib.util.SidedUtils;
 public class ServerUtilitiesLib {
 
     public static final String MOD_ID = "Serverlib";
-    public static final String MOD_NAME = "ServerUtilitiesLibrary";
+    public static final String MOD_NAME = "Server Utilities Library";
     public static final String VERSION = "GRADLETOKEN_VERSION";
     public static final String THIS_DEP = "required-after:" + MOD_ID + "@[" + VERSION + ",)";
     public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);

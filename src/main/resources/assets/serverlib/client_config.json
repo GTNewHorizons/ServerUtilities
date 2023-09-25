@@ -1,7 +1,7 @@
 [
 	{
 		"id": "serverutilitieslib_client",
-		"name": "FTB Library",
+		"name": "Server Utilities Library",
 		"icon": "serverutilitieslib:textures/logo_small.png"
 	}
 ]

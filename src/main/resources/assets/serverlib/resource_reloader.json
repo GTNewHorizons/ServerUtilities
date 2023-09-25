@@ -1,10 +1,10 @@
 {
 	"groups": {
-		"ftb_client_configs": "com.feed_the_beast.serverutilitieslib.client.FTBLibResourceType.FTB_CONFIG",
-		"sidebar_buttons": "com.feed_the_beast.serverutilitieslib.client.FTBLibResourceType.FTB_SIDEBAR_BUTTONS"
+		"ftb_client_configs": "serverutils.lib.serverutilitieslib.client.ServerUtilitiesLibResourceType.SERVERUTILSLIB_CONFIG",
+		"sidebar_buttons": "serverutils.lib.serverutilitieslib.client.ServerUtilitiesLibResourceType.SERVERUTILSLIB_SIDEBAR_BUTTONS"
 	},
 	"listeners": {
-		"ftb_client_configs": "com.feed_the_beast.serverutilitieslib.client.FTBLibClientConfigManager",
-		"sidebar_buttons": "com.feed_the_beast.serverutilitieslib.client.SidebarButtonManager"
+		"ftb_client_configs": "serverutils.lib.serverutilitieslib.client.ServerUtilitiesLibClientConfigManager",
+		"sidebar_buttons": "serverutils.lib.serverutilitieslib.client.SidebarButtonManager"
 	}
 }

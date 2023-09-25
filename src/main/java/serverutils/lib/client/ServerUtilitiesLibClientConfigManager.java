@@ -24,7 +24,7 @@ public enum ServerUtilitiesLibClientConfigManager implements ISelectiveResourceR
 
     @Override
     public void onResourceManagerReload(IResourceManager manager, Predicate<IResourceType> resourcePredicate) {
-        if (!resourcePredicate.test(ServerLibResourceType.SERVERLIB_CONFIG)) {
+        if (!resourcePredicate.test(ServerUtilitiesLibResourceType.SERVERUTILSLIB_CONFIG)) {
             return;
         }
 
