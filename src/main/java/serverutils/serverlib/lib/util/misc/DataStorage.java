@@ -1,25 +1,21 @@
 package serverutils.serverlib.lib.util.misc;
 
-import serverutils.serverlib.lib.tile.EnumSaveType;
 import net.minecraft.nbt.NBTTagCompound;
 
-public abstract class DataStorage
-{
-	public static final DataStorage EMPTY = new DataStorage()
-	{
-		@Override
-		public void serializeNBT(NBTTagCompound nbt, EnumSaveType type)
-		{
-		}
+import serverutils.serverlib.lib.tile.EnumSaveType;
+
+public abstract class DataStorage {
+
+	public static final DataStorage EMPTY = new DataStorage() {
 
 		@Override
-		public void deserializeNBT(NBTTagCompound nbt, EnumSaveType type)
-		{
-		}
+		public void serializeNBT(NBTTagCompound nbt, EnumSaveType type) {}
 
 		@Override
-		public boolean isEmpty()
-		{
+		public void deserializeNBT(NBTTagCompound nbt, EnumSaveType type) {}
+
+		@Override
+		public boolean isEmpty() {
 			return true;
 		}
 	};
@@ -28,8 +24,7 @@ public abstract class DataStorage
 
 	public abstract void deserializeNBT(NBTTagCompound nbt, EnumSaveType type);
 
-	public boolean isEmpty()
-	{
+	public boolean isEmpty() {
 		return false;
 	}
 }

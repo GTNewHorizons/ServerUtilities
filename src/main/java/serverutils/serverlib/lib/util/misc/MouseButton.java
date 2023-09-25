@@ -1,19 +1,16 @@
 package serverutils.serverlib.lib.util.misc;
 
-public class MouseButton
-{
+public class MouseButton {
+
 	private static final MouseButton[] BUTTONS = new MouseButton[16];
 
-	static
-	{
-		for (int i = 0; i < BUTTONS.length; i++)
-		{
+	static {
+		for (int i = 0; i < BUTTONS.length; i++) {
 			BUTTONS[i] = new MouseButton(i);
 		}
 	}
 
-	public static MouseButton get(int i)
-	{
+	public static MouseButton get(int i) {
 		return i >= 0 && i < BUTTONS.length ? BUTTONS[i] : BUTTONS[BUTTONS.length - 1];
 	}
 
@@ -25,33 +22,27 @@ public class MouseButton
 
 	public final int id;
 
-	private MouseButton(int b)
-	{
+	private MouseButton(int b) {
 		id = b;
 	}
 
-	public int hashCode()
-	{
+	public int hashCode() {
 		return id;
 	}
 
-	public boolean isLeft()
-	{
+	public boolean isLeft() {
 		return id == LEFT.id;
 	}
 
-	public boolean isRight()
-	{
+	public boolean isRight() {
 		return id == RIGHT.id;
 	}
 
-	public boolean isMiddle()
-	{
+	public boolean isMiddle() {
 		return id == MIDDLE.id;
 	}
 
-	public int getId()
-	{
+	public int getId() {
 		return id;
 	}
 }

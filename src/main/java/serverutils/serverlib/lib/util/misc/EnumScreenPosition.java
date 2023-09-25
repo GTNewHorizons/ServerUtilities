@@ -1,9 +1,9 @@
 package serverutils.serverlib.lib.util.misc;
 
-import net.minecraft.util.IStringSerializable;
+import serverutils.serverlib.lib.util.IStringSerializable;
 
-public enum EnumScreenPosition implements IStringSerializable
-{
+public enum EnumScreenPosition implements IStringSerializable {
+
 	CENTER("center", 0, 0),
 	TOP("top", 0, -1),
 	BOTTOM("bottom", 0, 1),
@@ -19,23 +19,19 @@ public enum EnumScreenPosition implements IStringSerializable
 	private final String name;
 	public final int offsetX, offsetY;
 
-	EnumScreenPosition(String n, int ox, int oy)
-	{
+	EnumScreenPosition(String n, int ox, int oy) {
 		name = n;
 		offsetX = ox;
 		offsetY = oy;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public int getX(int screenWidth, int width, int offset)
-	{
-		switch (offsetX)
-		{
+	public int getX(int screenWidth, int width, int offset) {
+		switch (offsetX) {
 			case -1:
 				return offset;
 			case 1:
@@ -45,10 +41,8 @@ public enum EnumScreenPosition implements IStringSerializable
 		}
 	}
 
-	public int getY(int screenHeight, int height, int offset)
-	{
-		switch (offsetY)
-		{
+	public int getY(int screenHeight, int height, int offset) {
+		switch (offsetY) {
 			case -1:
 				return offset;
 			case 1:

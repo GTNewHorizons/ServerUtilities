@@ -1,7 +1,7 @@
 package serverutils.serverlib.lib.util.misc;
 
 @FunctionalInterface
-public interface BooleanConsumer
-{
+public interface BooleanConsumer {
+
 	void accept(boolean v);
 }

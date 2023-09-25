@@ -1,6 +1,6 @@
 package serverutils.serverlib.lib.util;
 
-public interface IWithID
-{
+public interface IWithID {
+
 	String getId();
 }

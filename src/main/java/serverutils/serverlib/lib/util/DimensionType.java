@@ -9,7 +9,7 @@ import net.minecraft.world.WorldProviderHell;
 import net.minecraft.world.WorldProviderSurface;
 import net.minecraftforge.common.util.EnumHelper;
 
-public enum DimensionType {
+public enum DimensionType { //TODO: DELETE??
     OVERWORLD(0, "overworld", "", WorldProviderSurface.class),
     NETHER(-1, "the_nether", "_nether", WorldProviderHell.class),
     THE_END(1, "the_end", "_end", WorldProviderEnd.class);

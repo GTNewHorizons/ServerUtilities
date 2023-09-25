@@ -1,7 +1,7 @@
 package serverutils.serverlib.lib.util.misc;
 
-public enum TimeType
-{
+public enum TimeType {
+
 	TICKS,
 	MILLIS;
 

@@ -2,34 +2,31 @@ package serverutils.serverlib.lib.util.misc;
 
 import serverutils.serverlib.lib.gui.GuiIcons;
 import serverutils.serverlib.lib.icon.Icon;
-import net.minecraft.util.IStringSerializable;
+import serverutils.serverlib.lib.util.IStringSerializable;
 
-public enum EnumPrivacyLevel implements IStringSerializable
-{
+public enum EnumPrivacyLevel implements IStringSerializable {
+
 	PUBLIC("public"),
 	PRIVATE("private"),
 	TEAM("team");
 
 	public static final EnumPrivacyLevel[] VALUES = values();
-	public static final NameMap<EnumPrivacyLevel> NAME_MAP = NameMap.createWithBaseTranslationKey(PUBLIC, "ftblib.privacy", VALUES);
+	public static final NameMap<EnumPrivacyLevel> NAME_MAP = NameMap
+			.createWithBaseTranslationKey(PUBLIC, "ftblib.privacy", VALUES);
 
 	private final String name;
 
-	EnumPrivacyLevel(String n)
-	{
+	EnumPrivacyLevel(String n) {
 		name = n;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public Icon getIcon()
-	{
-		switch (this)
-		{
+	public Icon getIcon() {
+		switch (this) {
 			case PRIVATE:
 				return GuiIcons.SECURITY_PRIVATE;
 			case TEAM:
@@ -39,8 +36,7 @@ public enum EnumPrivacyLevel implements IStringSerializable
 		}
 	}
 
-	public boolean isPublic()
-	{
+	public boolean isPublic() {
 		return this == PUBLIC;
 	}
 }

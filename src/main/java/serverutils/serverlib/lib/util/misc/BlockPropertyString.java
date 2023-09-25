@@ -1,12 +1,13 @@
 package serverutils.serverlib.lib.util.misc;
 
-import com.google.common.base.Optional;
-import net.minecraft.block.properties.PropertyHelper;
+//import com.google.common.base.Optional;
+//import net.minecraft.block.properties.PropertyHelper;
 
-import java.util.Collection;
-
-public class BlockPropertyString extends PropertyHelper<String>
+//import java.util.Collection;
+//TODO: Fix
+public class BlockPropertyString //extends PropertyHelper<String>
 {
+	/*
 	private final String name;
 	private final Collection<String> allowedValues;
 
@@ -40,4 +41,5 @@ public class BlockPropertyString extends PropertyHelper<String>
 	{
 		return value;
 	}
+	*/
 }

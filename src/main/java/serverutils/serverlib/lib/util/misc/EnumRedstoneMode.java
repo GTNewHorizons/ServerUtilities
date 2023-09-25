@@ -2,10 +2,10 @@ package serverutils.serverlib.lib.util.misc;
 
 import serverutils.serverlib.lib.gui.GuiIcons;
 import serverutils.serverlib.lib.icon.Icon;
-import net.minecraft.util.IStringSerializable;
+import serverutils.serverlib.lib.util.IStringSerializable;
 
-public enum EnumRedstoneMode implements IStringSerializable
-{
+public enum EnumRedstoneMode implements IStringSerializable {
+
 	DISABLED("disabled"),
 	ACTIVE_HIGH("active_high"),
 	ACTIVE_LOW("active_low"),
@@ -16,21 +16,17 @@ public enum EnumRedstoneMode implements IStringSerializable
 
 	private final String name;
 
-	EnumRedstoneMode(String n)
-	{
+	EnumRedstoneMode(String n) {
 		name = n;
 	}
 
 	@Override
-	public String getName()
-	{
+	public String getName() {
 		return name;
 	}
 
-	public boolean isActive(boolean prevValue, boolean value)
-	{
-		switch (this)
-		{
+	public boolean isActive(boolean prevValue, boolean value) {
+		switch (this) {
 			case DISABLED:
 				return false;
 			case ACTIVE_HIGH:
@@ -42,10 +38,8 @@ public enum EnumRedstoneMode implements IStringSerializable
 		}
 	}
 
-	public Icon getIcon()
-	{
-		switch (this)
-		{
+	public Icon getIcon() {
+		switch (this) {
 			case ACTIVE_HIGH:
 				return GuiIcons.RS_HIGH;
 			case ACTIVE_LOW:
