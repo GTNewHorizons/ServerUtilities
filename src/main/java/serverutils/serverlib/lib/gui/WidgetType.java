@@ -1,13 +1,12 @@
 package serverutils.serverlib.lib.gui;
 
-public enum WidgetType
-{
+public enum WidgetType {
+
 	NORMAL,
 	MOUSE_OVER,
 	DISABLED;
 
-	public static WidgetType mouseOver(boolean mouseOver)
-	{
+	public static WidgetType mouseOver(boolean mouseOver) {
 		return mouseOver ? MOUSE_OVER : NORMAL;
 	}
 }

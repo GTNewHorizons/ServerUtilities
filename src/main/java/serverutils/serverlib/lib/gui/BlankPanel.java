@@ -1,38 +1,29 @@
 package serverutils.serverlib.lib.gui;
 
-public class BlankPanel extends Panel
-{
+public class BlankPanel extends Panel {
+
 	public String id;
 
-	public BlankPanel(Panel panel)
-	{
+	public BlankPanel(Panel panel) {
 		this(panel, "");
 	}
 
-	public BlankPanel(Panel panel, String _id)
-	{
+	public BlankPanel(Panel panel, String _id) {
 		super(panel);
 		id = _id;
 	}
 
 	@Override
-	public void clearWidgets()
-	{
-	}
+	public void clearWidgets() {}
 
 	@Override
-	public void addWidgets()
-	{
-	}
+	public void addWidgets() {}
 
 	@Override
-	public void alignWidgets()
-	{
-	}
+	public void alignWidgets() {}
 
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return id.isEmpty() ? super.toString() : id;
 	}
 }

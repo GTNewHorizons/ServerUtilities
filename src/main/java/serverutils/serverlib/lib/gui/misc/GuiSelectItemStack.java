@@ -1,5 +1,9 @@
 package serverutils.serverlib.lib.gui.misc;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
@@ -10,8 +14,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.NonNullList;
-import serverutils.serverlib.ServerLib;
+import net.minecraft.util.MathHelper;
+
 import serverutils.serverlib.lib.config.ConfigInt;
 import serverutils.serverlib.lib.config.ConfigItemStack;
 import serverutils.serverlib.lib.config.ConfigNBT;
@@ -39,20 +43,17 @@ import serverutils.serverlib.lib.util.InvUtils;
 import serverutils.serverlib.lib.util.NBTUtils;
 import serverutils.serverlib.lib.util.misc.MouseButton;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
+import cpw.mods.fml.common.registry.GameData;
 
-public class GuiSelectItemStack extends GuiBase
-{
+public class GuiSelectItemStack extends GuiBase {
+
 	private static boolean allItems = true;
 
-	private class ItemStackButton extends Button
-	{
+	private class ItemStackButton extends Button {
+
 		private final ItemStack stack;
 
-		private ItemStackButton(Panel panel, ItemStack is)
-		{
+		private ItemStackButton(Panel panel, ItemStack is) {
 			super(panel, "", GuiIcons.BARRIER);
 			setSize(18, 18);
 			stack = is;
@@ -60,26 +61,21 @@ public class GuiSelectItemStack extends GuiBase
 			icon = null;
 		}
 
-		public boolean shouldAdd(String search, String mod)
-		{
-			if (search.isEmpty())
-			{
+		public boolean shouldAdd(String search, String mod) {
+			if (search.isEmpty()) {
 				return true;
 			}
 
-			if (!mod.isEmpty())
-			{
-				return stack.getItem().getRegistryName().getNamespace().contains(mod);
+			if (!mod.isEmpty()) {
+				return GameData.getItemRegistry().getNameForObject(stack.getItem()).contains(mod);
 			}
 
 			return stack.getDisplayName().toLowerCase().contains(search);
 		}
 
 		@Override
-		public String getTitle()
-		{
-			if (title == null)
-			{
+		public String getTitle() {
+			if (title == null) {
 				title = stack.getDisplayName();
 			}
 
@@ -87,125 +83,113 @@ public class GuiSelectItemStack extends GuiBase
 		}
 
 		@Override
-		public void addMouseOverText(List<String> list)
-		{
-		}
+		public void addMouseOverText(List<String> list) {}
 
 		@Override
-		public WidgetType getWidgetType()
-		{
+		public WidgetType getWidgetType() {
 			return InvUtils.stacksAreEqual(stack, selected) ? WidgetType.MOUSE_OVER : super.getWidgetType();
 		}
 
 		@Override
-		public void drawBackground(Theme theme, int x, int y, int w, int h)
-		{
-			(getWidgetType() == WidgetType.MOUSE_OVER ? Color4I.LIGHT_GREEN.withAlpha(70) : Color4I.BLACK.withAlpha(50)).draw(x, y, w, h);
+		public void drawBackground(Theme theme, int x, int y, int w, int h) {
+			(getWidgetType() == WidgetType.MOUSE_OVER ? Color4I.LIGHT_GREEN.withAlpha(70) : Color4I.BLACK.withAlpha(50))
+					.draw(x, y, w, h);
 		}
 
 		@Override
-		public void drawIcon(Theme theme, int x, int y, int w, int h)
-		{
-			if (stack.getItem() == ServerLib.CUSTOM_ICON_ITEM && stack.hasTagCompound() && !stack.getTagCompound().getString("icon").isEmpty())
-			{
+		public void drawIcon(Theme theme, int x, int y, int w, int h) {
+			// if (stack.getItem() == FTBLib.CUSTOM_ICON_ITEM && stack.hasTagCompound()
+			// && !stack.getTagCompound().getString("icon").isEmpty()) {
+			if (!stack.getTagCompound().getString("icon").isEmpty()) {
 				Icon.getIcon(stack.getTagCompound().getString("icon")).draw(x, y, w, h);
-			}
-			else
-			{
+			} else {
 				GuiHelper.drawItem(stack, x, y, w / 16D, h / 16D, true);
 			}
 		}
 
 		@Override
-		public void onClicked(MouseButton button)
-		{
+		public void onClicked(MouseButton button) {
 			GuiHelper.playClickSound();
 			selected = stack.copy();
 		}
 
 		@Override
-		public Object getIngredientUnderMouse()
-		{
+		public Object getIngredientUnderMouse() {
 			return new WrappedIngredient(stack).tooltip();
 		}
 	}
 
-	private class ButtonSwitchMode extends Button
-	{
+	private class ButtonSwitchMode extends Button {
+
 		private final Icon ICON_ALL = ItemIcon.getItemIcon(Items.compass);
 		private final Icon ICON_INV = ItemIcon.getItemIcon(Blocks.chest);
 
-		public ButtonSwitchMode(Panel panel)
-		{
+		public ButtonSwitchMode(Panel panel) {
 			super(panel);
 		}
 
 		@Override
-		public void drawIcon(Theme theme, int x, int y, int w, int h)
-		{
+		public void drawIcon(Theme theme, int x, int y, int w, int h) {
 			(allItems ? ICON_ALL : ICON_INV).draw(x, y, w, h);
 		}
 
 		@Override
-		public String getTitle()
-		{
-			return I18n.format("Serverlib.select_item.list_mode", EnumChatFormatting.GRAY + (allItems ? I18n.format("serverlib.select_item.list_mode.all") : I18n.format("serverlib.select_item.list_mode.inv"))) + EnumChatFormatting.DARK_GRAY + " [" + (panelStacks.widgets.size() - 1) + "]";
+		public String getTitle() {
+			return I18n.format(
+					"ftblib.select_item.list_mode",
+					EnumChatFormatting.GRAY + (allItems ? I18n.format("ftblib.select_item.list_mode.all")
+							: I18n.format("ftblib.select_item.list_mode.inv")))
+					+ EnumChatFormatting.DARK_GRAY
+					+ " ["
+					+ (panelStacks.widgets.size() - 1)
+					+ "]";
 		}
 
 		@Override
-		public void onClicked(MouseButton button)
-		{
+		public void onClicked(MouseButton button) {
 			GuiHelper.playClickSound();
 			allItems = !allItems;
 			panelStacks.refreshWidgets();
 		}
 	}
 
-	private abstract class ButtonStackConfig extends Button implements IConfigValueEditCallback
-	{
-		public ButtonStackConfig(Panel panel, String title, Icon icon)
-		{
+	private abstract class ButtonStackConfig extends Button implements IConfigValueEditCallback {
+
+		public ButtonStackConfig(Panel panel, String title, Icon icon) {
 			super(panel, title, icon);
 		}
 
 		@Override
-		public WidgetType getWidgetType()
-		{
-			return selected.isEmpty() ? WidgetType.DISABLED : super.getWidgetType();
+		public WidgetType getWidgetType() {
+			return selected == null ? WidgetType.DISABLED : super.getWidgetType();
 		}
 	}
 
-	private class ButtonEditData extends Button implements IConfigValueEditCallback
-	{
-		public ButtonEditData(Panel panel)
-		{
+	private class ButtonEditData extends Button implements IConfigValueEditCallback {
+
+		public ButtonEditData(Panel panel) {
 			super(panel, "", GuiIcons.BUG);
 		}
 
 		@Override
-		public void drawIcon(Theme theme, int x, int y, int w, int h)
-		{
+		public void drawIcon(Theme theme, int x, int y, int w, int h) {
 			GuiHelper.drawItem(selected, x, y, w / 16D, h / 16D, true);
 		}
 
 		@Override
-		public String getTitle()
-		{
+		public String getTitle() {
 			return selected.getDisplayName();
 		}
 
 		@Override
-		public void onClicked(MouseButton button)
-		{
+		public void onClicked(MouseButton button) {
 			GuiHelper.playClickSound();
 			new GuiEditConfigValue("itemstack", new ConfigItemStack(selected.copy(), single), this).openGui();
 		}
 
 		@Override
-		public void onCallback(ConfigValue value, boolean set)
-		{
-			if (set)
-			{
+		public void onCallback(ConfigValue value, boolean set) {
+			if (set) {
 				selected = ((ConfigItemStack) value).getStack();
 			}
 
@@ -213,31 +197,27 @@ public class GuiSelectItemStack extends GuiBase
 		}
 	}
 
-	private class ButtonCount extends ButtonStackConfig
-	{
-		public ButtonCount(Panel panel)
-		{
-			super(panel, I18n.format("serverlib.select_item.count"), ItemIcon.getItemIcon(Items.paper));
+	private class ButtonCount extends ButtonStackConfig {
+
+		public ButtonCount(Panel panel) {
+			super(panel, I18n.format("ftblib.select_item.count"), ItemIcon.getItemIcon(Items.paper));
 		}
 
 		@Override
-		public WidgetType getWidgetType()
-		{
+		public WidgetType getWidgetType() {
 			return single ? WidgetType.DISABLED : super.getWidgetType();
 		}
 
 		@Override
-		public void onClicked(MouseButton button)
-		{
+		public void onClicked(MouseButton button) {
 			GuiHelper.playClickSound();
-			new GuiEditConfigValue("count", new ConfigInt(selected.stackSize, 1, selected.getMaxStackSize()), this).openGui();
+			new GuiEditConfigValue("count", new ConfigInt(selected.stackSize, 1, selected.getMaxStackSize()), this)
+					.openGui();
 		}
 
 		@Override
-		public void onCallback(ConfigValue value, boolean set)
-		{
-			if (set)
-			{
+		public void onCallback(ConfigValue value, boolean set) {
+			if (set) {
 				selected.stackSize = value.getInt();
 			}
 
@@ -245,25 +225,24 @@ public class GuiSelectItemStack extends GuiBase
 		}
 	}
 
-	private class ButtonMeta extends ButtonStackConfig
-	{
-		public ButtonMeta(Panel panel)
-		{
-			super(panel, I18n.format("ftblib.select_item.meta"), ItemIcon.getItemIcon(new ItemStack(Blocks.stonebrick, 1, 2)));
+	private class ButtonMeta extends ButtonStackConfig {
+
+		public ButtonMeta(Panel panel) {
+			super(
+					panel,
+					I18n.format("ftblib.select_item.meta"),
+					ItemIcon.getItemIcon(new ItemStack(Blocks.stonebrick, 1, 2)));
 		}
 
 		@Override
-		public void onClicked(MouseButton button)
-		{
+		public void onClicked(MouseButton button) {
 			GuiHelper.playClickSound();
 			new GuiEditConfigValue("meta", new ConfigInt(selected.getItemDamage(), 0, Short.MAX_VALUE), this).openGui();
 		}
 
 		@Override
-		public void onCallback(ConfigValue value, boolean set)
-		{
-			if (set)
-			{
+		public void onCallback(ConfigValue value, boolean set) {
+			if (set) {
 				selected.setItemDamage(value.getInt());
 			}
 
@@ -271,25 +250,21 @@ public class GuiSelectItemStack extends GuiBase
 		}
 	}
 
-	private class ButtonNBT extends ButtonStackConfig
-	{
-		public ButtonNBT(Panel panel)
-		{
+	private class ButtonNBT extends ButtonStackConfig {
+
+		public ButtonNBT(Panel panel) {
 			super(panel, I18n.format("ftblib.select_item.nbt"), ItemIcon.getItemIcon(Items.name_tag));
 		}
 
 		@Override
-		public void onClicked(MouseButton button)
-		{
+		public void onClicked(MouseButton button) {
 			GuiHelper.playClickSound();
 			new GuiEditConfigValue("nbt", new ConfigNBT(selected.getTagCompound()), this).openGui();
 		}
 
 		@Override
-		public void onCallback(ConfigValue value, boolean set)
-		{
-			if (set)
-			{
+		public void onCallback(ConfigValue value, boolean set) {
+			if (set) {
 				selected.setTagCompound(((ConfigNBT) value).getNBT());
 			}
 
@@ -297,71 +272,60 @@ public class GuiSelectItemStack extends GuiBase
 		}
 	}
 
-	private class ButtonCaps extends ButtonStackConfig
-	{
-		public ButtonCaps(Panel panel)
-		{
+	private class ButtonCaps extends ButtonStackConfig {
+
+		public ButtonCaps(Panel panel) {
 			super(panel, I18n.format("ftblib.select_item.caps"), ItemIcon.getItemIcon(Blocks.anvil));
 		}
 
 		@Override
-		public void onClicked(MouseButton button)
-		{
+		public void onClicked(MouseButton button) {
 			GuiHelper.playClickSound();
 
-			NBTTagCompound nbt = selected.serializeNBT();
+			NBTTagCompound nbt = selected.writeToNBT(new NBTTagCompound());
 			new GuiEditConfigValue("caps", new ConfigNBT((NBTTagCompound) nbt.getTag("ForgeCaps")), this).openGui();
 		}
 
 		@Override
-		public void onCallback(ConfigValue value, boolean set)
-		{
-			if (set)
-			{
+		public void onCallback(ConfigValue value, boolean set) {
+			if (set) {
 				NBTTagCompound caps = ((ConfigNBT) value).getNBT();
-				NBTTagCompound nbt = selected.serializeNBT();
+				NBTTagCompound nbt = selected.writeToNBT(new NBTTagCompound());
 
-				if (caps == null)
-				{
+				if (caps == null) {
 					nbt.removeTag("ForgeCaps");
-				}
-				else
-				{
+				} else {
 					nbt.setTag("ForgeCaps", caps);
 				}
 
-				selected = new ItemStack(nbt);
+				selected = ItemStack.loadItemStackFromNBT(nbt);
 			}
 
 			openGui();
 		}
 	}
 
-	private class ButtonDisplayName extends ButtonStackConfig
-	{
-		public ButtonDisplayName(Panel panel)
-		{
+	private class ButtonDisplayName extends ButtonStackConfig {
+
+		public ButtonDisplayName(Panel panel) {
 			super(panel, I18n.format("ftblib.select_item.display_name"), ItemIcon.getItemIcon(Items.sign));
 		}
 
 		@Override
-		public void onClicked(MouseButton button)
-		{
+		public void onClicked(MouseButton button) {
 			GuiHelper.playClickSound();
-			new GuiEditConfigValue("name", new ConfigString(selected.hasDisplayName() ? selected.getDisplayName() : ""), this).openGui();
+			new GuiEditConfigValue(
+					"name",
+					new ConfigString(selected.hasDisplayName() ? selected.getDisplayName() : ""),
+					this).openGui();
 		}
 
 		@Override
-		public void onCallback(ConfigValue value, boolean set)
-		{
-			if (set)
-			{
-				if (!value.isEmpty())
-				{
+		public void onCallback(ConfigValue value, boolean set) {
+			if (set) {
+				if (!value.isEmpty()) {
 					selected.setStackDisplayName(value.getString());
-				}
-				else if (selected.hasTagCompound())
-				{
+				} else if (selected.hasTagCompound()) {
 					selected.getTagCompound().getCompoundTag("display").removeTag("Name");
 					selected.setTagCompound(NBTUtils.minimize(selected.getTagCompound()));
 				}
@@ -371,43 +335,34 @@ public class GuiSelectItemStack extends GuiBase
 		}
 	}
 
-	private class ThreadItemList extends Thread
-	{
+	private class ThreadItemList extends Thread {
+
 		private final String search;
 
-		public ThreadItemList()
-		{
+		public ThreadItemList() {
 			super("Item Search Thread");
 			setDaemon(true);
 			search = searchBox.getText().toLowerCase();
 		}
 
 		@Override
-		public void run()
-		{
+		public void run() {
 			List<Widget> widgets = new ArrayList<>();
-			NonNullList<ItemStack> list = NonNullList.create();
+			List<ItemStack> list = new ArrayList<>();
 
-			if (allItems)
-			{
-				for (Object i : Item.itemRegistry)
-				{
-					Item item = (Item) i;
-					item.getSubItems(CreativeTabs.SEARCH, list);
+			if (allItems) {
+				for (Item item : GameData.getItemRegistry().typeSafeIterable()) {
+					item.getSubItems(item, CreativeTabs.tabAllSearch, list);
 				}
 
 				list.add(new ItemStack(Blocks.command_block));
-				//list.add(new ItemStack(Blocks.BARRIER));
-				//list.add(new ItemStack(Blocks.STRUCTURE_VOID));
-			}
-			else
-			{
-				for (int i = 0; i < Minecraft.getMinecraft().thePlayer.inventory.getSizeInventory(); i++)
-				{
+				// list.add(new ItemStack(Blocks.BARRIER));
+				// list.add(new ItemStack(Blocks.STRUCTURE_VOID));
+			} else {
+				for (int i = 0; i < Minecraft.getMinecraft().thePlayer.inventory.getSizeInventory(); i++) {
 					ItemStack stack = Minecraft.getMinecraft().thePlayer.inventory.getStackInSlot(i);
 
-					if (!stack.isEmpty())
-					{
+					if (stack != null) {
 						list.add(stack);
 					}
 				}
@@ -415,33 +370,27 @@ public class GuiSelectItemStack extends GuiBase
 
 			String mod = "";
 
-			if (search.startsWith("@"))
-			{
+			if (search.startsWith("@")) {
 				mod = search.substring(1);
 			}
 
-			ItemStackButton button = new ItemStackButton(panelStacks, ItemStack.EMPTY);
+			ItemStackButton button = new ItemStackButton(panelStacks, InvUtils.EMPTY_STACK);
 
-			if (button.shouldAdd(search, mod))
-			{
-				widgets.add(new ItemStackButton(panelStacks, ItemStack.EMPTY));
+			if (button.shouldAdd(search, mod)) {
+				widgets.add(new ItemStackButton(panelStacks, InvUtils.EMPTY_STACK));
 			}
 
-			for (ItemStack stack : list)
-			{
-				if (!stack.isEmpty())
-				{
+			for (ItemStack stack : list) {
+				if (stack != null) {
 					button = new ItemStackButton(panelStacks, stack);
 
-					if (button.shouldAdd(search, mod))
-					{
+					if (button.shouldAdd(search, mod)) {
 						widgets.add(button);
 					}
 				}
 			}
 
-			for (int i = 0; i < widgets.size(); i++)
-			{
+			for (int i = 0; i < widgets.size(); i++) {
 				widgets.get(i).setPos(1 + (i % 9) * 19, 1 + (i / 9) * 19);
 			}
 
@@ -462,8 +411,7 @@ public class GuiSelectItemStack extends GuiBase
 	private List<Widget> newStackWidgets;
 	public long update = Long.MAX_VALUE;
 
-	public GuiSelectItemStack(IOpenableGui g, ItemStack is, boolean s, Consumer<ItemStack> c)
-	{
+	public GuiSelectItemStack(IOpenableGui g, ItemStack is, boolean s, Consumer<ItemStack> c) {
 		setSize(211, 150);
 		callbackGui = g;
 		selected = is;
@@ -472,55 +420,49 @@ public class GuiSelectItemStack extends GuiBase
 
 		int bsize = width / 2 - 10;
 
-		buttonCancel = new SimpleTextButton(this, I18n.format("gui.cancel"), Icon.EMPTY)
-		{
+		buttonCancel = new SimpleTextButton(this, I18n.format("gui.cancel"), Icon.EMPTY) {
+
 			@Override
-			public void onClicked(MouseButton button)
-			{
+			public void onClicked(MouseButton button) {
 				GuiHelper.playClickSound();
 				onClosed();
 				callbackGui.openGui();
 			}
 
 			@Override
-			public boolean renderTitleInCenter()
-			{
+			public boolean renderTitleInCenter() {
 				return true;
 			}
 		};
 
 		buttonCancel.setPosAndSize(8, height - 24, bsize, 16);
 
-		buttonAccept = new SimpleTextButton(this, I18n.format("gui.accept"), Icon.EMPTY)
-		{
+		buttonAccept = new SimpleTextButton(this, I18n.format("gui.accept"), Icon.EMPTY) {
+
 			@Override
-			public void onClicked(MouseButton button)
-			{
+			public void onClicked(MouseButton button) {
 				GuiHelper.playClickSound();
 				callbackGui.openGui();
 				callback.accept(selected);
 			}
 
 			@Override
-			public boolean renderTitleInCenter()
-			{
+			public boolean renderTitleInCenter() {
 				return true;
 			}
 		};
 
 		buttonAccept.setPosAndSize(width - bsize - 8, height - 24, bsize, 16);
 
-		panelStacks = new BlankPanel(this)
-		{
+		panelStacks = new BlankPanel(this) {
+
 			@Override
-			public void addWidgets()
-			{
+			public void addWidgets() {
 				update = System.currentTimeMillis() + 200L;
 			}
 
 			@Override
-			public void drawBackground(Theme theme, int x, int y, int w, int h)
-			{
+			public void drawBackground(Theme theme, int x, int y, int w, int h) {
 				theme.drawPanelBackground(x, y, w, h);
 			}
 		};
@@ -531,11 +473,10 @@ public class GuiSelectItemStack extends GuiBase
 		scrollBar.setCanAlwaysScroll(true);
 		scrollBar.setScrollStep(20);
 
-		searchBox = new TextBox(this)
-		{
+		searchBox = new TextBox(this) {
+
 			@Override
-			public void onTextChanged()
-			{
+			public void onTextChanged() {
 				panelStacks.refreshWidgets();
 			}
 		};
@@ -544,11 +485,10 @@ public class GuiSelectItemStack extends GuiBase
 		searchBox.ghostText = I18n.format("gui.search_box");
 		searchBox.setFocused(true);
 
-		tabs = new Panel(this)
-		{
+		tabs = new Panel(this) {
+
 			@Override
-			public void addWidgets()
-			{
+			public void addWidgets() {
 				add(new ButtonSwitchMode(this));
 				add(new ButtonEditData(this));
 				add(new ButtonCount(this));
@@ -559,10 +499,8 @@ public class GuiSelectItemStack extends GuiBase
 			}
 
 			@Override
-			public void alignWidgets()
-			{
-				for (Widget widget : widgets)
-				{
+			public void alignWidgets() {
+				for (Widget widget : widgets) {
 					widget.setSize(20, 20);
 				}
 
@@ -575,14 +513,12 @@ public class GuiSelectItemStack extends GuiBase
 		threadItemList.start();
 	}
 
-	public GuiSelectItemStack(IOpenableGui g, Consumer<ItemStack> c)
-	{
-		this(g, ItemStack.EMPTY, false, c);
+	public GuiSelectItemStack(IOpenableGui g, Consumer<ItemStack> c) {
+		this(g, InvUtils.EMPTY_STACK, false, c);
 	}
 
 	@Override
-	public void addWidgets()
-	{
+	public void addWidgets() {
 		add(tabs);
 		add(panelStacks);
 		add(scrollBar);
@@ -592,47 +528,41 @@ public class GuiSelectItemStack extends GuiBase
 	}
 
 	@Override
-	public void onClosed()
-	{
+	public void onClosed() {
 		super.onClosed();
 		stopSearch();
 	}
 
-	private void stopSearch()
-	{
-		if (threadItemList != null)
-		{
-			try
-			{
+	private void stopSearch() {
+		if (threadItemList != null) {
+			try {
 				threadItemList.interrupt();
-			}
-			catch (Exception ex)
-			{
-			}
+			} catch (Exception ex) {}
 		}
 
 		threadItemList = null;
 	}
 
 	@Override
-	public void drawBackground(Theme theme, int x, int y, int w, int h)
-	{
+	public void drawBackground(Theme theme, int x, int y, int w, int h) {
 		super.drawBackground(theme, x, y, w, h);
 
-		if (newStackWidgets != null)
-		{
+		if (newStackWidgets != null) {
 			panelStacks.widgets.clear();
 			panelStacks.addAll(newStackWidgets);
-			scrollBar.setPosAndSize(panelStacks.posX + panelStacks.width + 6, panelStacks.posY - 1, 16, panelStacks.height + 2);
+			scrollBar.setPosAndSize(
+					panelStacks.posX + panelStacks.width + 6,
+					panelStacks.posY - 1,
+					16,
+					panelStacks.height + 2);
 			scrollBar.setValue(0);
-			scrollBar.setMaxValue(1 + MathHelper.ceil(panelStacks.widgets.size() / 9F) * 19);
+			scrollBar.setMaxValue(1 + MathHelper.ceiling_float_int(panelStacks.widgets.size() / 9F) * 19);
 			newStackWidgets = null;
 		}
 
 		long now = System.currentTimeMillis();
 
-		if (now >= update)
-		{
+		if (now >= update) {
 			update = Long.MAX_VALUE;
 			stopSearch();
 			threadItemList = new ThreadItemList();
@@ -641,8 +571,7 @@ public class GuiSelectItemStack extends GuiBase
 	}
 
 	@Override
-	public boolean doesGuiPauseGame()
-	{
+	public boolean doesGuiPauseGame() {
 		GuiScreen screen = getPrevScreen();
 		return screen != null && screen.doesGuiPauseGame();
 	}

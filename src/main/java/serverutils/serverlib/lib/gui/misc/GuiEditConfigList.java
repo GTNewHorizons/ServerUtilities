@@ -1,7 +1,10 @@
 package serverutils.serverlib.lib.gui.misc;
 
+import java.util.List;
+
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.IChatComponent;
+
 import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.config.ConfigGroup;
 import serverutils.serverlib.lib.config.ConfigList;
@@ -21,58 +24,50 @@ import serverutils.serverlib.lib.icon.Color4I;
 import serverutils.serverlib.lib.icon.MutableColor4I;
 import serverutils.serverlib.lib.util.misc.MouseButton;
 
-import java.util.List;
+public class GuiEditConfigList extends GuiBase {
 
-public class GuiEditConfigList extends GuiBase
-{
-	public class ButtonConfigValue extends Button
-	{
+	public class ButtonConfigValue extends Button {
+
 		public final int index;
 		public final ConfigValueInstance inst;
 		private String valueString = null;
 
-		public ButtonConfigValue(Panel panel, int i, ConfigValueInstance v)
-		{
+		public ButtonConfigValue(Panel panel, int i, ConfigValueInstance v) {
 			super(panel);
 			index = i;
 			setHeight(12);
 			inst = v;
 		}
 
-		public String getValueString()
-		{
-			if (valueString == null)
-			{
-				valueString = getGui().getTheme().trimStringToWidth(inst.getValue().getStringForGUI().getFormattedText(), width);
+		public String getValueString() {
+			if (valueString == null) {
+				valueString = getGui().getTheme()
+						.trimStringToWidth(inst.getValue().getStringForGUI().getFormattedText(), width);
 			}
 
 			return valueString;
 		}
 
 		@Override
-		public void draw(Theme theme, int x, int y, int w, int h)
-		{
+		public void draw(Theme theme, int x, int y, int w, int h) {
 			boolean mouseOver = getMouseY() >= 20 && isMouseOver();
 
 			MutableColor4I textCol = inst.getValue().getColor().mutable();
 			textCol.setAlpha(255);
 
-			if (mouseOver)
-			{
+			if (mouseOver) {
 				textCol.addBrightness(60);
 
 				Color4I.WHITE.withAlpha(33).draw(x, y, w, h);
 
-				if (getMouseX() >= x + w - 19)
-				{
+				if (getMouseX() >= x + w - 19) {
 					Color4I.WHITE.withAlpha(33).draw(x + w - 19, y, 19, h);
 				}
 			}
 
 			theme.drawString(getValueString(), x + 4, y + 2, textCol, 0);
 
-			if (mouseOver)
-			{
+			if (mouseOver) {
 				theme.drawString("[-]", x + w - 16, y + 2, Color4I.WHITE, 0);
 			}
 
@@ -80,54 +75,42 @@ public class GuiEditConfigList extends GuiBase
 		}
 
 		@Override
-		public void onClicked(MouseButton button)
-		{
+		public void onClicked(MouseButton button) {
 			GuiHelper.playClickSound();
 
-			if (getMouseX() >= getX() + width - 19)
-			{
-				if (originalConfigList.getCanEdit())
-				{
+			if (getMouseX() >= getX() + width - 19) {
+				if (originalConfigList.getCanEdit()) {
 					configList.list.remove(index);
 					parent.refreshWidgets();
 				}
-			}
-			else
-			{
+			} else {
 				inst.getValue().onClicked(getGui(), inst, button, () -> {});
 			}
 		}
 
 		@Override
-		public void addMouseOverText(List<String> list)
-		{
-			if (getMouseX() >= getX() + width - 19)
-			{
+		public void addMouseOverText(List<String> list) {
+			if (getMouseX() >= getX() + width - 19) {
 				list.add(I18n.format("selectServer.delete"));
-			}
-			else
-			{
+			} else {
 				inst.getValue().addInfo(inst, list);
 			}
 		}
 	}
 
-	public class ButtonAddValue extends Button
-	{
-		public ButtonAddValue(Panel panel)
-		{
+	public class ButtonAddValue extends Button {
+
+		public ButtonAddValue(Panel panel) {
 			super(panel);
 			setHeight(12);
 			setTitle("+ " + I18n.format("gui.add"));
 		}
 
 		@Override
-		public void draw(Theme theme, int x, int y, int w, int h)
-		{
+		public void draw(Theme theme, int x, int y, int w, int h) {
 			boolean mouseOver = getMouseY() >= 20 && isMouseOver();
 
-			if (mouseOver)
-			{
+			if (mouseOver) {
 				Color4I.WHITE.withAlpha(33).draw(x, y, w, h);
 			}
 
@@ -136,17 +119,14 @@ public class GuiEditConfigList extends GuiBase
 		}
 
 		@Override
-		public void onClicked(MouseButton button)
-		{
+		public void onClicked(MouseButton button) {
 			GuiHelper.playClickSound();
 			configList.add(configList.type);
 			parent.refreshWidgets();
 		}
 
 		@Override
-		public void addMouseOverText(List<String> list)
-		{
-		}
+		public void addMouseOverText(List<String> list) {}
 	}
 
 	private final ConfigValueInstance originalConfigList;
@@ -158,8 +138,7 @@ public class GuiEditConfigList extends GuiBase
 	private final Button buttonAccept, buttonCancel;
 	private final PanelScrollBar scroll;
 
-	public GuiEditConfigList(ConfigValueInstance c, Runnable cb)
-	{
+	public GuiEditConfigList(ConfigValueInstance c, Runnable cb) {
 		originalConfigList = c;
 		callback = cb;
 		configList = (ConfigList<ConfigValue>) originalConfigList.getValue().copy();
@@ -168,27 +147,29 @@ public class GuiEditConfigList extends GuiBase
 		title0.getChatStyle().setBold(true);
 		title = title0.getFormattedText();
 
-		configPanel = new Panel(this)
-		{
+		configPanel = new Panel(this) {
+
 			@Override
-			public void addWidgets()
-			{
-				for (int i = 0; i < configList.list.size(); i++)
-				{
-					add(new ButtonConfigValue(this, i, new ConfigValueInstance(Integer.toString(i), ConfigGroup.DEFAULT, configList.list.get(i))));
+			public void addWidgets() {
+				for (int i = 0; i < configList.list.size(); i++) {
+					add(
+							new ButtonConfigValue(
+									this,
+									i,
+									new ConfigValueInstance(
+											Integer.toString(i),
+											ConfigGroup.DEFAULT,
+											configList.list.get(i))));
 				}
 
-				if (originalConfigList.getCanEdit())
-				{
+				if (originalConfigList.getCanEdit()) {
 					add(new ButtonAddValue(this));
 				}
 			}
 
 			@Override
-			public void alignWidgets()
-			{
-				for (Widget w : widgets)
-				{
+			public void alignWidgets() {
+				for (Widget w : widgets) {
 					w.setWidth(width - 16);
 				}
 
@@ -198,23 +179,23 @@ public class GuiEditConfigList extends GuiBase
 
 		scroll = new PanelScrollBar(this, configPanel);
 
-		buttonAccept = new SimpleButton(this, I18n.format("gui.accept"), GuiIcons.ACCEPT, (widget, button) ->
-		{
+		buttonAccept = new SimpleButton(this, I18n.format("gui.accept"), GuiIcons.ACCEPT, (widget, button) -> {
 			widget.getGui().closeGui();
 			originalConfigList.getValue().setValueFromOtherValue(configList);
 			callback.run();
 		});
 
-		buttonCancel = new SimpleButton(this, I18n.format("gui.cancel"), GuiIcons.CANCEL, (widget, button) -> widget.getGui().closeGui());
+		buttonCancel = new SimpleButton(
+				this,
+				I18n.format("gui.cancel"),
+				GuiIcons.CANCEL,
+				(widget, button) -> widget.getGui().closeGui());
 	}
 
 	@Override
-	public boolean onInit()
-	{
-		for (Widget widget : configPanel.widgets)
-		{
-			if (widget instanceof ButtonConfigValue)
-			{
+	public boolean onInit() {
+		for (Widget widget : configPanel.widgets) {
+			if (widget instanceof ButtonConfigValue) {
 				((ButtonConfigValue) widget).valueString = null;
 			}
 		}
@@ -223,8 +204,7 @@ public class GuiEditConfigList extends GuiBase
 	}
 
 	@Override
-	public void addWidgets()
-	{
+	public void addWidgets() {
 		add(buttonAccept);
 		add(buttonCancel);
 		add(configPanel);
@@ -232,8 +212,7 @@ public class GuiEditConfigList extends GuiBase
 	}
 
 	@Override
-	public void alignWidgets()
-	{
+	public void alignWidgets() {
 		configPanel.setPosAndSize(0, 20, width, height - 20);
 		configPanel.alignWidgets();
 		scroll.setPosAndSize(width - 16, 20, 16, height - 20);
@@ -243,10 +222,8 @@ public class GuiEditConfigList extends GuiBase
 	}
 
 	@Override
-	public boolean onClosedByKey(int key)
-	{
-		if (super.onClosedByKey(key))
-		{
+	public boolean onClosedByKey(int key) {
+		if (super.onClosedByKey(key)) {
 			buttonCancel.onClicked(MouseButton.LEFT);
 		}
 
@@ -254,21 +231,18 @@ public class GuiEditConfigList extends GuiBase
 	}
 
 	@Override
-	public void drawBackground(Theme theme, int x, int y, int w, int h)
-	{
+	public void drawBackground(Theme theme, int x, int y, int w, int h) {
 		GuiEditConfig.COLOR_BACKGROUND.draw(0, 0, w, 20);
 		theme.drawString(getTitle(), 6, 6, Theme.SHADOW);
 	}
 
 	@Override
-	public String getTitle()
-	{
+	public String getTitle() {
 		return title;
 	}
 
 	@Override
-	public Theme getTheme()
-	{
+	public Theme getTheme() {
 		return GuiEditConfig.THEME;
 	}
 }

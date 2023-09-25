@@ -1,54 +1,46 @@
 package serverutils.serverlib.lib.gui;
 
-import serverutils.serverlib.lib.icon.Icon;
-
 import java.util.List;
 
-public abstract class SimpleTextButton extends Button
-{
-	public SimpleTextButton(Panel panel, String txt, Icon icon)
-	{
+import serverutils.serverlib.lib.icon.Icon;
+
+public abstract class SimpleTextButton extends Button {
+
+	public SimpleTextButton(Panel panel, String txt, Icon icon) {
 		super(panel, txt, icon);
 		setWidth(panel.getGui().getTheme().getStringWidth(txt) + (hasIcon() ? 28 : 8));
 		setHeight(20);
 	}
 
 	@Override
-	public SimpleTextButton setTitle(String txt)
-	{
+	public SimpleTextButton setTitle(String txt) {
 		super.setTitle(txt);
 		setWidth(getGui().getTheme().getStringWidth(getTitle()) + (hasIcon() ? 28 : 8));
 		return this;
 	}
 
-	public boolean renderTitleInCenter()
-	{
+	public boolean renderTitleInCenter() {
 		return false;
 	}
 
 	@Override
-	public Object getIngredientUnderMouse()
-	{
+	public Object getIngredientUnderMouse() {
 		return icon.getIngredient();
 	}
 
-	public boolean hasIcon()
-	{
+	public boolean hasIcon() {
 		return !icon.isEmpty();
 	}
 
 	@Override
-	public void addMouseOverText(List<String> list)
-	{
-		if (getGui().getTheme().getStringWidth(getTitle()) + (hasIcon() ? 28 : 8) > width)
-		{
+	public void addMouseOverText(List<String> list) {
+		if (getGui().getTheme().getStringWidth(getTitle()) + (hasIcon() ? 28 : 8) > width) {
 			list.add(getTitle());
 		}
 	}
 
 	@Override
-	public void draw(Theme theme, int x, int y, int w, int h)
-	{
+	public void draw(Theme theme, int x, int y, int w, int h) {
 		drawBackground(theme, x, y, w, h);
 		int s = h >= 16 ? 16 : 8;
 		int off = (h - s) / 2;
@@ -59,23 +51,18 @@ public abstract class SimpleTextButton extends Button
 		int sw = theme.getStringWidth(title);
 		int mw = w - (hasIcon() ? off + s : 0) - 6;
 
-		if (sw > mw)
-		{
+		if (sw > mw) {
 			sw = mw;
 			title = theme.trimStringToWidth(title, mw);
 		}
 
-		if (renderTitleInCenter())
-		{
+		if (renderTitleInCenter()) {
 			textX += (mw - sw + 6) / 2;
-		}
-		else
-		{
+		} else {
 			textX += 4;
 		}
 
-		if (hasIcon())
-		{
+		if (hasIcon()) {
 			drawIcon(theme, x + off, y + off, s, s);
 			textX += off + s;
 		}

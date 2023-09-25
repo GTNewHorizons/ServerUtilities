@@ -2,8 +2,8 @@ package serverutils.serverlib.lib.gui;
 
 import serverutils.serverlib.lib.icon.Icon;
 
-public interface GuiIcons
-{
+public interface GuiIcons {
+
 	Icon BLUE_BUTTON = get("blue_button");
 	Icon UP = get("up");
 	Icon DOWN = get("down");
@@ -68,24 +68,18 @@ public interface GuiIcons
 	Icon CHECK = get("check");
 	Icon STAR = get("star");
 	Icon HEART = get("heart");
-	Icon BOOK = Icon.getIcon("minecraft:items/book_normal");
-	Icon BOOK_RED = Icon.getIcon("minecraft:items/book_enchanted");
-	Icon BARRIER = Icon.getIcon("minecraft:items/barrier");
+	Icon BOOK = Icon.getIcon("minecraft:textures/items/book_normal.png");
+	Icon BOOK_RED = Icon.getIcon("minecraft:textures/items/book_enchanted.png");
+	Icon BARRIER = CANCEL;
 	Icon TOGGLE_GAMEMODE = get("toggle_gamemode");
 	Icon TOGGLE_RAIN = get("toggle_rain");
 	Icon TOGGLE_DAY = get("toggle_day");
 	Icon TOGGLE_NIGHT = get("toggle_night");
 	Icon LOCK = get("lock");
 	Icon LOCK_OPEN = get("lock_open");
-	Icon SUPPORT = getImage("support");
+	Icon SUPPORT = get("support");
 
-	static Icon get(String id)
-	{
-		return Icon.getIcon("serverlib:icons/" + id);
-	}
-
-	static Icon getImage(String id)
-	{
+	static Icon get(String id) {
 		return Icon.getIcon("serverlib:textures/icons/" + id + ".png");
 	}
 }

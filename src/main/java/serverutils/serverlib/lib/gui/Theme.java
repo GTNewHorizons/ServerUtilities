@@ -1,8 +1,16 @@
 package serverutils.serverlib.lib.gui;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.List;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.IChatComponent;
+
 import serverutils.serverlib.ServerLib;
 import serverutils.serverlib.lib.client.GlStateManager;
 import serverutils.serverlib.lib.icon.Color4I;
@@ -10,15 +18,9 @@ import serverutils.serverlib.lib.icon.Icon;
 import serverutils.serverlib.lib.icon.ImageIcon;
 import serverutils.serverlib.lib.icon.PartIcon;
 import serverutils.serverlib.lib.io.Bits;
-import it.unimi.dsi.fastutil.booleans.BooleanArrayList;
-import it.unimi.dsi.fastutil.booleans.BooleanStack;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+public class Theme {
 
-public class Theme
-{
 	public static final Theme DEFAULT = new Theme();
 	public static boolean renderDebugBoxes = false;
 
@@ -33,11 +35,13 @@ public class Theme
 	private static final Color4I CONTENT_COLOR_DISABLED = Color4I.rgb(10526880);
 	private static final Color4I CONTENT_COLOR_DARK = Color4I.rgb(4210752);
 
-	public static final ImageIcon BACKGROUND_SQUARES = (ImageIcon) Icon.getIcon(ServerLib.MOD_ID + ":textures/gui/background_squares.png");
+	public static final ImageIcon BACKGROUND_SQUARES = (ImageIcon) Icon
+			.getIcon(ServerLib.MOD_ID + ":textures/gui/background_squares.png");
 	private static final ImageIcon TEXTURE_BEACON = (ImageIcon) Icon.getIcon("textures/gui/container/beacon.png");
 	private static final ImageIcon TEXTURE_WIDGETS = (ImageIcon) Icon.getIcon("textures/gui/widgets.png");
 	private static final ImageIcon TEXTURE_RECIPE_BOOK = (ImageIcon) Icon.getIcon("textures/gui/recipe_book.png");
-	private static final ImageIcon TEXTURE_ENCHANTING_TABLE = (ImageIcon) Icon.getIcon("textures/gui/container/enchanting_table.png");
+	private static final ImageIcon TEXTURE_ENCHANTING_TABLE = (ImageIcon) Icon
+			.getIcon("textures/gui/container/enchanting_table.png");
 
 	private static final Icon GUI = new PartIcon(TEXTURE_RECIPE_BOOK, 82, 208, 32, 32, 8);
 	private static final Icon GUI_MOUSE_OVER = GUI.withTint(Color4I.rgb(0xAFB6DA));
@@ -61,131 +65,108 @@ public class Theme
 	private static final Icon TAB_H_UNSELECTED = TEXTURE_RECIPE_BOOK.withUV(150, 2, 35, 26, 256, 256);
 	private static final Icon TAB_H_SELECTED = TEXTURE_RECIPE_BOOK.withUV(188, 2, 35, 26, 256, 256);
 
-	private final BooleanStack fontUnicode = new BooleanArrayList();
+	private final Deque<Boolean> fontUnicode = new ArrayDeque<>();
 
-	public Color4I getContentColor(WidgetType type)
-	{
-		return type == WidgetType.MOUSE_OVER ? CONTENT_COLOR_MOUSE_OVER : type == WidgetType.DISABLED ? CONTENT_COLOR_DISABLED : Color4I.WHITE;
+	public Color4I getContentColor(WidgetType type) {
+		return type == WidgetType.MOUSE_OVER ? CONTENT_COLOR_MOUSE_OVER
+				: type == WidgetType.DISABLED ? CONTENT_COLOR_DISABLED : Color4I.WHITE;
 	}
 
-	public Color4I getInvertedContentColor()
-	{
+	public Color4I getInvertedContentColor() {
 		return CONTENT_COLOR_DARK;
 	}
 
-	public void drawGui(int x, int y, int w, int h, WidgetType type)
-	{
+	public void drawGui(int x, int y, int w, int h, WidgetType type) {
 		(type == WidgetType.MOUSE_OVER ? GUI_MOUSE_OVER : GUI).draw(x, y, w, h);
 	}
 
-	public void drawWidget(int x, int y, int w, int h, WidgetType type)
-	{
-		(type == WidgetType.MOUSE_OVER ? WIDGET_MOUSE_OVER : type == WidgetType.DISABLED ? WIDGET_DISABLED : WIDGET).draw(x, y, w, h);
+	public void drawWidget(int x, int y, int w, int h, WidgetType type) {
+		(type == WidgetType.MOUSE_OVER ? WIDGET_MOUSE_OVER : type == WidgetType.DISABLED ? WIDGET_DISABLED : WIDGET)
+				.draw(x, y, w, h);
 	}
 
-	public void drawSlot(int x, int y, int w, int h, WidgetType type)
-	{
+	public void drawSlot(int x, int y, int w, int h, WidgetType type) {
 		(type == WidgetType.MOUSE_OVER ? SLOT_MOUSE_OVER : SLOT).draw(x, y, w, h);
 	}
 
-	public void drawContainerSlot(int x, int y, int w, int h)
-	{
+	public void drawContainerSlot(int x, int y, int w, int h) {
 		SLOT.draw(x - 1, y - 1, w + 2, h + 2);
 	}
 
-	public void drawButton(int x, int y, int w, int h, WidgetType type)
-	{
-		(type == WidgetType.MOUSE_OVER ? BUTTON_MOUSE_OVER : type == WidgetType.DISABLED ? BUTTON_DISABLED : BUTTON).draw(x, y, w, h);
+	public void drawButton(int x, int y, int w, int h, WidgetType type) {
+		(type == WidgetType.MOUSE_OVER ? BUTTON_MOUSE_OVER : type == WidgetType.DISABLED ? BUTTON_DISABLED : BUTTON)
+				.draw(x, y, w, h);
 	}
 
-	public void drawScrollBarBackground(int x, int y, int w, int h, WidgetType type)
-	{
+	public void drawScrollBarBackground(int x, int y, int w, int h, WidgetType type) {
 		(type == WidgetType.DISABLED ? SCROLL_BAR_BG_DISABLED : SCROLL_BAR_BG).draw(x, y, w, h);
 	}
 
-	public void drawScrollBar(int x, int y, int w, int h, WidgetType type, boolean vertical)
-	{
+	public void drawScrollBar(int x, int y, int w, int h, WidgetType type, boolean vertical) {
 		(type == WidgetType.MOUSE_OVER ? WIDGET_MOUSE_OVER : WIDGET).draw(x + 1, y + 1, w - 2, h - 2);
 	}
 
-	public void drawTextBox(int x, int y, int w, int h)
-	{
+	public void drawTextBox(int x, int y, int w, int h) {
 		TEXT_BOX.draw(x, y, w, h);
 	}
 
-	public void drawCheckboxBackground(int x, int y, int w, int h, boolean radioButton)
-	{
+	public void drawCheckboxBackground(int x, int y, int w, int h, boolean radioButton) {
 		drawSlot(x, y, w, h, WidgetType.NORMAL);
 	}
 
-	public void drawCheckbox(int x, int y, int w, int h, WidgetType type, boolean selected, boolean radioButton)
-	{
-		if (selected)
-		{
+	public void drawCheckbox(int x, int y, int w, int h, WidgetType type, boolean selected, boolean radioButton) {
+		if (selected) {
 			drawWidget(x, y, w, h, type);
 		}
 	}
 
-	public void drawPanelBackground(int x, int y, int w, int h)
-	{
+	public void drawPanelBackground(int x, int y, int w, int h) {
 		drawContainerSlot(x, y, w, h);
 	}
 
-	public void drawHorizontalTab(int x, int y, int w, int h, boolean selected)
-	{
+	public void drawHorizontalTab(int x, int y, int w, int h, boolean selected) {
 		(selected ? TAB_H_SELECTED : TAB_H_UNSELECTED).draw(x, y, w, h);
 	}
 
-	public void drawContextMenuBackground(int x, int y, int w, int h)
-	{
+	public void drawContextMenuBackground(int x, int y, int w, int h) {
 		drawGui(x, y, w, h, WidgetType.NORMAL);
 		Color4I.BLACK.withAlpha(90).draw(x, y, w, h);
 	}
 
-	public FontRenderer getFont()
-	{
+	public FontRenderer getFont() {
 		return Minecraft.getMinecraft().fontRenderer;
 	}
 
-	public final int getStringWidth(String text)
-	{
+	public final int getStringWidth(String text) {
 		return getFont().getStringWidth(text);
 	}
 
-	public final int getFontHeight()
-	{
+	public final int getFontHeight() {
 		return getFont().FONT_HEIGHT;
 	}
 
-	public final String trimStringToWidth(String text, int width)
-	{
+	public final String trimStringToWidth(String text, int width) {
 		return text.isEmpty() ? "" : getFont().trimStringToWidth(text, width, false);
 	}
 
-	public final String trimStringToWidthReverse(String text, int width)
-	{
+	public final String trimStringToWidthReverse(String text, int width) {
 		return text.isEmpty() ? "" : getFont().trimStringToWidth(text, width, true);
 	}
 
-	public final List<String> listFormattedStringToWidth(String text, int width)
-	{
-		if (width <= 0 || text.isEmpty())
-		{
+	public final List<String> listFormattedStringToWidth(String text, int width) {
+		if (width <= 0 || text.isEmpty()) {
 			return Collections.emptyList();
 		}
 
 		return getFont().listFormattedStringToWidth(text, width);
 	}
 
-	public final int drawString(String text, int x, int y, Color4I color, int flags)
-	{
-		if (text.isEmpty() || color.isEmpty())
-		{
+	public final int drawString(String text, int x, int y, Color4I color, int flags) {
+		if (text.isEmpty() || color.isEmpty()) {
 			return 0;
 		}
 
-		if (Bits.getFlag(flags, CENTERED))
-		{
+		if (Bits.getFlag(flags, CENTERED)) {
 			x -= getStringWidth(text) / 2;
 		}
 
@@ -196,31 +177,25 @@ public class Theme
 		return i;
 	}
 
-	public final int drawString(String text, int x, int y, int flags)
-	{
+	public final int drawString(String text, int x, int y, int flags) {
 		return drawString(text, x, y, getContentColor(WidgetType.mouseOver(Bits.getFlag(flags, MOUSE_OVER))), flags);
 	}
 
-	public final int drawString(String text, int x, int y)
-	{
+	public final int drawString(String text, int x, int y) {
 		return drawString(text, x, y, getContentColor(WidgetType.NORMAL), 0);
 	}
 
-	public void pushFontUnicode(boolean flag)
-	{
+	public void pushFontUnicode(boolean flag) {
 		fontUnicode.push(getFont().getUnicodeFlag());
 		getFont().setUnicodeFlag(flag);
 	}
 
-	public void popFontUnicode()
-	{
+	public void popFontUnicode() {
 		getFont().setUnicodeFlag(fontUnicode.pop());
 	}
 
-	public List<GuiBase.PositionedTextData> createDataFrom(IChatComponent component, int width)
-	{
-		if (width <= 0 || component.getUnformattedText().isEmpty())
-		{
+	public List<GuiBase.PositionedTextData> createDataFrom(IChatComponent component, int width) {
+		if (width <= 0 || component.getUnformattedText().isEmpty()) {
 			return Collections.emptyList();
 		}
 
@@ -229,17 +204,13 @@ public class Theme
 		int line = 0;
 		int currentWidth = 0;
 
-		for (Object te : component.createCopy())
-		{
-			IChatComponent t = (IChatComponent) te;
+		for (IChatComponent t : (Collection<IChatComponent>) component.createCopy()) {
 			String text = t.getUnformattedTextForChat();
 			int textWidth = getStringWidth(text);
 
-			while (textWidth > 0)
-			{
+			while (textWidth > 0) {
 				int w = textWidth;
-				if (w > width - currentWidth)
-				{
+				if (w > width - currentWidth) {
 					w = width - currentWidth;
 				}
 
@@ -248,8 +219,7 @@ public class Theme
 				currentWidth += w;
 				textWidth -= w;
 
-				if (currentWidth >= width)
-				{
+				if (currentWidth >= width) {
 					currentWidth = 0;
 					line++;
 				}

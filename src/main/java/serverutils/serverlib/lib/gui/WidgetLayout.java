@@ -1,30 +1,26 @@
 package serverutils.serverlib.lib.gui;
 
 @FunctionalInterface
-public interface WidgetLayout
-{
+public interface WidgetLayout {
+
 	int align(Panel panel);
 
-	class Vertical implements WidgetLayout
-	{
+	class Vertical implements WidgetLayout {
+
 		private final int pre, spacing, post;
 
-		public Vertical(int _pre, int _spacing, int _post)
-		{
+		public Vertical(int _pre, int _spacing, int _post) {
 			pre = _pre;
 			spacing = _spacing;
 			post = _post;
 		}
 
 		@Override
-		public int align(Panel panel)
-		{
+		public int align(Panel panel) {
 			int i = pre;
 
-			if (!panel.widgets.isEmpty())
-			{
-				for (Widget widget : panel.widgets)
-				{
+			if (!panel.widgets.isEmpty()) {
+				for (Widget widget : panel.widgets) {
 					widget.setY(i);
 					i += widget.height + spacing;
 				}
@@ -36,26 +32,22 @@ public interface WidgetLayout
 		}
 	}
 
-	class Horizontal implements WidgetLayout
-	{
+	class Horizontal implements WidgetLayout {
+
 		private final int pre, spacing, post;
 
-		public Horizontal(int _pre, int _spacing, int _post)
-		{
+		public Horizontal(int _pre, int _spacing, int _post) {
 			pre = _pre;
 			spacing = _spacing;
 			post = _post;
 		}
 
 		@Override
-		public int align(Panel panel)
-		{
+		public int align(Panel panel) {
 			int i = pre;
 
-			if (!panel.widgets.isEmpty())
-			{
-				for (Widget widget : panel.widgets)
-				{
+			if (!panel.widgets.isEmpty()) {
+				for (Widget widget : panel.widgets) {
 					widget.setX(i);
 					i += widget.width + spacing;
 				}

@@ -2,17 +2,15 @@ package serverutils.serverlib.lib.gui.misc;
 
 import serverutils.serverlib.lib.gui.GuiBase;
 
-public abstract class ChunkSelectorMap
-{
+public abstract class ChunkSelectorMap {
+
 	private static ChunkSelectorMap INSTANCE;
 
-	public static ChunkSelectorMap getMap()
-	{
+	public static ChunkSelectorMap getMap() {
 		return INSTANCE;
 	}
 
-	public static void setMap(ChunkSelectorMap map)
-	{
+	public static void setMap(ChunkSelectorMap map) {
 		INSTANCE = map;
 	}
 

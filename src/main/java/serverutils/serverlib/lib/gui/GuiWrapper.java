@@ -1,125 +1,101 @@
 package serverutils.serverlib.lib.gui;
 
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.item.ItemStack;
-import cpw.mods.fml.client.config.GuiUtils;
-import cpw.mods.fml.common.Loader;
-import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
-import serverutils.serverlib.integration.ServerLibNEIIntegration;
-import serverutils.serverlib.lib.util.misc.MouseButton;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuiWrapper extends GuiScreen implements IGuiWrapper
-{
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.item.ItemStack;
+
+import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+
+import serverutils.serverlib.lib.util.misc.MouseButton;
+
+import cpw.mods.fml.common.Loader;
+
+public class GuiWrapper extends GuiScreen implements IGuiWrapper {
+
 	private GuiBase wrappedGui;
 	private List<String> tempTextList = new ArrayList<>();
 
-	public GuiWrapper(GuiBase g)
-	{
+	public GuiWrapper(GuiBase g) {
 		wrappedGui = g;
 	}
 
 	@Override
-	public void initGui()
-	{
+	public void initGui() {
 		super.initGui();
 		wrappedGui.initGui();
 	}
 
 	@Override
-	public boolean doesGuiPauseGame()
-	{
+	public boolean doesGuiPauseGame() {
 		return wrappedGui.doesGuiPauseGame();
 	}
 
 	@Override
-	protected final void mouseClicked(int mouseX, int mouseY, int button) throws IOException
-	{
+	protected final void mouseClicked(int mouseX, int mouseY, int button) {
 		wrappedGui.updateMouseOver(mouseX, mouseY);
 
-		if (button == MouseButton.BACK.id)
-		{
+		if (button == MouseButton.BACK.id) {
 			wrappedGui.onBack();
-		}
-		else
-		{
+		} else {
 			wrappedGui.mousePressed(MouseButton.get(button));
 			super.mouseClicked(mouseX, mouseY, button);
 		}
 	}
 
 	@Override
-	protected void mouseReleased(int mouseX, int mouseY, int button)
-	{
+	protected void mouseMovedOrUp(int mouseX, int mouseY, int button) {
 		wrappedGui.updateMouseOver(mouseX, mouseY);
 		wrappedGui.mouseReleased(MouseButton.get(button));
-		super.mouseReleased(mouseX, mouseY, button);
+		super.mouseMovedOrUp(mouseX, mouseY, button);
 	}
 
 	@Override
-	protected void keyTyped(char keyChar, int key)
-	{
-		if (!wrappedGui.keyPressed(key, keyChar))
-		{
-			if (key == Keyboard.KEY_BACK)
-			{
+	protected void keyTyped(char keyChar, int key) {
+		if (!wrappedGui.keyPressed(key, keyChar)) {
+			if (key == Keyboard.KEY_BACK) {
 				wrappedGui.onBack();
-			}
-			else if (wrappedGui.onClosedByKey(key))
-			{
+			} else if (wrappedGui.onClosedByKey(key)) {
 				wrappedGui.closeGui(false);
-			}
-			else if (Loader.isModLoaded("jei"))
-			{
+			} else if (Loader.isModLoaded("jei")) {
 				Object object = WrappedIngredient.unwrap(wrappedGui.getIngredientUnderMouse());
 
-				if (object != null)
-				{
+				if (object != null) {
 					handleIngredientKey(key, object);
 				}
 			}
 		}
 	}
 
-	private void handleIngredientKey(int key, Object object)
-	{
-		ServerLibNEIIntegration.handleIngredientKey(key, object);
+	private void handleIngredientKey(int key, Object object) {
+		// TODO: this was a hack from ftblib
+		// FTBLibJEIIntegration.handleIngredientKey(key, object);
 	}
 
 	@Override
-	public void handleMouseInput()
-	{
+	public void handleMouseInput() {
 		super.handleMouseInput();
 		int scroll = Mouse.getEventDWheel();
 
-		if (scroll != 0)
-		{
+		if (scroll != 0) {
 			wrappedGui.mouseScrolled(scroll / 120);
 		}
 	}
 
 	@Override
-	public void handleKeyboardInput()
-	{
-		if (!(Keyboard.getEventKey() == 0 && Keyboard.getEventCharacter() >= ' ' || Keyboard.getEventKeyState()))
-		{
+	public void handleKeyboardInput() {
+		if (!(Keyboard.getEventKey() == 0 && Keyboard.getEventCharacter() >= ' ' || Keyboard.getEventKeyState())) {
 			wrappedGui.keyReleased(Keyboard.getEventKey());
-		}
-		else
-		{
+		} else {
 			super.handleKeyboardInput();
 		}
 	}
 
 	@Override
-	public void drawScreen(int mouseX, int mouseY, float partialTicks)
-	{
-		if (wrappedGui.fixUnicode)
-		{
+	public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+		if (wrappedGui.fixUnicode) {
 			GuiHelper.setFixUnicode(true);
 		}
 
@@ -134,61 +110,48 @@ public class GuiWrapper extends GuiScreen implements IGuiWrapper
 		wrappedGui.draw(theme, x, y, w, h);
 		wrappedGui.drawForeground(theme, x, y, w, h);
 
-		if (wrappedGui.contextMenu != null)
-		{
+		if (wrappedGui.contextMenu != null) {
 			wrappedGui.contextMenu.addMouseOverText(tempTextList);
-		}
-		else
-		{
+		} else {
 			wrappedGui.addMouseOverText(tempTextList);
 		}
 
-		if (tempTextList.isEmpty())
-		{
+		if (tempTextList.isEmpty()) {
 			Object object = wrappedGui.getIngredientUnderMouse();
 
-			if (object instanceof WrappedIngredient && ((WrappedIngredient) object).tooltip)
-			{
+			if (object instanceof WrappedIngredient && ((WrappedIngredient) object).tooltip) {
 				Object ingredient = WrappedIngredient.unwrap(object);
 
-				if (ingredient instanceof ItemStack && !((ItemStack) ingredient).isEmpty())
-				{
+				if (ingredient instanceof ItemStack && ((ItemStack) ingredient) != null) {
 					renderToolTip((ItemStack) ingredient, mouseX, mouseY);
 				}
 			}
-		}
-		else
-		{
-			GuiUtils.drawHoveringText(tempTextList, mouseX, Math.max(mouseY, 18), wrappedGui.getScreen().getScaledWidth(), wrappedGui.getScreen().getScaledHeight(), 0, theme.getFont());
+		} else {
+			drawHoveringText(tempTextList, mouseX, Math.max(mouseY, 18), theme.getFont());
 		}
 
 		tempTextList.clear();
 
-		if (wrappedGui.fixUnicode)
-		{
+		if (wrappedGui.fixUnicode) {
 			GuiHelper.setFixUnicode(false);
 		}
 	}
 
 	@Override
-	public void drawDefaultBackground()
-	{
-		if (wrappedGui.drawDefaultBackground())
-		{
+	public void drawDefaultBackground() {
+		if (wrappedGui.drawDefaultBackground()) {
 			super.drawDefaultBackground();
 		}
 	}
 
 	@Override
-	public void updateScreen()
-	{
+	public void updateScreen() {
 		super.updateScreen();
 		wrappedGui.tick();
 	}
 
 	@Override
-	public GuiBase getGui()
-	{
+	public GuiBase getGui() {
 		return wrappedGui;
 	}
 }

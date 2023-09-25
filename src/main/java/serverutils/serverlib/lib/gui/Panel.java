@@ -1,17 +1,19 @@
 package serverutils.serverlib.lib.gui;
 
-import serverutils.serverlib.FTBLib;
-import serverutils.serverlib.lib.icon.Color4I;
-import serverutils.serverlib.lib.util.misc.MouseButton;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextFormatting;
-
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Panel extends Widget
-{
+import javax.annotation.Nullable;
+
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.MathHelper;
+
+import serverutils.serverlib.ServerLib;
+import serverutils.serverlib.lib.icon.Color4I;
+import serverutils.serverlib.lib.util.misc.MouseButton;
+
+public abstract class Panel extends Widget {
+
 	public final List<Widget> widgets;
 	private double scrollX = 0, scrollY = 0;
 	private int offsetX = 0, offsetY = 0;
@@ -23,39 +25,32 @@ public abstract class Panel extends Widget
 	public int contentWidthExtra, contentHeightExtra;
 	public PanelScrollBar attachedScrollbar = null;
 
-	public Panel(Panel panel)
-	{
+	public Panel(Panel panel) {
 		super(panel);
 		widgets = new ArrayList<>();
 	}
 
-	public boolean getUnicode()
-	{
+	public boolean getUnicode() {
 		return unicode;
 	}
 
-	public void setUnicode(boolean value)
-	{
+	public void setUnicode(boolean value) {
 		unicode = value;
 	}
 
-	public boolean getOnlyRenderWidgetsInside()
-	{
+	public boolean getOnlyRenderWidgetsInside() {
 		return onlyRenderWidgetsInside;
 	}
 
-	public void setOnlyRenderWidgetsInside(boolean value)
-	{
+	public void setOnlyRenderWidgetsInside(boolean value) {
 		onlyRenderWidgetsInside = value;
 	}
 
-	public boolean getOnlyInteractWithWidgetsInside()
-	{
+	public boolean getOnlyInteractWithWidgetsInside() {
 		return onlyInteractWithWidgetsInside;
 	}
 
-	public void setOnlyInteractWithWidgetsInside(boolean value)
-	{
+	public void setOnlyInteractWithWidgetsInside(boolean value) {
 		onlyInteractWithWidgetsInside = value;
 	}
 
@@ -63,37 +58,28 @@ public abstract class Panel extends Widget
 
 	public abstract void alignWidgets();
 
-	public void clearWidgets()
-	{
+	public void clearWidgets() {
 		widgets.clear();
 	}
 
-	public void refreshWidgets()
-	{
+	public void refreshWidgets() {
 		contentWidth = contentHeight = -1;
 		clearWidgets();
 		Theme theme = getGui().getTheme();
 		theme.pushFontUnicode(getUnicode());
 
-		try
-		{
+		try {
 			addWidgets();
-		}
-		catch (MismatchingParentPanelException ex)
-		{
-			FTBLib.LOGGER.error(ex.getMessage());
-		}
-		catch (Exception ex)
-		{
+		} catch (MismatchingParentPanelException ex) {
+			ServerLib.LOGGER.error(ex.getMessage());
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
-		//alignWidgets();
+		// alignWidgets();
 
-		for (Widget widget : widgets)
-		{
-			if (widget instanceof Panel)
-			{
+		for (Widget widget : widgets) {
+			if (widget instanceof Panel) {
 				((Panel) widget).refreshWidgets();
 			}
 		}
@@ -102,10 +88,8 @@ public abstract class Panel extends Widget
 		theme.popFontUnicode();
 	}
 
-	public void add(Widget widget)
-	{
-		if (widget.parent != this)
-		{
+	public void add(Widget widget) {
+		if (widget.parent != this) {
 			throw new MismatchingParentPanelException(this, widget);
 		}
 
@@ -113,47 +97,37 @@ public abstract class Panel extends Widget
 		contentWidth = contentHeight = -1;
 	}
 
-	public void addAll(Iterable<? extends Widget> list)
-	{
-		for (Widget w : list)
-		{
+	public void addAll(Iterable<? extends Widget> list) {
+		for (Widget w : list) {
 			add(w);
 		}
 	}
 
-	public final int align(WidgetLayout layout)
-	{
+	public final int align(WidgetLayout layout) {
 		return layout.align(this);
 	}
 
 	@Override
-	public int getX()
-	{
+	public int getX() {
 		return super.getX() + offsetX;
 	}
 
 	@Override
-	public int getY()
-	{
+	public int getY() {
 		return super.getY() + offsetY;
 	}
 
-	public int getContentWidth()
-	{
-		if (contentWidth == -1)
-		{
+	public int getContentWidth() {
+		if (contentWidth == -1) {
 			int minX = Integer.MAX_VALUE;
 			int maxX = Integer.MIN_VALUE;
 
-			for (Widget widget : widgets)
-			{
-				if (widget.posX < minX)
-				{
+			for (Widget widget : widgets) {
+				if (widget.posX < minX) {
 					minX = widget.posX;
 				}
 
-				if (widget.posX + widget.width > maxX)
-				{
+				if (widget.posX + widget.width > maxX) {
 					maxX = widget.posX + widget.width;
 				}
 			}
@@ -164,22 +138,17 @@ public abstract class Panel extends Widget
 		return contentWidth;
 	}
 
-	public int getContentHeight()
-	{
-		if (contentHeight == -1)
-		{
+	public int getContentHeight() {
+		if (contentHeight == -1) {
 			int minY = Integer.MAX_VALUE;
 			int maxY = Integer.MIN_VALUE;
 
-			for (Widget widget : widgets)
-			{
-				if (widget.posY < minY)
-				{
+			for (Widget widget : widgets) {
+				if (widget.posY < minY) {
 					minY = widget.posY;
 				}
 
-				if (widget.posY + widget.height > maxY)
-				{
+				if (widget.posY + widget.height > maxY) {
 					maxY = widget.posY + widget.height;
 				}
 			}
@@ -190,90 +159,71 @@ public abstract class Panel extends Widget
 		return contentHeight;
 	}
 
-	public void setOffset(boolean flag)
-	{
-		if (flag)
-		{
+	public void setOffset(boolean flag) {
+		if (flag) {
 			offsetX = (int) -scrollX;
 			offsetY = (int) -scrollY;
-		}
-		else
-		{
+		} else {
 			offsetX = offsetY = 0;
 		}
 	}
 
-	public boolean isOffset()
-	{
+	public boolean isOffset() {
 		return offsetX != 0 || offsetY != 0;
 	}
 
-	public void setScrollX(double scroll)
-	{
+	public void setScrollX(double scroll) {
 		scrollX = scroll;
 	}
 
-	public void setScrollY(double scroll)
-	{
+	public void setScrollY(double scroll) {
 		scrollY = scroll;
 	}
 
-	public double getScrollX()
-	{
+	public double getScrollX() {
 		return scrollX;
 	}
 
-	public double getScrollY()
-	{
+	public double getScrollY() {
 		return scrollY;
 	}
 
 	@Override
-	public void draw(Theme theme, int x, int y, int w, int h)
-	{
+	public void draw(Theme theme, int x, int y, int w, int h) {
 		boolean renderInside = getOnlyRenderWidgetsInside();
 		theme.pushFontUnicode(getUnicode());
 
 		drawBackground(theme, x, y, w, h);
 
-		if (renderInside)
-		{
+		if (renderInside) {
 			GuiHelper.pushScissor(getScreen(), x, y, w, h);
 		}
 
 		setOffset(true);
 		drawOffsetBackground(theme, x + offsetX, y + offsetY, w, h);
 
-		for (int i = 0; i < widgets.size(); i++)
-		{
+		for (int i = 0; i < widgets.size(); i++) {
 			Widget widget = widgets.get(i);
 
-			if (widget.shouldDraw() && (!renderInside || widget.collidesWith(x, y, w, h)))
-			{
+			if (widget.shouldDraw() && (!renderInside || widget.collidesWith(x, y, w, h))) {
 				drawWidget(theme, widget, i, x + offsetX, y + offsetY, w, h);
 			}
 		}
 
 		setOffset(false);
 
-		if (renderInside)
-		{
+		if (renderInside) {
 			GuiHelper.popScissor(getScreen());
 		}
 
 		theme.popFontUnicode();
 	}
 
-	public void drawBackground(Theme theme, int x, int y, int w, int h)
-	{
-	}
+	public void drawBackground(Theme theme, int x, int y, int w, int h) {}
 
-	public void drawOffsetBackground(Theme theme, int x, int y, int w, int h)
-	{
-	}
+	public void drawOffsetBackground(Theme theme, int x, int y, int w, int h) {}
 
-	public void drawWidget(Theme theme, Widget widget, int index, int x, int y, int w, int h)
-	{
+	public void drawWidget(Theme theme, Widget widget, int index, int x, int y, int w, int h) {
 		int wx = widget.getX();
 		int wy = widget.getY();
 		int ww = widget.width;
@@ -281,8 +231,7 @@ public abstract class Panel extends Widget
 
 		widget.draw(theme, wx, wy, ww, wh);
 
-		if (Theme.renderDebugBoxes)
-		{
+		if (Theme.renderDebugBoxes) {
 			Color4I col = Color4I.rgb(java.awt.Color.HSBtoRGB((widget.hashCode() & 255) / 255F, 1F, 1F));
 			GuiHelper.drawHollowRect(wx, wy, ww, wh, col.withAlpha(150), false);
 			col.withAlpha(30).draw(wx + 1, wy + 1, ww - 2, wh - 2);
@@ -290,10 +239,8 @@ public abstract class Panel extends Widget
 	}
 
 	@Override
-	public void addMouseOverText(List<String> list)
-	{
-		if (!shouldAddMouseOverText() || getOnlyInteractWithWidgetsInside() && !isMouseOver())
-		{
+	public void addMouseOverText(List<String> list) {
+		if (!shouldAddMouseOverText() || getOnlyInteractWithWidgetsInside() && !isMouseOver()) {
 			return;
 		}
 
@@ -301,17 +248,16 @@ public abstract class Panel extends Widget
 		theme.pushFontUnicode(getUnicode());
 		setOffset(true);
 
-		for (int i = widgets.size() - 1; i >= 0; i--)
-		{
+		for (int i = widgets.size() - 1; i >= 0; i--) {
 			Widget widget = widgets.get(i);
 
-			if (widget.shouldAddMouseOverText())
-			{
+			if (widget.shouldAddMouseOverText()) {
 				widget.addMouseOverText(list);
 
-				if (Theme.renderDebugBoxes)
-				{
-					list.add(TextFormatting.DARK_GRAY + widget.toString() + "#" + (i + 1) + ": " + widget.width + "x" + widget.height);
+				if (Theme.renderDebugBoxes) {
+					list.add(
+							EnumChatFormatting.DARK_GRAY + widget
+									.toString() + "#" + (i + 1) + ": " + widget.width + "x" + widget.height);
 				}
 			}
 		}
@@ -321,13 +267,11 @@ public abstract class Panel extends Widget
 	}
 
 	@Override
-	public void updateMouseOver(int mouseX, int mouseY)
-	{
+	public void updateMouseOver(int mouseX, int mouseY) {
 		super.updateMouseOver(mouseX, mouseY);
 		setOffset(true);
 
-		for (Widget widget : widgets)
-		{
+		for (Widget widget : widgets) {
 			widget.updateMouseOver(mouseX, mouseY);
 		}
 
@@ -335,23 +279,18 @@ public abstract class Panel extends Widget
 	}
 
 	@Override
-	public boolean mousePressed(MouseButton button)
-	{
-		if (getOnlyInteractWithWidgetsInside() && !isMouseOver())
-		{
+	public boolean mousePressed(MouseButton button) {
+		if (getOnlyInteractWithWidgetsInside() && !isMouseOver()) {
 			return false;
 		}
 
 		setOffset(true);
 
-		for (int i = widgets.size() - 1; i >= 0; i--)
-		{
+		for (int i = widgets.size() - 1; i >= 0; i--) {
 			Widget widget = widgets.get(i);
 
-			if (widget.isEnabled())
-			{
-				if (widget.mousePressed(button))
-				{
+			if (widget.isEnabled()) {
+				if (widget.mousePressed(button)) {
 					setOffset(false);
 					return true;
 				}
@@ -363,16 +302,13 @@ public abstract class Panel extends Widget
 	}
 
 	@Override
-	public void mouseReleased(MouseButton button)
-	{
+	public void mouseReleased(MouseButton button) {
 		setOffset(true);
 
-		for (int i = widgets.size() - 1; i >= 0; i--)
-		{
+		for (int i = widgets.size() - 1; i >= 0; i--) {
 			Widget widget = widgets.get(i);
 
-			if (widget.isEnabled())
-			{
+			if (widget.isEnabled()) {
 				widget.mouseReleased(button);
 			}
 		}
@@ -381,18 +317,14 @@ public abstract class Panel extends Widget
 	}
 
 	@Override
-	public boolean mouseScrolled(int scroll)
-	{
+	public boolean mouseScrolled(int scroll) {
 		setOffset(true);
 
-		for (int i = widgets.size() - 1; i >= 0; i--)
-		{
+		for (int i = widgets.size() - 1; i >= 0; i--) {
 			Widget widget = widgets.get(i);
 
-			if (widget.isEnabled())
-			{
-				if (widget.mouseScrolled(scroll))
-				{
+			if (widget.isEnabled()) {
+				if (widget.mouseScrolled(scroll)) {
 					setOffset(false);
 					return true;
 				}
@@ -404,87 +336,69 @@ public abstract class Panel extends Widget
 		return scrollPanel;
 	}
 
-	public boolean scrollPanel(int scroll)
-	{
-		if (attachedScrollbar != null || !isMouseOver())
-		{
+	public boolean scrollPanel(int scroll) {
+		if (attachedScrollbar != null || !isMouseOver()) {
 			return false;
 		}
 
-		if (isDefaultScrollVertical() != isShiftKeyDown())
-		{
+		if (isDefaultScrollVertical() != isShiftKeyDown()) {
 			return movePanelScroll(0, -getScrollStep() * scroll);
-		}
-		else
-		{
+		} else {
 			return movePanelScroll(-getScrollStep() * scroll, 0);
 		}
 	}
 
-	public boolean movePanelScroll(double dx, double dy)
-	{
-		if (dx == 0 && dy == 0)
-		{
+	public boolean movePanelScroll(double dx, double dy) {
+		if (dx == 0 && dy == 0) {
 			return false;
 		}
 
 		double sx = getScrollX();
 		double sy = getScrollY();
 
-		if (dx != 0)
-		{
+		if (dx != 0) {
 			int w = getContentWidth();
 
-			if (w > width)
-			{
-				setScrollX(MathHelper.clamp(sx + dx, 0, w - width));
+			if (w > width) {
+				setScrollX(MathHelper.clamp_double(sx + dx, 0, w - width));
 			}
 		}
 
-		if (dy != 0)
-		{
+		if (dy != 0) {
 			int h = getContentHeight();
 
-			if (h > height)
-			{
-				setScrollY(MathHelper.clamp(sy + dy, 0, h - height));
+			if (h > height) {
+				setScrollY(MathHelper.clamp_double(sy + dy, 0, h - height));
 			}
 		}
 
 		return getScrollX() != sx || getScrollY() != sy;
 	}
 
-	public boolean isDefaultScrollVertical()
-	{
+	public boolean isDefaultScrollVertical() {
 		return true;
 	}
 
-	public void setScrollStep(int s)
-	{
+	public void setScrollStep(int s) {
 		scrollStep = s;
 	}
 
-	public int getScrollStep()
-	{
+	public int getScrollStep() {
 		return scrollStep;
 	}
 
 	@Override
-	public boolean keyPressed(int key, char keyChar)
-	{
-		if (super.keyPressed(key, keyChar))
-		{
+	public boolean keyPressed(int key, char keyChar) {
+		if (super.keyPressed(key, keyChar)) {
 			return true;
 		}
 
 		setOffset(true);
 
-		for (int i = widgets.size() - 1; i >= 0; i--)
-		{
+		for (int i = widgets.size() - 1; i >= 0; i--) {
 			Widget widget = widgets.get(i);
 
-			if (widget.isEnabled() && widget.keyPressed(key, keyChar))
-			{
+			if (widget.isEnabled() && widget.keyPressed(key, keyChar)) {
 				setOffset(false);
 				return true;
 			}
@@ -495,16 +409,13 @@ public abstract class Panel extends Widget
 	}
 
 	@Override
-	public void keyReleased(int key)
-	{
+	public void keyReleased(int key) {
 		setOffset(true);
 
-		for (int i = widgets.size() - 1; i >= 0; i--)
-		{
+		for (int i = widgets.size() - 1; i >= 0; i--) {
 			Widget widget = widgets.get(i);
 
-			if (widget.isEnabled())
-			{
+			if (widget.isEnabled()) {
 				widget.keyReleased(key);
 			}
 		}
@@ -513,36 +424,29 @@ public abstract class Panel extends Widget
 	}
 
 	@Override
-	public void onClosed()
-	{
-		for (Widget widget : widgets)
-		{
+	public void onClosed() {
+		for (Widget widget : widgets) {
 			widget.onClosed();
 		}
 	}
 
 	@Nullable
-	public Widget getWidget(int index)
-	{
+	public Widget getWidget(int index) {
 		return index < 0 || index >= widgets.size() ? null : widgets.get(index);
 	}
 
 	@Override
 	@Nullable
-	public Object getIngredientUnderMouse()
-	{
+	public Object getIngredientUnderMouse() {
 		setOffset(true);
 
-		for (int i = widgets.size() - 1; i >= 0; i--)
-		{
+		for (int i = widgets.size() - 1; i >= 0; i--) {
 			Widget widget = widgets.get(i);
 
-			if (widget.isEnabled() && widget.isMouseOver())
-			{
+			if (widget.isEnabled() && widget.isMouseOver()) {
 				Object object = widget.getIngredientUnderMouse();
 
-				if (object != null)
-				{
+				if (object != null) {
 					setOffset(false);
 					return object;
 				}
@@ -554,14 +458,11 @@ public abstract class Panel extends Widget
 	}
 
 	@Override
-	public void tick()
-	{
+	public void tick() {
 		setOffset(true);
 
-		for (Widget widget : widgets)
-		{
-			if (widget.isEnabled())
-			{
+		for (Widget widget : widgets) {
+			if (widget.isEnabled()) {
 				widget.tick();
 			}
 		}
@@ -569,12 +470,9 @@ public abstract class Panel extends Widget
 		setOffset(false);
 	}
 
-	public boolean isMouseOverAnyWidget()
-	{
-		for (Widget widget : widgets)
-		{
-			if (widget.isMouseOver())
-			{
+	public boolean isMouseOverAnyWidget() {
+		for (Widget widget : widgets) {
+			if (widget.isMouseOver()) {
 				return true;
 			}
 		}

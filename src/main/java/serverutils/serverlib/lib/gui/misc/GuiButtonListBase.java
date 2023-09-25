@@ -1,6 +1,7 @@
 package serverutils.serverlib.lib.gui.misc;
 
 import net.minecraft.client.resources.I18n;
+
 import serverutils.serverlib.lib.gui.GuiBase;
 import serverutils.serverlib.lib.gui.Panel;
 import serverutils.serverlib.lib.gui.PanelScrollBar;
@@ -9,8 +10,8 @@ import serverutils.serverlib.lib.gui.Theme;
 import serverutils.serverlib.lib.gui.Widget;
 import serverutils.serverlib.lib.gui.WidgetLayout;
 
-public abstract class GuiButtonListBase extends GuiBase
-{
+public abstract class GuiButtonListBase extends GuiBase {
+
 	private final Panel panelButtons;
 	private final PanelScrollBar scrollBar;
 	private String title = "";
@@ -18,52 +19,42 @@ public abstract class GuiButtonListBase extends GuiBase
 	private boolean hasSearchBox;
 	private int borderH, borderV, borderW;
 
-	public GuiButtonListBase()
-	{
-		panelButtons = new Panel(this)
-		{
+	public GuiButtonListBase() {
+		panelButtons = new Panel(this) {
+
 			@Override
-			public void add(Widget widget)
-			{
-				if (!hasSearchBox || searchBox.getText().isEmpty() || getFilterText(widget).contains(searchBox.getText().toLowerCase()))
-				{
+			public void add(Widget widget) {
+				if (!hasSearchBox || searchBox.getText().isEmpty()
+						|| getFilterText(widget).contains(searchBox.getText().toLowerCase())) {
 					super.add(widget);
 				}
 			}
 
 			@Override
-			public void addWidgets()
-			{
+			public void addWidgets() {
 				addButtons(this);
 			}
 
 			@Override
-			public void alignWidgets()
-			{
+			public void alignWidgets() {
 				setY(hasSearchBox ? 23 : 9);
 				int prevWidth = width;
 
-				if (widgets.isEmpty())
-				{
+				if (widgets.isEmpty()) {
 					setWidth(100);
-				}
-				else
-				{
+				} else {
 					setWidth(100);
 
-					for (Widget w : widgets)
-					{
+					for (Widget w : widgets) {
 						setWidth(Math.max(width, w.width));
 					}
 				}
 
-				if (hasSearchBox)
-				{
+				if (hasSearchBox) {
 					setWidth(Math.max(width, prevWidth));
 				}
 
-				for (Widget w : widgets)
-				{
+				for (Widget w : widgets) {
 					w.setX(borderH);
 					w.setWidth(width - borderH * 2);
 				}
@@ -76,15 +67,13 @@ public abstract class GuiButtonListBase extends GuiBase
 				getGui().setWidth(scrollBar.posX + scrollBar.width + 8);
 				getGui().setHeight(height + 18 + (hasSearchBox ? 14 : 0));
 
-				if (hasSearchBox)
-				{
+				if (hasSearchBox) {
 					searchBox.setPosAndSize(8, 6, getGui().width - 16, 12);
 				}
 			}
 
 			@Override
-			public void drawBackground(Theme theme, int x, int y, int w, int h)
-			{
+			public void drawBackground(Theme theme, int x, int y, int w, int h) {
 				theme.drawPanelBackground(x, y, w, h);
 			}
 		};
@@ -95,11 +84,10 @@ public abstract class GuiButtonListBase extends GuiBase
 		scrollBar.setCanAlwaysScroll(true);
 		scrollBar.setScrollStep(20);
 
-		searchBox = new TextBox(this)
-		{
+		searchBox = new TextBox(this) {
+
 			@Override
-			public void onTextChanged()
-			{
+			public void onTextChanged() {
 				panelButtons.refreshWidgets();
 			}
 		};
@@ -108,73 +96,65 @@ public abstract class GuiButtonListBase extends GuiBase
 		hasSearchBox = false;
 	}
 
-	public void setHasSearchBox(boolean v)
-	{
-		if (hasSearchBox != v)
-		{
+	public void setHasSearchBox(boolean v) {
+		if (hasSearchBox != v) {
 			hasSearchBox = v;
 			refreshWidgets();
 		}
 	}
 
-	public String getFilterText(Widget widget)
-	{
+	public String getFilterText(Widget widget) {
 		return widget.getTitle().toLowerCase();
 	}
 
 	@Override
-	public void addWidgets()
-	{
+	public void addWidgets() {
 		add(panelButtons);
 		add(scrollBar);
 
-		if (hasSearchBox)
-		{
+		if (hasSearchBox) {
 			add(searchBox);
 		}
 	}
 
 	@Override
-	public void alignWidgets()
-	{
+	public void alignWidgets() {
 		panelButtons.alignWidgets();
 	}
 
 	public abstract void addButtons(Panel panel);
 
-	public void setTitle(String txt)
-	{
+	public void setTitle(String txt) {
 		title = txt;
 	}
 
 	@Override
-	public String getTitle()
-	{
+	public String getTitle() {
 		return title;
 	}
 
-	public void setBorder(int h, int v, int w)
-	{
+	public void setBorder(int h, int v, int w) {
 		borderH = h;
 		borderV = v;
 		borderW = w;
 	}
 
 	@Override
-	public void drawBackground(Theme theme, int x, int y, int w, int h)
-	{
+	public void drawBackground(Theme theme, int x, int y, int w, int h) {
 		super.drawBackground(theme, x, y, w, h);
 
 		String title = getTitle();
 
-		if (!title.isEmpty())
-		{
-			theme.drawString(title, x + (width - theme.getStringWidth(title)) / 2, y - theme.getFontHeight() - 2, Theme.SHADOW);
+		if (!title.isEmpty()) {
+			theme.drawString(
+					title,
+					x + (width - theme.getStringWidth(title)) / 2,
+					y - theme.getFontHeight() - 2,
+					Theme.SHADOW);
 		}
 	}
 
-	public void focus()
-	{
+	public void focus() {
 		searchBox.setFocused(true);
 	}
 }

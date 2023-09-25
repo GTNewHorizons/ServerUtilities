@@ -3,8 +3,7 @@ package serverutils.serverlib.lib.gui.misc;
 import serverutils.serverlib.lib.gui.Panel;
 import serverutils.serverlib.lib.gui.WidgetLayout;
 
-public class CompactGridLayout implements WidgetLayout
-{
+public class CompactGridLayout implements WidgetLayout {
 	public static final int[][] LAYOUTS = {
 			{1},
 			{2},
@@ -26,24 +25,18 @@ public class CompactGridLayout implements WidgetLayout
 
 	public final int size;
 
-	public CompactGridLayout(int s)
-	{
+	public CompactGridLayout(int s) {
 		size = s;
 	}
 
 	@Override
-	public int align(Panel panel)
-	{
+	public int align(Panel panel) {
 		int s = panel.widgets.size();
 
-		if (s <= 0)
-		{
+		if (s <= 0) {
 			return 0;
-		}
-		else if (s > LAYOUTS.length)
-		{
-			for (int i = 0; i < s; i++)
-			{
+		} else if (s > LAYOUTS.length) {
+			for (int i = 0; i < s; i++) {
 				panel.widgets.get(i).setPosAndSize((i % 4) * size, (i / 4) * size, size, size);
 			}
 
@@ -54,19 +47,16 @@ public class CompactGridLayout implements WidgetLayout
 
 		int m = 0;
 
-		for (int v : layout)
-		{
+		for (int v : layout) {
 			m = Math.max(m, v);
 		}
 
 		int off = 0;
 
-		for (int l = 0; l < layout.length; l++)
-		{
+		for (int l = 0; l < layout.length; l++) {
 			int o = ((layout[l] % 2) == (m % 2)) ? 0 : size / 2;
 
-			for (int i = 0; i < layout[l]; i++)
-			{
+			for (int i = 0; i < layout[l]; i++) {
 				panel.widgets.get(off + i).setPosAndSize(o + i * size, l * size, size, size);
 			}
 
