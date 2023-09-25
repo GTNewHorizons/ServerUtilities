@@ -1,6 +1,7 @@
 package serverutils.lib.lib.block;
 
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 
 import serverutils.lib.lib.util.IStringSerializable;
@@ -20,10 +21,9 @@ public enum EnumRotation implements IStringSerializable {
         name = n;
     }
 
-    // TODO: Fix
-    // public int getModelRotationIndexFromFacing(ForgeDirection facing) {
-    // return ordinal() << 2 | facing.order_b;
-    // }
+    public int getModelRotationIndexFromFacing(EnumFacing facing) {
+        return ordinal() << 2 | facing.order_b;
+    }
 
     @Override
     public String getName() {

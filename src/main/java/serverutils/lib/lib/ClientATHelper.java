@@ -1,7 +1,11 @@
 package serverutils.lib.lib;
 
+import java.util.Map;
+
 import javax.annotation.Nullable;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.ResourceLocation;
 
 public final class ClientATHelper {
@@ -26,9 +30,7 @@ public final class ClientATHelper {
     // return Minecraft.getMinecraft().ingameGUI.chatListeners;
     // }
 
-    // TODO:Fix
-    /*
-     * public static Map<String, TextureAtlasSprite> getRegisteredSpritesMap() { return
-     * Minecraft.getMinecraft().getTextureMapBlocks().mapRegisteredSprites; }
-     */
+    public static Map<String, TextureAtlasSprite> getRegisteredSpritesMap() {
+        return Minecraft.getMinecraft().getTextureMapBlocks().mapRegisteredSprites;
+    }
 }

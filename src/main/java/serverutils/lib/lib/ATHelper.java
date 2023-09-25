@@ -8,6 +8,7 @@ import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
+import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 
@@ -31,10 +32,9 @@ public final class ATHelper {
         return handler.getCommands().keySet();
     }
 
-    // public static boolean areCommandsAllowedForAll(ServerConfigurationManager ServerConfigurationManager) {
-    // return ServerUtilitiesLibConfig.general.enable_cheats;
-    // //return ServerConfigurationManager.commandsAllowedForAll;
-    // }
+    public static boolean areCommandsAllowedForAll(ServerConfigurationManager ServerConfigurationManager) {
+        return ServerConfigurationManager.commandsAllowedForAll;
+    }
 
     @Nullable
     public static Boolean getBold(ChatStyle style) {

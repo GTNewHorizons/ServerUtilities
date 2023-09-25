@@ -126,9 +126,9 @@ public class CachedVertexData {
 
     public void cubeFace(EnumFacing facing, double minX, double minY, double minZ, double maxX, double maxY,
             double maxZ) {
-        float normalX = MathUtils.NORMALS_X[facing.ordinal()];
-        float normalY = MathUtils.NORMALS_Y[facing.ordinal()];
-        float normalZ = MathUtils.NORMALS_Z[facing.ordinal()];
+        float normalX = MathUtils.NORMALS_X[facing.order_a];
+        float normalY = MathUtils.NORMALS_Y[facing.order_a];
+        float normalZ = MathUtils.NORMALS_Z[facing.order_a];
 
         switch (facing) {
             case DOWN:

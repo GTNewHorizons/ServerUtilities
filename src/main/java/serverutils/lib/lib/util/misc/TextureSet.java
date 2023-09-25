@@ -33,8 +33,8 @@ public class TextureSet {
             }
         }
 
-        for (EnumFacing facing : EnumFacing.values()) {
-            s = map.get(Facing.facings[facing.ordinal()]);
+        for (EnumFacing facing : EnumFacing.faceList) {
+            s = map.get(Facing.facings[facing.order_a]);
 
             if (s != null) {
                 set.textures[facing.ordinal()] = new ResourceLocation(s);

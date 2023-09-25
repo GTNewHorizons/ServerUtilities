@@ -48,6 +48,7 @@ import serverutils.lib.events.universe.UniverseClearCacheEvent;
 import serverutils.lib.events.universe.UniverseClosedEvent;
 import serverutils.lib.events.universe.UniverseLoadedEvent;
 import serverutils.lib.events.universe.UniverseSavedEvent;
+import serverutils.lib.lib.ATHelper;
 import serverutils.lib.lib.EnumReloadType;
 import serverutils.lib.lib.EnumTeamColor;
 import serverutils.lib.lib.io.DataReader;
@@ -216,8 +217,7 @@ public class Universe {
             }
 
             if (universe.server.isSinglePlayer()) {
-                boolean cheats = ServerUtilitiesLibConfig.general.cheats_enabled;
-                // boolean cheats = ATHelper.areCommandsAllowedForAll(universe.server.getConfigurationManager());
+                boolean cheats = ATHelper.areCommandsAllowedForAll(universe.server.getConfigurationManager());
 
                 if (universe.prevCheats != cheats) {
                     universe.prevCheats = cheats;

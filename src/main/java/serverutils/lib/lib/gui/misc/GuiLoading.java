@@ -1,5 +1,6 @@
 package serverutils.lib.lib.gui.misc;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
 
 import serverutils.lib.lib.client.GlStateManager;
@@ -57,9 +58,7 @@ public class GuiLoading extends GuiBase {
             w1 -= 2;
             h1 -= 2;
 
-            timer += 20.0F; // Brute forcing it
-            // timer += Minecraft.getMinecraft().timer.ticksPerSecond;
-            timer = timer % (h1 * 2F);
+            timer += Minecraft.getMinecraft().timer.ticksPerSecond;
 
             for (int oy = 0; oy < h1; oy++) {
                 for (int ox = 0; ox < w1; ox++) {

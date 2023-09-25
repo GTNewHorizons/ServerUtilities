@@ -42,19 +42,19 @@ public enum SidedDirection {
     public static SidedDirection get(EnumFacing side, EnumFacing rot3D, EnumFacing rot2D) {
         if (side == rot3D) {
             return FRONT;
-        } else if (side == EnumFacing.getFront(rot3D.ordinal())) {
+        } else if (side == EnumFacing.faceList[rot3D.order_b]) {
             return BACK;
         } else if (rot3D == EnumFacing.DOWN) {
             if (rot2D == side) {
                 return TOP;
-            } else if (rot2D == EnumFacing.getFront(side.ordinal())) {
+            } else if (rot2D == EnumFacing.faceList[side.order_b]) {
                 return BOTTOM;
             }
             return getSide(side, rot2D);
         } else if (rot3D == EnumFacing.UP) {
             if (rot2D == side) {
                 return BOTTOM;
-            } else if (rot2D == EnumFacing.getFront(side.ordinal())) {
+            } else if (rot2D == EnumFacing.faceList[side.order_b]) {
                 return TOP;
             }
             return getSide(side, rot2D);
