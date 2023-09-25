@@ -8,7 +8,7 @@ public class RankPage // extends HTTPWebPage
     // @Override
     // public String getTitle()
     // {
-    // return "FTB Utilities";
+    // return "Server Utilities";
     // }
     //
     // @Override

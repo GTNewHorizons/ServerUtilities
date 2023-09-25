@@ -353,7 +353,7 @@ public class Ranks {
         universe.clearCache();
 
         List<String> list = new ArrayList<>();
-        list.add("// For more info visit https://faq.ftb.world/books/ftb-utilities/page/ranks");
+        list.add("// For more info visit https://github.com/GTNewHorizons/ServerUtilities");
 
         for (Rank rank : ranks.values()) {
             if (rank.permissions.isEmpty()) {
@@ -380,7 +380,7 @@ public class Ranks {
         FileUtils.saveSafe(ranksFile, list);
 
         list = new ArrayList<>();
-        list.add("// For more info visit https://faq.ftb.world/books/ftb-utilities/page/ranks");
+        list.add("// For more info visit https://github.com/GTNewHorizons/ServerUtilities");
 
         for (Rank rank : playerRanks.values()) {
             if (rank.permissions.isEmpty()) {

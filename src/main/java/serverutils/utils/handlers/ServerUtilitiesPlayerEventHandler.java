@@ -149,7 +149,7 @@ public class ServerUtilitiesPlayerEventHandler {
         }
     }
 
-    // TODO: I am registering the event handlers because ftbutil data was not working!!!
+    // TODO: I am registering the event handlers because serverutil data was not working!!!
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onEntityAttacked(AttackEntityEvent event) {

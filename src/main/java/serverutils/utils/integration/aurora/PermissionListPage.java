@@ -7,7 +7,7 @@ public class PermissionListPage // extends HTTPWebPage
 
     // @Override
     // public String getTitle() {
-    // return "FTB Utilities";
+    // return "Server Utilities";
     // }
     //
     // @Override
@@ -177,7 +177,7 @@ public class PermissionListPage // extends HTTPWebPage
     // export2.add(builder.toString());
     // }
     //
-    // Files.write(Paths.get("ftb-utilities-permissions.txt"), export2);
+    // Files.write(Paths.get("server-utilities-permissions.txt"), export2);
     // } catch (IOException e) {
     // e.printStackTrace();
     // }

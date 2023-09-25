@@ -157,7 +157,7 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
             @Override
             public void onClicked(MouseButton button) {
                 GuiHelper.playClickSound();
-                handleClick("https://github.com/FTBTeam/FTB-Chunks/wiki");
+                handleClick("https://github.com/GTNewHorizons/ServerUtilities/wiki");
             }
         });
     }
