@@ -1,85 +1,249 @@
-serverlib.gamemode.loaded=Spielmodus geändert zu '%s'!
-serverlib.gamemode.not_found=Spielmodus existiert nicht!
-serverlib.gamemode.already_set=Spielmodus bereits geladen!
-serverlib.gamemode.current=Aktiver Spielmodus: %s
-serverlib.gamemode.list=Verfügbare Spielmodi: %s
-serverlib.worldID=WorldID: %s
-serverlib.reloadedServer=ServerUtilitiesLibrary neu geladen (Server)
-serverlib.reloadedClient=ServerUtilitiesLibrary neu geladen (Client)
-serverlib.missing_args=Fehlende Argumente!
-serverlib.feature_disabled=Dieses Feature ist deaktiviert!
-serverlib.invalid_subcmd=Invalider Sub-Befehl: '%s'!
-serverlib.owner=Besitzer: %s
-serverlib.delete_item=Willst du '%s' löschen?
-serverutilitieslibrary.label.server_forced=Server overrides to '%s'
+# Gui
+## Buttons
+gui.accept=Akzeptieren
+gui.add=Hinzufügen
+gui.added=Hinzugefügt
+gui.remove=Entfernen
+gui.removed=Entfernet
+gui.close=Schließen
+gui.open=Öffnen
+gui.saved=Gespeichert
+gui.loaded=Geladen
+gui.info=Info
+gui.collapse_all=Alle schließen
+gui.expand_all=Alle öffnen
+gui.download=Herunterladen
+gui.downloaded=Heruntergelanden
+gui.update=Aktualisieren
+gui.updated=Aktualisiert
+gui.active=Aktiv
+gui.inactive=Inaktiv
+gui.settings=Einstellungen
+gui.rename=Umbennen
+gui.search_box=Suchen...
 
-#Buttons
-serverlib.button.settings=Einstellungen
-serverlib.button.back=Zurück
-serverlib.button.up=Hoch
-serverlib.button.down=Runter
-serverlib.button.prev=Vorherige
-serverlib.button.next=Nächste
-serverlib.button.cancel=Abbrechen
-serverlib.button.accept=Akzeptieren
-serverlib.button.remove=Entfernen
-serverlib.button.add=Hinzufügen
-serverlib.button.close=Schließen
-serverlib.button.save=Speichern
-serverlib.button.refresh=Neu laden
-serverlib.button.other=Andere
-serverlib.button.edit=Editieren
+## Labels
+gui.other=Weitere
+gui.server_forced=Server Forced: %s
+gui.online=Online
+gui.offline=Offline
+gui.whitelist=Whitelist
+gui.blacklist=Blacklist
+gui.color=Farbe
+gui.downloading=Herunterladen...
+gui.infinite=Unendlich
 
-serverutilitieslibrary.label.true=True
-serverutilitieslibrary.label.false=False
-serverutilitieslibrary.label.enabled=Aktiviert
-serverutilitieslibrary.label.disabled=Deaktiviert
-serverutilitieslibrary.label.on=An
-serverutilitieslibrary.label.off=Aus
-serverutilitieslibrary.label.online=Online
-serverutilitieslibrary.label.offline=Offline
+## Sides
+facing.north=Norden
+facing.south=Süden
+facing.west=Westen
+facing.east=osten
 
-#Colors
-serverlib.color.black=Schwarz
-serverlib.color.red=Rot
-serverlib.color.green=Grün
-serverlib.color.brown=Braun
-serverlib.color.blue=Blau
-serverlib.color.purple=Lila
-serverlib.color.cyan=Cyan
-serverlib.color.lightgray=Hell Grau
-serverlib.color.gray=Dunkel Grau
-serverlib.color.pink=Pink
-serverlib.color.lime=Lime
-serverlib.color.yellow=Gelb
-serverlib.color.lightblue=Hell Blau
-serverlib.color.magenta=Magenta
-serverlib.color.orange=Orange
-serverlib.color.white=Weiß
+relative_facing.bottom=Unten
+relative_facing.top=Oben
+relative_facing.back=Hinten
+relative_facing.front=Vorne
+relative_facing.left=Links
+relative_facing.right=Rechts
 
-#Sides
-serverlib.side.down=Unten
-serverlib.side.up=Oben
-serverlib.side.north=Norden
-serverlib.side.south=Süden
-serverlib.side.west=Westen
-serverlib.side.east=Osten
+# FTBLib Lang
+serverutilitieslib=FTBLib
+wip=In Arbeit!
+deprecated=Diese Methode ist veraltet, bitte benutze: %s
+example=Beispiel:
+click_here=[Hier klicken]
+feature_disabled=Diese Funktion ist deaktiviert!
+feature_disabled_server=Diese Funktion ist auf Servern deaktiviert!
+error=Fehler: %s
+owner=Besitze: %s
+delete_item=Möchtest du '%s' löschen?
+server_forced=Durch den Server zu '%s' überschrieben
+commands=Befehle
+my_permissions=Meine Berechtigungen
+all_permissions=Alle Berechtigungen
+key.categories.ftbmods=FTB Mods
+stand_still=Bitte warte für %d Sekunden.
+stand_still_failed=Du hast dich bewegt. Teleport abgebrochen.
+teleporting=Teleportieren...
+cooldown=Wartezeit
+cant_use_now=Kann dies gerade nicht benutzen!
+cant_use_now_cooldown=Kann dies nicht benutzen! Wartezeit: %d
+action_bar=Aktionsleiste
+nothing_changed=Nichts geändert!
+player_must_be_online=Spieler muss online sein!
 
-serverlib.dside.bottom=Unten
-serverlib.dside.top=Oben
-serverlib.dside.back=Hinten
-serverlib.dside.front=Vorne
-serverlib.dside.left=Links
-serverlib.dside.right=Rechts
+serverutilitieslib.lang.reload_server_button=Server neuladen!
+serverutilitieslib.lang.reload_server=FTBLib: Server neugeladen in: %s
+serverutilitieslib.lang.reload_client=Du kannst %s drücken um den Client neuzuladen.
+serverutilitieslib.lang.reload_failed=Diese IDs konnten nicht neugeladen werden.
 
-#Config
-client_config=Client Config
-client_config.serverlib=ServerUtilitiesLibrary
-client_config.serverlib.item_ore_names=Item OreDict Names
-client_config.serverlib.item_reg_names=Item Registry Names
-client_config.serverlib.debug_info=Debug Info
-client_config.serverlib.notifications=Benachrichtigungen
+serverutilitieslib.lang.config_command.invalid_key=Kann Einstellungs-Wert '%s' nicht finden!
+serverutilitieslib.lang.config_command.set='%s' wird zu %s eingestellt
 
-client_config.sidebar_buttons=Seitenleiste Buttons
-client_config.sidebar_buttons.settings=Client Einstellungen
-client_config.sidebar_buttons.notifications=Benachrichtigungen
+serverutilitieslib.lang.add_fake_player.invalid_uuid=Ungültige UUID!
+serverutilitieslib.lang.add_fake_player.player_exists=Spieler existiert bereits!
+serverutilitieslib.lang.add_fake_player.added=Fake-Spieler %s hinzugefügt!
+
+serverutilitieslib.select_fluid.gui=Flüssigkeit auswählen
+serverutilitieslib.select_fluid.none=Keine
+serverutilitieslib.select_item.list_mode=Listenmodus: %s
+serverutilitieslib.select_item.list_mode.all=Alle Items
+serverutilitieslib.select_item.list_mode.inv=Inventar
+serverutilitieslib.select_item.count=Größe einstellen
+serverutilitieslib.select_item.meta=Metadaten einstellen
+serverutilitieslib.select_item.nbt=NBT bearbeiten
+serverutilitieslib.select_item.caps=Fähigkeiten bearbeiten
+serverutilitieslib.select_item.display_name=Anzeige-Name einstellen
+serverutilitieslib.select_team.gui=Team auswählen
+
+# Config
+serverutilitieslib.general.clientless_mode=Clientloser Modus
+serverutilitieslib.general.replace_reload_command=/reload Befehl ersetzen
+serverutilitieslib.general.merge_offline_mode_players=Offline-Modus-Spieler zusammenführen
+
+serverutilitieslib.teams=Teams
+serverutilitieslib.teams.autocreate_sp=Automatisches Erstellen im Einzelspieler
+serverutilitieslib.teams.autocreate_mp=Automatisches Erstellen im Mehrspieler
+
+serverutilitieslib.debugging=Debuggen
+serverutilitieslib.debugging.special_commands=Spezielle Befehle
+serverutilitieslib.debugging.print_more_info=Mehr Info ausgeben
+serverutilitieslib.debugging.print_more_errors=Mehr Fehler ausgeben
+serverutilitieslib.debugging.log_network=Netzwerk E/A loggen
+serverutilitieslib.debugging.log_teleport=Teleports loggen
+serverutilitieslib.debugging.log_config_editing=Einstellungen-Bearbeitungen loggen
+serverutilitieslib.debugging.dev_sidebar_buttons=Nur-Entwickler Seitenleisten-Schaltflächen
+serverutilitieslib.debugging.gui_widget_bounds=GUI-Widgetgrenzen
+serverutilitieslib.debugging.log_events=Ereignisse loggen
+
+# Client Config
+serverutilitieslib_client.general.item_ore_names=Item OreDictionary-Namen anzeigen
+serverutilitieslib_client.general.item_ore_names.item_tooltip=OreDictionary Namen:
+serverutilitieslib_client.general.item_nbt=Item NBT anzeigen
+serverutilitieslib_client.general.replace_vanilla_status_messages=Ersetze Vanilla Statusmeldungen
+serverutilitieslib_client.general.debug_helper=Debug Helfer
+serverutilitieslib_client.general.collapse_sidebar_buttons=Seitenleisten-Schaltflächen schließen
+serverutilitieslib_client.general.sidebar_button_collapse_speed=Seitenleisten-Schaltflächen Schließtempo
+
+# Player Settings
+player_config=My Server Settings
+player_config.serverutilitieslib.hide_team_notification=Verstecke Team-Benachrichtigung beim Login
+
+# Team Settings
+team_config.serverutilitieslib.display=Anzeige
+team_config.serverutilitieslib.display.color=Farbe
+team_config.serverutilitieslib.display.fake_player_status=Fake-Spieler Status
+team_config.serverutilitieslib.display.title=Titel
+team_config.serverutilitieslib.display.title.tooltip=Anzeigen, wenn ein beanspruchter Chunk betreten wird.
+team_config.serverutilitieslib.display.desc=Beschreibung
+team_config.serverutilitieslib.display.desc.tooltip=Anzeige unter dem Titel
+team_config.serverutilitieslib.free_to_join=Freies Beitreten
+team_config.serverutilitieslib.free_to_join.tooltip=Jeder kann ohne Einladung beitreten.
+
+# Teams
+serverutilitieslib.lang.team.created=Team '%s' erstellt
+serverutilitieslib.lang.team.id_already_exists=ID bereits registriert.
+serverutilitieslib.lang.team.id_invalid=Eine ID kann die die kleingeschriebenen Buchstaben a-z, _ und | beinhalten!
+serverutilitieslib.lang.team.deleted=Team '%s' gelöscht
+serverutilitieslib.lang.team.member_left=%s hat dein Team verlassen!
+serverutilitieslib.lang.team.member_joined=%s ist deinem Team beigetreten!
+serverutilitieslib.lang.team.transferred_ownership=Der neue Besitze ist nun %s
+serverutilitieslib.lang.team.invited=%s zu '%s' eingeladen
+serverutilitieslib.lang.team.invited_you=Du wurdest zu '%s' von %s eingeladen
+serverutilitieslib.lang.team.cancel_invite=Einladungen abbrechen
+serverutilitieslib.lang.team.error.not_found=Team '%s' nicht gefunden!
+serverutilitieslib.lang.team.error.no_team=Du musst in einem Team sein, um das zu tun!
+serverutilitieslib.lang.team.error.must_leave=Du musst dein Team verlassen, um das zu tun!
+serverutilitieslib.lang.team.error.not_owner=Du bist nicht der Besitzer dieses Teams!
+serverutilitieslib.lang.team.error.not_member=%s ist kein Mitglied diese Teams!
+serverutilitieslib.lang.team.error.must_transfer_ownership=Du musst die Leitung übertragen!
+serverutilitieslib.lang.team.error.already_invited=%s ist bereits eingeladen!
+serverutilitieslib.lang.team.error.failed_to_join=Kann diesem Team nicht beitreten!
+serverutilitieslib.lang.team.permission.set=Erlaubnis für '%s' von %s wurde zu %s gesetzt
+serverutilitieslib.lang.team.permission.owner=Kann Leitung nicht ändern.
+serverutilitieslib.lang.team.notification=Du bist keinen Team beigetreten oder hast eins erstellt. %s um die TeamsGUI zu öffen oder %s um diese Nachricht auszublenden.
+serverutilitieslib.lang.team.notification.hide=Nachricht ausblenden
+serverutilitieslib.lang.team.chat_message=[Team %s] %s
+
+team_action.serverutilitieslib.select_team=Team zum Beitreten auswählen
+team_action.serverutilitieslib.create_team=Neues Team erstellen.
+team_action.serverutilitieslib.members=Mitglieder
+team_action.serverutilitieslib.allies=Verbündete
+team_action.serverutilitieslib.moderators=Moderatoren
+team_action.serverutilitieslib.enemies=Gegner
+team_action.serverutilitieslib.leave=Team verlassen
+team_action.serverutilitieslib.transfer_ownership=Leitung übertragen
+
+serverutilitieslib.lang.team.gui.join_team=Klicke um '%s' beizutreten
+serverutilitieslib.lang.team.gui.request_invite=Klicke um eine Einladung zu '%s' erfragen
+serverutilitieslib.lang.team.gui.members.invite=Klicke um dein Team einzuladen
+serverutilitieslib.lang.team.gui.members.requesting_invite=Dieser Spieler fragt nach einer Einladung
+serverutilitieslib.lang.team.gui.members.deny_request=Rechts-Klick um Anfrage abzulehnen
+serverutilitieslib.lang.team.gui.members.cancel_invite=Rechts-Klicke um Einladung abzubrechen
+serverutilitieslib.lang.team.gui.members.kick=Rechts-Klicke um Mitglied rauszuwerfen
+
+serverutilitieslib.lang.team_status.enemy=Gegner
+serverutilitieslib.lang.team_status.none=Keiner
+serverutilitieslib.lang.team_status.requesting_invite=Einladung anfragen
+serverutilitieslib.lang.team_status.invited=Eingeladen
+serverutilitieslib.lang.team_status.ally=Verbündeter
+serverutilitieslib.lang.team_status.member=Mitglied
+serverutilitieslib.lang.team_status.mod=Moderator
+serverutilitieslib.lang.team_status.owner=Besitzer
+
+# Sidebar Buttons
+sidebar_button=Seitenleisten-Schaltflächen
+sidebar_button.serverutilitieslib.my_team=Mein Team
+sidebar_button.serverutilitieslib.my_team.tooltip=Öffnet eine GUI, wo du dein Team verwalten kannst.
+sidebar_button.serverutilitieslib.settings=Client Einstellungen
+sidebar_button.serverutilitieslib.settings.tooltip=Bearbeite nur Client-Seitige Einstellungen
+sidebar_button.serverutilitieslib.notifications=Benachrichtigungen
+sidebar_button.serverutilitieslib.admin_panel=Admin Tafel
+
+# Privacy Level
+privacy=Privatsphäre
+privacy.public=Öffentlich
+privacy.private=Privat
+privacy.team=Team
+
+# Redstone Mode
+redstone_mode=Redstone Modus
+redstone_mode.disabled=Deaktivert
+redstone_mode.active_high=Aktiv hoch
+redstone_mode.active_low=Aktiv niedrig
+redstone_mode.pulse=Impuls
+
+# IO Mode
+io_mode=EA Modus
+io_mode.io=EA
+io_mode.in=Nur Eingang
+io_mode.out=Nur Ausgang
+io_mode.none=Deaktivert
+
+# Click Actions
+click_action.cmd=Befehl
+click_action.show_cmd=Befehl anzeigen
+click_action.url=URL öffnen
+click_action.file=Datei öffen
+click_action.gui=GUI öffen
+
+# Commands
+commands.reload.usage=/reload [*|domain:*|domain:id]
+commands.my_settings.usage=/my_settings <config id> [Wert]
+commands.team.usage=/team
+commands.team.settings.usage=/team settings <config id> [Wert]
+commands.team.create.usage=/team create <id> [Farbe]
+commands.team.leave.usage=/team leave
+commands.team.transfer_ownership.usage=/team transfer_ownership <Spieler>
+commands.team.kick.usage=/team kick <Spieler>
+commands.team.join.usage=/team join <team>
+commands.team.status.usage=/team status <Spieler> [set_status]
+commands.team.status.set=Status von %s wurde zu %s gesetzt
+commands.team.status.cant_set=Status kann nicht gesetzt werden!
+commands.team.msg.usage=/team msg <Nachricht...>
+commands.team.delete.usage=/team delete <team>
+commands.team.request_invite.usage=/team request_invite <team>
+commands.add_fake_player.usage=/add_fake_player <uuid> <name>
+
+# Client Commands
+commands.client_config.usage=/client_config

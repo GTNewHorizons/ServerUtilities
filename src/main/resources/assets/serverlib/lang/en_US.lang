@@ -1,139 +1,274 @@
-serverlib.gamemode.loaded=Gamemode set to '%s'!
-serverlib.gamemode.not_found=Gamemode does not exist!
-serverlib.gamemode.already_set=Gamemode already set!
-serverlib.gamemode.current=Current gamemode: %s
-serverlib.gamemode.list=Available gamemodes: %s
-serverlib.worldID=WorldID: %s
-serverlib.reloaded_server=ServerUtilitiesLibrary: Server reloaded in %s
-serverlib.reloaded_client=ServerUtilitiesLibrary: Client reloaded in %s
-serverlib.missing_args=Missing Arguments!
-serverlib.feature_disabled=This feature is disabled!
-serverlib.invalid_subcmd=Invalid subcommand: '%s'!
-serverlib.owner=Owner: %s
-serverlib.delete_item=Do you want to delete '%s'?
-serverutilitieslibrary.label.server_forced=Server overrides to '%s'
-serverlib.reload_client_config=Server Reloaded. You can
+# Gui
+## Buttons
+gui.accept=Accept
+gui.add=Add
+gui.added=Added
+gui.remove=Remove
+gui.removed=Removed
+gui.close=Close
+gui.open=Open
+gui.saved=Saved
+gui.loaded=Loaded
+gui.info=Info
+gui.collapse_all=Collapse All
+gui.expand_all=Expand All
+gui.download=Download
+gui.downloaded=Downloaded
+gui.update=Update
+gui.updated=Updated
+gui.active=Active
+gui.inactive=Inactive
+gui.settings=Settings
+gui.rename=Rename
+gui.search_box=Search...
+gui.move=Move
+gui.copy=Copy
+gui.paste=Paste
+gui.cut=Cut
 
-serverlib.button.shortcut.action=Action
-serverlib.button.shortcut.data=Action Data
-serverlib.button.shortcut.key=Key
-serverlib.button.shortcut.icon=Icon
-serverlib.button.shortcut.title=Title
-serverlib.button.shortcut.priority=Priority
-serverlib.button.shortcut.add_key=Add Key Shortcut
-serverlib.button.shortcut.add_button=Add Button Shortcut
+## Labels
+gui.other=Other
+gui.server_forced=Server Forced: %s
+gui.online=Online
+gui.offline=Offline
+gui.whitelist=Whitelist
+gui.blacklist=Blacklist
+gui.color=Color
+gui.downloading=Downloading...
+gui.infinite=Infinite
 
-#Buttons
-serverlib.button.settings=Settings
-serverlib.button.back=Back
-serverlib.button.up=Up
-serverlib.button.down=Down
-serverlib.button.prev=Previous
-serverlib.button.next=Next
-serverlib.button.cancel=Cancel
-serverlib.button.accept=Accept
-serverlib.button.remove=Remove
-serverlib.button.add=Add
-serverlib.button.close=Close
-serverlib.button.save=Save
-serverlib.button.refresh=Refresh
-serverlib.button.other=Other
-serverlib.button.edit=Edit
-serverlib.button.info=Info
+## Sides
+facing.north=North
+facing.south=South
+facing.west=West
+facing.east=East
 
-serverutilitieslibrary.label.true=True
-serverutilitieslibrary.label.false=False
-serverutilitieslibrary.label.enabled=Enabled
-serverutilitieslibrary.label.disabled=Disabled
-serverutilitieslibrary.label.on=On
-serverutilitieslibrary.label.off=Off
-serverutilitieslibrary.label.online=Online
-serverutilitieslibrary.label.offline=Offline
-serverutilitieslibrary.label.whitelist=Whitelist
-serverutilitieslibrary.label.blacklist=Blacklist
+relative_facing.bottom=Bottom
+relative_facing.top=Top
+relative_facing.back=Back
+relative_facing.front=Front
+relative_facing.left=Left
+relative_facing.right=Right
 
-#Colors
-serverlib.color.black=Black
-serverlib.color.red=Red
-serverlib.color.green=Green
-serverlib.color.brown=Brown
-serverlib.color.blue=Blue
-serverlib.color.purple=Purple
-serverlib.color.cyan=Cyan
-serverlib.color.lightgray=Light Gray
-serverlib.color.gray=Dark Gray
-serverlib.color.pink=Pink
-serverlib.color.lime=Lime
-serverlib.color.yellow=Yellow
-serverlib.color.lightblue=Light Blue
-serverlib.color.magenta=Magenta
-serverlib.color.orange=Orange
-serverlib.color.white=White
+# FTBLib Lang
+serverutilitieslib=FTB Library
+wip=Work In Progress!
+deprecated=This method is deprecated, please use %s
+example=Example:
+click_here=[Click Here]
+feature_disabled=This feature is disabled!
+feature_disabled_server=This feature is disabled on server!
+error=Error: %s
+owner=Owner: %s
+delete_item=Do you want to delete '%s'?
+server_forced=Server overrides to '%s'
+commands=Commands
+my_permissions=My Permissions
+all_permissions=All Permissions
+key.categories.ftbmods=FTB Mods
+stand_still=Please, stand still for %d seconds.
+stand_still_failed=You moved! Teleport cancelled.
+teleporting=Teleporting...
+cooldown=Cooldown
+cant_use_now=Can't use that right now!
+cant_use_now_cooldown=Can't use that right now! Cooldown: %s
+action_bar=Action Bar
+nothing_changed=Nothing changed!
+player_must_be_online=Player must be online!
+lat_support=Like this mod? Click to support my projects!
 
-#Sides
-serverlib.side.down=Down
-serverlib.side.up=Up
-serverlib.side.north=North
-serverlib.side.south=South
-serverlib.side.west=West
-serverlib.side.east=East
+serverutilitieslib.lang.reload_server_button=Reload Server
+serverutilitieslib.lang.reload_server=Server reloaded in %s
+serverutilitieslib.lang.reload_client=You can press %s to reload client
+serverutilitieslib.lang.reload_failed=These IDs failed to reload:
 
-serverlib.dside.bottom=Bottom
-serverlib.dside.top=Top
-serverlib.dside.back=Back
-serverlib.dside.front=Front
-serverlib.dside.left=Left
-serverlib.dside.right=Right
+serverutilitieslib.lang.config_command.invalid_key=Can't find config value '%s'!
+serverutilitieslib.lang.config_command.set='%s' set to %s
 
-#ClientConfig
-client_config=Client Config
-client_config.serverlib=ServerUtilitiesLibrary
-client_config.serverlib.item_ore_names=Item OreDict Names
-client_config.serverlib.item_reg_names=Item Registry Names
-client_config.serverlib.debug_info=Debug Info
-client_config.serverlib.notifications=Notifications
-client_config.serverlib.reload_client_cmd=Client Reloading Command
-client_config.serverlib.action_buttons_on_top=Action Buttons On Top
-client_config.serverlib.player_options_shortcut=Player Options Shortcut
-client_config.serverlib.key_bindings=Key Bindings
-client_config.serverlib.edit_shortcuts=Edit Shortcuts
-client_config.serverlib.light_value_texture=Light Value Texture
+serverutilitieslib.lang.add_fake_player.invalid_uuid=Invalid UUID!
+serverutilitieslib.lang.add_fake_player.player_exists=Player already exists!
+serverutilitieslib.lang.add_fake_player.added=Fake player %s added!
 
-client_config.sidebar_buttons=Sidebar Buttons
+serverutilitieslib.select_fluid.gui=Select Fluid
+serverutilitieslib.select_fluid.none=None
+serverutilitieslib.select_item.list_mode=List Mode: %s
+serverutilitieslib.select_item.list_mode.all=All Items
+serverutilitieslib.select_item.list_mode.inv=Inventory
+serverutilitieslib.select_item.count=Set Size
+serverutilitieslib.select_item.meta=Set Metadata
+serverutilitieslib.select_item.nbt=Edit NBT
+serverutilitieslib.select_item.caps=Edit Capabilities
+serverutilitieslib.select_item.display_name=Set Display Name
+serverutilitieslib.select_team.gui=Select Team
 
-#PlayerActions
-player_action.serverlib.settings=Client Settings
-player_action.serverlib.notifications=Notifications
-player_action.serverlib.toggle_gamemode=Toggle Gamemode
-player_action.serverlib.toggle_rain=Toggle Rain
-player_action.serverlib.toggle_day=Set time to Day
-player_action.serverlib.toggle_night=Set time to Night
-player_action.serverlib.toggle_chunk_bounds=Toggle Chunk Bounds
-player_action.serverlib.toggle_light_values=Toggle Light Values
+serverutilitieslib.world.dimension.overworld=Overworld
+serverutilitieslib.world.dimension.end=The End
+serverutilitieslib.world.dimension.nether=Nether
 
-#Security Mode
-serverlib.security=Security
-serverlib.security.public=Public
-serverlib.security.private=Private
-serverlib.security.friends=Friends
-serverlib.security.group=Group
+# Config
+serverutilitieslib.general.clientless_mode=Clientless Mode
+serverutilitieslib.general.replace_reload_command=Replace /reload Command
+serverutilitieslib.general.merge_offline_mode_players=Merge Offline Mode Players
 
-#Redstone Mode
-serverlib.redstonemode=Redstone Mode
-serverlib.redstonemode.disabled=Disabled
-serverlib.redstonemode.high=Active High
-serverlib.redstonemode.low=Active Low
+serverutilitieslib.teams=Teams
+serverutilitieslib.teams.autocreate_sp=Autocreate on Singleplayer
+serverutilitieslib.teams.autocreate_mp=Autocreate on Multiplayer
 
-#Inventory Mode
-serverlib.invmode=Automation
-serverlib.invmode.enabled=Enabled
-serverlib.invmode.onlyin=Insert Only
-serverlib.invmode.onlyout=Extract Only
-serverlib.invmode.disabled=Disabled
+serverutilitieslib.debugging=Debugging
+serverutilitieslib.debugging.special_commands=Special Commands
+serverutilitieslib.debugging.print_more_info=Print More Info
+serverutilitieslib.debugging.print_more_errors=Print More Errors
+serverutilitieslib.debugging.log_network=Log Network IO
+serverutilitieslib.debugging.log_teleport=Log Teleporting
+serverutilitieslib.debugging.log_config_editing=Log Config Editing
+serverutilitieslib.debugging.dev_sidebar_buttons=Dev-only Sidebar Buttons
+serverutilitieslib.debugging.gui_widget_bounds=GUI Widget Bounds
+serverutilitieslib.debugging.log_events=Log Events
 
-#Click Actions
+# Client Config
+serverutilitieslib_client.general.item_ore_names=Display Item OreDictionary names
+serverutilitieslib_client.general.item_ore_names.item_tooltip=Ore Dictionary Names:
+serverutilitieslib_client.general.item_nbt=Display Item NBT
+serverutilitieslib_client.general.replace_vanilla_status_messages=Replace vanilla status messages
+serverutilitieslib_client.general.debug_helper=Debug Helper
+
+# Player Settings
+player_config=My Server Settings
+player_config.serverutilitieslib.hide_team_notification=Hide Team Notification on Login
+
+# Team Settings
+team_config.serverutilitieslib.display=Display
+team_config.serverutilitieslib.display.color=Color
+team_config.serverutilitieslib.display.fake_player_status=Fake Player Status
+team_config.serverutilitieslib.display.title=Title
+team_config.serverutilitieslib.display.title.tooltip=Displays when you enter a claimed chunk
+team_config.serverutilitieslib.display.desc=Description
+team_config.serverutilitieslib.display.desc.tooltip=Displays under Title
+team_config.serverutilitieslib.free_to_join=Free to Join
+team_config.serverutilitieslib.free_to_join.tooltip=Anyone can join without invitation
+
+# Teams
+serverutilitieslib.lang.team.no_team=No Team
+serverutilitieslib.lang.team.created=Team '%s' created
+serverutilitieslib.lang.team.id_already_exists=ID already registered!
+serverutilitieslib.lang.team.id_invalid=ID can only contain lowercase a-z, _ and |!
+serverutilitieslib.lang.team.deleted=Team '%s' deleted
+serverutilitieslib.lang.team.member_left=%s left your team!
+serverutilitieslib.lang.team.member_joined=%s joined your team!
+serverutilitieslib.lang.team.transferred_ownership=New owner now is %s
+serverutilitieslib.lang.team.invited=Invited %s to '%s'
+serverutilitieslib.lang.team.invited_you=You have been invited to '%s' by %s. Click here to join!
+serverutilitieslib.lang.team.cancel_invite=Cancel invite
+serverutilitieslib.lang.team.error.not_found=Team '%s' not found!
+serverutilitieslib.lang.team.error.no_team=You must be in a Team to do that!
+serverutilitieslib.lang.team.error.must_leave=You must leave your Team to do that!
+serverutilitieslib.lang.team.error.not_owner=You are not the owner of this Team!
+serverutilitieslib.lang.team.error.not_member=%s is not a member of this Team!
+serverutilitieslib.lang.team.error.already_member=%s is already a member of this Team!
+serverutilitieslib.lang.team.error.must_transfer_ownership=You must transfer ownership!
+serverutilitieslib.lang.team.error.already_invited=%s already is invited!
+serverutilitieslib.lang.team.error.failed_to_join=Can't join this team!
+serverutilitieslib.lang.team.permission.set=Permission '%s' for %s set to %s
+serverutilitieslib.lang.team.permission.owner=Can't change owner's permissions!
+serverutilitieslib.lang.team.notification=You haven't joined or created a team yet! %s to open TeamsGUI or %s to hide this message.
+serverutilitieslib.lang.team.notification.hide=Hide this Message
+serverutilitieslib.lang.team.chat_message=[Team %s] %s
+
+team_action.serverutilitieslib.select_team=Select Team to Join
+team_action.serverutilitieslib.create_team=Create a New Team
+team_action.serverutilitieslib.members=Members
+team_action.serverutilitieslib.allies=Allies
+team_action.serverutilitieslib.moderators=Moderators
+team_action.serverutilitieslib.enemies=Enemies
+team_action.serverutilitieslib.change_team=Join another Team
+team_action.serverutilitieslib.leave=Leave Team
+team_action.serverutilitieslib.leave.confirmation=Warning! You may lose quest progress and other things if you do!
+team_action.serverutilitieslib.transfer_ownership=Transfer Ownership
+
+serverutilitieslib.lang.team.gui.join_team=Click to join '%s'
+serverutilitieslib.lang.team.gui.request_invite=Click to request invite to '%s'
+serverutilitieslib.lang.team.gui.members.invite=Click to invite to your team
+serverutilitieslib.lang.team.gui.members.requesting_invite=This player is requesting invite
+serverutilitieslib.lang.team.gui.members.deny_request=Right-click to deny request
+serverutilitieslib.lang.team.gui.members.cancel_invite=Right-click to cancel invite
+serverutilitieslib.lang.team.gui.members.kick=Right-click to kick member
+
+serverutilitieslib.lang.team_status.enemy=Enemy
+serverutilitieslib.lang.team_status.none=None
+serverutilitieslib.lang.team_status.requesting_invite=Requesting Invite
+serverutilitieslib.lang.team_status.invited=Invited
+serverutilitieslib.lang.team_status.ally=Ally
+serverutilitieslib.lang.team_status.member=Member
+serverutilitieslib.lang.team_status.mod=Moderator
+serverutilitieslib.lang.team_status.owner=Owner
+
+# Sidebar Buttons
+sidebar_button=Sidebar Buttons
+sidebar_button.serverutilitieslib.my_team=My Team
+sidebar_button.serverutilitieslib.my_team.tooltip=Opens a GUI where you can manage your team
+sidebar_button.serverutilitieslib.settings=Client Settings
+sidebar_button.serverutilitieslib.settings.tooltip=Edit client-side-only settings
+sidebar_button.serverutilitieslib.notifications=Notifications
+sidebar_button.serverutilitieslib.admin_panel=Admin Panel
+
+# Privacy Level
+privacy=Privacy
+privacy.public=Public
+privacy.private=Private
+privacy.team=Team
+
+# Redstone Mode
+redstone_mode=Redstone Mode
+redstone_mode.disabled=Disabled
+redstone_mode.active_high=Active High
+redstone_mode.active_low=Active Low
+redstone_mode.pulse=Pulse
+
+# IO Mode
+io_mode=IO Mode
+io_mode.io=IO
+io_mode.in=Input Only
+io_mode.out=Output Only
+io_mode.none=Disabled
+
+# Click Actions
 click_action.cmd=Command
 click_action.show_cmd=Show Command
 click_action.url=Open URL
 click_action.file=Open File
 click_action.gui=Open Gui
+
+# Commands
+commands.reload.usage=/reload [*|domain:*|domain:id]
+commands.my_settings.usage=/my_settings <config id> [value]
+commands.team.usage=/team
+commands.team.settings.usage=/team settings <config id> [value]
+commands.team.create.usage=/team create <id> [color]
+commands.team.leave.usage=/team leave
+commands.team.transfer_ownership.usage=/team transfer_ownership <player>
+commands.team.kick.usage=/team kick <player>
+commands.team.join.usage=/team join <team>
+commands.team.status.usage=/team status <player> [set_status]
+commands.team.status.set=Status for %s set to %s
+commands.team.status.cant_set=Status can't be set!
+commands.team.msg.usage=/team msg <message...>
+commands.team.delete.usage=/team delete <team>
+commands.team.request_invite.usage=/team request_invite <team>
+commands.team.create_server_team.usage=/team create_server_team <id>
+commands.team.info.usage=/team info <team>
+commands.team.info.id=ID: %s
+commands.team.info.uid=UID: %s
+commands.team.info.owner=Owner: %s
+commands.team.info.members=Members: %s
+commands.team.get.usage=/team get <player>
+commands.team.list.usage=/team list
+commands.team.list.teams=List of all teams (%d):
+commands.add_fake_player.usage=/add_fake_player <uuid> <name>
+
+# Client Commands
+commands.client_config.usage=/client_config
+
+# Forge
+commands.tree_base.invalid_cmd=Invalid subcommand '%s'!
+commands.tree_base.invalid_cmd.list_subcommands=Invalid subcommand '%s'! Available subcommands: %s
+commands.tree_base.available_subcommands=Available SubCommands: %s
