@@ -66,8 +66,11 @@ public class CmdTPAccept extends CmdBase {
         component.getChatStyle().setChatHoverEvent(
                 new HoverEvent(
                         HoverEvent.Action.SHOW_TEXT,
-                        ServerUtilities
-                                .lang(other.player.getPlayer(), "serverutilities.lang.tpa.from_to", otherName, selfName)));
+                        ServerUtilities.lang(
+                                other.player.getPlayer(),
+                                "serverutilities.lang.tpa.from_to",
+                                otherName,
+                                selfName)));
         other.player.getPlayer().addChatMessage(component);
 
         ServerUtilitiesPlayerData.Timer.TPA

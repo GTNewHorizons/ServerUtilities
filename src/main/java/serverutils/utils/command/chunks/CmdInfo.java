@@ -14,7 +14,6 @@ import serverutils.utils.ServerUtilities;
 import serverutils.utils.data.ClaimedChunk;
 import serverutils.utils.data.ClaimedChunks;
 
-
 public class CmdInfo extends CmdBase {
 
     public CmdInfo() {

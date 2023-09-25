@@ -20,6 +20,8 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CmdTreeBase;
 import serverutils.lib.lib.command.CmdTreeHelp;
@@ -31,9 +33,6 @@ import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.net.MessageEditNBT;
 import serverutils.utils.net.MessageEditNBTRequest;
-
-import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.ModContainer;
 
 public class CmdEditNBT extends CmdTreeBase {
 

@@ -1,5 +1,9 @@
 package serverutils.lib.client;
 
+import java.util.List;
+
+import net.minecraft.client.resources.I18n;
+
 import serverutils.lib.lib.gui.GuiHelper;
 import serverutils.lib.lib.gui.Panel;
 import serverutils.lib.lib.gui.SimpleTextButton;
@@ -7,73 +11,73 @@ import serverutils.lib.lib.gui.Theme;
 import serverutils.lib.lib.gui.misc.GuiButtonListBase;
 import serverutils.lib.lib.icon.Color4I;
 import serverutils.lib.lib.util.misc.MouseButton;
-import net.minecraft.client.resources.I18n;
-
-import java.util.List;
 
 public class GuiSidebarButtonConfig extends GuiButtonListBase {
-	private static final Color4I COLOR_ENABLED = Color4I.rgba(0x5547BF41);
-	private static final Color4I COLOR_UNAVAILABLE = Color4I.rgba(0x550094FF);
-	private static final Color4I COLOR_DISABLED = Color4I.rgba(0x55BC4242);
 
-	private class ButtonConfigSidebarButton extends SimpleTextButton {
-		private final SidebarButton sidebarButton;
-		private String tooltip = "";
+    private static final Color4I COLOR_ENABLED = Color4I.rgba(0x5547BF41);
+    private static final Color4I COLOR_UNAVAILABLE = Color4I.rgba(0x550094FF);
+    private static final Color4I COLOR_DISABLED = Color4I.rgba(0x55BC4242);
 
-		public ButtonConfigSidebarButton(Panel panel, SidebarButton s) {
-			super(panel, I18n.format(s.getLangKey()), s.getIcon());
-			sidebarButton = s;
+    private class ButtonConfigSidebarButton extends SimpleTextButton {
 
-			//if (I18n.hasKey(s.getTooltipLangKey())) {
-				tooltip = I18n.format(s.getTooltipLangKey());
-			//}
-		}
+        private final SidebarButton sidebarButton;
+        private String tooltip = "";
 
-		@Override
-		public void addMouseOverText(List<String> list) {
-			list.add(sidebarButton.getConfig() ? I18n.format("addServer.resourcePack.enabled") : I18n.format("addServer.resourcePack.disabled"));
+        public ButtonConfigSidebarButton(Panel panel, SidebarButton s) {
+            super(panel, I18n.format(s.getLangKey()), s.getIcon());
+            sidebarButton = s;
 
-			if (!tooltip.isEmpty()) {
-				list.add(tooltip);
-			}
-		}
+            // if (I18n.hasKey(s.getTooltipLangKey())) {
+            tooltip = I18n.format(s.getTooltipLangKey());
+            // }
+        }
 
-		@Override
-		public void drawBackground(Theme theme, int x, int y, int w, int h) {
-			super.drawBackground(theme, x, y, w, h);
-			(sidebarButton.getConfig() ? (sidebarButton.isVisible() ? COLOR_ENABLED : COLOR_UNAVAILABLE) : COLOR_DISABLED).draw(x, y, w, h);
-		}
+        @Override
+        public void addMouseOverText(List<String> list) {
+            list.add(
+                    sidebarButton.getConfig() ? I18n.format("addServer.resourcePack.enabled")
+                            : I18n.format("addServer.resourcePack.disabled"));
 
-		@Override
-		public void onClicked(MouseButton button) {
-			GuiHelper.playClickSound();
+            if (!tooltip.isEmpty()) {
+                list.add(tooltip);
+            }
+        }
 
-			if (isCtrlKeyDown()) {
-				sidebarButton.onClicked(isShiftKeyDown());
-			}
-			else {
-				sidebarButton.setConfig(!sidebarButton.getConfig());
-			}
-		}
-	}
+        @Override
+        public void drawBackground(Theme theme, int x, int y, int w, int h) {
+            super.drawBackground(theme, x, y, w, h);
+            (sidebarButton.getConfig() ? (sidebarButton.isVisible() ? COLOR_ENABLED : COLOR_UNAVAILABLE)
+                    : COLOR_DISABLED).draw(x, y, w, h);
+        }
 
-	public GuiSidebarButtonConfig()
-	{
-		setTitle(I18n.format("sidebar_button"));
-	}
+        @Override
+        public void onClicked(MouseButton button) {
+            GuiHelper.playClickSound();
 
-	@Override
-	public void addButtons(Panel panel) {
-		for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
-			for (SidebarButton button : group.getButtons()) {
-				panel.add(new ButtonConfigSidebarButton(panel, button));
-			}
-		}
-	}
+            if (isCtrlKeyDown()) {
+                sidebarButton.onClicked(isShiftKeyDown());
+            } else {
+                sidebarButton.setConfig(!sidebarButton.getConfig());
+            }
+        }
+    }
 
-	@Override
-	public void onClosed() {
-		super.onClosed();
-		SidebarButtonManager.INSTANCE.saveConfig();
-	}
+    public GuiSidebarButtonConfig() {
+        setTitle(I18n.format("sidebar_button"));
+    }
+
+    @Override
+    public void addButtons(Panel panel) {
+        for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
+            for (SidebarButton button : group.getButtons()) {
+                panel.add(new ButtonConfigSidebarButton(panel, button));
+            }
+        }
+    }
+
+    @Override
+    public void onClosed() {
+        super.onClosed();
+        SidebarButtonManager.INSTANCE.saveConfig();
+    }
 }

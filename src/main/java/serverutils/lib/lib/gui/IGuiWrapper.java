@@ -2,15 +2,15 @@ package serverutils.lib.lib.gui;
 
 public interface IGuiWrapper extends IOpenableGui {
 
-	GuiBase getGui();
+    GuiBase getGui();
 
-	@Override
-	default void openGui() {
-		getGui().openGui();
-	}
+    @Override
+    default void openGui() {
+        getGui().openGui();
+    }
 
-	@Override
-	default void closeGui(boolean openPrevScreen) {
-		getGui().closeGui(openPrevScreen);
-	}
+    @Override
+    default void closeGui(boolean openPrevScreen) {
+        getGui().closeGui(openPrevScreen);
+    }
 }

@@ -5,15 +5,15 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public abstract class IconWithParent extends Icon {
 
-	public final Icon parent;
+    public final Icon parent;
 
-	public IconWithParent(Icon i) {
-		parent = i;
-	}
+    public IconWithParent(Icon i) {
+        parent = i;
+    }
 
-	@Override
-	@SideOnly(Side.CLIENT)
-	public void bindTexture() {
-		parent.bindTexture();
-	}
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void bindTexture() {
+        parent.bindTexture();
+    }
 }

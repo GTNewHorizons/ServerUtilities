@@ -5,11 +5,12 @@ import java.util.Collections;
 
 import net.minecraft.nbt.NBTTagCompound;
 
+import com.mojang.authlib.GameProfile;
+
 import serverutils.lib.lib.math.BlockDimPos;
 import serverutils.lib.lib.util.INBTSerializable;
 import serverutils.lib.lib.util.permission.IPermissionHandler;
 import serverutils.lib.lib.util.permission.PermissionAPI;
-import com.mojang.authlib.GameProfile;
 
 public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
 

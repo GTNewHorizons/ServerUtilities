@@ -4,8 +4,9 @@ import java.util.Collection;
 
 import javax.annotation.Nullable;
 
-import serverutils.lib.lib.util.permission.context.IContext;
 import com.mojang.authlib.GameProfile;
+
+import serverutils.lib.lib.util.permission.context.IContext;
 
 public interface IPermissionHandler {
 

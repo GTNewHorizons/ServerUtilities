@@ -8,8 +8,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public interface ISyncData {
 
-	NBTTagCompound writeSyncData(EntityPlayerMP player, ForgePlayer forgePlayer);
+    NBTTagCompound writeSyncData(EntityPlayerMP player, ForgePlayer forgePlayer);
 
-	@SideOnly(Side.CLIENT)
-	void readSyncData(NBTTagCompound nbt);
+    @SideOnly(Side.CLIENT)
+    void readSyncData(NBTTagCompound nbt);
 }

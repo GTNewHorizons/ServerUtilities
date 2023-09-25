@@ -17,9 +17,9 @@ import serverutils.lib.lib.config.RankConfigAPI;
 import serverutils.lib.lib.config.RankConfigValueInfo;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilities;
-import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.utils.ranks.Rank;
 import serverutils.utils.ranks.Ranks;
+import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 
 public class CmdSetPermission extends CmdBase {
 

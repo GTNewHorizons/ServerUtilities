@@ -71,7 +71,8 @@ public class ServerUtilitiesPlayerData extends PlayerData {
             if (seconds > 0) {
                 player.addChatMessage(
                         StringUtils.color(
-                                ServerUtilitiesLib.lang(player, "stand_still", seconds).appendText(" [" + seconds + "]"),
+                                ServerUtilitiesLib.lang(player, "stand_still", seconds)
+                                        .appendText(" [" + seconds + "]"),
                                 EnumChatFormatting.GOLD));
                 universe.scheduleTask(
                         TimeType.MILLIS,
@@ -111,7 +112,8 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         public void execute(Universe universe) {
             if (!startPos.equalsPos(new BlockDimPos((Entity) player)) || startHP > player.getHealth()) {
                 player.addChatMessage(
-                        StringUtils.color(ServerUtilitiesLib.lang(player, "stand_still_failed"), EnumChatFormatting.RED));
+                        StringUtils
+                                .color(ServerUtilitiesLib.lang(player, "stand_still_failed"), EnumChatFormatting.RED));
             } else if (secondsLeft <= 1) {
                 TeleporterDimPos teleporter = pos.apply(player);
 
@@ -303,7 +305,8 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         String text = player.getRankConfig(ServerUtilitiesPermissions.CHAT_NAME_FORMAT).getString();
 
         try {
-            cachedNameForChat = TextComponentParser.parse(text, ServerUtilitiesLibCommon.chatFormattingSubstituteFunction(player));
+            cachedNameForChat = TextComponentParser
+                    .parse(text, ServerUtilitiesLibCommon.chatFormattingSubstituteFunction(player));
         } catch (Exception ex) {
             String s = "Error parsing " + text + ": " + ex.getLocalizedMessage();
             ServerUtilities.LOGGER.error(s);

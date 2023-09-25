@@ -7,6 +7,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.io.DataIn;
@@ -16,9 +18,6 @@ import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.data.LeaderboardValue;
 import serverutils.utils.gui.GuiLeaderboard;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class MessageLeaderboardResponse extends MessageToClient {
 

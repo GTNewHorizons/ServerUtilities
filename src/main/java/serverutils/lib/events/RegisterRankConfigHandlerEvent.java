@@ -6,13 +6,13 @@ import serverutils.lib.lib.config.IRankConfigHandler;
 
 public class RegisterRankConfigHandlerEvent extends ServerUtilitiesLibEvent {
 
-	private final Consumer<IRankConfigHandler> callback;
+    private final Consumer<IRankConfigHandler> callback;
 
-	public RegisterRankConfigHandlerEvent(Consumer<IRankConfigHandler> c) {
-		callback = c;
-	}
+    public RegisterRankConfigHandlerEvent(Consumer<IRankConfigHandler> c) {
+        callback = c;
+    }
 
-	public void setHandler(IRankConfigHandler handler) {
-		callback.accept(handler);
-	}
+    public void setHandler(IRankConfigHandler handler) {
+        callback.accept(handler);
+    }
 }

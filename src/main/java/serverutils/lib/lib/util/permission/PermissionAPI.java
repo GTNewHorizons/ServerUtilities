@@ -4,14 +4,14 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 
-import serverutils.lib.lib.util.permission.context.IContext;
-import serverutils.lib.lib.util.permission.context.PlayerContext;
 import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.LoaderState;
+import serverutils.lib.lib.util.permission.context.IContext;
+import serverutils.lib.lib.util.permission.context.PlayerContext;
 
 public class PermissionAPI {
 

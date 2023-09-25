@@ -92,7 +92,8 @@ public class MessageClaimedChunksModify extends MessageToServer {
             case UNCLAIM:
                 for (ChunkCoordIntPair pair : chunks) {
                     ChunkDimPos pos = new ChunkDimPos(pair, player.dimension);
-                    if (ClaimedChunks.instance.canPlayerModify(p, pos, ServerUtilitiesPermissions.CLAIMS_OTHER_UNCLAIM)) {
+                    if (ClaimedChunks.instance
+                            .canPlayerModify(p, pos, ServerUtilitiesPermissions.CLAIMS_OTHER_UNCLAIM)) {
                         ClaimedChunks.instance.unclaimChunk(p, pos);
                     }
                 }
@@ -100,7 +101,8 @@ public class MessageClaimedChunksModify extends MessageToServer {
             case UNLOAD:
                 for (ChunkCoordIntPair pair : chunks) {
                     ChunkDimPos pos = new ChunkDimPos(pair, player.dimension);
-                    if (ClaimedChunks.instance.canPlayerModify(p, pos, ServerUtilitiesPermissions.CLAIMS_OTHER_UNLOAD)) {
+                    if (ClaimedChunks.instance
+                            .canPlayerModify(p, pos, ServerUtilitiesPermissions.CLAIMS_OTHER_UNLOAD)) {
                         ClaimedChunks.instance.unloadChunk(p, pos);
                     }
                 }

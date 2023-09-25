@@ -20,6 +20,8 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
 
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.lib.events.player.ForgePlayerConfigEvent;
 import serverutils.lib.events.player.ForgePlayerDataEvent;
 import serverutils.lib.events.player.ForgePlayerLoggedInEvent;
@@ -39,9 +41,6 @@ import serverutils.utils.data.ClaimedChunks;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 import serverutils.utils.data.ServerUtilitiesUniverseData;
 import serverutils.utils.net.MessageUpdateTabName;
-
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ServerUtilitiesPlayerEventHandler {
 
@@ -238,8 +237,8 @@ public class ServerUtilitiesPlayerEventHandler {
             if (p != null) {
                 ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(p);
 
-                if (!data.getNickname().isEmpty()
-                        && PermissionAPI.hasPermission(event.entityPlayer, ServerUtilitiesPermissions.CHAT_NICKNAME_SET)) {
+                if (!data.getNickname().isEmpty() && PermissionAPI
+                        .hasPermission(event.entityPlayer, ServerUtilitiesPermissions.CHAT_NICKNAME_SET)) {
                     String name = StringUtils.addFormatting(data.getNickname());
 
                     if (!p.hasPermission(ServerUtilitiesPermissions.CHAT_NICKNAME_COLORS)) {

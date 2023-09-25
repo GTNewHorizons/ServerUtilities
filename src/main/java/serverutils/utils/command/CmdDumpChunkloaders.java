@@ -87,7 +87,14 @@ public class CmdDumpChunkloaders extends CmdBase {
                             new HoverEvent(
                                     HoverEvent.Action.SHOW_TEXT,
                                     new ChatComponentText(
-                                            "(" + x + ',' + y + ',' + z + ")" + " ; " + ticket.getChunkList().toString())));
+                                            "(" + x
+                                                    + ','
+                                                    + y
+                                                    + ','
+                                                    + z
+                                                    + ")"
+                                                    + " ; "
+                                                    + ticket.getChunkList().toString())));
                     chunks.getChatStyle().setChatClickEvent(
                             new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tp " + x + " " + y + " " + z));
 

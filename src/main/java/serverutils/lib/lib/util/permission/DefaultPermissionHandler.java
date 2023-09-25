@@ -8,10 +8,10 @@ import javax.annotation.Nullable;
 
 import net.minecraft.server.MinecraftServer;
 
-import serverutils.lib.lib.util.permission.context.IContext;
 import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import serverutils.lib.lib.util.permission.context.IContext;
 
 /**
  * Default implementation of PermissionAPI. {@link #hasPermission(GameProfile, String, IContext)} is based on

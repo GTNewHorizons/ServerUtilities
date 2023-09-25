@@ -10,10 +10,9 @@ import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import serverutils.lib.lib.command.CommandTreeBase;
-
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.eventhandler.Event;
+import serverutils.lib.lib.command.CommandTreeBase;
 
 public class CommandOverride extends CommandBase {
 

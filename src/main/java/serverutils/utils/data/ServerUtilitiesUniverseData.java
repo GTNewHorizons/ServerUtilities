@@ -21,6 +21,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.MinecraftForge;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.events.team.ForgeTeamDataEvent;
 import serverutils.lib.events.universe.UniverseClosedEvent;
@@ -42,14 +44,13 @@ import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.ranks.Ranks;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-
 public class ServerUtilitiesUniverseData {
 
     public static final ServerUtilitiesUniverseData INST = new ServerUtilitiesUniverseData();
     private static final String BADGE_URL = "https://badges.latmod.com/get?id=";
-    private static final ResourceLocation RESTART_TIMER_ID = new ResourceLocation(ServerUtilities.MOD_ID, "restart_timer");
+    private static final ResourceLocation RESTART_TIMER_ID = new ResourceLocation(
+            ServerUtilities.MOD_ID,
+            "restart_timer");
 
     private static final Map<UUID, String> BADGE_CACHE = new HashMap<>();
 
@@ -141,7 +142,8 @@ public class ServerUtilitiesUniverseData {
             }
 
             if (shutdownTime > 0L) {
-                ServerUtilities.LOGGER.info("Server will shut down in " + StringUtils.getTimeString(shutdownTime - now));
+                ServerUtilities.LOGGER
+                        .info("Server will shut down in " + StringUtils.getTimeString(shutdownTime - now));
 
                 Ticks[] ticks = { Ticks.MINUTE.x(30), Ticks.MINUTE.x(10), Ticks.MINUTE.x(5), Ticks.MINUTE.x(1),
                         Ticks.SECOND.x(10), Ticks.SECOND.x(9), Ticks.SECOND.x(8), Ticks.SECOND.x(7), Ticks.SECOND.x(6),
@@ -156,7 +158,8 @@ public class ServerUtilitiesUniverseData {
                             Notification.of(
                                     RESTART_TIMER_ID,
                                     StringUtils.color(
-                                            ServerUtilities.lang(player, "serverutilities.lang.timer.shutdown", timeString),
+                                            ServerUtilities
+                                                    .lang(player, "serverutilities.lang.timer.shutdown", timeString),
                                             EnumChatFormatting.LIGHT_PURPLE))
                                     .send(universe.server, player);
                         }
@@ -290,7 +293,8 @@ public class ServerUtilitiesUniverseData {
         }
 
         if (Ranks.isActive()) {
-            ConfigValue value = Ranks.INSTANCE.getPermission(player.getProfile(), ServerUtilitiesPermissions.BADGE, true);
+            ConfigValue value = Ranks.INSTANCE
+                    .getPermission(player.getProfile(), ServerUtilitiesPermissions.BADGE, true);
 
             if (!value.isNull() && !value.isEmpty()) {
                 return value.getString();

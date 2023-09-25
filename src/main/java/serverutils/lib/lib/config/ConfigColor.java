@@ -12,114 +12,114 @@ import serverutils.lib.lib.io.DataOut;
 
 public class ConfigColor extends ConfigValue {
 
-	public static final String ID = "color";
+    public static final String ID = "color";
 
-	private final MutableColor4I value = Color4I.WHITE.mutable();
+    private final MutableColor4I value = Color4I.WHITE.mutable();
 
-	public ConfigColor(Color4I v) {
-		value.set(v, 255);
-	}
+    public ConfigColor(Color4I v) {
+        value.set(v, 255);
+    }
 
-	public ConfigColor(int col) {
-		value.set(0xFF000000 | col);
-	}
+    public ConfigColor(int col) {
+        value.set(0xFF000000 | col);
+    }
 
-	@Override
-	public String getId() {
-		return ID;
-	}
+    @Override
+    public String getId() {
+        return ID;
+    }
 
-	@Override
-	public MutableColor4I getColor() {
-		return value;
-	}
+    @Override
+    public MutableColor4I getColor() {
+        return value;
+    }
 
-	@Override
-	public String getString() {
-		return getColor().toString();
-	}
+    @Override
+    public String getString() {
+        return getColor().toString();
+    }
 
-	@Override
-	public boolean getBoolean() {
-		return !getColor().isEmpty();
-	}
+    @Override
+    public boolean getBoolean() {
+        return !getColor().isEmpty();
+    }
 
-	@Override
-	public int getInt() {
-		return getColor().rgba();
-	}
+    @Override
+    public int getInt() {
+        return getColor().rgba();
+    }
 
-	@Override
-	public ConfigColor copy() {
-		return new ConfigColor(getColor());
-	}
+    @Override
+    public ConfigColor copy() {
+        return new ConfigColor(getColor());
+    }
 
-	@Override
-	public boolean setValueFromString(@Nullable ICommandSender sender, String string, boolean simulate) {
-		try {
-			if (string.indexOf(',') != -1) {
-				if (string.length() < 5) {
-					return false;
-				}
+    @Override
+    public boolean setValueFromString(@Nullable ICommandSender sender, String string, boolean simulate) {
+        try {
+            if (string.indexOf(',') != -1) {
+                if (string.length() < 5) {
+                    return false;
+                }
 
-				String[] s = string.split(",");
+                String[] s = string.split(",");
 
-				if (s.length == 3 || s.length == 4) {
-					int[] c = new int[4];
-					c[3] = 255;
+                if (s.length == 3 || s.length == 4) {
+                    int[] c = new int[4];
+                    c[3] = 255;
 
-					for (int i = 0; i < s.length; i++) {
-						c[i] = Integer.parseInt(s[i]);
-					}
+                    for (int i = 0; i < s.length; i++) {
+                        c[i] = Integer.parseInt(s[i]);
+                    }
 
-					if (!simulate) {
-						getColor().set(c[0], c[1], c[2], c[3]);
-					}
+                    if (!simulate) {
+                        getColor().set(c[0], c[1], c[2], c[3]);
+                    }
 
-					return true;
-				}
-			} else {
-				if (string.length() < 6) {
-					return false;
-				} else if (string.startsWith("#")) {
-					string = string.substring(1);
-				}
+                    return true;
+                }
+            } else {
+                if (string.length() < 6) {
+                    return false;
+                } else if (string.startsWith("#")) {
+                    string = string.substring(1);
+                }
 
-				int hex = Integer.parseInt(string, 16);
+                int hex = Integer.parseInt(string, 16);
 
-				if (!simulate) {
-					getColor().set(0xFF000000 | hex);
-				}
+                if (!simulate) {
+                    getColor().set(0xFF000000 | hex);
+                }
 
-				return true;
-			}
-		} catch (Exception ex) {}
+                return true;
+            }
+        } catch (Exception ex) {}
 
-		return false;
-	}
+        return false;
+    }
 
-	@Override
-	public void writeToNBT(NBTTagCompound nbt, String key) {
-		nbt.setInteger(key, getInt());
-	}
+    @Override
+    public void writeToNBT(NBTTagCompound nbt, String key) {
+        nbt.setInteger(key, getInt());
+    }
 
-	@Override
-	public void readFromNBT(NBTTagCompound nbt, String key) {
-		getColor().set(0xFF000000 | nbt.getInteger(key));
-	}
+    @Override
+    public void readFromNBT(NBTTagCompound nbt, String key) {
+        getColor().set(0xFF000000 | nbt.getInteger(key));
+    }
 
-	@Override
-	public void writeData(DataOut data) {
-		data.writeInt(getInt());
-	}
+    @Override
+    public void writeData(DataOut data) {
+        data.writeInt(getInt());
+    }
 
-	@Override
-	public void readData(DataIn data) {
-		getColor().set(data.readInt());
-	}
+    @Override
+    public void readData(DataIn data) {
+        getColor().set(data.readInt());
+    }
 
-	@Override
-	public void setValueFromOtherValue(ConfigValue value) {
-		getColor().set(value.getColor());
-	}
+    @Override
+    public void setValueFromOtherValue(ConfigValue value) {
+        getColor().set(value.getColor());
+    }
 }

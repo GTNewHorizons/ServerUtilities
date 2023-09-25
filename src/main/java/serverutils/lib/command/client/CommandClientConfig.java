@@ -8,12 +8,12 @@ import serverutils.lib.lib.command.CmdBase;
 
 public class CommandClientConfig extends CmdBase {
 
-	public CommandClientConfig() {
-		super("client_config", Level.ALL);
-	}
+    public CommandClientConfig() {
+        super("client_config", Level.ALL);
+    }
 
-	@Override
-	public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-		new GuiClientConfig().openGuiLater();
-	}
+    @Override
+    public void processCommand(ICommandSender sender, String[] args) throws CommandException {
+        new GuiClientConfig().openGuiLater();
+    }
 }

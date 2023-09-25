@@ -8,14 +8,13 @@ import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.input.Keyboard;
 
+import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import serverutils.lib.ServerUtilitiesLib;
 import serverutils.utils.ServerUtilitiesCommon;
 import serverutils.utils.command.client.CommandKaomoji;
 import serverutils.utils.command.client.CommandPing;
 import serverutils.utils.handlers.ServerUtilitiesClientEventHandler;
-
-import cpw.mods.fml.client.registry.ClientRegistry;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 public class ServerUtilitiesClient extends ServerUtilitiesCommon // ServerUtilitiesLibClient
 {
@@ -30,7 +29,10 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon // ServerUtilit
         ClientRegistry.registerKeyBinding(
                 KEY_NBT = new KeyBinding("key.serverutilities.nbt", Keyboard.KEY_N, ServerUtilitiesLib.KEY_CATEGORY));
         ClientRegistry.registerKeyBinding(
-                KEY_TRASH = new KeyBinding("key.serverutilities.trash", Keyboard.KEY_DELETE, ServerUtilitiesLib.KEY_CATEGORY));
+                KEY_TRASH = new KeyBinding(
+                        "key.serverutilities.trash",
+                        Keyboard.KEY_DELETE,
+                        ServerUtilitiesLib.KEY_CATEGORY));
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientEventHandler.INST);
     }

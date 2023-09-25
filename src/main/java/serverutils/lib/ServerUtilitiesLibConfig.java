@@ -2,30 +2,29 @@ package serverutils.lib;
 
 import net.minecraftforge.common.config.Configuration;
 
-import serverutils.lib.lib.config.EnumTristate;
-
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import serverutils.lib.lib.config.EnumTristate;
 
 public class ServerUtilitiesLibConfig {
 
-	public static Configuration config;
-	public static final ServerUtilitiesLibConfig INST = new ServerUtilitiesLibConfig();
-	
-	public static final String GEN_CAT = Configuration.CATEGORY_GENERAL;
+    public static Configuration config;
+    public static final ServerUtilitiesLibConfig INST = new ServerUtilitiesLibConfig();
+
+    public static final String GEN_CAT = Configuration.CATEGORY_GENERAL;
     public static final String TEAM_CAT = "team";
     public static final String DEBUG_CAT = "debugging";
-	
-	public static void init(FMLPreInitializationEvent event) {
+
+    public static void init(FMLPreInitializationEvent event) {
         config = new Configuration(event.getSuggestedConfigurationFile());
         sync();
     }
-	
-	public static boolean sync() {
+
+    public static boolean sync() {
         config.load();
 
-		general.clientless_mode = config.get(
+        general.clientless_mode = config.get(
                 GEN_CAT,
                 "clientless_mode",
                 false,
@@ -42,10 +41,10 @@ public class ServerUtilitiesLibConfig {
                         "Merges player profiles, in case player logged in without internet connection/in offline mode server. If set to DEFAULT, it will only merge on singleplayer worlds.")
                         .getString());
         config.setCategoryRequiresWorldRestart(GEN_CAT, true);
-		
-		teams.disable_teams = config.get(TEAM_CAT, "disable_teams", false).getBoolean();
-		
-		teams.autocreate_mp = config.get(
+
+        teams.disable_teams = config.get(TEAM_CAT, "disable_teams", false).getBoolean();
+
+        teams.autocreate_mp = config.get(
                 TEAM_CAT,
                 "autocreate_mp",
                 false,
@@ -83,20 +82,23 @@ public class ServerUtilitiesLibConfig {
                 .getBoolean();
 
         config.save();
-		
-		return true;
+
+        return true;
     }
-	public static final General general = new General();
+
+    public static final General general = new General();
     public static final Teams teams = new Teams();
     public static final Debugging debugging = new Debugging();
 
-	public static class General {
+    public static class General {
+
         public boolean clientless_mode;
         public boolean replace_reload_command;
         public EnumTristate merge_offline_mode_players;
     }
 
-	public static class Teams {
+    public static class Teams {
+
         public boolean disable_teams;
         public boolean autocreate_mp;
         public boolean autocreate_sp;
@@ -104,6 +106,7 @@ public class ServerUtilitiesLibConfig {
     }
 
     public static class Debugging {
+
         public boolean special_commands;
         public boolean print_more_info;
         public boolean print_more_errors;

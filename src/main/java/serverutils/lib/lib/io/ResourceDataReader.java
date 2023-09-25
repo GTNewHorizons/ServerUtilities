@@ -10,41 +10,42 @@ import javax.imageio.ImageIO;
 
 import net.minecraft.client.resources.IResource;
 
-import serverutils.lib.lib.util.JsonUtils;
 import com.google.gson.JsonElement;
+
+import serverutils.lib.lib.util.JsonUtils;
 
 public class ResourceDataReader extends DataReader {
 
-	public final IResource resource;
+    public final IResource resource;
 
-	ResourceDataReader(IResource r) {
-		resource = r;
-	}
+    ResourceDataReader(IResource r) {
+        resource = r;
+    }
 
-	// public String toString()
-	// {
-	// return resource.getResourceLocation().toString();
-	// }
+    // public String toString()
+    // {
+    // return resource.getResourceLocation().toString();
+    // }
 
-	@Override
-	public String string(int bufferSize) throws Exception {
-		return readStringFromStream(resource.getInputStream(), bufferSize);
-	}
+    @Override
+    public String string(int bufferSize) throws Exception {
+        return readStringFromStream(resource.getInputStream(), bufferSize);
+    }
 
-	@Override
-	public List<String> stringList() throws Exception {
-		return readStringListFromStream(resource.getInputStream());
-	}
+    @Override
+    public List<String> stringList() throws Exception {
+        return readStringListFromStream(resource.getInputStream());
+    }
 
-	@Override
-	public JsonElement json() throws Exception {
-		try (Reader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {
-			return JsonUtils.parse(reader);
-		}
-	}
+    @Override
+    public JsonElement json() throws Exception {
+        try (Reader reader = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8)) {
+            return JsonUtils.parse(reader);
+        }
+    }
 
-	@Override
-	public BufferedImage image() throws Exception {
-		return ImageIO.read(resource.getInputStream());
-	}
+    @Override
+    public BufferedImage image() throws Exception {
+        return ImageIO.read(resource.getInputStream());
+    }
 }

@@ -4,9 +4,8 @@ import java.io.File;
 
 import net.minecraftforge.common.config.Configuration;
 
-import serverutils.lib.lib.math.Ticks;
-
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import serverutils.lib.lib.math.Ticks;
 
 public class ServerUtilitiesClientConfig {
 

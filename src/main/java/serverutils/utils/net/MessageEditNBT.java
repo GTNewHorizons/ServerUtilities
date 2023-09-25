@@ -2,6 +2,8 @@ package serverutils.utils.net;
 
 import net.minecraft.nbt.NBTTagCompound;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.lib.io.DataIn;
 import serverutils.lib.lib.io.DataOut;
@@ -9,9 +11,6 @@ import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.gui.GuiEditNBT;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class MessageEditNBT extends MessageToClient {
 

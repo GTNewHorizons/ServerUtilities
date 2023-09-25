@@ -20,134 +20,133 @@ import net.minecraft.client.resources.IResourceManager;
 import net.minecraft.client.resources.SkinManager;
 import net.minecraft.util.ResourceLocation;
 
-import serverutils.lib.lib.gui.GuiHelper;
-import serverutils.lib.lib.io.DataReader;
-import serverutils.lib.lib.client.GlStateManager;
-import serverutils.lib.lib.util.StringUtils;
-
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import serverutils.lib.lib.client.GlStateManager;
+import serverutils.lib.lib.gui.GuiHelper;
+import serverutils.lib.lib.io.DataReader;
+import serverutils.lib.lib.util.StringUtils;
 
 public class PlayerHeadIcon extends ImageIcon {
 
-	private static class ThreadLoadSkin extends SimpleTexture {
+    private static class ThreadLoadSkin extends SimpleTexture {
 
-		private final PlayerHeadIcon icon;
-		private final IImageBuffer imageBuffer;
-		private BufferedImage bufferedImage;
-		private Thread imageThread;
-		private boolean textureUploaded;
+        private final PlayerHeadIcon icon;
+        private final IImageBuffer imageBuffer;
+        private BufferedImage bufferedImage;
+        private Thread imageThread;
+        private boolean textureUploaded;
 
-		public ThreadLoadSkin(PlayerHeadIcon i) {
-			super(SkinManager.field_152793_a);
-			icon = i;
-			imageBuffer = new ImageBufferDownload();
-		}
+        public ThreadLoadSkin(PlayerHeadIcon i) {
+            super(SkinManager.field_152793_a);
+            icon = i;
+            imageBuffer = new ImageBufferDownload();
+        }
 
-		@Override
-		public int getGlTextureId() {
-			if (!textureUploaded) {
-				if (bufferedImage != null) {
-					deleteGlTexture();
-					TextureUtil.uploadTextureImage(super.getGlTextureId(), bufferedImage);
-					textureUploaded = true;
-				}
-			}
+        @Override
+        public int getGlTextureId() {
+            if (!textureUploaded) {
+                if (bufferedImage != null) {
+                    deleteGlTexture();
+                    TextureUtil.uploadTextureImage(super.getGlTextureId(), bufferedImage);
+                    textureUploaded = true;
+                }
+            }
 
-			return super.getGlTextureId();
-		}
+            return super.getGlTextureId();
+        }
 
-		@Override
-		public void loadTexture(IResourceManager resourceManager) throws IOException {
-			if (bufferedImage == null) {
-				super.loadTexture(resourceManager);
-			}
+        @Override
+        public void loadTexture(IResourceManager resourceManager) throws IOException {
+            if (bufferedImage == null) {
+                super.loadTexture(resourceManager);
+            }
 
-			if (imageThread == null) {
-				imageThread = new Thread("Skin Downloader for " + icon.uuid) {
+            if (imageThread == null) {
+                imageThread = new Thread("Skin Downloader for " + icon.uuid) {
 
-					@Override
-					public void run() {
-						String imageUrl = "";
+                    @Override
+                    public void run() {
+                        String imageUrl = "";
 
-						try {
-							JsonObject json = DataReader.get(
-									new URL(
-											"https://sessionserver.mojang.com/session/minecraft/profile/"
-													+ StringUtils.fromUUID(icon.uuid)),
-									DataReader.JSON,
-									Minecraft.getMinecraft().getProxy()).json().getAsJsonObject();
+                        try {
+                            JsonObject json = DataReader.get(
+                                    new URL(
+                                            "https://sessionserver.mojang.com/session/minecraft/profile/"
+                                                    + StringUtils.fromUUID(icon.uuid)),
+                                    DataReader.JSON,
+                                    Minecraft.getMinecraft().getProxy()).json().getAsJsonObject();
 
-							for (JsonElement element : json.get("properties").getAsJsonArray()) {
-								if (element.isJsonObject()
-										&& element.getAsJsonObject().get("name").getAsString().equals("textures")) {
-									String base64 = new String(
-											Base64.getDecoder()
-													.decode(element.getAsJsonObject().get("value").getAsString()),
-											StandardCharsets.UTF_8);
-									JsonObject json1 = DataReader.get(base64).json().getAsJsonObject().get("textures")
-											.getAsJsonObject();
+                            for (JsonElement element : json.get("properties").getAsJsonArray()) {
+                                if (element.isJsonObject()
+                                        && element.getAsJsonObject().get("name").getAsString().equals("textures")) {
+                                    String base64 = new String(
+                                            Base64.getDecoder()
+                                                    .decode(element.getAsJsonObject().get("value").getAsString()),
+                                            StandardCharsets.UTF_8);
+                                    JsonObject json1 = DataReader.get(base64).json().getAsJsonObject().get("textures")
+                                            .getAsJsonObject();
 
-									if (json1.has("SKIN")) {
-										imageUrl = json1.get("SKIN").getAsJsonObject().get("url").getAsString();
-									}
-								}
-							}
-						} catch (Exception ex) {}
+                                    if (json1.has("SKIN")) {
+                                        imageUrl = json1.get("SKIN").getAsJsonObject().get("url").getAsString();
+                                    }
+                                }
+                            }
+                        } catch (Exception ex) {}
 
-						if (imageUrl.isEmpty()) {
-							return;
-						}
+                        if (imageUrl.isEmpty()) {
+                            return;
+                        }
 
-						try {
-							bufferedImage = imageBuffer.parseUserSkin(
-									DataReader
-											.get(new URL(imageUrl), DataReader.PNG, Minecraft.getMinecraft().getProxy())
-											.image());
-						} catch (Exception ex) {}
-					}
-				};
+                        try {
+                            bufferedImage = imageBuffer.parseUserSkin(
+                                    DataReader
+                                            .get(new URL(imageUrl), DataReader.PNG, Minecraft.getMinecraft().getProxy())
+                                            .image());
+                        } catch (Exception ex) {}
+                    }
+                };
 
-				imageThread.setDaemon(true);
-				imageThread.start();
-			}
-		}
-	}
+                imageThread.setDaemon(true);
+                imageThread.start();
+            }
+        }
+    }
 
-	public final UUID uuid;
+    public final UUID uuid;
 
-	public PlayerHeadIcon(@Nullable UUID id) {
-		super(id == null ? SkinManager.field_152793_a : new ResourceLocation("skins/" + StringUtils.fromUUID(id)));
-		uuid = id;
-	}
+    public PlayerHeadIcon(@Nullable UUID id) {
+        super(id == null ? SkinManager.field_152793_a : new ResourceLocation("skins/" + StringUtils.fromUUID(id)));
+        uuid = id;
+    }
 
-	@Override
-	@SideOnly(Side.CLIENT)
-	public void bindTexture() {
-		TextureManager manager = Minecraft.getMinecraft().getTextureManager();
-		ITextureObject img = manager.getTexture(texture);
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void bindTexture() {
+        TextureManager manager = Minecraft.getMinecraft().getTextureManager();
+        ITextureObject img = manager.getTexture(texture);
 
-		if (img == null) {
-			img = new ThreadLoadSkin(this);
-			manager.loadTexture(texture, img);
-		}
+        if (img == null) {
+            img = new ThreadLoadSkin(this);
+            manager.loadTexture(texture, img);
+        }
 
-		GlStateManager.bindTexture(img.getGlTextureId());
-	}
+        GlStateManager.bindTexture(img.getGlTextureId());
+    }
 
-	@Override
-	@SideOnly(Side.CLIENT)
-	public void draw(int x, int y, int w, int h) {
-		bindTexture();
-		GuiHelper.drawTexturedRect(x, y, w, h, color, 0.125D, 0.125D, 0.25D, 0.25D);
-		GuiHelper.drawTexturedRect(x, y, w, h, color, 0.625D, 0.125D, 0.75D, 0.25D);
-	}
+    @Override
+    @SideOnly(Side.CLIENT)
+    public void draw(int x, int y, int w, int h) {
+        bindTexture();
+        GuiHelper.drawTexturedRect(x, y, w, h, color, 0.125D, 0.125D, 0.25D, 0.25D);
+        GuiHelper.drawTexturedRect(x, y, w, h, color, 0.625D, 0.125D, 0.75D, 0.25D);
+    }
 
-	@Override
-	public String toString() {
-		return "player:" + uuid;
-	}
+    @Override
+    public String toString() {
+        return "player:" + uuid;
+    }
 }

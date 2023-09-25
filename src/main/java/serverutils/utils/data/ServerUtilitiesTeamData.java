@@ -11,6 +11,9 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraftforge.common.util.Constants;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import serverutils.lib.events.team.ForgeTeamConfigEvent;
 import serverutils.lib.events.team.ForgeTeamDeletedEvent;
 import serverutils.lib.events.team.ForgeTeamLoadedEvent;
@@ -25,10 +28,6 @@ import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.NBTUtils;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesPermissions;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 public class ServerUtilitiesTeamData extends TeamData {
 
@@ -254,7 +253,8 @@ public class ServerUtilitiesTeamData extends TeamData {
         cachedMaxChunkloaderChunks = 0;
 
         for (ForgePlayer player : team.getMembers()) {
-            cachedMaxChunkloaderChunks += player.getRankConfig(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS).getInt();
+            cachedMaxChunkloaderChunks += player.getRankConfig(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS)
+                    .getInt();
         }
 
         return cachedMaxChunkloaderChunks;

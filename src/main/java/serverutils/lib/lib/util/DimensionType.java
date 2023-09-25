@@ -9,7 +9,8 @@ import net.minecraft.world.WorldProviderHell;
 import net.minecraft.world.WorldProviderSurface;
 import net.minecraftforge.common.util.EnumHelper;
 
-public enum DimensionType { //TODO: DELETE??
+public enum DimensionType { // TODO: DELETE??
+
     OVERWORLD(0, "overworld", "", WorldProviderSurface.class),
     NETHER(-1, "the_nether", "_nether", WorldProviderHell.class),
     THE_END(1, "the_end", "_end", WorldProviderEnd.class);
@@ -19,7 +20,7 @@ public enum DimensionType { //TODO: DELETE??
     private final String suffix;
     private final Class<? extends WorldProvider> clazz;
     private boolean shouldLoadSpawn = false;
-    private static Class<?>[] ENUM_ARGS = new Class[]{Integer.TYPE, String.class, String.class, Class.class};
+    private static Class<?>[] ENUM_ARGS = new Class[] { Integer.TYPE, String.class, String.class, Class.class };
 
     private DimensionType(int idIn, String nameIn, String suffixIn, Class clazzIn) {
         this.id = idIn;
@@ -44,7 +45,7 @@ public enum DimensionType { //TODO: DELETE??
     public WorldProvider createDimension() {
         try {
             Constructor<? extends WorldProvider> constructor = this.clazz.getConstructor();
-            return (WorldProvider)constructor.newInstance();
+            return (WorldProvider) constructor.newInstance();
         } catch (NoSuchMethodException var2) {
             throw new Error("Could not create new dimension", var2);
         } catch (InvocationTargetException var3) {
@@ -60,7 +61,7 @@ public enum DimensionType { //TODO: DELETE??
         DimensionType[] var1 = values();
         int var2 = var1.length;
 
-        for(int var3 = 0; var3 < var2; ++var3) {
+        for (int var3 = 0; var3 < var2; ++var3) {
             DimensionType dimensiontype = var1[var3];
             if (dimensiontype.getId() == id) {
                 return dimensiontype;
@@ -79,9 +80,11 @@ public enum DimensionType { //TODO: DELETE??
         return this;
     }
 
-    public static DimensionType register(String name, String suffix, int id, Class<? extends WorldProvider> provider, boolean keepLoaded) {
+    public static DimensionType register(String name, String suffix, int id, Class<? extends WorldProvider> provider,
+            boolean keepLoaded) {
         String enum_name = name.replace(" ", "_").toLowerCase();
-        DimensionType ret = (DimensionType)EnumHelper.addEnum(DimensionType.class, enum_name, ENUM_ARGS, new Object[]{id, name, suffix, provider});
+        DimensionType ret = (DimensionType) EnumHelper
+                .addEnum(DimensionType.class, enum_name, ENUM_ARGS, new Object[] { id, name, suffix, provider });
         return ret.setLoadSpawn(keepLoaded);
     }
 
@@ -89,7 +92,7 @@ public enum DimensionType { //TODO: DELETE??
         DimensionType[] var1 = values();
         int var2 = var1.length;
 
-        for(int var3 = 0; var3 < var2; ++var3) {
+        for (int var3 = 0; var3 < var2; ++var3) {
             DimensionType dimensiontype = var1[var3];
             if (dimensiontype.getName().equals(nameIn)) {
                 return dimensiontype;

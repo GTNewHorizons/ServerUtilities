@@ -1,47 +1,49 @@
 package serverutils.lib.client;
 
-import serverutils.lib.client.resource.ISelectiveResourceReloadListener;
-import serverutils.lib.lib.io.DataReader;
-import serverutils.lib.client.resource.IResourceType;
-import com.google.gson.JsonElement;
-import net.minecraft.client.resources.IResource;
-import net.minecraft.client.resources.IResourceManager;
-import net.minecraft.util.ResourceLocation;
-
-
 import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import net.minecraft.client.resources.IResource;
+import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.util.ResourceLocation;
+
+import com.google.gson.JsonElement;
+
+import serverutils.lib.client.resource.IResourceType;
+import serverutils.lib.client.resource.ISelectiveResourceReloadListener;
+import serverutils.lib.lib.io.DataReader;
+
 /**
  * @author LatvianModder
  */
 public enum ServerUtilitiesLibClientConfigManager implements ISelectiveResourceReloadListener {
-	INSTANCE;
 
-	@Override
-	public void onResourceManagerReload(IResourceManager manager, Predicate<IResourceType> resourcePredicate) {
-		if (!resourcePredicate.test(ServerLibResourceType.SERVERLIB_CONFIG)) {
-			return;
-		}
+    INSTANCE;
 
-		ServerUtilitiesLibClient.CLIENT_CONFIG_MAP.clear();
+    @Override
+    public void onResourceManagerReload(IResourceManager manager, Predicate<IResourceType> resourcePredicate) {
+        if (!resourcePredicate.test(ServerLibResourceType.SERVERLIB_CONFIG)) {
+            return;
+        }
 
-		for (String domain : (Set<String>) manager.getResourceDomains()) {
-			try {
-				for (IResource resource : (List<IResource>) manager.getAllResources(new ResourceLocation(domain, "client_config.json"))) {
-					for (JsonElement e : DataReader.get(resource).json().getAsJsonArray()) {
-						ClientConfig c = new ClientConfig(e.getAsJsonObject());
-						ServerUtilitiesLibClient.CLIENT_CONFIG_MAP.put(c.id, c);
-					}
-				}
-			}
-			catch (Exception ex) {
-				if (!(ex instanceof FileNotFoundException)) {
-					ex.printStackTrace();
-				}
-			}
-		}
-	}
+        ServerUtilitiesLibClient.CLIENT_CONFIG_MAP.clear();
+
+        for (String domain : (Set<String>) manager.getResourceDomains()) {
+            try {
+                for (IResource resource : (List<IResource>) manager
+                        .getAllResources(new ResourceLocation(domain, "client_config.json"))) {
+                    for (JsonElement e : DataReader.get(resource).json().getAsJsonArray()) {
+                        ClientConfig c = new ClientConfig(e.getAsJsonObject());
+                        ServerUtilitiesLibClient.CLIENT_CONFIG_MAP.put(c.id, c);
+                    }
+                }
+            } catch (Exception ex) {
+                if (!(ex instanceof FileNotFoundException)) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
 }

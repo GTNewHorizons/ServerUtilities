@@ -30,7 +30,6 @@ import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.events.chunks.ChunkModifiedEvent;
 import serverutils.utils.net.MessageClaimedChunksUpdate;
 
-
 public class ClaimedChunks {
 
     public static ClaimedChunks instance;
@@ -202,14 +201,16 @@ public class ClaimedChunks {
                 return false;
             } else if (ServerUtilitiesConfig.world.enable_pvp.isDefault()) {
                 return ServerUtilitiesPlayerData.get(instance.universe.getPlayer(player)).enablePVP()
-                        && ServerUtilitiesPlayerData.get(instance.universe.getPlayer((EntityPlayer) target)).enablePVP();
+                        && ServerUtilitiesPlayerData.get(instance.universe.getPlayer((EntityPlayer) target))
+                                .enablePVP();
             }
 
             return ServerUtilitiesConfig.world.enable_pvp.isTrue();
         } else if (!(target instanceof IMob)) {
             ClaimedChunk chunk = instance.getChunk(new ChunkDimPos(target));
 
-            return chunk == null || PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_ATTACK_ANIMALS)
+            return chunk == null
+                    || PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_ATTACK_ANIMALS)
                     || chunk.getTeam()
                             .hasStatus(instance.universe.getPlayer(player), chunk.getData().getAttackEntitiesStatus());
         }

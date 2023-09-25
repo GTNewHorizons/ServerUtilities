@@ -4,65 +4,51 @@ import serverutils.lib.lib.gui.Panel;
 import serverutils.lib.lib.gui.WidgetLayout;
 
 public class CompactGridLayout implements WidgetLayout {
-	public static final int[][] LAYOUTS = {
-			{1},
-			{2},
-			{3},
-			{4},
-			{3, 2},
-			{3, 3},
-			{4, 3},
-			{4, 4},
-			{3, 3, 3},
-			{3, 4, 3},
-			{4, 3, 4},
-			{4, 4, 4},
-			{4, 3, 3, 3},
-			{3, 4, 4, 3},
-			{4, 4, 4, 3},
-			{4, 4, 4, 4}
-	};
 
-	public final int size;
+    public static final int[][] LAYOUTS = { { 1 }, { 2 }, { 3 }, { 4 }, { 3, 2 }, { 3, 3 }, { 4, 3 }, { 4, 4 },
+            { 3, 3, 3 }, { 3, 4, 3 }, { 4, 3, 4 }, { 4, 4, 4 }, { 4, 3, 3, 3 }, { 3, 4, 4, 3 }, { 4, 4, 4, 3 },
+            { 4, 4, 4, 4 } };
 
-	public CompactGridLayout(int s) {
-		size = s;
-	}
+    public final int size;
 
-	@Override
-	public int align(Panel panel) {
-		int s = panel.widgets.size();
+    public CompactGridLayout(int s) {
+        size = s;
+    }
 
-		if (s <= 0) {
-			return 0;
-		} else if (s > LAYOUTS.length) {
-			for (int i = 0; i < s; i++) {
-				panel.widgets.get(i).setPosAndSize((i % 4) * size, (i / 4) * size, size, size);
-			}
+    @Override
+    public int align(Panel panel) {
+        int s = panel.widgets.size();
 
-			return (s / 4) * size;
-		}
+        if (s <= 0) {
+            return 0;
+        } else if (s > LAYOUTS.length) {
+            for (int i = 0; i < s; i++) {
+                panel.widgets.get(i).setPosAndSize((i % 4) * size, (i / 4) * size, size, size);
+            }
 
-		int[] layout = LAYOUTS[s - 1];
+            return (s / 4) * size;
+        }
 
-		int m = 0;
+        int[] layout = LAYOUTS[s - 1];
 
-		for (int v : layout) {
-			m = Math.max(m, v);
-		}
+        int m = 0;
 
-		int off = 0;
+        for (int v : layout) {
+            m = Math.max(m, v);
+        }
 
-		for (int l = 0; l < layout.length; l++) {
-			int o = ((layout[l] % 2) == (m % 2)) ? 0 : size / 2;
+        int off = 0;
 
-			for (int i = 0; i < layout[l]; i++) {
-				panel.widgets.get(off + i).setPosAndSize(o + i * size, l * size, size, size);
-			}
+        for (int l = 0; l < layout.length; l++) {
+            int o = ((layout[l] % 2) == (m % 2)) ? 0 : size / 2;
 
-			off += layout[l];
-		}
+            for (int i = 0; i < layout[l]; i++) {
+                panel.widgets.get(off + i).setPosAndSize(o + i * size, l * size, size, size);
+            }
 
-		return layout.length * size;
-	}
+            off += layout[l];
+        }
+
+        return layout.length * size;
+    }
 }

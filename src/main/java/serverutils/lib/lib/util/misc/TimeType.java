@@ -2,8 +2,8 @@ package serverutils.lib.lib.util.misc;
 
 public enum TimeType {
 
-	TICKS,
-	MILLIS;
+    TICKS,
+    MILLIS;
 
-	public static final NameMap<TimeType> NAME_MAP = NameMap.create(TICKS, values());
+    public static final NameMap<TimeType> NAME_MAP = NameMap.create(TICKS, values());
 }

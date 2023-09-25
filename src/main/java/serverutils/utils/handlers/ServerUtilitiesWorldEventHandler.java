@@ -18,13 +18,12 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.lib.lib.math.ChunkDimPos;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.data.ClaimedChunk;
 import serverutils.utils.data.ClaimedChunks;
 import serverutils.utils.data.ServerUtilitiesUniverseData;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ServerUtilitiesWorldEventHandler {
 

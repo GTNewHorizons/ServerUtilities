@@ -1,31 +1,32 @@
 package serverutils.lib.events.client;
 
-import serverutils.lib.events.ServerUtilitiesLibEvent;
 import cpw.mods.fml.common.eventhandler.Cancelable;
+import serverutils.lib.events.ServerUtilitiesLibEvent;
 
 @Cancelable
 public class GuideEvent extends ServerUtilitiesLibEvent {
-	private final String path;
 
-	private GuideEvent(String p) {
-		path = p;
-	}
+    private final String path;
 
-	public static class Check extends GuideEvent {
+    private GuideEvent(String p) {
+        path = p;
+    }
 
-		private Check(String path) {
-			super(path);
-		}
-	}
+    public static class Check extends GuideEvent {
 
-	public static class Open extends GuideEvent {
+        private Check(String path) {
+            super(path);
+        }
+    }
 
-		private Open(String path) {
-			super(path);
-		}
-	}
+    public static class Open extends GuideEvent {
 
-	public String getPath() {
-		return path;
-	}
+        private Open(String path) {
+            super(path);
+        }
+    }
+
+    public String getPath() {
+        return path;
+    }
 }

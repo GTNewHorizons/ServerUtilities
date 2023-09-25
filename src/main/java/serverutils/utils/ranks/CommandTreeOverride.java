@@ -8,10 +8,9 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 
+import cpw.mods.fml.common.ModContainer;
 import serverutils.lib.lib.command.CmdTreeBase;
 import serverutils.lib.lib.command.CommandTreeBase;
-
-import cpw.mods.fml.common.ModContainer;
 
 public class CommandTreeOverride extends CmdTreeBase {
 

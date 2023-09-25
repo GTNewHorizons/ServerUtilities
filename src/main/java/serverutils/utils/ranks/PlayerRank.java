@@ -11,10 +11,11 @@ import java.util.UUID;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 
+import com.mojang.authlib.GameProfile;
+
 import serverutils.lib.lib.config.ConfigValue;
 import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
-import com.mojang.authlib.GameProfile;
 
 public class PlayerRank extends Rank {
 

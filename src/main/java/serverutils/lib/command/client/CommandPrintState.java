@@ -12,21 +12,26 @@ import net.minecraft.util.MovingObjectPosition;
 import serverutils.lib.lib.command.CmdBase;
 
 public class CommandPrintState extends CmdBase {
-	public CommandPrintState() {
-		super("print_block_state", Level.ALL);
-	}
 
-	@Override
-	public void processCommand(ICommandSender sender, final String[] args) throws CommandException {
-		MovingObjectPosition ray = Minecraft.getMinecraft().objectMouseOver;
-		if (ray.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
-			return;
-		}
+    public CommandPrintState() {
+        super("print_block_state", Level.ALL);
+    }
 
-		Block block = sender.getEntityWorld().getBlock(ray.blockX, ray.blockY, ray.blockZ);
+    @Override
+    public void processCommand(ICommandSender sender, final String[] args) throws CommandException {
+        MovingObjectPosition ray = Minecraft.getMinecraft().objectMouseOver;
+        if (ray.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
+            return;
+        }
 
-		IChatComponent component = new ChatComponentText(block.getPickBlock(ray, sender.getEntityWorld(), ray.blockX, ray.blockY, ray.blockZ).getDisplayName() + " :: " + block.getUnlocalizedName());
-		component.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, block.getUnlocalizedName()));
-		sender.addChatMessage(component);
-	}
+        Block block = sender.getEntityWorld().getBlock(ray.blockX, ray.blockY, ray.blockZ);
+
+        IChatComponent component = new ChatComponentText(
+                block.getPickBlock(ray, sender.getEntityWorld(), ray.blockX, ray.blockY, ray.blockZ).getDisplayName()
+                        + " :: "
+                        + block.getUnlocalizedName());
+        component.getChatStyle()
+                .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, block.getUnlocalizedName()));
+        sender.addChatMessage(component);
+    }
 }

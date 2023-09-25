@@ -4,13 +4,13 @@ import serverutils.lib.client.SidebarButton;
 
 public class SidebarButtonCreatedEvent extends ServerUtilitiesLibEvent {
 
-	private final SidebarButton button;
+    private final SidebarButton button;
 
-	public SidebarButtonCreatedEvent(SidebarButton b) {
-		button = b;
-	}
+    public SidebarButtonCreatedEvent(SidebarButton b) {
+        button = b;
+    }
 
-	public SidebarButton getButton() {
-		return button;
-	}
+    public SidebarButton getButton() {
+        return button;
+    }
 }

@@ -5,14 +5,14 @@ import serverutils.lib.lib.data.ForgePlayer;
 
 public class ForgePlayerConfigEvent extends ForgePlayerEvent {
 
-	private final ConfigGroup config;
+    private final ConfigGroup config;
 
-	public ForgePlayerConfigEvent(ForgePlayer player, ConfigGroup s) {
-		super(player);
-		config = s;
-	}
+    public ForgePlayerConfigEvent(ForgePlayer player, ConfigGroup s) {
+        super(player);
+        config = s;
+    }
 
-	public ConfigGroup getConfig() {
-		return config;
-	}
+    public ConfigGroup getConfig() {
+        return config;
+    }
 }

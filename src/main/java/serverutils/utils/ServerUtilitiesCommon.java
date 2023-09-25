@@ -9,11 +9,14 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.event.FMLInterModComms;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import serverutils.lib.lib.util.permission.PermissionAPI;
-import serverutils.utils.data.ServerUtilitiesLoadedChunkManager;
-import serverutils.utils.data.ServerUtilitiesUniverseData;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.data.NodeEntry;
+import serverutils.utils.data.ServerUtilitiesLoadedChunkManager;
+import serverutils.utils.data.ServerUtilitiesUniverseData;
 import serverutils.utils.events.CustomPermissionPrefixesRegistryEvent;
 import serverutils.utils.events.LeaderboardRegistryEvent;
 import serverutils.utils.handlers.ServerUtilitiesPlayerEventHandler;
@@ -22,10 +25,6 @@ import serverutils.utils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.utils.handlers.ServerUtilitiesWorldEventHandler;
 import serverutils.utils.net.ServerUtilitiesNetHandler;
 import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
-
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.event.FMLInterModComms;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 
 public class ServerUtilitiesCommon {
 
@@ -48,7 +47,8 @@ public class ServerUtilitiesCommon {
             ForgeChunkManager.getConfig().save();
         }
 
-        ForgeChunkManager.setForcedChunkLoadingCallback(ServerUtilities.INST, ServerUtilitiesLoadedChunkManager.INSTANCE);
+        ForgeChunkManager
+                .setForcedChunkLoadingCallback(ServerUtilities.INST, ServerUtilitiesLoadedChunkManager.INSTANCE);
         new CustomPermissionPrefixesRegistryEvent(CUSTOM_PERM_PREFIX_REGISTRY::add).post();
 
         // if (Loader.isModLoaded(ChiselsAndBits.MODID)) {

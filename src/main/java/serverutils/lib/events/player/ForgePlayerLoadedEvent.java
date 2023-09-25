@@ -4,7 +4,7 @@ import serverutils.lib.lib.data.ForgePlayer;
 
 public class ForgePlayerLoadedEvent extends ForgePlayerEvent {
 
-	public ForgePlayerLoadedEvent(ForgePlayer player) {
-		super(player);
-	}
+    public ForgePlayerLoadedEvent(ForgePlayer player) {
+        super(player);
+    }
 }

@@ -13,6 +13,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBucket;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.registry.GameData;
 import serverutils.lib.events.RegisterRankConfigEvent;
 import serverutils.lib.events.RegisterRankConfigHandlerEvent;
 import serverutils.lib.lib.config.ConfigBoolean;
@@ -26,11 +28,8 @@ import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.lib.lib.util.text_components.TextComponentParser;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.events.CustomPermissionPrefixesRegistryEvent;
-import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.utils.ranks.Rank;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.registry.GameData;
+import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 
 public class ServerUtilitiesPermissions {
 

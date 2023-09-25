@@ -8,6 +8,8 @@ import java.util.OptionalInt;
 
 import net.minecraft.entity.player.EntityPlayer;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.data.Universe;
@@ -25,9 +27,6 @@ import serverutils.utils.data.ClaimedChunks;
 import serverutils.utils.data.ServerUtilitiesTeamData;
 import serverutils.utils.events.chunks.UpdateClientDataEvent;
 import serverutils.utils.gui.ClientClaimedChunks;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class MessageClaimedChunksUpdate extends MessageToClient {
 

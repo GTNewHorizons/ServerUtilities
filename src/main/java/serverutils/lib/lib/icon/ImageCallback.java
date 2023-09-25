@@ -7,5 +7,5 @@ import javax.annotation.Nullable;
 @FunctionalInterface
 public interface ImageCallback {
 
-	void imageLoaded(boolean queued, @Nullable Image image);
+    void imageLoaded(boolean queued, @Nullable Image image);
 }

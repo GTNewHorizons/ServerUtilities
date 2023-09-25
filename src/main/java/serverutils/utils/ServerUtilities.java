@@ -14,17 +14,6 @@ import net.minecraft.util.IChatComponent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.lib.ATHelper;
-import serverutils.lib.lib.command.CommandUtils;
-import serverutils.lib.lib.util.CommonUtils;
-import serverutils.lib.lib.util.FileUtils;
-import serverutils.lib.lib.util.SidedUtils;
-import serverutils.utils.command.ServerUtilitiesCommands;
-import serverutils.utils.ranks.CommandOverride;
-import serverutils.utils.ranks.Rank;
-import serverutils.utils.ranks.Ranks;
-
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.ModContainer;
@@ -35,6 +24,16 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import serverutils.lib.ServerUtilitiesLib;
+import serverutils.lib.lib.ATHelper;
+import serverutils.lib.lib.command.CommandUtils;
+import serverutils.lib.lib.util.CommonUtils;
+import serverutils.lib.lib.util.FileUtils;
+import serverutils.lib.lib.util.SidedUtils;
+import serverutils.utils.command.ServerUtilitiesCommands;
+import serverutils.utils.ranks.CommandOverride;
+import serverutils.utils.ranks.Rank;
+import serverutils.utils.ranks.Ranks;
 
 @Mod(
         modid = ServerUtilities.MOD_ID,
@@ -97,7 +96,8 @@ public class ServerUtilities {
         if (Ranks.isActive()) {
             Ranks.INSTANCE.commands.clear();
             FileUtils.deleteSafe(Ranks.INSTANCE.universe.server.getFile("local/serverutilities/all_permissions.html"));
-            FileUtils.deleteSafe(Ranks.INSTANCE.universe.server.getFile("local/serverutilities/all_permissions_full_list.txt"));
+            FileUtils.deleteSafe(
+                    Ranks.INSTANCE.universe.server.getFile("local/serverutilities/all_permissions_full_list.txt"));
 
             boolean spongeLoaded = Loader.isModLoaded("spongeforge");
 

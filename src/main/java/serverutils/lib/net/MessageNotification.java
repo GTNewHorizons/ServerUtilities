@@ -2,15 +2,14 @@ package serverutils.lib.net;
 
 import net.minecraft.util.IChatComponent;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import serverutils.lib.client.ServerUtilitiesLibClientEventHandler;
 import serverutils.lib.lib.io.DataIn;
 import serverutils.lib.lib.io.DataOut;
 import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.net.NetworkWrapper;
-import serverutils.lib.client.ServerUtilitiesLibClientEventHandler;
 import serverutils.lib.lib.util.text_components.Notification;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class MessageNotification extends MessageToClient {
 

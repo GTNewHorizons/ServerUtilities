@@ -11,8 +11,9 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.util.MathHelper;
 
-import serverutils.lib.lib.client.GlStateManager;
 import com.google.common.collect.Queues;
+
+import serverutils.lib.lib.client.GlStateManager;
 
 public class GuiToast extends Gui {
 

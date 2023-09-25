@@ -20,6 +20,7 @@ public class CmdMute extends CmdBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        NBTUtils.getPersistedData(getPlayer(sender, args[0]), true).setBoolean(ServerUtilitiesPlayerData.TAG_MUTED, true);
+        NBTUtils.getPersistedData(getPlayer(sender, args[0]), true)
+                .setBoolean(ServerUtilitiesPlayerData.TAG_MUTED, true);
     }
 }

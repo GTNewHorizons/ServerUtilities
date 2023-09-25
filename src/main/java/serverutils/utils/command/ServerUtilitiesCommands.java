@@ -1,5 +1,6 @@
 package serverutils.utils.command;
 
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.command.chunks.CmdChunks;
@@ -16,8 +17,6 @@ import serverutils.utils.command.tp.CmdTPA;
 import serverutils.utils.command.tp.CmdTPAccept;
 import serverutils.utils.command.tp.CmdTplast;
 import serverutils.utils.command.tp.CmdWarp;
-
-import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
 public class ServerUtilitiesCommands {
 

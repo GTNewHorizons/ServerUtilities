@@ -12,6 +12,9 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import com.mojang.authlib.GameProfile;
+
+import cpw.mods.fml.common.eventhandler.Event;
 import serverutils.lib.lib.config.ConfigNull;
 import serverutils.lib.lib.config.ConfigValue;
 import serverutils.lib.lib.config.RankConfigAPI;
@@ -29,9 +32,6 @@ import serverutils.utils.ServerUtilitiesCommon;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.NodeEntry;
-import com.mojang.authlib.GameProfile;
-
-import cpw.mods.fml.common.eventhandler.Event;
 
 public class Ranks {
 
@@ -244,7 +244,8 @@ public class Ranks {
                     ForgePlayer player = universe.getPlayer(s1[0].trim());
 
                     if (player != null) {
-                        getPlayerRank(player.getProfile()).setPermission(ServerUtilitiesPermissions.BADGE, s1[1].trim());
+                        getPlayerRank(player.getProfile())
+                                .setPermission(ServerUtilitiesPermissions.BADGE, s1[1].trim());
                     }
                 }
             }

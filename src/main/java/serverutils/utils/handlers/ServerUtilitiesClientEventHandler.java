@@ -12,6 +12,10 @@ import net.minecraft.stats.StatList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.InputEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
+import cpw.mods.fml.common.network.FMLNetworkEvent;
 import serverutils.lib.events.client.CustomClickEvent;
 import serverutils.lib.lib.EnumTeamColor;
 import serverutils.lib.lib.client.ClientUtils;
@@ -30,11 +34,6 @@ import serverutils.utils.net.MessageClaimedChunksUpdate;
 import serverutils.utils.net.MessageEditNBTRequest;
 import serverutils.utils.net.MessageLeaderboardList;
 import serverutils.utils.net.MessageRequestBadge;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.InputEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.common.network.FMLNetworkEvent;
 
 public class ServerUtilitiesClientEventHandler {
 
@@ -80,8 +79,8 @@ public class ServerUtilitiesClientEventHandler {
 
             if (timeLeft > 0L && timeLeft <= ServerUtilitiesClientConfig.general.getShowShutdownTimer()) {
                 event.left.add(
-                        EnumChatFormatting.DARK_RED
-                                + I18n.format("serverutilities.lang.timer.shutdown", StringUtils.getTimeString(timeLeft)));
+                        EnumChatFormatting.DARK_RED + I18n
+                                .format("serverutilities.lang.timer.shutdown", StringUtils.getTimeString(timeLeft)));
             }
         }
 
@@ -158,7 +157,8 @@ public class ServerUtilitiesClientEventHandler {
 
             if (ServerUtilitiesConfig.world.forced_spawn_dimension_weather != -1) {
                 mc.theWorld.getWorldInfo().setRaining(ServerUtilitiesConfig.world.forced_spawn_dimension_weather >= 1);
-                mc.theWorld.getWorldInfo().setThundering(ServerUtilitiesConfig.world.forced_spawn_dimension_weather >= 2);
+                mc.theWorld.getWorldInfo()
+                        .setThundering(ServerUtilitiesConfig.world.forced_spawn_dimension_weather >= 2);
             }
         }
     }

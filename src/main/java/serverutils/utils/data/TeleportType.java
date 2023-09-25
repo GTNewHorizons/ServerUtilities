@@ -10,11 +10,14 @@ public enum TeleportType {
             ServerUtilitiesPermissions.HOMES_COOLDOWN),
     WARP(ServerUtilitiesPermissions.WARPS_BACK, ServerUtilitiesPermissions.WARPS_WARMUP,
             ServerUtilitiesPermissions.WARPS_COOLDOWN),
-    BACK(ServerUtilitiesPermissions.BACK_BACK, ServerUtilitiesPermissions.BACK_WARMUP, ServerUtilitiesPermissions.BACK_COOLDOWN),
+    BACK(ServerUtilitiesPermissions.BACK_BACK, ServerUtilitiesPermissions.BACK_WARMUP,
+            ServerUtilitiesPermissions.BACK_COOLDOWN),
     SPAWN(ServerUtilitiesPermissions.SPAWN_BACK, ServerUtilitiesPermissions.SPAWN_WARMUP,
             ServerUtilitiesPermissions.SPAWN_COOLDOWN),
-    TPA(ServerUtilitiesPermissions.TPA_BACK, ServerUtilitiesPermissions.TPA_WARMUP, ServerUtilitiesPermissions.TPA_COOLDOWN),
-    RTP(ServerUtilitiesPermissions.RTP_BACK, ServerUtilitiesPermissions.RTP_WARMUP, ServerUtilitiesPermissions.RTP_COOLDOWN),
+    TPA(ServerUtilitiesPermissions.TPA_BACK, ServerUtilitiesPermissions.TPA_WARMUP,
+            ServerUtilitiesPermissions.TPA_COOLDOWN),
+    RTP(ServerUtilitiesPermissions.RTP_BACK, ServerUtilitiesPermissions.RTP_WARMUP,
+            ServerUtilitiesPermissions.RTP_COOLDOWN),
     RESPAWN(ServerUtilitiesPermissions.RESPAWN_BACK, null, null);
 
     private String permission;

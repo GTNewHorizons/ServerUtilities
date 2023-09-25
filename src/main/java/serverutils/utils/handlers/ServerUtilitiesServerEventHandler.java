@@ -14,6 +14,10 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.ServerChatEvent;
 
+import cpw.mods.fml.common.eventhandler.Event;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 import serverutils.lib.events.universe.UniverseClearCacheEvent;
 import serverutils.lib.lib.EnumMessageLocation;
 import serverutils.lib.lib.config.ConfigEnum;
@@ -35,11 +39,6 @@ import serverutils.utils.data.ServerUtilitiesPlayerData;
 import serverutils.utils.data.ServerUtilitiesUniverseData;
 import serverutils.utils.net.MessageUpdatePlayTime;
 import serverutils.utils.ranks.Ranks;
-
-import cpw.mods.fml.common.eventhandler.Event;
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
 
 public class ServerUtilitiesServerEventHandler {
 
@@ -248,7 +247,8 @@ public class ServerUtilitiesServerEventHandler {
 
             if (ServerUtilitiesConfig.world.forced_spawn_dimension_weather != -1) {
                 event.world.getWorldInfo().setRaining(ServerUtilitiesConfig.world.forced_spawn_dimension_weather >= 1);
-                event.world.getWorldInfo().setThundering(ServerUtilitiesConfig.world.forced_spawn_dimension_weather >= 2);
+                event.world.getWorldInfo()
+                        .setThundering(ServerUtilitiesConfig.world.forced_spawn_dimension_weather >= 2);
             }
 
             if (ServerUtilitiesConfig.world.show_playtime && event.world.getTotalWorldTime() % 20L == 7L) {

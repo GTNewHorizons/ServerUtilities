@@ -6,57 +6,60 @@ import net.minecraft.entity.player.EntityPlayer;
 
 import serverutils.lib.lib.command.CmdBase;
 
-public class CommandListAchievements extends CmdBase
-{
-	public CommandListAchievements() {super("list_achievements", Level.ALL);
-	}
+public class CommandListAchievements extends CmdBase {
 
-	@Override
-	public void processCommand(ICommandSender sender, final String[] args) throws CommandException {
-		if (!(sender instanceof EntityPlayer)) {
-			return;
-		}
+    public CommandListAchievements() {
+        super("list_achievements", Level.ALL);
+    }
 
-	// List<Advancement> list = new ArrayList<>();
+    @Override
+    public void processCommand(ICommandSender sender, final String[] args) throws CommandException {
+        if (!(sender instanceof EntityPlayer)) {
+            return;
+        }
 
-	// for (Advancement a :
-	// 	Minecraft.getMinecraft().thePlayer.getStatFileWriter().getAdvancementManager().getAdvancementList().getAdvancements()) {
-	// 	if (a.getDisplay() != null) {
-	// 		list.add(a);
-	// 	}
-	// }
+        // List<Advancement> list = new ArrayList<>();
 
-	// list.sort((o1, o2) -> o1.getDisplay().getTitle().getUnformattedText().compareToIgnoreCase(o2.getDisplay().getTitle().getUnformattedText()));
+        // for (Advancement a :
+        // Minecraft.getMinecraft().thePlayer.getStatFileWriter().getAdvancementManager().getAdvancementList().getAdvancements())
+        // {
+        // if (a.getDisplay() != null) {
+        // list.add(a);
+        // }
+        // }
 
-	// GuiButtonListBase gui = new GuiButtonListBase() {
-	// @Override
-	// public void addButtons(Panel panel) {
-	// for (Advancement advancement : list) {
-	// panel.add(new SimpleTextButton(panel, advancement.getDisplay().getTitle().getFormattedText(),
-	// ItemIcon.getItemIcon(advancement.getDisplay().getIcon())) {
-	// @Override
-	// public void onClicked(MouseButton button) {
-	// GuiHelper.playClickSound();
-	// GuiScreen.setClipboardString(advancement.getId().toString());
-	// closeGui();
-	// }
+        // list.sort((o1, o2) ->
+        // o1.getDisplay().getTitle().getUnformattedText().compareToIgnoreCase(o2.getDisplay().getTitle().getUnformattedText()));
 
-	// @Override
-	// public void addMouseOverText(List<String> list) {
-	// super.addMouseOverText(list);
-	// list.add(EnumChatFormatting.GRAY + advancement.getId().toString());
+        // GuiButtonListBase gui = new GuiButtonListBase() {
+        // @Override
+        // public void addButtons(Panel panel) {
+        // for (Advancement advancement : list) {
+        // panel.add(new SimpleTextButton(panel, advancement.getDisplay().getTitle().getFormattedText(),
+        // ItemIcon.getItemIcon(advancement.getDisplay().getIcon())) {
+        // @Override
+        // public void onClicked(MouseButton button) {
+        // GuiHelper.playClickSound();
+        // GuiScreen.setClipboardString(advancement.getId().toString());
+        // closeGui();
+        // }
 
-	// for (Map.Entry<String, Criterion> entry : advancement.getCriteria().entrySet()) {
-	// list.add(EnumChatFormatting.DARK_GRAY + "- " + entry.getKey());
-	// }
-	// }
-	// });
-	// }
-	// }
-	// };
+        // @Override
+        // public void addMouseOverText(List<String> list) {
+        // super.addMouseOverText(list);
+        // list.add(EnumChatFormatting.GRAY + advancement.getId().toString());
 
-	// gui.setTitle(I18n.format("gui.advancements"));
-	// gui.setHasSearchBox(true);
-	// gui.openGuiLater();
-	}
+        // for (Map.Entry<String, Criterion> entry : advancement.getCriteria().entrySet()) {
+        // list.add(EnumChatFormatting.DARK_GRAY + "- " + entry.getKey());
+        // }
+        // }
+        // });
+        // }
+        // }
+        // };
+
+        // gui.setTitle(I18n.format("gui.advancements"));
+        // gui.setHasSearchBox(true);
+        // gui.openGuiLater();
+    }
 }

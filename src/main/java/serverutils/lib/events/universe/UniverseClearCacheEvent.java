@@ -4,7 +4,7 @@ import serverutils.lib.lib.data.Universe;
 
 public class UniverseClearCacheEvent extends UniverseEvent {
 
-	public UniverseClearCacheEvent(Universe universe) {
-		super(universe);
-	}
+    public UniverseClearCacheEvent(Universe universe) {
+        super(universe);
+    }
 }

@@ -9,26 +9,26 @@ import serverutils.lib.lib.data.TeamAction;
 
 public class ServerUtilitiesLibPreInitRegistryEvent extends ServerUtilitiesLibEvent {
 
-	public interface Registry {
+    public interface Registry {
 
-		void registerConfigValueProvider(String id, ConfigValueProvider provider);
+        void registerConfigValueProvider(String id, ConfigValueProvider provider);
 
-		void registerSyncData(String mod, ISyncData data);
+        void registerSyncData(String mod, ISyncData data);
 
-		void registerServerReloadHandler(ResourceLocation id, IReloadHandler handler);
+        void registerServerReloadHandler(ResourceLocation id, IReloadHandler handler);
 
-		void registerAdminPanelAction(AdminPanelAction action);
+        void registerAdminPanelAction(AdminPanelAction action);
 
-		void registerTeamAction(TeamAction action);
-	}
+        void registerTeamAction(TeamAction action);
+    }
 
-	private final Registry registry;
+    private final Registry registry;
 
-	public ServerUtilitiesLibPreInitRegistryEvent(Registry r) {
-		registry = r;
-	}
+    public ServerUtilitiesLibPreInitRegistryEvent(Registry r) {
+        registry = r;
+    }
 
-	public Registry getRegistry() {
-		return registry;
-	}
+    public Registry getRegistry() {
+        return registry;
+    }
 }

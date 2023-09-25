@@ -3,13 +3,12 @@ package serverutils.utils.net;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.MovingObjectPosition;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.lib.client.ClientUtils;
 import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.lib.lib.util.StringJoiner;
-
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 
 public class MessageEditNBTRequest extends MessageToClient {
 

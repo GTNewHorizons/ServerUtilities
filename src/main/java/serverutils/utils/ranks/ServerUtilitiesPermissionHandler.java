@@ -7,15 +7,15 @@ import javax.annotation.Nullable;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 
+import com.mojang.authlib.GameProfile;
+
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.relauncher.Side;
 import serverutils.lib.lib.config.*;
 import serverutils.lib.lib.util.permission.DefaultPermissionHandler;
 import serverutils.lib.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.lib.util.permission.IPermissionHandler;
 import serverutils.lib.lib.util.permission.context.IContext;
-import com.mojang.authlib.GameProfile;
-
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.relauncher.Side;
 
 public enum ServerUtilitiesPermissionHandler implements IPermissionHandler, IRankConfigHandler {
 

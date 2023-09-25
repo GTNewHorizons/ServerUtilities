@@ -17,8 +17,8 @@ public class CmdKickme extends CmdBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
         if (player.mcServer.isDedicatedServer()) {
-            getCommandSenderAsPlayer(sender).playerNetServerHandler
-                    .kickPlayerFromServer(ServerUtilities.lang(sender, "serverutilities.lang.kickme").getUnformattedText());
+            getCommandSenderAsPlayer(sender).playerNetServerHandler.kickPlayerFromServer(
+                    ServerUtilities.lang(sender, "serverutilities.lang.kickme").getUnformattedText());
         } else {
             player.mcServer.initiateShutdown();
         }

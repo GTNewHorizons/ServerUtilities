@@ -86,7 +86,8 @@ public class CmdTPA extends CmdBase {
                 sender.addChatMessage(component);
 
                 if (other.player.isOnline()) {
-                    component = ServerUtilities.lang(other.player.getPlayer(), "serverutilities.lang.tpa.request_expired");
+                    component = ServerUtilities
+                            .lang(other.player.getPlayer(), "serverutilities.lang.tpa.request_expired");
                     component.getChatStyle().setChatHoverEvent(
                             new HoverEvent(
                                     HoverEvent.Action.SHOW_TEXT,

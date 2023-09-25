@@ -11,6 +11,10 @@ import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.oredict.OreDictionary;
 
+import cpw.mods.fml.client.event.ConfigChangedEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.registry.GameData;
 import serverutils.lib.lib.config.EnumTristate;
 import serverutils.lib.lib.io.DataReader;
 import serverutils.lib.lib.item.ItemStackSerializer;
@@ -18,11 +22,6 @@ import serverutils.lib.lib.math.Ticks;
 import serverutils.lib.lib.util.JsonUtils;
 import serverutils.lib.lib.util.ServerUtils;
 import serverutils.utils.data.ClaimedChunks;
-
-import cpw.mods.fml.client.event.ConfigChangedEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.registry.GameData;
 
 public class ServerUtilitiesConfig {
 

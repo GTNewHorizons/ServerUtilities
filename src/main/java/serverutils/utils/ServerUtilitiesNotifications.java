@@ -16,7 +16,9 @@ import serverutils.utils.data.ServerUtilitiesPlayerData;
 
 public class ServerUtilitiesNotifications {
 
-    public static final ResourceLocation CHUNK_MODIFIED = new ResourceLocation(ServerUtilities.MOD_ID, "chunk_modified");
+    public static final ResourceLocation CHUNK_MODIFIED = new ResourceLocation(
+            ServerUtilities.MOD_ID,
+            "chunk_modified");
     public static final ResourceLocation CHUNK_CHANGED = new ResourceLocation(ServerUtilities.MOD_ID, "chunk_changed");
     public static final ResourceLocation CHUNK_CANT_CLAIM = new ResourceLocation(
             ServerUtilities.MOD_ID,

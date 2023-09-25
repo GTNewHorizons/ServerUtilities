@@ -93,8 +93,9 @@ public class CmdClaimAs extends CmdBase {
                             Notification
                                     .of(
                                             ServerUtilitiesNotifications.CHUNK_CANT_CLAIM,
-                                            ServerUtilities
-                                                    .lang(player, "serverutilities.lang.chunks.claiming_not_enabled_dim"))
+                                            ServerUtilities.lang(
+                                                    player,
+                                                    "serverutilities.lang.chunks.claiming_not_enabled_dim"))
                                     .setError().send(player.mcServer, player);
                             break;
                         default:

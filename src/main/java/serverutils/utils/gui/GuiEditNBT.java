@@ -26,6 +26,8 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.util.Constants;
 
+import it.unimi.dsi.fastutil.bytes.ByteArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import serverutils.lib.lib.config.ConfigDouble;
 import serverutils.lib.lib.config.ConfigInt;
 import serverutils.lib.lib.config.ConfigString;
@@ -53,9 +55,6 @@ import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.misc.MouseButton;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.net.MessageEditNBTResponse;
-
-import it.unimi.dsi.fastutil.bytes.ByteArrayList;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 public class GuiEditNBT extends GuiBase {
 

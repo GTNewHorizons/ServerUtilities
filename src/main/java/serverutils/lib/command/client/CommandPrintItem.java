@@ -17,30 +17,33 @@ import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.util.NBTUtils;
 
 public class CommandPrintItem extends CmdBase {
-	public CommandPrintItem() {
-		super("print_item", Level.ALL);
-	}
 
-	@Override
-	public void processCommand(ICommandSender sender, final String[] args) throws CommandException {
-		if (!(sender instanceof EntityPlayer)) {
-			return;
-		}
+    public CommandPrintItem() {
+        super("print_item", Level.ALL);
+    }
 
-		ItemStack stack = ((EntityPlayer) sender).getHeldItem();
+    @Override
+    public void processCommand(ICommandSender sender, final String[] args) throws CommandException {
+        if (!(sender instanceof EntityPlayer)) {
+            return;
+        }
 
-		if (stack == null) {
-			return;
-		}
+        ItemStack stack = ((EntityPlayer) sender).getHeldItem();
 
-		HashSet<String> argsSet = new HashSet<>(Arrays.asList(args));
+        if (stack == null) {
+            return;
+        }
 
-		IChatComponent component = new ChatComponentText(stack.getDisplayName() + " :: " + NBTUtils.getColoredNBTString(stack.writeToNBT(new NBTTagCompound())));
-		component.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, stack.writeToNBT(new NBTTagCompound()).toString()));
-		sender.addChatMessage(component);
+        HashSet<String> argsSet = new HashSet<>(Arrays.asList(args));
 
-		if (argsSet.contains("copy")) {
-			GuiScreen.setClipboardString(stack.writeToNBT(new NBTTagCompound()).toString());
-		}
-	}
+        IChatComponent component = new ChatComponentText(
+                stack.getDisplayName() + " :: " + NBTUtils.getColoredNBTString(stack.writeToNBT(new NBTTagCompound())));
+        component.getChatStyle().setChatClickEvent(
+                new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, stack.writeToNBT(new NBTTagCompound()).toString()));
+        sender.addChatMessage(component);
+
+        if (argsSet.contains("copy")) {
+            GuiScreen.setClipboardString(stack.writeToNBT(new NBTTagCompound()).toString());
+        }
+    }
 }

@@ -13,9 +13,9 @@ import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.config.ConfigBoolean;
 import serverutils.lib.lib.config.ConfigValue;
 import serverutils.utils.ServerUtilities;
-import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.utils.ranks.Rank;
 import serverutils.utils.ranks.Ranks;
+import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 
 public class CmdGetPermission extends CmdBase {
 

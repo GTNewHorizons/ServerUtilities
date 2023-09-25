@@ -12,30 +12,31 @@ import cpw.mods.fml.relauncher.ReflectionHelper;
 
 public class CommonUtils {
 
-	private static ListMultimap<String, ModContainer> packageOwners = null;
+    private static ListMultimap<String, ModContainer> packageOwners = null;
 
-	@SuppressWarnings({ "unchecked", "ConstantConditions" })
-	public static <T> T cast(@Nullable Object o) {
-		return o == null ? null : (T) o;
-	}
+    @SuppressWarnings({ "unchecked", "ConstantConditions" })
+    public static <T> T cast(@Nullable Object o) {
+        return o == null ? null : (T) o;
+    }
 
-	@Nullable
-	@SuppressWarnings("deprecation")
-	public static ModContainer getModContainerForClass(Class clazz) {
-		if (packageOwners == null) {
-			try {
-				LoadController instance = ReflectionHelper.getPrivateValue(Loader.class, Loader.instance(), "modController");
-				packageOwners = ReflectionHelper.getPrivateValue(LoadController.class, instance, "packageOwners");
-			} catch (Exception ex) {
-				packageOwners = ImmutableListMultimap.of();
-			}
-		}
+    @Nullable
+    @SuppressWarnings("deprecation")
+    public static ModContainer getModContainerForClass(Class clazz) {
+        if (packageOwners == null) {
+            try {
+                LoadController instance = ReflectionHelper
+                        .getPrivateValue(Loader.class, Loader.instance(), "modController");
+                packageOwners = ReflectionHelper.getPrivateValue(LoadController.class, instance, "packageOwners");
+            } catch (Exception ex) {
+                packageOwners = ImmutableListMultimap.of();
+            }
+        }
 
-		if (packageOwners.isEmpty()) {
-			return null;
-		}
+        if (packageOwners.isEmpty()) {
+            return null;
+        }
 
-		String pkg = clazz.getName().substring(0, clazz.getName().lastIndexOf('.'));
-		return packageOwners.containsKey(pkg) ? packageOwners.get(pkg).get(0) : null;
-	}
+        String pkg = clazz.getName().substring(0, clazz.getName().lastIndexOf('.'));
+        return packageOwners.containsKey(pkg) ? packageOwners.get(pkg).get(0) : null;
+    }
 }

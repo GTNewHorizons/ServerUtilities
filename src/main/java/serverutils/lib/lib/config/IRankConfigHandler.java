@@ -10,12 +10,12 @@ import com.mojang.authlib.GameProfile;
 
 public interface IRankConfigHandler {
 
-	void registerRankConfig(RankConfigValueInfo info);
+    void registerRankConfig(RankConfigValueInfo info);
 
-	Collection<RankConfigValueInfo> getRegisteredConfigs();
+    Collection<RankConfigValueInfo> getRegisteredConfigs();
 
-	ConfigValue getConfigValue(MinecraftServer server, GameProfile profile, String node);
+    ConfigValue getConfigValue(MinecraftServer server, GameProfile profile, String node);
 
-	@Nullable
-	RankConfigValueInfo getInfo(String node);
+    @Nullable
+    RankConfigValueInfo getInfo(String node);
 }

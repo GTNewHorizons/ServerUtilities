@@ -13,6 +13,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import com.google.gson.JsonElement;
+
 import serverutils.lib.lib.gui.Button;
 import serverutils.lib.lib.gui.GuiBase;
 import serverutils.lib.lib.gui.GuiIcons;
@@ -29,7 +31,6 @@ import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.StringJoiner;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.net.MessageViewCrashDelete;
-import com.google.gson.JsonElement;
 
 public class GuiViewCrash extends GuiBase {
 

@@ -9,12 +9,11 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.math.Ticks;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.events.LeaderboardRegistryEvent;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public class ServerUtilitiesLeaderboards {
 

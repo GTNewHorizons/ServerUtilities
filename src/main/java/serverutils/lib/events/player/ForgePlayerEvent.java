@@ -5,14 +5,14 @@ import serverutils.lib.lib.data.ForgePlayer;
 
 public abstract class ForgePlayerEvent extends ForgeTeamEvent {
 
-	private final ForgePlayer player;
+    private final ForgePlayer player;
 
-	public ForgePlayerEvent(ForgePlayer p) {
-		super(p.team);
-		player = p;
-	}
+    public ForgePlayerEvent(ForgePlayer p) {
+        super(p.team);
+        player = p;
+    }
 
-	public ForgePlayer getPlayer() {
-		return player;
-	}
+    public ForgePlayer getPlayer() {
+        return player;
+    }
 }

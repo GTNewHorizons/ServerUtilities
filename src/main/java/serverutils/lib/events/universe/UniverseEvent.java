@@ -5,13 +5,13 @@ import serverutils.lib.lib.data.Universe;
 
 public abstract class UniverseEvent extends ServerUtilitiesLibEvent {
 
-	private final Universe universe;
+    private final Universe universe;
 
-	public UniverseEvent(Universe u) {
-		universe = u;
-	}
+    public UniverseEvent(Universe u) {
+        universe = u;
+    }
 
-	public Universe getUniverse() {
-		return universe;
-	}
+    public Universe getUniverse() {
+        return universe;
+    }
 }

@@ -43,8 +43,8 @@ public class CmdNick extends CmdBase {
                 name += EnumChatFormatting.RESET;
             }
 
-            player.getPlayer()
-                    .addChatMessage(ServerUtilities.lang(player.getPlayer(), "serverutilities.lang.nickname_changed", name));
+            player.getPlayer().addChatMessage(
+                    ServerUtilities.lang(player.getPlayer(), "serverutilities.lang.nickname_changed", name));
         }
 
         if (ServerUtilitiesConfig.chat.replace_tab_names) {

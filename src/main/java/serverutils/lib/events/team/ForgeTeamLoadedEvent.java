@@ -4,7 +4,7 @@ import serverutils.lib.lib.data.ForgeTeam;
 
 public class ForgeTeamLoadedEvent extends ForgeTeamEvent {
 
-	public ForgeTeamLoadedEvent(ForgeTeam team) {
-		super(team);
-	}
+    public ForgeTeamLoadedEvent(ForgeTeam team) {
+        super(team);
+    }
 }
