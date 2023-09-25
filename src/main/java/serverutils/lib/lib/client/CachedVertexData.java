@@ -126,9 +126,9 @@ public class CachedVertexData {
 
     public void cubeFace(EnumFacing facing, double minX, double minY, double minZ, double maxX, double maxY,
             double maxZ) {
-        float normalX = MathUtils.NORMALS_X[facing.order_a];
-        float normalY = MathUtils.NORMALS_Y[facing.order_a];
-        float normalZ = MathUtils.NORMALS_Z[facing.order_a];
+        float normalX = MathUtils.NORMALS_X[facing.ordinal()];
+        float normalY = MathUtils.NORMALS_Y[facing.ordinal()];
+        float normalZ = MathUtils.NORMALS_Z[facing.ordinal()];
 
         switch (facing) {
             case DOWN:
@@ -171,14 +171,14 @@ public class CachedVertexData {
     }
 
     public void cube(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        for (EnumFacing facing : EnumFacing.faceList) {
+        for (EnumFacing facing : EnumFacing.values()) {
             cubeFace(facing, minX, minY, minZ, maxX, maxY, maxZ);
         }
     }
 
     public void cubeSides(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        for (EnumFacing facing : EnumFacing.faceList) {
-            if (facing.order_a != 0 && facing.order_a != 1) {
+        for (EnumFacing facing : EnumFacing.values()) {
+            if (facing.ordinal() != 0 && facing.ordinal() != 1) {
                 cubeFace(facing, minX, minY, minZ, maxX, maxY, maxZ);
             }
         }
@@ -187,35 +187,13 @@ public class CachedVertexData {
     public void centeredCube(double x, double y, double z, double rx, double ry, double rz) {
         cube(x - rx, y - ry, z - rz, x + rx, y + ry, z + rz);
         /*
-         pos(x + rx, y + ry, z - rz);
-         pos(x - rx, y + ry, z - rz);
-         pos(x - rx, y + ry, z + rz);
-         pos(x + rx, y + ry, z + rz);
-
-         pos(x + rx, y - ry, z + rz);
-         pos(x - rx, y - ry, z + rz);
-         pos(x - rx, y - ry, z - rz);
-         pos(x + rx, y - ry, z - rz);
-
-         pos(x + rx, y + ry, z + rz);
-         pos(x - rx, y + ry, z + rz);
-         pos(x - rx, y - ry, z + rz);
-         pos(x + rx, y - ry, z + rz);
-
-         pos(x + rx, y - ry, z - rz);
-         pos(x - rx, y - ry, z - rz);
-         pos(x - rx, y + ry, z - rz);
-         pos(x + rx, y + ry, z - rz);
-
-         pos(x - rx, y + ry, z + rz);
-         pos(x - rx, y + ry, z - rz);
-         pos(x - rx, y - ry, z - rz);
-         pos(x - rx, y - ry, z + rz);
-
-         pos(x + rx, y + ry, z - rz);
-         pos(x + rx, y + ry, z + rz);
-         pos(x + rx, y - ry, z + rz);
-         pos(x + rx, y - ry, z - rz);
+         * pos(x + rx, y + ry, z - rz); pos(x - rx, y + ry, z - rz); pos(x - rx, y + ry, z + rz); pos(x + rx, y + ry, z
+         * + rz); pos(x + rx, y - ry, z + rz); pos(x - rx, y - ry, z + rz); pos(x - rx, y - ry, z - rz); pos(x + rx, y -
+         * ry, z - rz); pos(x + rx, y + ry, z + rz); pos(x - rx, y + ry, z + rz); pos(x - rx, y - ry, z + rz); pos(x +
+         * rx, y - ry, z + rz); pos(x + rx, y - ry, z - rz); pos(x - rx, y - ry, z - rz); pos(x - rx, y + ry, z - rz);
+         * pos(x + rx, y + ry, z - rz); pos(x - rx, y + ry, z + rz); pos(x - rx, y + ry, z - rz); pos(x - rx, y - ry, z
+         * - rz); pos(x - rx, y - ry, z + rz); pos(x + rx, y + ry, z - rz); pos(x + rx, y + ry, z + rz); pos(x + rx, y -
+         * ry, z + rz); pos(x + rx, y - ry, z - rz);
          */
     }
 

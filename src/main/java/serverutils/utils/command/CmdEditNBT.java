@@ -124,7 +124,7 @@ public class CmdEditNBT extends CmdTreeBase {
 
                 NBTTagList list = new NBTTagList();
                 addInfo(list, new ChatComponentText("Class"), new ChatComponentText(tile.getClass().getName()));
-                String key = (String) TileEntity.classToNameMap.get(tile.getClass());
+                String key = info.getString("id"); // TileEntity.classToNameMap.get(tile.getClass());
                 addInfo(
                         list,
                         new ChatComponentText("ID"),

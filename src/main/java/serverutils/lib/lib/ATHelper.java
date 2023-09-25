@@ -4,16 +4,15 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.mojang.authlib.GameProfile;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
-import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 
 public final class ATHelper {
+
     // public static List<IContainerListener> getContainerListeners(Container
     // container) {
     // return container.listeners;
@@ -24,7 +23,7 @@ public final class ATHelper {
     }
 
     public static char getEnumChatFormattingChar(EnumChatFormatting formatting) {
-        return formatting.getFormattingCode();  //formattingCode
+        return formatting.getFormattingCode(); // formattingCode
     }
 
     @SuppressWarnings("unchecked")
@@ -32,9 +31,10 @@ public final class ATHelper {
         return handler.getCommands().keySet();
     }
 
-    public static boolean areCommandsAllowedForAll(ServerConfigurationManager ServerConfigurationManager) {
-        return ServerConfigurationManager.commandsAllowedForAll;
-    }
+    // public static boolean areCommandsAllowedForAll(ServerConfigurationManager ServerConfigurationManager) {
+    // return ServerUtilitiesLibConfig.general.enable_cheats;
+    // //return ServerConfigurationManager.commandsAllowedForAll;
+    // }
 
     @Nullable
     public static Boolean getBold(ChatStyle style) {

@@ -460,7 +460,7 @@ public class GuiEditNBT extends GuiBase {
 
         @Override
         public NBTBase getTag(String k) {
-            return (NBTBase) list.tagList.get(Integer.parseInt(k));
+            return list.getCompoundTagAt(Integer.parseInt(k)); // (NBTBase) list.tagList.get(Integer.parseInt(k));
         }
 
         @Override

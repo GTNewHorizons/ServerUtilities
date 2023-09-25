@@ -24,15 +24,24 @@ public class ServerUtilitiesLibConfig {
     public static boolean sync() {
         config.load();
 
+        general.cheats_enabled = config
+                .get(
+                        GEN_CAT,
+                        "cheats_enabled",
+                        false,
+                        "When this is enabled, players are able to use ServerUtilitiesLib cheat commands.")
+                .getBoolean();
         general.clientless_mode = config.get(
                 GEN_CAT,
                 "clientless_mode",
                 false,
                 "When this mode is enabled, ServerUtilitiesLib assumes that server clients don't have ServerUtilitiesLib and/or other mods installed.")
                 .getBoolean();
-        general.replace_reload_command = config
-                .get(GEN_CAT, "replace_reload_command", true, "This will replace /reload with Serverlib version of it.")
-                .getBoolean();
+        general.replace_reload_command = config.get(
+                GEN_CAT,
+                "replace_reload_command",
+                true,
+                "This will replace /reload with ServerUtilitieslib version of it.").getBoolean();
         general.merge_offline_mode_players = EnumTristate.string2tristate(
                 config.get(
                         GEN_CAT,
@@ -92,6 +101,7 @@ public class ServerUtilitiesLibConfig {
 
     public static class General {
 
+        public boolean cheats_enabled;
         public boolean clientless_mode;
         public boolean replace_reload_command;
         public EnumTristate merge_offline_mode_players;

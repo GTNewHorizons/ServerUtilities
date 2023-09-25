@@ -2,5 +2,6 @@
 
 dependencies {
     api("com.github.GTNewHorizons:waila:1.6.0:dev")
+	api('curse.maven:journeymap-32274:4500659')
     shadowCompile("it.unimi.dsi:fastutil:8.5.12")
 }

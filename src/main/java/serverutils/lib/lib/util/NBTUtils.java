@@ -146,7 +146,7 @@ public class NBTUtils {
                         builder.append(EnumChatFormatting.DARK_GRAY).append(',').append(' ');
                     }
                     getColoredNBTString(builder, list.getCompoundTagAt(i), level + 1);
-                    //getColoredNBTString(builder, (NBTBase) list.tagList.get(i), level + 1);
+                    // getColoredNBTString(builder, (NBTBase) list.tagList.get(i), level + 1);
                 }
 
                 return builder.append(COLORS[level % COLORS.length]).append(']');

@@ -329,7 +329,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
         }
 
         playerForStats.setWorld(team.universe.world);
-        playerForStats.entityUniqueID = getId();
+        playerForStats.getUniqueID().equals(getId()); // entityUniqueID = getId();
         return team.universe.server.getConfigurationManager().func_152602_a(playerForStats);
     }
 

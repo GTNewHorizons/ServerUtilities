@@ -593,7 +593,7 @@ public class JsonUtils {
 
                 if (list.tagCount() != 0) {
                     for (int i = 0; i < list.tagCount(); i++) {
-                        json.add(toJson((NBTBase) list.tagList.get(i)));
+                        json.add(toJson(list.getCompoundTagAt(i))); // tagList.get(i)));
                     }
                 }
 

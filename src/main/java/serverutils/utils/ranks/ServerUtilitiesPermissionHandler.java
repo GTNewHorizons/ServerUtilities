@@ -11,7 +11,11 @@ import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
-import serverutils.lib.lib.config.*;
+import serverutils.lib.lib.config.ConfigNull;
+import serverutils.lib.lib.config.ConfigValue;
+import serverutils.lib.lib.config.DefaultRankConfigHandler;
+import serverutils.lib.lib.config.IRankConfigHandler;
+import serverutils.lib.lib.config.RankConfigValueInfo;
 import serverutils.lib.lib.util.permission.DefaultPermissionHandler;
 import serverutils.lib.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.lib.util.permission.IPermissionHandler;
