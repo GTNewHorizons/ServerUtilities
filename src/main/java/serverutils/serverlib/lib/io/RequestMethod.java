@@ -1,7 +1,6 @@
 package serverutils.serverlib.lib.io;
 
-public enum RequestMethod
-{
+public enum RequestMethod {
 	GET,
 	POST,
 	HEAD,
