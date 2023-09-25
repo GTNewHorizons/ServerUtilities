@@ -376,8 +376,8 @@ public class ServerUtilitiesLibClientEventHandler {
                 }
             }
 
-            int guiLeft = gui.guiLeft;
-            int guiTop = gui.guiTop;
+            int guiLeft = (gui.width - 176) / 2;
+            int guiTop = (gui.height - 166) / 2;
 
             if (top) {
                 for (GuiButtonSidebar button : buttons) {
