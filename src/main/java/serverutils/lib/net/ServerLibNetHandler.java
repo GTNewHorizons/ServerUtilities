@@ -5,7 +5,7 @@ import serverutils.lib.lib.net.NetworkWrapper;
 public class ServerLibNetHandler {
 
     static final NetworkWrapper GENERAL = NetworkWrapper.newWrapper("serverlib");
-    static final NetworkWrapper EDIT_CONFIG = NetworkWrapper.newWrapper("serverlib_edit_config");
+    static final NetworkWrapper EDIT_CONFIG = NetworkWrapper.newWrapper("serverlib_config");
     static final NetworkWrapper MY_TEAM = NetworkWrapper.newWrapper("serverlib_my_team");
 
     public static void init() {
