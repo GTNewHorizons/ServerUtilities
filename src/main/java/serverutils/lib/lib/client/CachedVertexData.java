@@ -171,14 +171,14 @@ public class CachedVertexData {
     }
 
     public void cube(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        for (EnumFacing facing : EnumFacing.values()) {
+        for (EnumFacing facing : EnumFacing.faceList) {
             cubeFace(facing, minX, minY, minZ, maxX, maxY, maxZ);
         }
     }
 
     public void cubeSides(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        for (EnumFacing facing : EnumFacing.values()) {
-            if (facing.ordinal() != 0 && facing.ordinal() != 1) {
+        for (EnumFacing facing : EnumFacing.faceList) {
+            if (facing.order_a != 0 && facing.order_a != 1) {
                 cubeFace(facing, minX, minY, minZ, maxX, maxY, maxZ);
             }
         }
@@ -186,6 +186,7 @@ public class CachedVertexData {
 
     public void centeredCube(double x, double y, double z, double rx, double ry, double rz) {
         cube(x - rx, y - ry, z - rz, x + rx, y + ry, z + rz);
+
         /*
          * pos(x + rx, y + ry, z - rz); pos(x - rx, y + ry, z - rz); pos(x - rx, y + ry, z + rz); pos(x + rx, y + ry, z
          * + rz); pos(x + rx, y - ry, z + rz); pos(x - rx, y - ry, z + rz); pos(x - rx, y - ry, z - rz); pos(x + rx, y -
@@ -193,7 +194,7 @@ public class CachedVertexData {
          * rx, y - ry, z + rz); pos(x + rx, y - ry, z - rz); pos(x - rx, y - ry, z - rz); pos(x - rx, y + ry, z - rz);
          * pos(x + rx, y + ry, z - rz); pos(x - rx, y + ry, z + rz); pos(x - rx, y + ry, z - rz); pos(x - rx, y - ry, z
          * - rz); pos(x - rx, y - ry, z + rz); pos(x + rx, y + ry, z - rz); pos(x + rx, y + ry, z + rz); pos(x + rx, y -
-         * ry, z + rz); pos(x + rx, y - ry, z - rz);
+         * ry, z + rz) ; pos(x + rx, y - ry, z - rz);
          */
     }
 
