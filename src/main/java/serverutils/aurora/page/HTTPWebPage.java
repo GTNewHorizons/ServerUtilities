@@ -30,11 +30,11 @@ public abstract class HTTPWebPage implements WebPage {
     }
 
     public String getStylesheet() {
-        return "aurora:textures/style.css"; // Taken from Latvian.dev since the aurora part is permanently down
+        return "aurora:style.css"; // Taken from Latvian.dev since the aurora part is permanently down
     }
 
     public String getIcon() {
-        return "aurora:textures/logo.gif"; // Taken from Latvian.dev since the aurora part is permanently down
+        return "aurora:logo.gif"; // Taken from Latvian.dev since the aurora part is permanently down
     }
 
     public boolean addBackButton() {
