@@ -229,7 +229,7 @@ public class ThreadReloadChunkSelector extends Thread {
                 int cx = pos.chunkXPos + ChunkSelectorMap.TILES_GUI2;
                 int cz = pos.chunkZPos + ChunkSelectorMap.TILES_GUI2;
 
-                chunk = w.getChunkProvider().loadChunk(startX + cx, startZ + cz);
+                chunk = w.getChunkProvider().provideChunk(startX + cx, startZ + cz);
 
                 if (chunk == null) {
                     continue;
