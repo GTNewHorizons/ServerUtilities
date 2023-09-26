@@ -9,6 +9,10 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.util.FakePlayerFactory;
 
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.eventhandler.Event;
@@ -26,7 +30,7 @@ public class CommandOverride extends CommandBase {
 
     public final ICommand mirrored;
     public final String node;
-    // public final IChatComponent usage;
+    public final IChatComponent usage;
     public final ModContainer modContainer;
 
     private CommandOverride(ICommand c, String parent, @Nullable ModContainer container) {
@@ -34,14 +38,16 @@ public class CommandOverride extends CommandBase {
         node = parent + '.' + mirrored.getCommandName();
         Ranks.INSTANCE.commands.put(node, this);
 
-        // String usageS = getCommandUsage(FakePlayerFactory.getMinecraft(Ranks.INSTANCE.universe.world));
-        //
-        // if (usageS == null || usageS.isEmpty() || usageS.indexOf('/') != -1 || usageS.indexOf('%') != -1
-        // || usageS.indexOf(' ') != -1) {
-        // usage = new ChatComponentText(usageS);
-        // } else {
-        // usage = new ChatComponentTranslation(usageS);
-        // }
+        String usageS = getCommandUsage(FakePlayerFactory.getMinecraft(Ranks.INSTANCE.universe.world));
+
+        if (usageS == null || usageS.isEmpty()
+                || usageS.indexOf('/') != -1
+                || usageS.indexOf('%') != -1
+                || usageS.indexOf(' ') != -1) {
+            usage = new ChatComponentText(usageS);
+        } else {
+            usage = new ChatComponentTranslation(usageS);
+        }
 
         modContainer = container;
     }

@@ -10,8 +10,11 @@ import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import serverutils.aurora.Aurora;
+import serverutils.aurora.AuroraConfig;
 import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.data.NodeEntry;
@@ -23,6 +26,7 @@ import serverutils.utils.handlers.ServerUtilitiesPlayerEventHandler;
 import serverutils.utils.handlers.ServerUtilitiesRegistryEventHandler;
 import serverutils.utils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.utils.handlers.ServerUtilitiesWorldEventHandler;
+import serverutils.utils.integration.aurora.AuroraIntegration;
 import serverutils.utils.net.ServerUtilitiesNetHandler;
 import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 
@@ -67,9 +71,9 @@ public class ServerUtilitiesCommon {
         KAOMOJIS.put("tableflip", "(\u256F\u00B0\u25A1\u00B0)\u256F \uFE35 \u253B\u2501\u253B");
         KAOMOJIS.put("unflip", "\u252C\u2500\u252C\u30CE( \u309C-\u309C\u30CE)");
 
-        // if (Loader.isModLoaded(Aurora.MOD_ID)) {
-        // AuroraIntegration.init();
-        // }
+        if (Loader.isModLoaded(Aurora.MOD_ID) && AuroraConfig.General.enable) {
+            AuroraIntegration.init();
+        }
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesConfig.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPlayerEventHandler.INST);
