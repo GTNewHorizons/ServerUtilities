@@ -1,5 +1,6 @@
 package serverutils.utils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class ServerUtilitiesConfig {
     public static final String DEBUGGING = "debugging";
 
     public static void init(FMLPreInitializationEvent event) {
-        config = new Configuration(event.getSuggestedConfigurationFile());
+        config = new Configuration(new File(event.getModConfigurationDirectory() + "/../local/serverutilities.cfg"));
         sync();
     }
 

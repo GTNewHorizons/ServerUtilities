@@ -1,5 +1,7 @@
 package serverutils.lib;
 
+import java.io.File;
+
 import net.minecraftforge.common.config.Configuration;
 
 import cpw.mods.fml.client.event.ConfigChangedEvent;
@@ -17,7 +19,7 @@ public class ServerUtilitiesLibConfig {
     public static final String DEBUG_CAT = "debugging";
 
     public static void init(FMLPreInitializationEvent event) {
-        config = new Configuration(event.getSuggestedConfigurationFile());
+        config = new Configuration(new File(event.getModConfigurationDirectory() + "/../local/serverutilitieslib.cfg"));
         sync();
     }
 
