@@ -82,7 +82,8 @@ public class GuiSelectTeam extends GuiButtonListBase {
             }
 
             if (team.type == PublicTeamData.Type.REQUESTING_INVITE) {
-                list.add(EnumChatFormatting.GRAY + I18n.format("serverutilitieslib.lang.team_status.requesting_invite"));
+                list.add(
+                        EnumChatFormatting.GRAY + I18n.format("serverutilitieslib.lang.team_status.requesting_invite"));
             } else if (team.type == PublicTeamData.Type.ENEMY) {
                 list.add(EnumChatFormatting.GRAY + I18n.format(EnumTeamStatus.ENEMY.getLangKey()));
             } else {
