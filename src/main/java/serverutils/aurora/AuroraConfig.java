@@ -28,7 +28,8 @@ public class AuroraConfig {
     public static boolean sync() {
         config.load();
 
-        general.enable = config.get(GEN_CAT, "enable", false, "Enable the localhost server, Default: false").getBoolean();
+        general.enable = config.get(GEN_CAT, "enable", false, "Enable the localhost server, Default: false")
+                .getBoolean();
         general.port = config.get(GEN_CAT, "port", 48574, "Website Port ID, Default: 48574", 1025, 65534).getInt();
 
         config.save();
