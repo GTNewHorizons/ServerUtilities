@@ -24,6 +24,8 @@ public class CmdMute extends CmdBase {
         checkArgs(sender, args, 1);
         NBTUtils.getPersistedData(getPlayer(sender, args[0]), true)
                 .setBoolean(ServerUtilitiesPlayerData.TAG_MUTED, true);
-        sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.muted", getPlayer(sender, args[0]).getDisplayName()));
+        sender.addChatMessage(
+                ServerUtilities
+                        .lang(sender, "serverutilities.lang.muted", getPlayer(sender, args[0]).getDisplayName()));
     }
 }
