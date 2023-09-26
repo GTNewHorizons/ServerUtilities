@@ -20,21 +20,16 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.HttpVersion;
 import serverutils.aurora.page.HomePage;
 import serverutils.aurora.page.WebPage;
 import serverutils.aurora.page.WebPageNotFound;
 import serverutils.aurora.page.WebPageUnauthorized;
 
-/**
- * @author LatvianModder
- */
 public class AuroraServer {
 
     private final MinecraftServer server;
@@ -113,7 +108,7 @@ public class AuroraServer {
     }
 
     private void handleRequest(SocketChannel channel, ChannelHandlerContext ctx, FullHttpRequest request) {
-        String uri = request.uri();
+        String uri = request.getUri();
         WebPage page;
 
         while (uri.startsWith("/")) {
@@ -168,13 +163,13 @@ public class AuroraServer {
                 page.getStatus(),
                 Unpooled.copiedBuffer(content.getBytes()));
 
-        if (HttpUtil.isKeepAlive(request)) {
-            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        if (HttpHeaders.isKeepAlive(request)) {
+            response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
         }
 
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
-        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.length());
-        response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
+        response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, content.length());
+        response.headers().set(HttpHeaders.Names.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
         ctx.writeAndFlush(response);
     }
 

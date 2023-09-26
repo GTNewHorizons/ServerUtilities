@@ -1,8 +1,12 @@
 package serverutils.aurora;
 
+import java.util.Locale;
+
 import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 
@@ -13,6 +17,13 @@ public class Aurora {
     public static final String MOD_NAME = "Server Utilities Aurora";
     public static final String VERSION = "GRADLETOKEN_VERSION";
     private static AuroraServer server;
+
+    @Mod.EventHandler
+    public void onPreInit(FMLPreInitializationEvent event) {
+        Locale.setDefault(Locale.US);
+        AuroraConfig.init(event);
+        MinecraftForge.EVENT_BUS.register(AuroraConfig.INST);
+    }
 
     @Mod.EventHandler
     public void onServerStarting(FMLServerStartingEvent event) {
