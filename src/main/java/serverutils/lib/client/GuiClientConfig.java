@@ -35,7 +35,7 @@ public class GuiClientConfig extends GuiButtonListBase {
     private class GuiCustomConfig extends GuiConfig {
 
         public GuiCustomConfig(String modid, String title) {
-            super(Minecraft.getMinecraft().currentScreen, null, modid, false, false, title);
+            super(Minecraft.getMinecraft().currentScreen, new ArrayList<>(), modid, false, false, title);
         }
 
         @Override
