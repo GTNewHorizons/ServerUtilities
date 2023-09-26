@@ -291,7 +291,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
             b1.getChatStyle().setChatClickEvent(
                     new ClickEvent(
                             ClickEvent.Action.RUN_COMMAND,
-                            "/serverutiliteslib_simulate_button custom:serverutilitieslib:my_team_gui"));
+                            "/serverutilitieslib_simulate_button custom:serverutilitieslib:my_team_gui"));
             b1.getChatStyle().setChatHoverEvent(
                     new HoverEvent(
                             HoverEvent.Action.SHOW_TEXT,
@@ -420,7 +420,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
     }
 
     public File getDataFile(String ext) {
-        File dir = new File(team.universe.getWorldDirectory(), "data/server_lib/players/");
+        File dir = new File(team.universe.getWorldDirectory(), "data/serverutilitieslib/players/");
 
         if (ext.isEmpty()) {
             return new File(dir, getName().toLowerCase() + ".dat");
