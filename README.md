@@ -18,7 +18,7 @@ Original code Copyright (c) 2016 LatvianModder and licensed MIT (Based on LatMod
 ![Lat MIT License](lat-mit-license.png)
 ![Lat FTBU License](lat-ftbu-license-discord.png)
 
-* [FTB Utilities wayback machine license](https://web.archive.org/web/20190418033327/https://minecraft.curseforge.com/projects/ftb-utilities)
+* [FTB Utilities wayback machine license](https://web.archive.org/web/20190624234434/https://minecraft.curseforge.com/projects/ftb-utilities)
 ![FTB Utilities License CF Wayback](ftbu-license-wayback.png)
 * [FTB Library wayback machine license](https://web.archive.org/web/20190418011645/https://minecraft.curseforge.com/projects/ftblib)
 ![FTB Library License CF Wayback](ftbl-license-wayback.png)
