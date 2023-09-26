@@ -1,6 +1,6 @@
 {
 	"my_team": {
-		"group": "serverlib:info",
+		"group": "serverutilitieslib:info",
 		"icon": "serverutilitieslib:textures/gui/teams.png",
 		"x": 0,
 		"click": "custom:serverutilitieslib:my_team_gui",
@@ -8,13 +8,13 @@
 		"loading_screen": true
 	},
 	"settings": {
-		"group": "serverlib:info",
+		"group": "serverutilitieslib:info",
 		"icon": "serverutilitieslib:textures/icons/settings.png",
 		"x": 100,
 		"click": "custom:serverutilitieslib:client_config_gui"
 	},
 	"admin_panel": {
-		"group": "serverlib:info",
+		"group": "serverutilitieslib:info",
 		"icon": "serverutilitieslib:textures/icons/settings_red.png",
 		"x": 110,
 		"click": "custom:serverutilitieslib:admin_panel_gui",
