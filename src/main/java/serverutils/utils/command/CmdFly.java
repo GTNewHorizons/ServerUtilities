@@ -7,6 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.util.NBTUtils;
+import serverutils.utils.ServerUtilities;
 
 public class CmdFly extends CmdBase {
 
@@ -21,14 +22,17 @@ public class CmdFly extends CmdBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        EntityPlayerMP player = getCommandSenderAsPlayer(sender);
+        EntityPlayerMP player = args.length == 0 ? getCommandSenderAsPlayer(sender) : getPlayer(sender, args[0]);
         NBTTagCompound nbt = NBTUtils.getPersistedData(player, true);
+        String name = player.getDisplayName();
 
         if (nbt.getBoolean("fly")) {
             nbt.removeTag("fly");
             player.capabilities.allowFlying = false;
             player.capabilities.isFlying = false;
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.fly_on", name));
         } else {
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.fly_off", name));
             nbt.setBoolean("fly", true);
             player.capabilities.allowFlying = true;
         }

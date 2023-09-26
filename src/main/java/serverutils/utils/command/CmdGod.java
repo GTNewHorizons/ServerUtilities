@@ -7,6 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.util.NBTUtils;
+import serverutils.utils.ServerUtilities;
 
 public class CmdGod extends CmdBase {
 
@@ -23,13 +24,16 @@ public class CmdGod extends CmdBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         EntityPlayerMP player = args.length == 0 ? getCommandSenderAsPlayer(sender) : getPlayer(sender, args[0]);
         NBTTagCompound nbt = NBTUtils.getPersistedData(player, true);
+        String name = player.getDisplayName();
 
         if (nbt.getBoolean("god")) {
             nbt.removeTag("god");
             player.capabilities.disableDamage = false;
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.god_on", name));
         } else {
             nbt.setBoolean("god", true);
             player.capabilities.disableDamage = true;
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.god_off", name));
         }
 
         player.sendPlayerAbilities();

@@ -6,6 +6,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
+import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesPermissions;
 
 public class CmdHeal extends CmdBase {
@@ -23,8 +24,10 @@ public class CmdHeal extends CmdBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         EntityPlayerMP player = CommandUtils.getSelfOrOther(sender, args, 0, ServerUtilitiesPermissions.HEAL_OTHER)
                 .getCommandPlayer(sender);
+        String name = player.getDisplayName();
         player.setHealth(player.getMaxHealth());
         player.getFoodStats().addStats(40, 40F);
         player.extinguish();
+        sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.heal", name));
     }
 }

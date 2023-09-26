@@ -180,6 +180,13 @@ serverutilities.lang.upload_crash=Upload Crash Report
 serverutilities.lang.uploaded_crash=Crash Report Uploaded! %s
 serverutilities.lang.nickname_changed=Nickname changed to '%s'
 serverutilities.lang.nickname_reset=Nickname reset
+serverutilities.lang.unmuted= %s has been unmuted
+serverutilities.lang.muted= %s has been muted
+serverutilities.lang.fly_on=Fly turned on for %s
+serverutilities.lang.fly_off=Fly turned off for %s
+serverutilities.lang.god_on=God mode turned on for %s
+serverutilities.lang.god_off=God mode turned off for %s
+serverutilities.lang.heal=%s has been healed
 
 serverutilities.stat.dph=Deaths Per Hour
 serverutilities.stat.last_seen=Last Seen
