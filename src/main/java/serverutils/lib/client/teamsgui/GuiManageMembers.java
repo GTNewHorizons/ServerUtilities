@@ -52,23 +52,23 @@ public class GuiManageMembers extends GuiManagePlayersBase {
             if (!entry.status.isNone()) {
                 list.add(I18n.format(entry.status.getLangKey()));
             } else if (entry.requestingInvite) {
-                list.add(I18n.format("serverlib.lang.team_status.requesting_invite"));
+                list.add(I18n.format("serverutilitieslib.lang.team_status.requesting_invite"));
             }
 
             if (entry.requestingInvite) {
-                list.add(I18n.format("serverlib.lang.team.gui.members.requesting_invite"));
+                list.add(I18n.format("serverutilitieslib.lang.team.gui.members.requesting_invite"));
             } else if (entry.status.isEqualOrGreaterThan(EnumTeamStatus.MEMBER)) {
-                list.add(I18n.format("serverlib.lang.team.gui.members.kick"));
+                list.add(I18n.format("serverutilitieslib.lang.team.gui.members.kick"));
             } else if (entry.status == EnumTeamStatus.INVITED) {
-                list.add(I18n.format("serverlib.lang.team.gui.members.cancel_invite"));
+                list.add(I18n.format("serverutilitieslib.lang.team.gui.members.cancel_invite"));
             }
 
             if (entry.status == EnumTeamStatus.NONE || entry.requestingInvite) {
-                list.add(I18n.format("serverlib.lang.team.gui.members.invite"));
+                list.add(I18n.format("serverutilitieslib.lang.team.gui.members.invite"));
             }
 
             if (entry.requestingInvite) {
-                list.add(I18n.format("serverlib.lang.team.gui.members.deny_request"));
+                list.add(I18n.format("serverutilitieslib.lang.team.gui.members.deny_request"));
             }
         }
 
@@ -115,6 +115,6 @@ public class GuiManageMembers extends GuiManagePlayersBase {
     }
 
     public GuiManageMembers(Collection<MessageMyTeamPlayerList.Entry> m) {
-        super(I18n.format("team_action.serverlib.members"), m, ButtonPlayer::new);
+        super(I18n.format("team_action.serverutilitieslib.members"), m, ButtonPlayer::new);
     }
 }

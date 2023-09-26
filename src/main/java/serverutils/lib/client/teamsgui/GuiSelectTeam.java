@@ -27,7 +27,7 @@ public class GuiSelectTeam extends GuiButtonListBase {
         private final boolean canCreate;
 
         private ButtonCreateTeam(Panel panel, boolean c) {
-            super(panel, I18n.format("team_action.serverlib.create_team"), GuiIcons.ADD);
+            super(panel, I18n.format("team_action.serverutilitieslib.create_team"), GuiIcons.ADD);
             canCreate = c;
         }
 
@@ -82,14 +82,14 @@ public class GuiSelectTeam extends GuiButtonListBase {
             }
 
             if (team.type == PublicTeamData.Type.REQUESTING_INVITE) {
-                list.add(EnumChatFormatting.GRAY + I18n.format("serverlib.lang.team_status.requesting_invite"));
+                list.add(EnumChatFormatting.GRAY + I18n.format("serverutilitieslib.lang.team_status.requesting_invite"));
             } else if (team.type == PublicTeamData.Type.ENEMY) {
                 list.add(EnumChatFormatting.GRAY + I18n.format(EnumTeamStatus.ENEMY.getLangKey()));
             } else {
                 list.add(
                         EnumChatFormatting.GRAY + I18n.format(
-                                team.type == PublicTeamData.Type.CAN_JOIN ? "serverlib.lang.team.gui.join_team"
-                                        : "serverlib.lang.team.gui.request_invite",
+                                team.type == PublicTeamData.Type.CAN_JOIN ? "serverutilitieslib.lang.team.gui.join_team"
+                                        : "serverutilitieslib.lang.team.gui.request_invite",
                                 team.color.getEnumChatFormatting() + team.getId() + EnumChatFormatting.GRAY));
             }
         }
@@ -104,7 +104,7 @@ public class GuiSelectTeam extends GuiButtonListBase {
     private final List<PublicTeamData> teams;
 
     public GuiSelectTeam(Collection<PublicTeamData> teams0, boolean c) {
-        setTitle(I18n.format("team_action.serverlib.select_team"));
+        setTitle(I18n.format("team_action.serverutilitieslib.select_team"));
         setHasSearchBox(true);
         teams = new ArrayList<>(teams0);
         teams.sort(null);

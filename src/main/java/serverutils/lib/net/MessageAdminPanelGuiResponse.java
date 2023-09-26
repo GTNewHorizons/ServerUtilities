@@ -42,7 +42,7 @@ public class MessageAdminPanelGuiResponse extends MessageToClient {
     @SideOnly(Side.CLIENT)
     public void onMessage() {
         new GuiActionList(
-                I18n.format("sidebar_button.serverlib.admin_panel"),
+                I18n.format("sidebar_button.serverutilitieslib.admin_panel"),
                 actions,
                 id -> new MessageAdminPanelAction(id).sendToServer()).openGui();
     }

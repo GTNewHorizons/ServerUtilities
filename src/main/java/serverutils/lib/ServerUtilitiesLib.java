@@ -66,7 +66,7 @@ public class ServerUtilitiesLib {
             clientSide = "serverutils.lib.client.ServerUtilitiesLibClient")
     public static ServerUtilitiesLibCommon PROXY;
 
-    @GameRegistry.ObjectHolder("serverlibquests:custom_icon")
+    @GameRegistry.ObjectHolder("serverutilitieslibquests:custom_icon")
     public static Item CUSTOM_ICON_ITEM;
 
     public static IChatComponent lang(@Nullable ICommandSender sender, String key, Object... args) {

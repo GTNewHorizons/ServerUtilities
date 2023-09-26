@@ -16,7 +16,7 @@
         "GTNH Team"
       ],
       "credits": "GTNH",
-      "logoFile": "assets/serverlib/textures/logo.png",
+      "logoFile": "assets/serverutilitieslib/textures/logo.png",
       "screenshots": [],
       "parent": "",
       "requiredMods": [

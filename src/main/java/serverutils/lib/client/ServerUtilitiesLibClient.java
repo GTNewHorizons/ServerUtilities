@@ -43,7 +43,7 @@ public class ServerUtilitiesLibClient extends ServerUtilitiesLibCommon {
                 .registerReloadListener(SidebarButtonManager.INSTANCE);
         ChunkSelectorMap.setMap(new BuiltinChunkMap());
 
-        if (System.getProperty("serverlibdevenvironment", "0").equals("1")) {
+        if (System.getProperty("ServerLibDev", "0").equals("1")) {
             Display.setTitle(
                     "[MC " + EnumChatFormatting.GOLD
                             + Loader.MC_VERSION

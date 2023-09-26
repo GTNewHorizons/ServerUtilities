@@ -186,7 +186,7 @@ public class ServerUtilitiesLibClientEventHandler {
             Collection<String> ores = InvUtils.getOreNames(null, event.itemStack);
 
             if (!ores.isEmpty()) {
-                event.toolTip.add(I18n.format("serverlib_client.general.item_ore_names.item_tooltip"));
+                event.toolTip.add(I18n.format("serverutilitieslib_client.general.item_ore_names.item_tooltip"));
 
                 for (String or : ores) {
                     event.toolTip.add("> " + or);

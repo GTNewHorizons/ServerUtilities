@@ -16,7 +16,7 @@ public class GuiSelectTeamValue extends GuiButtonListBase {
     private final Runnable callback;
 
     public GuiSelectTeamValue(ConfigTeamClient v, IOpenableGui c, Runnable cb) {
-        setTitle(I18n.format("serverlib.select_team.gui"));
+        setTitle(I18n.format("serverutilitieslib.select_team.gui"));
         setHasSearchBox(true);
         value = v;
         callbackGui = c;
