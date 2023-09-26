@@ -42,7 +42,7 @@ public class CmdStatus extends CmdBase {
         ForgePlayer p = CommandUtils.getForgePlayer(getCommandSenderAsPlayer(sender));
 
         if (!p.hasTeam()) {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.error.no_team");
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.no_team");
         } else if (!p.team.isModerator(p)) {
             throw new CommandException("commands.generic.permission");
         }
@@ -56,7 +56,7 @@ public class CmdStatus extends CmdBase {
         }
 
         if (p.team.isOwner(p1)) {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.permission.owner");
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.permission.owner");
         } else if (!p.team.isModerator(p)) {
             throw new CommandException("commands.generic.permission");
         }

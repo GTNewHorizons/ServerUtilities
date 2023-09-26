@@ -70,20 +70,20 @@ public class ServerUtilitiesLibAPI {
             for (EntityPlayerMP player : (List<EntityPlayerMP>) universe.server
                     .getConfigurationManager().playerEntityList) {
                 Notification notification = Notification.of(ServerUtilitiesLibNotifications.RELOAD_SERVER);
-                notification.addLine(ServerUtilitiesLib.lang(player, "Serverlib.lang.reload_server", millis));
+                notification.addLine(ServerUtilitiesLib.lang(player, "serverutilitieslib.lang.reload_server", millis));
 
                 if (event.isClientReloadRequired()) {
                     notification.addLine(
                             ServerUtilitiesLib.lang(
                                     player,
-                                    "serverlib.lang.reload_client",
+                                    "serverutilitieslib.lang.reload_client",
                                     StringUtils.color(new ChatComponentText("F3 + T"), EnumChatFormatting.GOLD)));
                 }
 
                 if (!failed.isEmpty()) {
                     notification.addLine(
                             StringUtils.color(
-                                    ServerUtilitiesLib.lang(player, "serverlib.lang.reload_failed"),
+                                    ServerUtilitiesLib.lang(player, "serverutilitieslib.lang.reload_failed"),
                                     EnumChatFormatting.RED));
                     ServerUtilitiesLib.LOGGER.warn("These IDs failed to reload:");
 

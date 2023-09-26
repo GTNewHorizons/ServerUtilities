@@ -77,7 +77,7 @@ public abstract class CmdEditConfigBase extends CmdBase {
         ConfigValueInstance instance = group.getValueInstance(args[0]);
 
         if (instance == null) {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.config_command.invalid_key", args[0]);
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.config_command.invalid_key", args[0]);
         }
 
         if (args.length >= 2) {
@@ -98,7 +98,7 @@ public abstract class CmdEditConfigBase extends CmdBase {
                             Notification.VANILLA_STATUS,
                             ServerUtilitiesLib.lang(
                                     sender,
-                                    "serverlib.lang.config_command.set",
+                                    "serverutilitieslib.lang.config_command.set",
                                     instance.getDisplayName(),
                                     group.getValue(args[0]).toString()))
                     .send(getCommandSenderAsPlayer(sender).mcServer, getCommandSenderAsPlayer(sender));

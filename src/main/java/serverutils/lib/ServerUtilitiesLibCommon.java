@@ -155,7 +155,7 @@ public class ServerUtilitiesLibCommon {
                                 EnumReloadType.RELOAD_COMMAND,
                                 ServerReloadEvent.ALL);
                     }
-                }.setTitle(new ChatComponentTranslation("serverlib.lang.reload_server_button")));
+                }.setTitle(new ChatComponentTranslation("serverutilitieslib.lang.reload_server_button")));
 
         registry.registerTeamAction(ServerUtilitiesLibTeamGuiActions.CONFIG);
         registry.registerTeamAction(ServerUtilitiesLibTeamGuiActions.INFO);

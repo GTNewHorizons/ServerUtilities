@@ -39,7 +39,7 @@ public class CmdRequestInvite extends CmdBase {
         ForgePlayer p = CommandUtils.getForgePlayer(getCommandSenderAsPlayer(sender));
 
         if (p.hasTeam()) {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.error.must_leave");
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.must_leave");
         }
 
         checkArgs(sender, args, 1);
@@ -53,7 +53,8 @@ public class CmdRequestInvite extends CmdBase {
         team.setRequestingInvite(p, true);
 
         IChatComponent component = new ChatComponentText("");
-        component.appendSibling(new ChatComponentTranslation("serverlib.lang.team.gui.members.requesting_invite"));
+        component.appendSibling(
+                new ChatComponentTranslation("serverutilitieslib.lang.team.gui.members.requesting_invite"));
         component.appendText(": ");
         component.appendSibling(StringUtils.color(p.getDisplayName(), EnumChatFormatting.BLUE));
         component.getChatStyle().setChatClickEvent(
@@ -62,7 +63,7 @@ public class CmdRequestInvite extends CmdBase {
         for (ForgePlayer player : team.getPlayersWithStatus(EnumTeamStatus.MOD)) {
             if (player.isOnline()) {
                 player.getPlayer().addChatMessage(
-                        new ChatComponentTranslation("serverlib.lang.team.gui.members.requesting_invite"));
+                        new ChatComponentTranslation("serverutilitieslib.lang.team.gui.members.requesting_invite"));
             }
         }
     }

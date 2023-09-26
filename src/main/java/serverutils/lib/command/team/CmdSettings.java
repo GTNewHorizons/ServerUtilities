@@ -25,7 +25,7 @@ public class CmdSettings extends CmdEditConfigBase {
 
         if (!p.hasTeam()) {
             ServerUtilitiesLibAPI.sendCloseGuiPacket(player);
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.error.no_team");
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.no_team");
         } else if (!p.team.isModerator(p)) {
             ServerUtilitiesLibAPI.sendCloseGuiPacket(player);
             throw new CommandException("commands.generic.permission");

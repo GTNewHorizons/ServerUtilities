@@ -29,17 +29,17 @@ public class CmdAddFakePlayer extends CmdBase {
         UUID id = StringUtils.fromString(args[0]);
 
         if (id == null) {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.add_fake_player.invalid_uuid");
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.add_fake_player.invalid_uuid");
         }
 
         if (Universe.get().getPlayer(id) != null || Universe.get().getPlayer(args[1]) != null) {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.add_fake_player.player_exists");
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.add_fake_player.player_exists");
         }
 
         ForgePlayer p = new ForgePlayer(Universe.get(), id, args[1]);
         p.team.universe.players.put(p.getId(), p);
         p.clearCache();
         sender.addChatMessage(
-                ServerUtilitiesLib.lang(sender, "serverlib.lang.add_fake_player.added", p.getDisplayName()));
+                ServerUtilitiesLib.lang(sender, "serverutilitieslib.lang.add_fake_player.added", p.getDisplayName()));
     }
 }

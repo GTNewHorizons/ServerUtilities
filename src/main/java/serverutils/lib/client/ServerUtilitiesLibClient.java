@@ -8,9 +8,11 @@ import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.client.ClientCommandHandler;
+import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.opengl.Display;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -51,6 +53,10 @@ public class ServerUtilitiesLibClient extends ServerUtilitiesLibCommon {
                             + " Dev :: "
                             + Minecraft.getMinecraft().getSession().getUsername());
         }
+
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesLibClientConfig.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesLibClientEventHandler.INST);
+        FMLCommonHandler.instance().bus().register(ServerUtilitiesLibClientEventHandler.INST);
     }
 
     @Override

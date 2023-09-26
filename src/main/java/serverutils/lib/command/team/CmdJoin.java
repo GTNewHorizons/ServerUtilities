@@ -72,12 +72,13 @@ public class CmdJoin extends CmdBase {
                 new ForgeTeamChangedEvent(team, p.team).post();
                 p.team.removeMember(p);
             } else if (p.hasTeam()) {
-                throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.error.must_leave");
+                throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.must_leave");
             }
 
             team.addMember(p, false);
         } else {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.error.already_member", p.getDisplayName());
+            throw ServerUtilitiesLib
+                    .error(sender, "serverutilitieslib.lang.team.error.already_member", p.getDisplayName());
         }
     }
 }

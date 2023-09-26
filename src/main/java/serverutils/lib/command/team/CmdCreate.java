@@ -50,17 +50,17 @@ public class CmdCreate extends CmdBase {
         ForgePlayer p = CommandUtils.getForgePlayer(player);
 
         if (p.hasTeam()) {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.error.must_leave");
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.must_leave");
         }
 
         checkArgs(sender, args, 1);
 
         if (!isValidTeamID(args[0])) {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.id_invalid");
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.id_invalid");
         }
 
         if (p.team.universe.getTeam(args[0]).isValid()) {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.id_already_exists");
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.id_already_exists");
         }
 
         p.team.universe.clearCache();
@@ -83,7 +83,7 @@ public class CmdCreate extends CmdBase {
         new ForgeTeamCreatedEvent(team).post();
         ForgeTeamPlayerJoinedEvent event = new ForgeTeamPlayerJoinedEvent(p);
         event.post();
-        sender.addChatMessage(ServerUtilitiesLib.lang(sender, "serverlib.lang.team.created", team.getId()));
+        sender.addChatMessage(ServerUtilitiesLib.lang(sender, "serverutilitieslib.lang.team.created", team.getId()));
 
         if (event.getDisplayGui() != null) {
             event.getDisplayGui().run();

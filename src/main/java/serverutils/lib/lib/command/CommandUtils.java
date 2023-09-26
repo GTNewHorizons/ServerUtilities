@@ -97,7 +97,7 @@ public class CommandUtils {
             return team;
         }
 
-        throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.error.not_found", id);
+        throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.not_found", id);
     }
 
     public static ForgePlayer getSelfOrOther(ICommandSender sender, String[] args, int index) throws CommandException {

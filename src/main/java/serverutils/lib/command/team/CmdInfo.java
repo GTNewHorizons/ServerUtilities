@@ -36,7 +36,7 @@ public class CmdInfo extends CmdBase {
         ForgeTeam team = Universe.get().getTeam(args[0]);
 
         if (!team.isValid()) {
-            throw ServerUtilitiesLib.error(sender, "serverlib.lang.team.error.not_found", args[0]);
+            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.not_found", args[0]);
         }
 
         sender.addChatMessage(
