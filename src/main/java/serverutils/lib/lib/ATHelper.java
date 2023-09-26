@@ -24,7 +24,7 @@ public final class ATHelper {
     }
 
     public static char getEnumChatFormattingChar(EnumChatFormatting formatting) {
-        return formatting.getFormattingCode(); // formattingCode
+        return formatting.formattingCode;
     }
 
     @SuppressWarnings("unchecked")
