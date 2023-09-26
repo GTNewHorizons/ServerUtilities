@@ -266,7 +266,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
 
         if (!isFake()) {
             lastTimeSeen = universe.ticks.ticks();
-            // ServerLibStats.updateLastSeen(stats());
+            // ServerUtilitiesLibStats.updateLastSeen(stats());
             new MessageSyncData(true, player, this).sendTo(player);
         }
 

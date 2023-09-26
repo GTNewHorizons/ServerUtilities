@@ -38,42 +38,42 @@ public final class ATHelper {
 
     @Nullable
     public static Boolean getBold(ChatStyle style) {
-        return style.getBold();
+        return style.bold;
     }
 
     @Nullable
     public static Boolean getItalic(ChatStyle style) {
-        return style.getItalic();
+        return style.italic;
     }
 
     @Nullable
     public static Boolean getStriketrough(ChatStyle style) {
-        return style.getStrikethrough();
+        return style.strikethrough;
     }
 
     @Nullable
     public static Boolean getUnderlined(ChatStyle style) {
-        return style.getUnderlined();
+        return style.underlined;
     }
 
     @Nullable
     public static Boolean getObfuscated(ChatStyle style) {
-        return style.getObfuscated();
+        return style.obfuscated;
     }
 
     @Nullable
     public static EnumChatFormatting getColor(ChatStyle style) {
-        return style.getColor();
+        return style.color;
     }
 
     @Nullable
     public static ClickEvent getClickEvent(ChatStyle style) {
-        return style.getChatClickEvent();
+        return style.chatClickEvent;
     }
 
     @Nullable
     public static HoverEvent getHoverEvent(ChatStyle style) {
-        return style.getChatHoverEvent();
+        return style.chatHoverEvent;
     }
 
     // @Nullable

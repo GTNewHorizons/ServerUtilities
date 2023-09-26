@@ -55,7 +55,7 @@ public class TextComponentParser {
 
     static {
         for (EnumChatFormatting formatting : TEXT_FORMATTING_NAME_MAP.values) {
-            CODE_TO_FORMATTING.put(formatting.getFormattingCode(), formatting);
+            CODE_TO_FORMATTING.put(formatting.formattingCode, formatting);
         }
     }
 

@@ -17,8 +17,8 @@ public enum SidedDirection {
     private static final SidedDirection[] CACHED_SIDES = new SidedDirection[36];
 
     static {
-        for (EnumFacing side : EnumFacing.values()) {
-            for (EnumFacing rot : EnumFacing.values()) {
+        for (EnumFacing side : EnumFacing.faceList) {
+            for (EnumFacing rot : EnumFacing.faceList) {
                 for (SidedDirection d : VALUES) {
                     if (d.directions[rot.ordinal()] == side) {
                         CACHED_SIDES[side.ordinal() + rot.ordinal() * 6] = d;
