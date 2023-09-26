@@ -95,9 +95,11 @@ public class ServerUtilities {
     public void onServerStarted(FMLServerStartedEvent event) {
         if (Ranks.isActive()) {
             Ranks.INSTANCE.commands.clear();
-            FileUtils.deleteSafe(Ranks.INSTANCE.universe.server.getFile("server utilities/serverutilities/all_permissions.html"));
             FileUtils.deleteSafe(
-                    Ranks.INSTANCE.universe.server.getFile("server utilities/serverutilities/all_permissions_full_list.txt"));
+                    Ranks.INSTANCE.universe.server.getFile("server utilities/serverutilities/all_permissions.html"));
+            FileUtils.deleteSafe(
+                    Ranks.INSTANCE.universe.server
+                            .getFile("server utilities/serverutilities/all_permissions_full_list.txt"));
 
             boolean spongeLoaded = Loader.isModLoaded("spongeforge");
 

@@ -40,7 +40,8 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
         groups.clear();
 
         JsonElement element = DataReader
-                .get(new File(Minecraft.getMinecraft().mcDataDir, "server utilities/client/sidebar_buttons.json")).safeJson();
+                .get(new File(Minecraft.getMinecraft().mcDataDir, "server utilities/client/sidebar_buttons.json"))
+                .safeJson();
         JsonObject sidebarButtonConfig;
 
         if (element.isJsonObject()) {
@@ -170,6 +171,8 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
             }
         }
 
-        JsonUtils.toJsonSafe(new File(Minecraft.getMinecraft().mcDataDir, "server utilities/client/sidebar_buttons.json"), o);
+        JsonUtils.toJsonSafe(
+                new File(Minecraft.getMinecraft().mcDataDir, "server utilities/client/sidebar_buttons.json"),
+                o);
     }
 }
