@@ -41,7 +41,7 @@ public class GuiViewCrash extends GuiBase {
             try {
                 File urlFile = new File(
                         Minecraft.getMinecraft().mcDataDir,
-                        "local/serverutilities/uploaded_crash_reports/crash-" + name.text[0] + ".txt");
+                        "server utilities/serverutilities/uploaded_crash_reports/crash-" + name.text[0] + ".txt");
                 String url = DataReader.get(urlFile).safeString();
 
                 if (url.isEmpty()) {

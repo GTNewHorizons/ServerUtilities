@@ -13,7 +13,7 @@ public class ServerUtilitiesClientConfig {
 
     public static void init(FMLPreInitializationEvent event) {
         config = new Configuration(
-                new File(event.getModConfigurationDirectory() + "/../local/client/serverutilities.cfg"));
+                new File(event.getModConfigurationDirectory() + "/../server utilities/client/serverutilities.cfg"));
         sync();
     }
 

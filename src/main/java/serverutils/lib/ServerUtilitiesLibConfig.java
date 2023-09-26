@@ -19,7 +19,7 @@ public class ServerUtilitiesLibConfig {
     public static final String DEBUG_CAT = "debugging";
 
     public static void init(FMLPreInitializationEvent event) {
-        config = new Configuration(new File(event.getModConfigurationDirectory() + "/../local/serverutilitieslib.cfg"));
+        config = new Configuration(new File(event.getModConfigurationDirectory() + "/../server utilities/serverutilitieslib.cfg"));
         sync();
     }
 

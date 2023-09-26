@@ -40,7 +40,7 @@ public class ServerUtilitiesConfig {
     public static final String DEBUGGING = "debugging";
 
     public static void init(FMLPreInitializationEvent event) {
-        config = new Configuration(new File(event.getModConfigurationDirectory() + "/../local/serverutilities.cfg"));
+        config = new Configuration(new File(event.getModConfigurationDirectory() + "/../server utilities/serverutilities.cfg"));
         sync();
     }
 
