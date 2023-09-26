@@ -9,7 +9,6 @@ import serverutils.utils.command.tp.CmdBack;
 import serverutils.utils.command.tp.CmdDelHome;
 import serverutils.utils.command.tp.CmdDelWarp;
 import serverutils.utils.command.tp.CmdHome;
-import serverutils.utils.command.tp.CmdRTP;
 import serverutils.utils.command.tp.CmdSetHome;
 import serverutils.utils.command.tp.CmdSetWarp;
 import serverutils.utils.command.tp.CmdSpawn;
@@ -29,9 +28,9 @@ public class ServerUtilitiesCommands {
             }
         }
 
-        if (ServerUtilitiesConfig.commands.inv) {
-            event.registerServerCommand(new CmdInv());
-        }
+        // if (ServerUtilitiesConfig.commands.inv) {
+        // event.registerServerCommand(new CmdInv());
+        // }
 
         if (ServerUtilitiesConfig.commands.warp) {
             event.registerServerCommand(new CmdWarp());
@@ -94,7 +93,7 @@ public class ServerUtilitiesCommands {
         }
 
         if (ServerUtilitiesLibConfig.debugging.special_commands) {
-            event.registerServerCommand(new CmdCycleBlockState());
+            // event.registerServerCommand(new CmdCycleBlockState());
             event.registerServerCommand(new CmdDumpChunkloaders());
         }
 
@@ -113,9 +112,9 @@ public class ServerUtilitiesCommands {
             event.registerServerCommand(new CmdUnmute());
         }
 
-        if (ServerUtilitiesConfig.commands.rtp) {
-            event.registerServerCommand(new CmdRTP());
-        }
+        // if (ServerUtilitiesConfig.commands.rtp) {
+        // event.registerServerCommand(new CmdRTP());
+        // }
 
         if (ServerUtilitiesConfig.commands.god) {
             event.registerServerCommand(new CmdGod());
