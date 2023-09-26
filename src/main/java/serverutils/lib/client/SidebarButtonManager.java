@@ -114,6 +114,10 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
                                         group,
                                         buttonJson);
 
+                                if (group.getButtons().contains(button)) {
+                                    continue;
+                                }
+
                                 group.getButtons().add(button);
 
                                 if (sidebarButtonConfig.has(button.id.getResourceDomain())) {
