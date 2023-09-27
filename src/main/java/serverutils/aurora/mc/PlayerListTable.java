@@ -30,7 +30,14 @@ public class PlayerListTable extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return AuroraConfig.general.player_list_table ? PageType.ENABLED : PageType.DISABLED;
+        switch (AuroraConfig.general.player_list_table) {
+            case "DISABLED":
+                return PageType.DISABLED;
+            case "REQUIRES_AUTH":
+                return PageType.REQUIRES_AUTH;
+            default:
+                return PageType.ENABLED;
+        }
     }
 
     @Override

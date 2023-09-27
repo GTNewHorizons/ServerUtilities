@@ -31,13 +31,14 @@ public class AuroraConfig {
                 "ENABLED",
                 "Enable the modlist page, Valid values: ENABLED, REQUIRES_AUTH, DISABLED").getString();
         general.world_info_json = config
-                .get(GEN_CAT, "world_info_json", false, "Enable the world info page, Default: false").getBoolean();
+                .get(GEN_CAT, "world_info_json", "DISABLED",
+                        "Enable the world info page, Default: false").getString();;
         general.player_list_table = config
-                .get(GEN_CAT, "player_list_table", false, "Enable the playerlist table page, Default: false")
-                .getBoolean();
+                .get(GEN_CAT, "player_list_table", "DISABLED", "Enable the playerlist table page, Default: false")
+                .getString();
         general.player_list_json = config
-                .get(GEN_CAT, "player_list_json", false, "Enable the playerlist json page, Default: false")
-                .getBoolean();
+                .get(GEN_CAT, "player_list_json", "DISABLED", "Enable the playerlist json page, Default: false")
+                .getString();
 
         general.modlist_excluded_mods = config
                 .get("modlist_excluded_mods", GEN_CAT, new String[] {}, "Exclude mods from the modlist: Default: Empty")
@@ -54,9 +55,9 @@ public class AuroraConfig {
 
         public boolean enable;
         public String modlist_page;
-        public boolean world_info_json;
-        public boolean player_list_table;
-        public boolean player_list_json;
+        public String world_info_json;
+        public String player_list_table;
+        public String player_list_json;
         public String[] modlist_excluded_mods;
         public int port;
 
