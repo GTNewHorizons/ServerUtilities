@@ -42,6 +42,7 @@ import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
+import serverutils.utils.backups.Backups;
 import serverutils.utils.ranks.Ranks;
 
 public class ServerUtilitiesUniverseData {
@@ -106,6 +107,7 @@ public class ServerUtilitiesUniverseData {
     @SubscribeEvent
     public void onUniverseLoaded(UniverseLoadedEvent.Finished event) {
         long now = System.currentTimeMillis();
+        Backups.nextBackup = now + Backups.backupMillis();
         shutdownTime = 0L;
 
         if (ServerUtilitiesConfig.auto_shutdown.enabled && ServerUtilitiesConfig.auto_shutdown.times.length > 0
@@ -240,7 +242,7 @@ public class ServerUtilitiesUniverseData {
             ClaimedChunks.instance.clear();
             ClaimedChunks.instance = null;
         }
-
+        Backups.nextBackup = 0L;
         ServerUtilitiesLoadedChunkManager.INSTANCE.clear();
 
         BADGE_CACHE.clear();

@@ -33,6 +33,7 @@ import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesCommon;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
+import serverutils.utils.backups.Backups;
 import serverutils.utils.command.CmdShutdown;
 import serverutils.utils.data.ClaimedChunks;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
@@ -233,6 +234,15 @@ public class ServerUtilitiesServerEventHandler {
 
             if (ServerUtilitiesUniverseData.shutdownTime > 0L && ServerUtilitiesUniverseData.shutdownTime - now <= 0) {
                 CmdShutdown.shutdown(universe.server);
+            }
+
+            if (Backups.nextBackup > 0L && Backups.nextBackup <= now) {
+                Backups.run(universe.server);
+            }
+
+            if (Backups.thread != null && Backups.thread.isDone) {
+                Backups.thread = null;
+                Backups.postBackup();
             }
         }
     }
