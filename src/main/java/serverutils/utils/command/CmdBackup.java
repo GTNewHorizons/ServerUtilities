@@ -6,8 +6,7 @@ import net.minecraft.command.ICommandSender;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CmdTreeBase;
-import serverutils.lib.lib.util.BackupUtils;
-import serverutils.lib.lib.util.BroadcastSender;
+import serverutils.lib.lib.util.FileUtils;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.backups.Backups;
@@ -21,11 +20,6 @@ public class CmdBackup extends CmdTreeBase {
         addSubcommand(new CmdBackupGetSize("getsize"));
     }
 
-    // @Override
-    // public void processCommand(ICommandSender sender, String[] args) {
-    //
-    // }
-
     public static class CmdBackupStart extends CmdBase {
 
         public CmdBackupStart(String s) {
@@ -36,7 +30,8 @@ public class CmdBackup extends CmdTreeBase {
         public void processCommand(ICommandSender sender, String[] args) {
             boolean b = Backups.run(sender);
             if (b) {
-                sender.addChatMessage(ServerUtilities.lang(BroadcastSender.inst, "cmd.backup_manual_launch"));
+                sender.addChatMessage(
+                        ServerUtilities.lang(null, "cmd.backup_manual_launch", sender.getCommandSenderName()));
                 if (!ServerUtilitiesConfig.backups.use_separate_thread) Backups.postBackup();
             } else {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
@@ -49,16 +44,6 @@ public class CmdBackup extends CmdTreeBase {
         public CmdBackupStop(String s) {
             super(s, OP);
         }
-
-        // public IChatComponent onCommand(ICommandSender ics, String[] args) throws CommandException {
-        // if (Backups.thread != null) {
-        // Backups.thread.interrupt();
-        // Backups.thread = null;
-        // return FTBU.mod.chatComponent("cmd.backup_stop");
-        // }
-        //
-        // return error(FTBU.mod.chatComponent("cmd.backup_not_running"));
-        // }
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
@@ -78,16 +63,10 @@ public class CmdBackup extends CmdTreeBase {
             super(s, OP);
         }
 
-        // public IChatComponent onCommand(ICommandSender ics, String[] args) throws CommandException {
-        // String sizeW = BackupUtils.getSizeS(ics.getEntityWorld().getSaveHandler().getWorldDirectory());
-        // String sizeT = BackupUtils.getSizeS(Backups.backupsFolder);
-        // return FTBU.mod.chatComponent("cmd.backup_size", sizeW, sizeT);
-        // }
-
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            String sizeW = BackupUtils.getSizeS(sender.getEntityWorld().getSaveHandler().getWorldDirectory());
-            String sizeT = BackupUtils.getSizeS(Backups.backupsFolder);
+            String sizeW = FileUtils.getSizeString(sender.getEntityWorld().getSaveHandler().getWorldDirectory());
+            String sizeT = FileUtils.getSizeString(Backups.backupsFolder);
             sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_not_running", sizeW, sizeT));
         }
     }

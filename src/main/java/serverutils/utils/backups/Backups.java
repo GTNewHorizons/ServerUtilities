@@ -17,15 +17,14 @@ import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import serverutils.lib.lib.util.BackupUtils;
-import serverutils.lib.lib.util.BroadcastSender;
+import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.ServerUtils;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilitiesConfig;
 
 public class Backups {
 
-    public static final Logger logger = LogManager.getLogger("FTBU Backups");
+    public static final Logger logger = LogManager.getLogger("ServerUtilities Backup");
 
     public static File backupsFolder;
     public static long nextBackup = -1L;
@@ -63,10 +62,8 @@ public class Backups {
         BroadcastSender.inst.addChatMessage(c);
 
         try {
-            new CommandSaveOff()
-                    .processCommand(FMLCommonHandler.instance().getMinecraftServerInstance(), new String[0]);
-            new CommandSaveAll()
-                    .processCommand(FMLCommonHandler.instance().getMinecraftServerInstance(), new String[0]);
+            new CommandSaveOff().processCommand(ServerUtils.getServer(), new String[0]);
+            new CommandSaveAll().processCommand(ServerUtils.getServer(), new String[0]);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -96,7 +93,7 @@ public class Backups {
                 File f = new File(backupsFolder, s[i]);
                 if (f.isDirectory()) {
                     logger.info("Deleted old backup: " + f.getPath());
-                    BackupUtils.delete(f);
+                    FileUtils.delete(f);
                 }
             }
         }

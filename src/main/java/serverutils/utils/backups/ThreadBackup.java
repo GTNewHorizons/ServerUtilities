@@ -9,9 +9,11 @@ import java.util.zip.ZipOutputStream;
 
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.ResourceLocation;
 
 import serverutils.lib.lib.util.BackupUtils;
 import serverutils.lib.lib.util.BroadcastSender;
+import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesConfig;
@@ -45,22 +47,22 @@ public class ThreadBackup extends Thread {
             appendNum(out, time.minutes, '-');
             appendNum(out, time.seconds, File.separatorChar);
 
-            List<File> files = BackupUtils.listAll(src);
+            List<File> files = FileUtils.listTree(src);
             int allFiles = files.size();
 
             Backups.logger.info("Backing up " + files.size() + " files...");
 
             if (ServerUtilitiesConfig.backups.compression_level > 0) {
                 out.append("backup.zip");
-                dstFile = BackupUtils.newFile(new File(Backups.backupsFolder, out.toString()));
+                dstFile = FileUtils.newFile(new File(Backups.backupsFolder, out.toString()));
 
-                long start = BackupUtils.millis();
+                long start = System.currentTimeMillis();;
 
                 ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dstFile));
                 // zos.setLevel(9);
                 zos.setLevel(ServerUtilitiesConfig.backups.compression_level);
 
-                long logMillis = BackupUtils.millis() + 5000L;
+                long logMillis = System.currentTimeMillis() + 5000L;
 
                 byte[] buffer = new byte[4096];
 
@@ -73,7 +75,7 @@ public class ThreadBackup extends Thread {
                             src.getName() + File.separator
                                     + filePath.substring(src.getAbsolutePath().length() + 1, filePath.length()));
 
-                    long millis = BackupUtils.millis();
+                    long millis = System.currentTimeMillis();;
 
                     if (i == 0 || millis > logMillis || i == allFiles - 1) {
                         logMillis = millis + 5000L;
@@ -102,7 +104,7 @@ public class ThreadBackup extends Thread {
                 Backups.logger.info(
                         "Done compressing in " + getDoneTime(start)
                                 + " seconds ("
-                                + BackupUtils.getSizeS(dstFile)
+                                + FileUtils.getSizeString(dstFile)
                                 + ")!");
             } else {
                 out.append(src.getName());
@@ -112,12 +114,12 @@ public class ThreadBackup extends Thread {
                 String dstPath = dstFile.getAbsolutePath() + File.separator;
                 String srcPath = src.getAbsolutePath();
 
-                long logMillis = BackupUtils.millis() + 2000L;
+                long logMillis = System.currentTimeMillis() + 2000L;
 
                 for (int i = 0; i < allFiles; i++) {
                     File file = files.get(i);
 
-                    long millis = BackupUtils.millis();
+                    long millis = System.currentTimeMillis();;
 
                     if (i == 0 || millis > logMillis || i == allFiles - 1) {
                         logMillis = millis + 2000L;
@@ -144,6 +146,8 @@ public class ThreadBackup extends Thread {
             if (ServerUtilitiesConfig.backups.display_file_size) {
                 String sizeB = BackupUtils.getSizeS(dstFile);
                 String sizeT = BackupUtils.getSizeS(Backups.backupsFolder);
+                String sizeB = FileUtils.getSizeString(dstFile);
+                String sizeT = FileUtils.getSizeString(Backups.backupsFolder);
 
                 IChatComponent c = ServerUtilities.lang(
                         null,
@@ -164,12 +168,12 @@ public class ThreadBackup extends Thread {
             BroadcastSender.inst.addChatMessage(c);
 
             e.printStackTrace();
-            if (dstFile != null) BackupUtils.delete(dstFile);
+            if (dstFile != null) FileUtils.delete(dstFile);
         }
     }
 
     private static String getDoneTime(long l) {
-        return StringUtils.getTimeString(BackupUtils.millis() - l);
+        return StringUtils.getTimeString(System.currentTimeMillis() - l);
     }
 
     private static void appendNum(StringBuilder sb, int num, char c) {
