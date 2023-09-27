@@ -22,3 +22,6 @@ Original code Copyright (c) 2016 LatvianModder and licensed MIT (Based on LatMod
 ![FTB Utilities License CF Wayback](ftbu-license-wayback.png)
 * [FTB Library wayback machine license](https://web.archive.org/web/20190418011645/https://minecraft.curseforge.com/projects/ftblib)
 ![FTB Library License CF Wayback](ftbl-license-wayback.png)
+
+* Aurora License
+![image](https://github.com/GTNewHorizons/ServerUtilities/assets/3237986/eecd36d3-6b77-4286-9767-3f4aa2dd008f)
