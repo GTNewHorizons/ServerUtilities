@@ -31,8 +31,7 @@ public class AuroraConfig {
                 "ENABLED",
                 "Enable the modlist page, Valid values: ENABLED, REQUIRES_AUTH, DISABLED").getString();
         general.world_info_json = config
-                .get(GEN_CAT, "world_info_json", "DISABLED",
-                        "Enable the world info page, Default: false").getString();;
+                .get(GEN_CAT, "world_info_json", "DISABLED", "Enable the world info page, Default: false").getString();;
         general.player_list_table = config
                 .get(GEN_CAT, "player_list_table", "DISABLED", "Enable the playerlist table page, Default: false")
                 .getString();
