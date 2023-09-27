@@ -50,7 +50,9 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
             TicketKey key = new TicketKey(dim, ticket.getModData().getString("Team"));
 
             if (!key.teamId.isEmpty()) {
-                ticketMap.put(key, ticket);
+                if (!ticket.getChunkList().isEmpty()) {
+                    ticketMap.put(key, ticket);
+                }
 
                 for (ChunkCoordIntPair pos : ticket.getChunkList()) {
                     chunkTickets.put(new ChunkDimPos(pos, key.dimension), ticket);
@@ -69,9 +71,7 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
             ticket = ForgeChunkManager.requestTicket(ServerUtilities.INST, worldServer, ForgeChunkManager.Type.NORMAL);
 
             if (ticket != null) {
-                if (!ticket.getChunkList().isEmpty()) {
-                    ticketMap.put(key, ticket);
-                }
+                ticketMap.put(key, ticket);
                 ticket.getModData().setString("Team", key.teamId);
             }
         }
