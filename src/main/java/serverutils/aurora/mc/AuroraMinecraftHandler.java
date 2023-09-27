@@ -13,8 +13,10 @@ import serverutils.aurora.page.HomePageEntry;
 
 public class AuroraMinecraftHandler {
 
+    public static final AuroraMinecraftHandler INST = new AuroraMinecraftHandler();
+
     @SubscribeEvent
-    public static void onHomeEvent(AuroraHomePageEvent event) {
+    public void onHomeEvent(AuroraHomePageEvent event) {
         event.add(new HomePageEntry("Mod List", "modlist", "https://i.imgur.com/yQNrfg7.png"));
         event.add(
                 new HomePageEntry("Minecraft", "minecraft", "https://i.imgur.com/1aRpzK0.png")
@@ -32,7 +34,7 @@ public class AuroraMinecraftHandler {
     }
 
     @SubscribeEvent
-    public static void onPageEvent(AuroraPageEvent event) {
+    public void onPageEvent(AuroraPageEvent event) {
         if (event.checkPath("modlist", "*")) {
             HashSet<String> set = new HashSet<>(Arrays.asList(AuroraConfig.modlist_excluded_mods));
 

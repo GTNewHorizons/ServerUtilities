@@ -1,7 +1,5 @@
 package serverutils.utils.integration.aurora;
 
-import net.minecraftforge.common.MinecraftForge;
-
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.aurora.AuroraHomePageEvent;
 import serverutils.aurora.AuroraPageEvent;
@@ -9,12 +7,10 @@ import serverutils.aurora.page.HomePageEntry;
 
 public class AuroraIntegration {
 
-    public static void init() {
-        MinecraftForge.EVENT_BUS.register(AuroraIntegration.class);
-    }
+    public static final AuroraIntegration INST = new AuroraIntegration();
 
     @SubscribeEvent
-    public static void onAuroraHomePageEvent(AuroraHomePageEvent event) {
+    public void onAuroraHomePageEvent(AuroraHomePageEvent event) {
         event.add(
                 new HomePageEntry("Server Utilities", "server-utilities", "https://i.imgur.com/SDV8WV5.png").add(
                         new HomePageEntry("Ranks", "ranks", "https://i.imgur.com/3o2sHns.png").add(
@@ -27,7 +23,7 @@ public class AuroraIntegration {
     }
 
     @SubscribeEvent
-    public static void onAuroraEvent(AuroraPageEvent event) {
+    public void onAuroraEvent(AuroraPageEvent event) {
         if (event.checkPath("server-utilities", "ranks", "permissions")) {
             event.returnPage(new PermissionListPage());
         } else if (event.checkPath("server-utilities", "ranks", "commands")) {

@@ -70,10 +70,6 @@ public class ServerUtilitiesCommon {
         KAOMOJIS.put("tableflip", "(\u256F\u00B0\u25A1\u00B0)\u256F \uFE35 \u253B\u2501\u253B");
         KAOMOJIS.put("unflip", "\u252C\u2500\u252C\u30CE( \u309C-\u309C\u30CE)");
 
-        if (AuroraConfig.general.enable) {
-            AuroraIntegration.init();
-        }
-
         Backups.init();
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesConfig.INST);
@@ -84,8 +80,11 @@ public class ServerUtilitiesCommon {
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesUniverseData.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPermissions.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesLeaderboards.INST);
-
         FMLCommonHandler.instance().bus().register(ServerUtilitiesServerEventHandler.INST);
+        if (AuroraConfig.general.enable) {
+            MinecraftForge.EVENT_BUS.register(AuroraIntegration.INST);
+            FMLCommonHandler.instance().bus().register(AuroraIntegration.INST);
+        }
     }
 
     public void init() {
