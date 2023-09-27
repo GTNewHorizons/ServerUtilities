@@ -10,10 +10,8 @@ import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import serverutils.aurora.Aurora;
 import serverutils.aurora.AuroraConfig;
 import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.utils.backups.Backups;

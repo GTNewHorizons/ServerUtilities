@@ -37,7 +37,9 @@ public class CmdReload extends CmdBase {
     }
 
     public CmdReload() {
-        this(ServerUtilitiesLibConfig.general.replace_reload_command ? "reload" : "serverutilitieslib_reload", Level.OP_OR_SP);
+        this(
+                ServerUtilitiesLibConfig.general.replace_reload_command ? "reload" : "serverutilitieslib_reload",
+                Level.OP_OR_SP);
     }
 
     @Override
