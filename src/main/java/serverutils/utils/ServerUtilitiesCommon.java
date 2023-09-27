@@ -72,7 +72,7 @@ public class ServerUtilitiesCommon {
         KAOMOJIS.put("tableflip", "(\u256F\u00B0\u25A1\u00B0)\u256F \uFE35 \u253B\u2501\u253B");
         KAOMOJIS.put("unflip", "\u252C\u2500\u252C\u30CE( \u309C-\u309C\u30CE)");
 
-        if (Loader.isModLoaded(Aurora.MOD_ID) && AuroraConfig.General.enable) {
+        if (AuroraConfig.general.enable) {
             AuroraIntegration.init();
         }
 

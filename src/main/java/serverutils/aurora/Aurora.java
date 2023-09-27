@@ -27,27 +27,33 @@ public class Aurora {
 
     @Mod.EventHandler
     public void onServerStarting(FMLServerStartingEvent event) {
-        start(event.getServer());
+        if (AuroraConfig.general.enable) {
+            start(event.getServer());
+        }
     }
 
     @Mod.EventHandler
     public void onServerStopping(FMLServerStoppingEvent event) {
-        stop();
+        if (AuroraConfig.general.enable) {
+            stop();
+        }
     }
 
     public static void start(MinecraftServer s) {
-        if (server == null) {
-            if (AuroraConfig.General.enable) {
-                server = new AuroraServer(s, AuroraConfig.General.port);
+        if (AuroraConfig.general.enable) {
+            if (server == null) {
+                server = new AuroraServer(s, AuroraConfig.general.port);
                 server.start();
             }
         }
     }
 
     public static void stop() {
-        if (server != null) {
-            server.shutdown();
-            server = null;
+        if (AuroraConfig.general.enable) {
+            if (server != null) {
+                server.shutdown();
+                server = null;
+            }
         }
     }
 }
