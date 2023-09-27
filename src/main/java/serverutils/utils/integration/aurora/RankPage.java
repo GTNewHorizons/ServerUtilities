@@ -1,5 +1,6 @@
 package serverutils.utils.integration.aurora;
 
+import serverutils.aurora.AuroraConfig;
 import serverutils.aurora.PageType;
 import serverutils.aurora.page.HTTPWebPage;
 import serverutils.aurora.tag.Style;
@@ -28,7 +29,14 @@ public class RankPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return PageType.REQUIRES_AUTH;
+        switch (AuroraConfig.general.player_rank_page) {
+            case "DISABLED":
+                return PageType.DISABLED;
+            case "ENABLED":
+                return PageType.ENABLED;
+            default:
+                return PageType.REQUIRES_AUTH;
+        }
     }
 
     @Override

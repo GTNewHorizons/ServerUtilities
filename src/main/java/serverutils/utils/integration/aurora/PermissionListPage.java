@@ -9,6 +9,8 @@ import java.util.List;
 
 import net.minecraft.util.ChatComponentTranslation;
 
+import serverutils.aurora.AuroraConfig;
+import serverutils.aurora.PageType;
 import serverutils.aurora.page.HTTPWebPage;
 import serverutils.aurora.tag.Style;
 import serverutils.aurora.tag.Tag;
@@ -44,6 +46,18 @@ public class PermissionListPage extends HTTPWebPage {
     @Override
     public String getIcon() {
         return "https:i.imgur.com/m8KTq4s.png";
+    }
+
+    @Override
+    public PageType getPageType() {
+        switch (AuroraConfig.general.permission_list_page) {
+            case "DISABLED":
+                return PageType.DISABLED;
+            case "REQUIRES_AUTH":
+                return PageType.REQUIRES_AUTH;
+            default:
+                return PageType.ENABLED;
+        }
     }
 
     @Override
