@@ -2,6 +2,7 @@ package serverutils.utils.backups;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommandSender;
@@ -9,9 +10,8 @@ import net.minecraft.command.server.CommandSaveAll;
 import net.minecraft.command.server.CommandSaveOff;
 import net.minecraft.command.server.CommandSaveOn;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 import org.apache.logging.log4j.LogManager;
@@ -20,12 +20,15 @@ import org.apache.logging.log4j.Logger;
 import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
+import serverutils.lib.lib.util.text_components.Notification;
+import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesConfig;
 
 public class Backups {
 
     public static final Logger logger = LogManager.getLogger("ServerUtilities Backup");
 
+    public static final ResourceLocation BACKUP_START_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_start");
     public static File backupsFolder;
     public static long nextBackup = -1L;
     public static ThreadBackup thread = null;
@@ -57,9 +60,15 @@ public class Backups {
             hadPlayer = false;
         }
 
-        IChatComponent c = new ChatComponentTranslation("cmd.backup_start", ics.getCommandSenderName());
-        c.getChatStyle().setColor(EnumChatFormatting.LIGHT_PURPLE);
-        BroadcastSender.inst.addChatMessage(c);
+        for (EntityPlayerMP player : (List<EntityPlayerMP>) ServerUtils.getServer()
+                .getConfigurationManager().playerEntityList) {
+            Notification.of(
+                    BACKUP_START_ID,
+                    StringUtils.color(
+                            ServerUtilities.lang(null, "cmd.backup_start", ics.getCommandSenderName()),
+                            EnumChatFormatting.LIGHT_PURPLE))
+                    .send(ServerUtils.getServer(), player);
+        }
 
         try {
             new CommandSaveOff().processCommand(ServerUtils.getServer(), new String[0]);

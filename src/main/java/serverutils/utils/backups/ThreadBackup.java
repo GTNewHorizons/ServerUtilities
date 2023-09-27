@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
@@ -14,12 +15,16 @@ import net.minecraft.util.ResourceLocation;
 import serverutils.lib.lib.util.BackupUtils;
 import serverutils.lib.lib.util.BroadcastSender;
 import serverutils.lib.lib.util.FileUtils;
+import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
+import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesConfig;
 
 public class ThreadBackup extends Thread {
 
+    public static final ResourceLocation BACKUP_END1_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end1");
+    public static final ResourceLocation BACKUP_END2_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end2");
     private File src0;
     public boolean isDone = false;
 
@@ -144,22 +149,32 @@ public class ThreadBackup extends Thread {
             Backups.clearOldBackups();
 
             if (ServerUtilitiesConfig.backups.display_file_size) {
-                String sizeB = BackupUtils.getSizeS(dstFile);
-                String sizeT = BackupUtils.getSizeS(Backups.backupsFolder);
                 String sizeB = FileUtils.getSizeString(dstFile);
                 String sizeT = FileUtils.getSizeString(Backups.backupsFolder);
 
-                IChatComponent c = ServerUtilities.lang(
-                        null,
-                        "cmd.backup_end_2",
-                        getDoneTime(time.millis),
-                        (sizeB.equals(sizeT) ? sizeB : (sizeB + " | " + sizeT)));
-                c.getChatStyle().setColor(EnumChatFormatting.LIGHT_PURPLE);
-                BroadcastSender.inst.addChatMessage(c);
+                for (EntityPlayerMP player : (List<EntityPlayerMP>) ServerUtils.getServer()
+                        .getConfigurationManager().playerEntityList) {
+                    Notification.of(
+                            BACKUP_END2_ID,
+                            StringUtils.color(
+                                    ServerUtilities.lang(
+                                            null,
+                                            "cmd.backup_end_2",
+                                            getDoneTime(time.millis),
+                                            (sizeB.equals(sizeT) ? sizeB : (sizeB + " | " + sizeT))),
+                                    EnumChatFormatting.LIGHT_PURPLE))
+                            .send(ServerUtils.getServer(), player);
+                }
             } else {
-                IChatComponent c = ServerUtilities.lang(null, "cmd.backup_end_1", getDoneTime(time.millis));
-                c.getChatStyle().setColor(EnumChatFormatting.LIGHT_PURPLE);
-                BroadcastSender.inst.addChatMessage(c);
+                for (EntityPlayerMP player : (List<EntityPlayerMP>) ServerUtils.getServer()
+                        .getConfigurationManager().playerEntityList) {
+                    Notification.of(
+                            BACKUP_END1_ID,
+                            StringUtils.color(
+                                    ServerUtilities.lang(null, "cmd.backup_end_1", getDoneTime(time.millis)),
+                                    EnumChatFormatting.LIGHT_PURPLE))
+                            .send(ServerUtils.getServer(), player);
+                }
             }
         } catch (Exception e) {
             IChatComponent c = ServerUtilities
