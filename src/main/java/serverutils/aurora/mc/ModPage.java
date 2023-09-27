@@ -40,6 +40,8 @@ public class ModPage extends HTTPWebPage {
     public void body(Tag body) {
         body.h1(mod.getName()).text(" ").span(mod.getDisplayVersion(), "other");
 
+        body.h3("Mod ID: ").span(mod.getModId());
+
         if (!mod.getMetadata().description.isEmpty()) {
             body.h3("").paired("i", mod.getMetadata().description);
         }
