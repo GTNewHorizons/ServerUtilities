@@ -20,7 +20,7 @@ public class WorldInfoJson extends JsonWebPage {
 
     @Override
     public PageType getPageType() {
-        return AuroraConfig.world_info_json;
+        return AuroraConfig.general.world_info_json ? PageType.ENABLED : PageType.DISABLED;
     }
 
     @Override
