@@ -322,6 +322,7 @@ commands.rec.not_recording=%s is no longer recording!
 commands.ping.integrated_server=Integrated Server
 commands.ping.unknown=Unknown
 commands.ping.ping=Ping %s
+commands.backup.usage=/backup
 
 
 # Client Commands
