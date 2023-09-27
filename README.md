@@ -1,4 +1,4 @@
-SeverUtilities
+ServerUtilities
 ===============
 ServerUtilities for server owners.  Fork and Rebrand of FTBUtilities, FTBLibrary, and LatCore 1.7.10.
 
