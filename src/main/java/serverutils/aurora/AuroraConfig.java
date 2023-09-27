@@ -30,14 +30,21 @@ public class AuroraConfig {
                 "modlist_page",
                 "ENABLED",
                 "Enable the modlist page, Valid values: ENABLED, REQUIRES_AUTH, DISABLED").getString();
-        general.world_info_json = config
-                .get(GEN_CAT, "world_info_json", "DISABLED", "Enable the world info page, Valid values: ENABLED, REQUIRES_AUTH, DISABLED").getString();;
-        general.player_list_table = config
-                .get(GEN_CAT, "player_list_table", "DISABLED", "Enable the playerlist table page, Valid values: ENABLED, REQUIRES_AUTH, DISABLED")
-                .getString();
-        general.player_list_json = config
-                .get(GEN_CAT, "player_list_json", "DISABLED", "Enable the playerlist json page, Valid values: ENABLED, REQUIRES_AUTH, DISABLED")
-                .getString();
+        general.world_info_json = config.get(
+                GEN_CAT,
+                "world_info_json",
+                "DISABLED",
+                "Enable the world info page, Valid values: ENABLED, REQUIRES_AUTH, DISABLED").getString();;
+        general.player_list_table = config.get(
+                GEN_CAT,
+                "player_list_table",
+                "DISABLED",
+                "Enable the playerlist table page, Valid values: ENABLED, REQUIRES_AUTH, DISABLED").getString();
+        general.player_list_json = config.get(
+                GEN_CAT,
+                "player_list_json",
+                "DISABLED",
+                "Enable the playerlist json page, Valid values: ENABLED, REQUIRES_AUTH, DISABLED").getString();
 
         general.modlist_excluded_mods = config
                 .get("modlist_excluded_mods", GEN_CAT, new String[] {}, "Exclude mods from the modlist: Default: Empty")
