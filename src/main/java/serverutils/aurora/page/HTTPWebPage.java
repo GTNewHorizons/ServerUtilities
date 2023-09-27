@@ -29,11 +29,11 @@ public abstract class HTTPWebPage implements WebPage {
         return "";
     }
 
-    public String getStylesheet() {
+    public String getStylesheet() { // TODO: Change this to the local one in resources
         return "https://latvian.dev/style.css"; // Taken from Latvian.dev since the aurora part is permanently down
     }
 
-    public String getIcon() {
+    public String getIcon() { // TODO: Change this to the local one in resources
         return "https://latvian.dev/logo.svg"; // Taken from Latvian.dev since the aurora part is permanently down
     }
 
