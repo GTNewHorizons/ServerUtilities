@@ -323,7 +323,20 @@ commands.ping.integrated_server=Integrated Server
 commands.ping.unknown=Unknown
 commands.ping.ping=Ping %s
 
+
 # Client Commands
 commands.shrug.usage=/shrug [text...]
 commands.scan_items.usage=/scan_items
 commands.print_item.usage=/print_item
+
+# Backup
+cmd.timer_backup=Next backup: %s
+cmd.backup_start=Server Backup started!
+cmd.backup_stop=Server Backup stopped!
+cmd.backup_end_1=Server backup done in %s!
+cmd.backup_end_2=Server backup done in %s! (%s)
+cmd.backup_fail=Failed to save world! (%s)
+cmd.backup_manual_launch=%s launched a manual backup!
+cmd.backup_already_running=Backup in progress!
+cmd.backup_not_running=Backup is not running!
+cmd.backup_size=Current world size: %s, total backups folder size: %s

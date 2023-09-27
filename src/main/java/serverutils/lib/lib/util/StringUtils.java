@@ -1,7 +1,12 @@
 package serverutils.lib.lib.util;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -237,6 +242,68 @@ public class StringUtils {
         }
 
         return new String(chars, 0, j);
+    }
+
+    public static String readString(InputStream is) throws Exception {
+        char[] buffer = new char[65536];
+        StringBuilder out = new StringBuilder();
+        Reader in = new InputStreamReader(is, "UTF-8");
+        Throwable var4 = null;
+
+        try {
+            int read;
+            try {
+                do {
+                    read = in.read(buffer, 0, buffer.length);
+                    if (read > 0) {
+                        out.append(buffer, 0, read);
+                    }
+                } while (read >= 0);
+            } catch (Throwable var13) {
+                var4 = var13;
+                throw var13;
+            }
+        } finally {
+            if (in != null) {
+                if (var4 != null) {
+                    try {
+                        in.close();
+                    } catch (Throwable var12) {
+                        var4.addSuppressed(var12);
+                    }
+                } else {
+                    in.close();
+                }
+            }
+
+        }
+
+        return out.toString();
+    }
+
+    public static List<String> readStringList(InputStream is) throws Exception {
+        ArrayList<String> l = new ArrayList();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+
+        String s;
+        while ((s = reader.readLine()) != null) {
+            l.add(s);
+        }
+        reader.close();
+        return l;
+    }
+
+    public static String fromStringList(List<String> l) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < l.size(); ++i) {
+            sb.append((String) l.get(i));
+            if (i != l.size() - 1) {
+                sb.append('\n');
+            }
+        }
+
+        return sb.toString();
     }
 
     public static String formatDouble0(double value) {

@@ -38,6 +38,7 @@ public class ServerUtilitiesConfig {
     public static final String WORLD = "world";
     public static final String LOGGING = WORLD + ".logging";
     public static final String DEBUGGING = "debugging";
+    public static final String BACKUPS = "backups";
 
     public static void init(FMLPreInitializationEvent event) {
         config = new Configuration(
@@ -69,6 +70,32 @@ public class ServerUtilitiesConfig {
                 .getString();
         afk.log_afk = config.get(AFK, "log_afk", false, "Will print in console when someone goes/comes back from AFK.")
                 .getBoolean();
+
+        backups.enable_backups = config.get(BACKUPS, "enable_backups", true, "Enables backups.").getBoolean();
+        backups.compression_level = config.get(
+                BACKUPS,
+                "compression_level",
+                1,
+                "How much the backup file will be compressed. 1 - best speed 9 - smallest file size.").getInt();
+        backups.backups_to_keep = config
+                .get(BACKUPS, "backups_to_keep", 12, "Number of backup files to keep before deleting old ones.")
+                .getInt();
+        backups.backup_folder_path = config.get(BACKUPS, "backup_folder_path", "./backups/", "Path to backups folder.")
+                .getString();
+        backups.backup_timer = config.get(
+                BACKUPS,
+                "backup_timer",
+                "0.5D",
+                "Time between backups in hours. \n1.0 - backups every hour 6.0 - backups every 6 hours 0.5 - backups every 30 minutes.")
+                .getDouble();
+        backups.display_file_size = config
+                .get(BACKUPS, "display_file_size", true, "Prints (current size | total size) when backup is done")
+                .getBoolean();
+        backups.use_separate_thread = config
+                .get(BACKUPS, "use_separate_thread", true, "Run backup in a separated thread (recommended)")
+                .getBoolean();
+        backups.need_online_players = config
+                .get(BACKUPS, "need_online_players", true, "Backups won't run if no players are online.").getBoolean();
 
         chat.add_nickname_tilde = config.get(
                 CHAT,
@@ -103,6 +130,7 @@ public class ServerUtilitiesConfig {
         commands.rtp = config.get(COMMANDS, "rtp", true).getBoolean();
         commands.god = config.get(COMMANDS, "god", true).getBoolean();
         commands.rec = config.get(COMMANDS, "rec", true).getBoolean();
+        commands.backup = config.get(COMMANDS, "backup", true).getBoolean();
 
         login.enable_motd = config.get(LOGIN, "enable_motd", false, "Enables message of the day.").getBoolean();
         login.enable_starting_items = config.get(LOGIN, "enable_starting_items", false, "Enables starting items.")
@@ -257,6 +285,7 @@ public class ServerUtilitiesConfig {
     public static final RanksConfig ranks = new RanksConfig();
     public static final WorldConfig world = new WorldConfig();
     public static final Debugging debugging = new Debugging();
+    public static final Backups backups = new Backups();
 
     public static class AutoShutdown {
 
@@ -315,6 +344,23 @@ public class ServerUtilitiesConfig {
         public boolean rtp;
         public boolean god;
         public boolean rec;
+        public boolean backup;
+    }
+
+    public static class Backups {
+
+        public boolean enable_backups;
+
+        public double backup_timer;
+
+        public int backups_to_keep;
+        public int compression_level;
+        public String backup_folder_path;
+        public boolean use_separate_thread;
+
+        public boolean display_file_size;
+
+        public boolean need_online_players;
     }
 
     public static class Login {

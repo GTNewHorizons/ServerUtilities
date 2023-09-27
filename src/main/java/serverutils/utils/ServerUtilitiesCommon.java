@@ -16,6 +16,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import serverutils.aurora.Aurora;
 import serverutils.aurora.AuroraConfig;
 import serverutils.lib.lib.util.permission.PermissionAPI;
+import serverutils.utils.backups.Backups;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.data.NodeEntry;
 import serverutils.utils.data.ServerUtilitiesLoadedChunkManager;
@@ -74,6 +75,8 @@ public class ServerUtilitiesCommon {
         if (Loader.isModLoaded(Aurora.MOD_ID) && AuroraConfig.General.enable) {
             AuroraIntegration.init();
         }
+
+        Backups.init();
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesConfig.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPlayerEventHandler.INST);

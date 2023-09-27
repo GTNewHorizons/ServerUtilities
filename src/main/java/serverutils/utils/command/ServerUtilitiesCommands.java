@@ -112,6 +112,10 @@ public class ServerUtilitiesCommands {
             event.registerServerCommand(new CmdUnmute());
         }
 
+        if (ServerUtilitiesConfig.commands.backup) {
+            event.registerServerCommand(new CmdBackup());
+        }
+
         // if (ServerUtilitiesConfig.commands.rtp) {
         // event.registerServerCommand(new CmdRTP());
         // }

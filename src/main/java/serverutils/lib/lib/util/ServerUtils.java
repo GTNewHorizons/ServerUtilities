@@ -185,4 +185,13 @@ public class ServerUtils {
 
         return false;
     }
+
+    public static MinecraftServer getServer() {
+        return FMLCommonHandler.instance().getMinecraftServerInstance();
+    }
+
+    public static WorldServer getServerWorld() {
+        MinecraftServer ms = getServer();
+        return ms != null && ms.worldServers.length != 0 ? ms.worldServers[0] : null;
+    }
 }
