@@ -69,7 +69,9 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
             ticket = ForgeChunkManager.requestTicket(ServerUtilities.INST, worldServer, ForgeChunkManager.Type.NORMAL);
 
             if (ticket != null) {
-                ticketMap.put(key, ticket);
+                if (!ticket.getChunkList().isEmpty()) {
+                    ticketMap.put(key, ticket);
+                }
                 ticket.getModData().setString("Team", key.teamId);
             }
         }
