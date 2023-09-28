@@ -35,7 +35,7 @@ public class CommandListPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        switch (AuroraConfig.general.permission_list_page) {
+        switch (AuroraConfig.general.command_list_page) {
             case "DISABLED":
                 return PageType.DISABLED;
             case "REQUIRES_AUTH":
