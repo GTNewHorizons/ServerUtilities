@@ -19,6 +19,7 @@ import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.math.MathUtils;
 import serverutils.lib.lib.util.ServerUtils;
+import serverutils.lib.lib.util.permission.PermissionAPI;
 
 public class CommandUtils {
 
@@ -114,7 +115,7 @@ public class CommandUtils {
 
         if (!specialPermForOther.isEmpty() && sender instanceof EntityPlayerMP
                 && !p.getId().equals(((EntityPlayerMP) sender).getUniqueID())
-        // && !PermissionAPI.hasPermission((EntityPlayerMP) sender, specialPermForOther)
+         && !PermissionAPI.hasPermission((EntityPlayerMP) sender, specialPermForOther)
         ) {
             throw new CommandException("commands.generic.permission");
         }
