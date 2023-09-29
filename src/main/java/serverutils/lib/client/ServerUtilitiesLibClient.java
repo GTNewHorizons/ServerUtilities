@@ -20,7 +20,6 @@ import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.ServerUtilitiesLibCommon;
 import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.command.client.CommandClientConfig;
-import serverutils.lib.command.client.CommandListAchievements;
 import serverutils.lib.command.client.CommandPrintItem;
 import serverutils.lib.command.client.CommandPrintState;
 import serverutils.lib.command.client.CommandSimulateButton;
@@ -71,7 +70,7 @@ public class ServerUtilitiesLibClient extends ServerUtilitiesLibCommon {
         ClientCommandHandler.instance.registerCommand(new CommandSimulateButton());
         ClientCommandHandler.instance.registerCommand(new CommandPrintItem());
         ClientCommandHandler.instance.registerCommand(new CommandPrintState());
-        ClientCommandHandler.instance.registerCommand(new CommandListAchievements());
+        // ClientCommandHandler.instance.registerCommand(new CommandListAchievements());
     }
 
     @Override
