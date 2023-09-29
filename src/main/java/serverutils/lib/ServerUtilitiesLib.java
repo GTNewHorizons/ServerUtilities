@@ -49,7 +49,7 @@ public class ServerUtilitiesLib {
     public static final String VERSION = "GRADLETOKEN_VERSION";
     public static final String THIS_DEP = "required-after:" + MOD_ID + "@[" + VERSION + ",)";
     public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
-    public static final String KEY_CATEGORY = "key.categories.servermods";
+    public static final String KEY_CATEGORY = "key.categories.serverutilitiesmods";
 
     static {
         // Caution, hacky code! This fixes JavaFX not working outside DevEnv, but also excludes it from Forge

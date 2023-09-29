@@ -27,11 +27,14 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon // ServerUtilit
 
         ServerUtilitiesClientConfig.init(event);
         ClientRegistry.registerKeyBinding(
-                KEY_NBT = new KeyBinding("key.serverutilities.nbt", Keyboard.KEY_N, ServerUtilitiesLib.KEY_CATEGORY));
+                KEY_NBT = new KeyBinding(
+                        "key.serverutilities.nbt",
+                        Keyboard.KEY_NONE,
+                        ServerUtilitiesLib.KEY_CATEGORY));
         ClientRegistry.registerKeyBinding(
                 KEY_TRASH = new KeyBinding(
                         "key.serverutilities.trash",
-                        Keyboard.KEY_DELETE,
+                        Keyboard.KEY_NONE,
                         ServerUtilitiesLib.KEY_CATEGORY));
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientEventHandler.INST);
