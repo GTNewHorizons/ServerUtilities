@@ -37,6 +37,7 @@ import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.utils.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
+import serverutils.utils.backups.Backups;
 import serverutils.utils.data.ClaimedChunks;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 import serverutils.utils.data.ServerUtilitiesUniverseData;
@@ -75,6 +76,8 @@ public class ServerUtilitiesPlayerEventHandler {
         if (ClaimedChunks.isActive()) {
             ClaimedChunks.instance.markDirty();
         }
+
+        Backups.hadPlayer = true;
 
         if (ServerUtilitiesConfig.chat.replace_tab_names) {
             new MessageUpdateTabName(player).sendToAll();

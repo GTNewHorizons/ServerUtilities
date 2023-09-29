@@ -10,6 +10,7 @@ import net.minecraft.command.server.CommandSaveAll;
 import net.minecraft.command.server.CommandSaveOff;
 import net.minecraft.command.server.CommandSaveOn;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
@@ -59,15 +60,12 @@ public class Backups {
             if (!hasOnlinePlayers() && !hadPlayer) return true;
             hadPlayer = false;
         }
-
-        for (EntityPlayerMP player : (List<EntityPlayerMP>) ServerUtils.getServer()
-                .getConfigurationManager().playerEntityList) {
-            Notification.of(
+        if (!ServerUtilitiesConfig.backups.silent_backup) {
+            backupNotification(
+                    ServerUtils.getServer(),
                     BACKUP_START_ID,
-                    StringUtils.color(
-                            ServerUtilities.lang(null, "cmd.backup_start", ics.getCommandSenderName()),
-                            EnumChatFormatting.LIGHT_PURPLE))
-                    .send(ServerUtils.getServer(), player);
+                    "cmd.backup_start",
+                    ics.getCommandSenderName());
         }
 
         try {
@@ -121,6 +119,19 @@ public class Backups {
             new CommandSaveOn().processCommand(ServerUtils.getServer(), new String[0]);
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+
+    public static void backupNotification(MinecraftServer server, ResourceLocation id, String key, Object... args) {
+        if (!ServerUtilitiesConfig.backups.silent_backup) {
+            for (EntityPlayerMP player : (List<EntityPlayerMP>) server.getConfigurationManager().playerEntityList) {
+                Notification
+                        .of(
+                                id,
+                                StringUtils
+                                        .color(ServerUtilities.lang(null, key, args), EnumChatFormatting.LIGHT_PURPLE))
+                        .send(server, player);
+            }
         }
     }
 }

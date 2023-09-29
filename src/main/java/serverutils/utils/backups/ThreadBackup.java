@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
@@ -18,7 +17,6 @@ import net.minecraft.util.ResourceLocation;
 import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
-import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.utils.ServerUtilities;
 import serverutils.utils.ServerUtilitiesConfig;
 
@@ -61,7 +59,7 @@ public class ThreadBackup extends Thread {
                 out.append(File.separatorChar).append("backup.zip");
                 dstFile = FileUtils.newFile(new File(Backups.backupsFolder, out.toString()));
 
-                long start = System.currentTimeMillis();;
+                long start = System.currentTimeMillis();
 
                 ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dstFile));
                 // zos.setLevel(9);
@@ -80,7 +78,7 @@ public class ThreadBackup extends Thread {
                             src.getName() + File.separator
                                     + filePath.substring(src.getAbsolutePath().length() + 1, filePath.length()));
 
-                    long millis = System.currentTimeMillis();;
+                    long millis = System.currentTimeMillis();
 
                     if (i == 0 || millis > logMillis || i == allFiles - 1) {
                         logMillis = millis + 5000L;
@@ -124,7 +122,7 @@ public class ThreadBackup extends Thread {
                 for (int i = 0; i < allFiles; i++) {
                     File file = files.get(i);
 
-                    long millis = System.currentTimeMillis();;
+                    long millis = System.currentTimeMillis();
 
                     if (i == 0 || millis > logMillis || i == allFiles - 1) {
                         logMillis = millis + 2000L;
@@ -151,37 +149,23 @@ public class ThreadBackup extends Thread {
             if (ServerUtilitiesConfig.backups.display_file_size) {
                 String sizeB = FileUtils.getSizeString(dstFile);
                 String sizeT = FileUtils.getSizeString(Backups.backupsFolder);
-                for (EntityPlayerMP player : (List<EntityPlayerMP>) ServerUtils.getServer()
-                        .getConfigurationManager().playerEntityList) {
-                    Notification.of(
-                            BACKUP_END2_ID,
-                            StringUtils.color(
-                                    ServerUtilities.lang(
-                                            null,
-                                            "cmd.backup_end_2",
-                                            getDoneTime(Calendar.getInstance().getTimeInMillis()),
-                                            (sizeB.equals(sizeT) ? sizeB : (sizeB + " | " + sizeT))),
-                                    EnumChatFormatting.LIGHT_PURPLE))
-                            .send(ServerUtils.getServer(), player);
-                }
+                Backups.backupNotification(
+                        ServerUtils.getServer(),
+                        BACKUP_END2_ID,
+                        "cmd.backup_end_2",
+                        getDoneTime(Calendar.getInstance().getTimeInMillis()),
+                        (sizeB.equals(sizeT) ? sizeB : (sizeB + " | " + sizeT)));
             } else {
-                for (EntityPlayerMP player : (List<EntityPlayerMP>) ServerUtils.getServer()
-                        .getConfigurationManager().playerEntityList) {
-                    Notification.of(
-                            BACKUP_END1_ID,
-                            StringUtils.color(
-                                    ServerUtilities.lang(
-                                            null,
-                                            "cmd.backup_end_1",
-                                            getDoneTime(Calendar.getInstance().getTimeInMillis())),
-                                    EnumChatFormatting.LIGHT_PURPLE))
-                            .send(ServerUtils.getServer(), player);
-                }
+                Backups.backupNotification(
+                        ServerUtils.getServer(),
+                        BACKUP_END1_ID,
+                        "cmd.backup_end_1",
+                        getDoneTime(Calendar.getInstance().getTimeInMillis()));
             }
         } catch (Exception e) {
-            IChatComponent c = ServerUtilities
-                    .lang(null, "cmd.backup_fail", e.getClass() == null ? null : e.getClass().getName());
-            c.getChatStyle().setColor(EnumChatFormatting.DARK_RED);
+            IChatComponent c = StringUtils.color(
+                    ServerUtilities.lang(null, "cmd.backup_fail", e.getClass() == null ? null : e.getClass().getName()),
+                    EnumChatFormatting.RED);
             ServerUtils.notify(ServerUtils.getServer(), null, c);
 
             e.printStackTrace();
@@ -191,11 +175,5 @@ public class ThreadBackup extends Thread {
 
     private static String getDoneTime(long l) {
         return StringUtils.getTimeString(System.currentTimeMillis() - l);
-    }
-
-    private static void appendNum(StringBuilder sb, int num, char c) {
-        if (num < 10) sb.append('0');
-        sb.append(num);
-        if (c != 0) sb.append(c);
     }
 }

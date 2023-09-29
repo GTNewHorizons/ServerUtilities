@@ -85,11 +85,13 @@ public class ServerUtilitiesConfig {
         backups.backup_timer = config.get(
                 BACKUPS,
                 "backup_timer",
-                "0.5D",
+                "0.5",
                 "Time between backups in hours. \n1.0 - backups every hour 6.0 - backups every 6 hours 0.5 - backups every 30 minutes.")
                 .getDouble();
         backups.display_file_size = config
                 .get(BACKUPS, "display_file_size", true, "Prints (current size | total size) when backup is done")
+                .getBoolean();
+        backups.silent_backup = config.get(BACKUPS, "silent_backup", false, "Silence backup notifications.")
                 .getBoolean();
         backups.use_separate_thread = config
                 .get(BACKUPS, "use_separate_thread", true, "Run backup in a separated thread (recommended)")
@@ -350,17 +352,14 @@ public class ServerUtilitiesConfig {
     public static class Backups {
 
         public boolean enable_backups;
-
         public double backup_timer;
-
         public int backups_to_keep;
         public int compression_level;
         public String backup_folder_path;
         public boolean use_separate_thread;
-
         public boolean display_file_size;
-
         public boolean need_online_players;
+        public boolean silent_backup;
     }
 
     public static class Login {
