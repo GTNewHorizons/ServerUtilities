@@ -112,7 +112,7 @@ public class ThreadBackup extends Thread {
                                 + FileUtils.getSizeString(dstFile)
                                 + ")!");
             } else {
-                out.append(src.getName());
+                out.append(File.separatorChar).append(src.getName());
                 dstFile = new File(Backups.backupsFolder, out.toString());
                 dstFile.mkdirs();
 
@@ -140,7 +140,7 @@ public class ThreadBackup extends Thread {
                     }
 
                     File dst1 = new File(dstPath + (file.getAbsolutePath().replace(srcPath, "")));
-                    // LMUtils.throwException(BackupUtils.copyFile(file, dst1));
+                    FileUtils.copyFile(file, dst1);
                 }
             }
 
