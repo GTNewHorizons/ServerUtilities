@@ -60,13 +60,7 @@ public class Backups {
             if (!hasOnlinePlayers() && !hadPlayer) return true;
             hadPlayer = false;
         }
-        if (!ServerUtilitiesConfig.backups.silent_backup) {
-            backupNotification(
-                    ServerUtils.getServer(),
-                    BACKUP_START_ID,
-                    "cmd.backup_start",
-                    ics.getCommandSenderName());
-        }
+        backupNotification(ServerUtils.getServer(), BACKUP_START_ID, "cmd.backup_start", ics.getCommandSenderName());
 
         try {
             new CommandSaveOff().processCommand(ServerUtils.getServer(), new String[0]);
