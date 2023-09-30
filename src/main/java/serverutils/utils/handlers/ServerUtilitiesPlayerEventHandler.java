@@ -171,7 +171,8 @@ public class ServerUtilitiesPlayerEventHandler {
             event.setCanceled(true);
 
             if (!event.world.isRemote) {
-                event.entityPlayer.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.DARK_PURPLE + "Item is disabled!"));
+                event.entityPlayer.addChatComponentMessage(
+                        new ChatComponentText(EnumChatFormatting.DARK_PURPLE + "Item is disabled!"));
             }
 
             return;
@@ -192,7 +193,8 @@ public class ServerUtilitiesPlayerEventHandler {
             event.setCanceled(true);
 
             if (!event.world.isRemote) {
-                event.entityPlayer.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.DARK_PURPLE + "Item is disabled!"));
+                event.entityPlayer.addChatComponentMessage(
+                        new ChatComponentText(EnumChatFormatting.DARK_PURPLE + "Item is disabled!"));
             }
 
             return;
