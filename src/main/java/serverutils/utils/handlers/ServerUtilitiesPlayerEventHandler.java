@@ -166,11 +166,12 @@ public class ServerUtilitiesPlayerEventHandler {
         if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
             return;
         }
-        if (ServerUtilitiesConfig.world.isItemRightClickDisabled(event.entityPlayer.getItemInUse())) {
+
+        if (ServerUtilitiesConfig.world.isItemRightClickDisabled(event.entityPlayer.getHeldItem())) {
             event.setCanceled(true);
 
             if (!event.world.isRemote) {
-                event.entityPlayer.addChatComponentMessage(new ChatComponentText("Item disabled!"));
+                event.entityPlayer.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.DARK_PURPLE + "Item is disabled!"));
             }
 
             return;
@@ -187,11 +188,11 @@ public class ServerUtilitiesPlayerEventHandler {
         if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
             return;
         }
-        if (ServerUtilitiesConfig.world.isItemRightClickDisabled(event.entityPlayer.getItemInUse())) {
+        if (ServerUtilitiesConfig.world.isItemRightClickDisabled(event.entityPlayer.getHeldItem())) {
             event.setCanceled(true);
 
             if (!event.world.isRemote) {
-                event.entityPlayer.addChatComponentMessage(new ChatComponentText("Item disabled!"));
+                event.entityPlayer.addChatComponentMessage(new ChatComponentText(EnumChatFormatting.DARK_PURPLE + "Item is disabled!"));
             }
 
             return;
