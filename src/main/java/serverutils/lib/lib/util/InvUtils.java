@@ -12,6 +12,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.ICrafting;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.inventory.Slot;
@@ -21,6 +22,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
+import serverutils.lib.lib.ATHelper;
 import serverutils.lib.lib.item.IItemHandler;
 import serverutils.lib.lib.item.IItemHandlerModifiable;
 import serverutils.lib.lib.item.ItemHandlerHelper;
@@ -184,9 +186,9 @@ public class InvUtils {
             ItemStack itemstack1 = itemstack == null ? InvUtils.EMPTY_STACK : itemstack.copy();
             container.inventoryItemStacks.set(i, itemstack1);
 
-            // for (IContainerListener listener : ATHelper.getContainerListeners(container)) {
-            // listener.sendSlotContents(container, i, itemstack1);
-            // }
+            for (ICrafting listener : ATHelper.getContainerListeners(container)) {
+                listener.sendSlotContents(container, i, itemstack1);
+            }
         }
     }
 

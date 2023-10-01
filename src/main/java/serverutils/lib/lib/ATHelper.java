@@ -1,5 +1,6 @@
 package serverutils.lib.lib;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -8,16 +9,17 @@ import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.ICrafting;
 import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 
 public final class ATHelper {
 
-    // public static List<IContainerListener> getContainerListeners(Container
-    // container) {
-    // return container.listeners;
-    // }
+    public static List<ICrafting> getContainerListeners(Container container) {
+        return container.crafters;
+    }
 
     public static EnumChatFormatting getEnumChatFormattingFromDyeColor(EnumDyeColor color) {
         return color.chatFormatting;
@@ -29,7 +31,7 @@ public final class ATHelper {
 
     @SuppressWarnings("unchecked")
     public static Set<ICommand> getCommandSet(CommandHandler handler) {
-        return handler.getCommands().keySet();
+        return handler.commandSet;
     }
 
     public static boolean areCommandsAllowedForAll(ServerConfigurationManager ServerConfigurationManager) {
