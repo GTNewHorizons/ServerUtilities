@@ -41,7 +41,8 @@ public class Theme {
     private static final ImageIcon TEXTURE_WIDGETS = (ImageIcon) Icon.getIcon("textures/gui/widgets.png");
     private static final ImageIcon TEXTURE_ENCHANTING_TABLE = (ImageIcon) Icon
             .getIcon("textures/gui/container/enchanting_table.png");
-    private static final ImageIcon TEXTURE_TABS = (ImageIcon) Icon.getIcon("textures/gui/container/creative_inventory/tabs.png");
+    private static final ImageIcon TEXTURE_TABS = (ImageIcon) Icon
+            .getIcon("textures/gui/container/creative_inventory/tabs.png");
 
     private static final Icon GUI = new PartIcon(TEXTURE_TABS, 0, 97, 28, 28, 4);
     private static final Icon GUI_MOUSE_OVER = GUI.withTint(Color4I.rgb(0xAFB6DA));
