@@ -139,9 +139,7 @@ public class ServerUtilitiesServerEventHandler {
         }
 
         main.appendSibling(text);
-        // event.component.appendSibling(main);
-        event.component = new ChatComponentTranslation("translation.test.args", data.getNameForChat(player), text);
-        // event.setComponent(main);
+        event.component = new ChatComponentTranslation("serverutilities.chat.format", main);
     }
 
     @SubscribeEvent

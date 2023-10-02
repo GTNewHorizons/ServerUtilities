@@ -195,13 +195,11 @@ public class TextComponentParser {
         IChatComponent component1 = substitutes.apply(string.substring(1));
 
         if (component1 != null) {
-            // ChatStyle style0 = component1.getChatStyle().createShallowCopy();
-            // ChatStyle style1 = style.createShallowCopy();
-            // style1.setChatHoverEvent(style0.getChatHoverEvent());
-            // style1.setChatClickEvent(style0.getChatClickEvent());
-            // style1.setInsertion(style0.getFormattingCode());
-            // component1.setChatStyle(style1);
-            // is this pointless?
+            ChatStyle style0 = component1.getChatStyle().createShallowCopy();
+            ChatStyle style1 = style.createShallowCopy();
+            style1.setChatHoverEvent(style0.getChatHoverEvent());
+            style1.setChatClickEvent(style0.getChatClickEvent());
+            component1.setChatStyle(style1);
         } else {
             throw new IllegalArgumentException("Invalid formatting! Unknown substitute " + string);
         }

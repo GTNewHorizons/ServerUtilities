@@ -16,6 +16,7 @@ serverutilities.server_info.admin_quick_access=Admin Quick Access
 
 serverutilities.chat=Chat
 serverutilities.chat.add_nickname_tilde=Add Nickname Tilde
+serverutilities.chat.format=%s
 
 serverutilities.commands=Commands
 
