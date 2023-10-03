@@ -1,4 +1,4 @@
-package serverutils.utils;
+package serverutils.mod;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,6 +29,10 @@ public class ServerUtilitiesConfig {
     public static final ServerUtilitiesConfig INST = new ServerUtilitiesConfig();
 
     public static Configuration config;
+
+    public static final String GEN_CAT = Configuration.CATEGORY_GENERAL;
+    public static final String TEAM_CAT = "team";
+    public static final String DEBUG_CAT = "debugging";
     public static final String AUTO_SHUTDOWN = "auto_shutdown";
     public static final String AFK = "afk";
     public static final String CHAT = "chat";
@@ -49,6 +53,73 @@ public class ServerUtilitiesConfig {
     public static boolean sync() {
 
         config.load();
+
+        general.cheats_enabled = config.get(
+                GEN_CAT,
+                "cheats_enabled",
+                false,
+                "When this is enabled, players are able to use ServerUtilities cheat commands. //Does Nothing Right Now")
+                .getBoolean();
+        general.clientless_mode = config.get(
+                GEN_CAT,
+                "clientless_mode",
+                false,
+                "When this mode is enabled, ServerUtilities assumes that server clients don't have ServerUtilities and/or other mods installed.")
+                .getBoolean();
+        general.replace_reload_command = config.get(
+                GEN_CAT,
+                "replace_reload_command",
+                true,
+                "This will replace /reload with ServerUtilities version of it.").getBoolean();
+        general.merge_offline_mode_players = EnumTristate.string2tristate(
+                config.get(
+                        GEN_CAT,
+                        "merge_offline_mode_players",
+                        EnumTristate.TRUE.getName(),
+                        "Merges player profiles, in case player logged in without internet connection/in offline mode server. If set to DEFAULT, it will only merge on singleplayer worlds.")
+                        .getString());
+
+        config.setCategoryRequiresWorldRestart(GEN_CAT, true);
+
+        teams.disable_teams = config.get(TEAM_CAT, "disable_teams", false).getBoolean();
+
+        teams.autocreate_mp = config.get(
+                TEAM_CAT,
+                "autocreate_mp",
+                false,
+                "Automatically creates a team for player on multiplayer, based on their username and with a random color.")
+                .getBoolean();
+        teams.autocreate_sp = config
+                .get(
+                        TEAM_CAT,
+                        "autocreate_sp",
+                        true,
+                        "Automatically creates (or joins) a team on singleplayer/LAN with ID 'singleplayer'.")
+                .getBoolean();
+        teams.hide_team_notification = config
+                .get(TEAM_CAT, "hide_team_notification", false, "Disable no team notification entirely.")
+                .setLanguageKey("player_config.serverutilities.hide_team_notification").getBoolean();
+
+        config.setCategoryComment(DEBUG_CAT, "Don't set any values to true, unless you are debugging the mod.");
+        debugging.special_commands = config.get(DEBUG_CAT, "special_commands", false, "Enables special debug commands.")
+                .getBoolean();
+        debugging.print_more_info = config.get(DEBUG_CAT, "print_more_info", false, "Print more info.").getBoolean();
+        debugging.print_more_errors = config.get(DEBUG_CAT, "print_more_errors", false, "Print more errors.")
+                .getBoolean();
+        debugging.log_network = config
+                .get(DEBUG_CAT, "log_network", false, "Log incoming and outgoing network messages.").getBoolean();
+        debugging.log_teleport = config.get(DEBUG_CAT, "log_teleport", false, "Log player teleporting.").getBoolean();
+        debugging.log_config_editing = config.get(DEBUG_CAT, "log_config_editing", false, "Log config editing.")
+                .getBoolean();
+        debugging.dev_sidebar_buttons = config.get(
+                DEBUG_CAT,
+                "dev_sidebar_buttons",
+                false,
+                "See dev-only sidebar buttons. They probably don't do anything.").getBoolean();
+        debugging.gui_widget_bounds = config
+                .get(DEBUG_CAT, "gui_widget_bounds", false, "See GUI widget bounds when you hold B.").getBoolean();
+        debugging.log_events = config.get(DEBUG_CAT, "log_events", false, "Log all events that extend EventBase.")
+                .getBoolean();
 
         config.setCategoryRequiresWorldRestart(AUTO_SHUTDOWN, true);
         auto_shutdown.enabled = config.get(AUTO_SHUTDOWN, "enabled", false, "Enables auto-shutdown.").getBoolean();
@@ -288,6 +359,38 @@ public class ServerUtilitiesConfig {
     public static final WorldConfig world = new WorldConfig();
     public static final Debugging debugging = new Debugging();
     public static final Backups backups = new Backups();
+    public static final General general = new General();
+    public static final Teams teams = new Teams();
+
+    public static class General {
+
+        public boolean cheats_enabled;
+        public boolean clientless_mode;
+        public boolean replace_reload_command;
+        public EnumTristate merge_offline_mode_players;
+    }
+
+    public static class Teams {
+
+        public boolean disable_teams;
+        public boolean autocreate_mp;
+        public boolean autocreate_sp;
+        public boolean hide_team_notification;
+    }
+
+    public static class Debugging {
+
+        public boolean special_commands;
+        public boolean print_more_info;
+        public boolean print_more_errors;
+        public boolean log_network;
+        public boolean log_teleport;
+        public boolean log_config_editing;
+        public boolean dev_sidebar_buttons;
+        public boolean gui_widget_bounds;
+        public boolean log_events;
+        public boolean log_chunkloading = false;
+    }
 
     public static class AutoShutdown {
 
@@ -517,11 +620,6 @@ public class ServerUtilitiesConfig {
 
             return false;
         }
-    }
-
-    public static class Debugging {
-
-        public boolean log_chunkloading = false;
     }
 
     @SubscribeEvent

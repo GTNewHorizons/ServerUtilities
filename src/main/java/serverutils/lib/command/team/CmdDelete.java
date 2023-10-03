@@ -5,11 +5,11 @@ import java.util.List;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.data.Universe;
+import serverutils.mod.ServerUtilities;
 
 public class CmdDelete extends CmdBase {
 
@@ -33,7 +33,7 @@ public class CmdDelete extends CmdBase {
         ForgeTeam team = Universe.get().getTeam(args[0]);
 
         if (!team.isValid()) {
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.not_found", args[0]);
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.error.not_found", args[0]);
         }
 
         ForgePlayer o = team.getOwner();

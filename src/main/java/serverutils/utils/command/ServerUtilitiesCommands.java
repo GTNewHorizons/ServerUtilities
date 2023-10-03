@@ -1,8 +1,7 @@
 package serverutils.utils.command;
 
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
-import serverutils.lib.ServerUtilitiesLibConfig;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.command.chunks.CmdChunks;
 import serverutils.utils.command.ranks.CmdRanks;
 import serverutils.utils.command.tp.CmdBack;
@@ -92,7 +91,7 @@ public class ServerUtilitiesCommands {
             event.registerServerCommand(new CmdLeaderboard());
         }
 
-        if (ServerUtilitiesLibConfig.debugging.special_commands) {
+        if (ServerUtilitiesConfig.debugging.special_commands) {
             // event.registerServerCommand(new CmdCycleBlockState());
             event.registerServerCommand(new CmdDumpChunkloaders());
         }
@@ -127,5 +126,6 @@ public class ServerUtilitiesCommands {
         if (ServerUtilitiesConfig.commands.rec) {
             event.registerServerCommand(new CmdRec());
         }
+        event.registerServerCommand(new CmdDumpPerms());
     }
 }

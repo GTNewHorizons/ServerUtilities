@@ -30,7 +30,7 @@ public class GuiTransferOwnership extends GuiManagePlayersBase {
             GuiHelper.playClickSound();
 
             getGui().openYesNo(
-                    I18n.format("team_action.serverutilitieslib.transfer_ownership") + "?",
+                    I18n.format("team_action.serverutilities.transfer_ownership") + "?",
                     Minecraft.getMinecraft().getSession().getUsername() + " => " + entry.name,
                     () -> {
                         getGui().closeGui(false);
@@ -43,6 +43,6 @@ public class GuiTransferOwnership extends GuiManagePlayersBase {
     }
 
     public GuiTransferOwnership(Collection<MessageMyTeamPlayerList.Entry> m) {
-        super(I18n.format("team_action.serverutilitieslib.transfer_ownership"), m, ButtonPlayer::new);
+        super(I18n.format("team_action.serverutilities.transfer_ownership"), m, ButtonPlayer::new);
     }
 }

@@ -6,11 +6,11 @@ import java.util.List;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.EnumTeamStatus;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.mod.ServerUtilities;
 
 public class CmdStatus extends CmdBase {
 
@@ -42,7 +42,7 @@ public class CmdStatus extends CmdBase {
         ForgePlayer p = CommandUtils.getForgePlayer(getCommandSenderAsPlayer(sender));
 
         if (!p.hasTeam()) {
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.no_team");
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.error.no_team");
         } else if (!p.team.isModerator(p)) {
             throw new CommandException("commands.generic.permission");
         }
@@ -56,7 +56,7 @@ public class CmdStatus extends CmdBase {
         }
 
         if (p.team.isOwner(p1)) {
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.permission.owner");
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.permission.owner");
         } else if (!p.team.isModerator(p)) {
             throw new CommandException("commands.generic.permission");
         }
@@ -66,13 +66,13 @@ public class CmdStatus extends CmdBase {
         if (status.canBeSet()) {
             p.team.setStatus(p1, status);
             sender.addChatMessage(
-                    ServerUtilitiesLib.lang(
+                    ServerUtilities.lang(
                             sender,
                             "commands.team.status.set",
                             p1.getDisplayName(),
                             EnumTeamStatus.NAME_MAP.getDisplayName(sender, status)));
         } else {
-            sender.addChatMessage(ServerUtilitiesLib.lang(sender, "commands.team.status.cant_set"));
+            sender.addChatMessage(ServerUtilities.lang(sender, "commands.team.status.cant_set"));
         }
     }
 }

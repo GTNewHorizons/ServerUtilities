@@ -35,8 +35,6 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.events.ServerReloadEvent;
 import serverutils.lib.events.player.ForgePlayerLoadedEvent;
 import serverutils.lib.events.player.ForgePlayerSavedEvent;
@@ -60,6 +58,8 @@ import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.misc.IScheduledTask;
 import serverutils.lib.lib.util.misc.TimeType;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class Universe {
 
@@ -101,7 +101,7 @@ public class Universe {
 
     public static Universe get() {
         if (INSTANCE == null) {
-            throw new NullPointerException("ServerUtilitiesLib Universe == null!");
+            throw new NullPointerException("ServerUtilities Universe == null!");
         }
 
         return INSTANCE;
@@ -288,7 +288,7 @@ public class Universe {
     }
 
     private void load() {
-        File folder = new File(getWorldDirectory(), "data/serverutilitieslib/");
+        File folder = new File(getWorldDirectory(), "data/serverutilities/");
         NBTTagCompound universeData = NBTUtils.readNBT(new File(folder, "universe.dat"));
 
         if (universeData == null) {
@@ -462,8 +462,8 @@ public class Universe {
         }
 
         if (needsSaving) {
-            if (ServerUtilitiesLibConfig.debugging.print_more_info) {
-                ServerUtilitiesLib.LOGGER.info("Saving universe data");
+            if (ServerUtilitiesConfig.debugging.print_more_info) {
+                ServerUtilities.LOGGER.info("Saving universe data");
             }
 
             NBTTagCompound universeData = new NBTTagCompound();
@@ -486,14 +486,14 @@ public class Universe {
             universeData.setTag("PersistentScheduledTasks", taskTag);
             universeData.setTag("FakePlayer", fakePlayer.serializeNBT());
             universeData.setTag("FakeTeam", fakePlayerTeam.serializeNBT());
-            NBTUtils.writeNBTSafe(new File(getWorldDirectory(), "data/serverutilitieslib/universe.dat"), universeData);
+            NBTUtils.writeNBTSafe(new File(getWorldDirectory(), "data/serverutilities/universe.dat"), universeData);
             needsSaving = false;
         }
 
         for (ForgePlayer player : players.values()) {
             if (player.needsSaving) {
-                if (ServerUtilitiesLibConfig.debugging.print_more_info) {
-                    ServerUtilitiesLib.LOGGER.info("Saved player data for " + player.getName());
+                if (ServerUtilitiesConfig.debugging.print_more_info) {
+                    ServerUtilities.LOGGER.info("Saved player data for " + player.getName());
                 }
 
                 NBTTagCompound nbt = player.serializeNBT();
@@ -508,8 +508,8 @@ public class Universe {
 
         for (ForgeTeam team : getTeams()) {
             if (team.needsSaving) {
-                if (ServerUtilitiesLibConfig.debugging.print_more_info) {
-                    ServerUtilitiesLib.LOGGER.info("Saved team data for " + team.getId());
+                if (ServerUtilitiesConfig.debugging.print_more_info) {
+                    ServerUtilities.LOGGER.info("Saved team data for " + team.getId());
                 }
 
                 File file = team.getDataFile("");
@@ -647,7 +647,7 @@ public class Universe {
         ForgePlayer player = getPlayer(profile.getId());
 
         if (player == null
-                && ServerUtilitiesLibConfig.general.merge_offline_mode_players.get(!server.isDedicatedServer())) {
+                && ServerUtilitiesConfig.general.merge_offline_mode_players.get(!server.isDedicatedServer())) {
             player = getPlayer(profile.getName());
 
             if (player != null) {
@@ -735,7 +735,7 @@ public class Universe {
     }
 
     public void removeTeam(ForgeTeam team) {
-        File folder = new File(getWorldDirectory(), "data/serverutilitieslib/teams/");
+        File folder = new File(getWorldDirectory(), "data/serverutilities/teams/");
         new ForgeTeamDeletedEvent(team, folder).post();
         teamMap.remove(team.getUID());
         teams.remove(team.getId());

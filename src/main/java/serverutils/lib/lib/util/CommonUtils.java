@@ -21,7 +21,7 @@ public class CommonUtils {
 
     @Nullable
     @SuppressWarnings("deprecation")
-    public static ModContainer getModContainerForClass(Class clazz) {
+    public static ModContainer getModContainerForClass(Class<?> clazz) {
         if (packageOwners == null) {
             try {
                 LoadController instance = ReflectionHelper

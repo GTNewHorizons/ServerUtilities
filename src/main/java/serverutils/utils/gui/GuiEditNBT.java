@@ -53,7 +53,7 @@ import serverutils.lib.lib.item.ItemEntryWithCount;
 import serverutils.lib.lib.util.NBTUtils;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.misc.MouseButton;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.net.MessageEditNBTResponse;
 
 public class GuiEditNBT extends GuiBase {

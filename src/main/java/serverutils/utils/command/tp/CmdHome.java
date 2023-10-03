@@ -19,7 +19,7 @@ import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.math.BlockDimPos;
 import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.lib.lib.util.text_components.Notification;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ServerUtilitiesPlayerData;

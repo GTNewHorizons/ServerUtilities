@@ -11,7 +11,7 @@ import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.config.RankConfigAPI;
 import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.math.BlockDimPos;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 

@@ -19,13 +19,13 @@ import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.events.client.CustomClickEvent;
 import serverutils.lib.lib.client.ClientUtils;
 import serverutils.lib.lib.gui.misc.GuiLoading;
 import serverutils.lib.lib.gui.misc.YesNoCallback;
 import serverutils.lib.lib.util.NetUtils;
 import serverutils.lib.lib.util.misc.MouseButton;
+import serverutils.mod.ServerUtilitiesConfig;
 
 /**
  * @author LatvianModder
@@ -309,7 +309,7 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
     public boolean keyPressed(int key, char keyChar) {
         if (super.keyPressed(key, keyChar)) {
             return true;
-        } else if (ServerUtilitiesLibConfig.debugging.gui_widget_bounds && key == Keyboard.KEY_B) {
+        } else if (ServerUtilitiesConfig.debugging.gui_widget_bounds && key == Keyboard.KEY_B) {
             Theme.renderDebugBoxes = !Theme.renderDebugBoxes;
             return true;
         }

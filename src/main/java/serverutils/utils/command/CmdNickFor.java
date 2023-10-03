@@ -8,8 +8,8 @@ import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.util.StringUtils;
-import serverutils.utils.ServerUtilities;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 import serverutils.utils.net.MessageUpdateTabName;
 

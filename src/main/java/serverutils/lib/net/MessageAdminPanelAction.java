@@ -4,7 +4,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 
-import serverutils.lib.ServerUtilitiesLibCommon;
 import serverutils.lib.lib.data.Action;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.Universe;
@@ -12,6 +11,7 @@ import serverutils.lib.lib.io.DataIn;
 import serverutils.lib.lib.io.DataOut;
 import serverutils.lib.lib.net.MessageToServer;
 import serverutils.lib.lib.net.NetworkWrapper;
+import serverutils.mod.ServerUtilitiesCommon;
 
 public class MessageAdminPanelAction extends MessageToServer {
 
@@ -40,7 +40,7 @@ public class MessageAdminPanelAction extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
-        Action a = ServerUtilitiesLibCommon.ADMIN_PANEL_ACTIONS.get(action);
+        Action a = ServerUtilitiesCommon.ADMIN_PANEL_ACTIONS.get(action);
 
         if (a != null) {
             ForgePlayer p = Universe.get().getPlayer(player);

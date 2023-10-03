@@ -1,24 +1,27 @@
-package serverutils.lib.client;
+package serverutils.mod.client;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IReloadableResourceManager;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 
+import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.ServerUtilitiesLibCommon;
-import serverutils.lib.ServerUtilitiesLibConfig;
+import serverutils.lib.client.BuiltinChunkMap;
+import serverutils.lib.client.ClientConfig;
+import serverutils.lib.client.ServerUtilitiesLibClientConfigManager;
+import serverutils.lib.client.SidebarButtonManager;
 import serverutils.lib.command.client.CommandClientConfig;
 import serverutils.lib.command.client.CommandPrintItem;
 import serverutils.lib.command.client.CommandPrintState;
@@ -28,15 +31,23 @@ import serverutils.lib.lib.client.ParticleColoredDust;
 import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.lib.icon.PlayerHeadIcon;
 import serverutils.lib.lib.net.MessageToClient;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilitiesConfig;
+import serverutils.mod.handlers.ServerUtilitiesClientEventHandler;
+import serverutils.utils.command.client.CommandKaomoji;
+import serverutils.utils.command.client.CommandPing;
 
-public class ServerUtilitiesLibClient extends ServerUtilitiesLibCommon {
+public class ServerUtilitiesClient extends ServerUtilitiesCommon {
 
     public static final Map<String, ClientConfig> CLIENT_CONFIG_MAP = new HashMap<>();
+    public static KeyBinding KEY_NBT, KEY_TRASH;
 
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
-        ServerUtilitiesLibClientConfig.init(event);
+
+        ServerUtilitiesClientConfig.init(event);
         ClientUtils.localPlayerHead = new PlayerHeadIcon(Minecraft.getMinecraft().getSession().func_148256_e().getId());
         ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager())
                 .registerReloadListener(ServerUtilitiesLibClientConfigManager.INSTANCE);
@@ -52,31 +63,42 @@ public class ServerUtilitiesLibClient extends ServerUtilitiesLibCommon {
                             + " Dev :: "
                             + Minecraft.getMinecraft().getSession().getUsername());
         }
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesLibClientConfig.INST);
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesLibClientEventHandler.INST);
-        FMLCommonHandler.instance().bus().register(ServerUtilitiesLibClientEventHandler.INST);
-    }
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientConfig.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientEventHandler.INST);
+        FMLCommonHandler.instance().bus().register(ServerUtilitiesClientEventHandler.INST);
 
-    @Override
-    public void init(FMLInitializationEvent event) {
-        super.init(event);
+        ClientRegistry.registerKeyBinding(
+                KEY_NBT = new KeyBinding("key.serverutilities.nbt", Keyboard.KEY_NONE, ServerUtilities.KEY_CATEGORY));
+        ClientRegistry.registerKeyBinding(
+                KEY_TRASH = new KeyBinding(
+                        "key.serverutilities.trash",
+                        Keyboard.KEY_NONE,
+                        ServerUtilities.KEY_CATEGORY));
+
     }
 
     @Override
     public void postInit() {
         super.postInit();
 
+        for (Map.Entry<String, String> entry : ServerUtilitiesCommon.KAOMOJIS.entrySet()) {
+            ClientCommandHandler.instance.registerCommand(new CommandKaomoji(entry.getKey(), entry.getValue()));
+        }
         ClientCommandHandler.instance.registerCommand(new CommandClientConfig());
         ClientCommandHandler.instance.registerCommand(new CommandSimulateButton());
         ClientCommandHandler.instance.registerCommand(new CommandPrintItem());
         ClientCommandHandler.instance.registerCommand(new CommandPrintState());
         // ClientCommandHandler.instance.registerCommand(new CommandListAchievements());
+        ClientCommandHandler.instance.registerCommand(new CommandPing());
+
+        // Minecraft.getMinecraft().getRenderManager().getSkinMap().get("default").addLayer(LayerBadge.INSTANCE);
+        // Minecraft.getMinecraft().getRenderManager().getSkinMap().get("slim").addLayer(LayerBadge.INSTANCE);
     }
 
     @Override
     public void handleClientMessage(MessageToClient message) {
-        if (ServerUtilitiesLibConfig.debugging.log_network) {
-            ServerUtilitiesLib.LOGGER.info("Net RX: " + message.getClass().getName());
+        if (ServerUtilitiesConfig.debugging.log_network) {
+            ServerUtilities.LOGGER.info("Net RX: " + message.getClass().getName());
         }
 
         message.onMessage();

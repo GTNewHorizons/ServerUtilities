@@ -8,9 +8,9 @@ import javax.annotation.Nullable;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.icon.Color4I;
 import serverutils.lib.lib.util.misc.MouseButton;
+import serverutils.mod.ServerUtilities;
 
 public abstract class Panel extends Widget {
 
@@ -71,7 +71,7 @@ public abstract class Panel extends Widget {
         try {
             addWidgets();
         } catch (MismatchingParentPanelException ex) {
-            ServerUtilitiesLib.LOGGER.error(ex.getMessage());
+            ServerUtilities.LOGGER.error(ex.getMessage());
         } catch (Exception ex) {
             ex.printStackTrace();
         }

@@ -3,7 +3,7 @@ package serverutils.utils.integration;
 // import serverutils.lib.lib.client.ClientUtils;
 // import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
 // import serverutils.lib.lib.math.MathUtils;
-// import serverutils.utils.ServerUtilities;
+// import serverutils.mod.ServerUtilities;
 // import serverutils.utils.client.ServerUtilitiesClientConfig;
 // import serverutils.utils.chunks.events.UpdateClientDataEvent;
 // import serverutils.utils.gui.ClientClaimedChunks;

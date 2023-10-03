@@ -32,9 +32,9 @@ import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
-import serverutils.lib.client.ServerUtilitiesLibClientEventHandler;
 import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.lib.net.MessageNotification;
+import serverutils.mod.handlers.ServerUtilitiesClientEventHandler;
 
 public class ServerUtils {
 
@@ -65,11 +65,11 @@ public class ServerUtils {
     public static IChatComponent getDimensionName(int dim) {
         switch (dim) {
             case 0:
-                return new ChatComponentTranslation("serverutilitieslib.world.dimension.overworld");
+                return new ChatComponentTranslation("serverutilities.world.dimension.overworld");
             case -1:
-                return new ChatComponentTranslation("serverutilitieslib.world.dimension.nether");
+                return new ChatComponentTranslation("serverutilities.world.dimension.nether");
             case 1:
-                return new ChatComponentTranslation("serverutilitieslib.world.dimension.end");
+                return new ChatComponentTranslation("serverutilities.world.dimension.end");
             default:
                 return new ChatComponentText("dim_" + dim);
         }
@@ -173,7 +173,7 @@ public class ServerUtils {
         } else if (player instanceof EntityPlayerMP) {
             new MessageNotification(notification).sendTo((EntityPlayerMP) player);
         } else if (player instanceof EntityClientPlayerMP) {
-            ServerUtilitiesLibClientEventHandler.INST.onNotify(notification);
+            ServerUtilitiesClientEventHandler.INST.onNotify(notification);
         }
     }
 

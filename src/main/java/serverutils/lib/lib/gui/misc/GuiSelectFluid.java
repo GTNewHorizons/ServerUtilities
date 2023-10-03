@@ -25,7 +25,7 @@ public class GuiSelectFluid extends GuiButtonListBase {
     private final Consumer<Fluid> callback;
 
     public GuiSelectFluid(IOpenableGui g, Supplier<Fluid> def, Consumer<Fluid> c) {
-        setTitle(I18n.format("serverutilitieslib.select_fluid.gui"));
+        setTitle(I18n.format("serverutilities.select_fluid.gui"));
         setHasSearchBox(true);
         callbackGui = g;
         defaultFluid = def;
@@ -35,16 +35,15 @@ public class GuiSelectFluid extends GuiButtonListBase {
     @Override
     public void addButtons(Panel panel) {
         if (defaultFluid.get() == null) {
-            panel.add(
-                    new SimpleTextButton(panel, I18n.format("serverutilitieslib.select_fluid.none"), GuiIcons.BARRIER) {
+            panel.add(new SimpleTextButton(panel, I18n.format("serverutilities.select_fluid.none"), GuiIcons.BARRIER) {
 
-                        @Override
-                        public void onClicked(MouseButton button) {
-                            GuiHelper.playClickSound();
-                            callbackGui.openGui();
-                            callback.accept(null);
-                        }
-                    });
+                @Override
+                public void onClicked(MouseButton button) {
+                    GuiHelper.playClickSound();
+                    callbackGui.openGui();
+                    callback.accept(null);
+                }
+            });
         }
 
         for (Fluid fluid : FluidRegistry.getRegisteredFluids().values()) {

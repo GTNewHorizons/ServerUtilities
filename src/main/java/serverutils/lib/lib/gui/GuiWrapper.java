@@ -69,8 +69,8 @@ public class GuiWrapper extends GuiScreen implements IGuiWrapper {
     }
 
     private void handleIngredientKey(int key, Object object) {
-        // TODO: this was a hack from serverutilitieslib
-        // ServerUtilitiesLibJEIIntegration.handleIngredientKey(key, object);
+        // TODO: this was a hack from serverutilities
+        // ServerUtilitiesJEIIntegration.handleIngredientKey(key, object);
     }
 
     @Override

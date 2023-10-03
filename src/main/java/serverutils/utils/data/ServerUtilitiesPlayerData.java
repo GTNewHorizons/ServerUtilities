@@ -17,8 +17,6 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.ServerUtilitiesLibCommon;
 import serverutils.lib.lib.EnumMessageLocation;
 import serverutils.lib.lib.config.ConfigGroup;
 import serverutils.lib.lib.config.RankConfigAPI;
@@ -32,8 +30,9 @@ import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.misc.IScheduledTask;
 import serverutils.lib.lib.util.misc.TimeType;
 import serverutils.lib.lib.util.text_components.TextComponentParser;
-import serverutils.utils.ServerUtilities;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
 
 public class ServerUtilitiesPlayerData extends PlayerData {
@@ -71,8 +70,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
             if (seconds > 0) {
                 player.addChatMessage(
                         StringUtils.color(
-                                ServerUtilitiesLib.lang(player, "stand_still", seconds)
-                                        .appendText(" [" + seconds + "]"),
+                                ServerUtilities.lang(player, "stand_still", seconds).appendText(" [" + seconds + "]"),
                                 EnumChatFormatting.GOLD));
                 universe.scheduleTask(
                         TimeType.MILLIS,
@@ -112,8 +110,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         public void execute(Universe universe) {
             if (!startPos.equalsPos(new BlockDimPos((Entity) player)) || startHP > player.getHealth()) {
                 player.addChatMessage(
-                        StringUtils
-                                .color(ServerUtilitiesLib.lang(player, "stand_still_failed"), EnumChatFormatting.RED));
+                        StringUtils.color(ServerUtilities.lang(player, "stand_still_failed"), EnumChatFormatting.RED));
             } else if (secondsLeft <= 1) {
                 TeleporterDimPos teleporter = pos.apply(player);
 
@@ -129,7 +126,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
                     data.lastTeleport[timer.ordinal()] = System.currentTimeMillis();
 
                     if (secondsLeft != 0) {
-                        player.addChatMessage(ServerUtilitiesLib.lang(player, "teleporting"));
+                        player.addChatMessage(ServerUtilities.lang(player, "teleporting"));
                     }
 
                     if (extraTask != null) {
@@ -143,7 +140,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
                         new TeleportTask(teleportType, player, timer, startSeconds, secondsLeft - 1, pos, extraTask));
                 player.addChatMessage(
                         StringUtils.color(
-                                ServerUtilitiesLib.lang(player, "stand_still", startSeconds)
+                                ServerUtilities.lang(player, "stand_still", startSeconds)
                                         .appendText(" [" + (secondsLeft - 1) + "]"),
                                 EnumChatFormatting.GOLD));
             }
@@ -282,7 +279,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
                 - System.currentTimeMillis();
 
         if (cooldown > 0) {
-            throw ServerUtilitiesLib.error(sender, "cant_use_now_cooldown", StringUtils.getTimeString(cooldown));
+            throw ServerUtilities.error(sender, "cant_use_now_cooldown", StringUtils.getTimeString(cooldown));
         }
     }
 
@@ -306,7 +303,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
 
         try {
             cachedNameForChat = TextComponentParser
-                    .parse(text, ServerUtilitiesLibCommon.chatFormattingSubstituteFunction(player));
+                    .parse(text, ServerUtilitiesCommon.chatFormattingSubstituteFunction(player));
         } catch (Exception ex) {
             String s = "Error parsing " + text + ": " + ex.getLocalizedMessage();
             ServerUtilities.LOGGER.error(s);

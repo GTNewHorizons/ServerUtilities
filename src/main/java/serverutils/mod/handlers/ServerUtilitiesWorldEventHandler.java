@@ -1,4 +1,4 @@
-package serverutils.utils.handlers;
+package serverutils.mod.handlers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,7 +20,7 @@ import net.minecraftforge.event.world.WorldEvent;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.lib.lib.math.ChunkDimPos;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.data.ClaimedChunk;
 import serverutils.utils.data.ClaimedChunks;
 import serverutils.utils.data.ServerUtilitiesUniverseData;

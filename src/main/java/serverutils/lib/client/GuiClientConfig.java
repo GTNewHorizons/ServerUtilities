@@ -16,7 +16,6 @@ import cpw.mods.fml.client.config.GuiMessageDialog;
 import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.FMLLog;
 import cpw.mods.fml.common.eventhandler.Event;
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.client.ClientUtils;
 import serverutils.lib.lib.gui.Button;
 import serverutils.lib.lib.gui.GuiHelper;
@@ -29,6 +28,8 @@ import serverutils.lib.lib.gui.misc.GuiLoading;
 import serverutils.lib.lib.icon.Icon;
 import serverutils.lib.lib.util.SidedUtils;
 import serverutils.lib.lib.util.misc.MouseButton;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.client.ServerUtilitiesClient;
 
 public class GuiClientConfig extends GuiButtonListBase {
 
@@ -105,7 +106,7 @@ public class GuiClientConfig extends GuiButtonListBase {
     }
 
     public GuiClientConfig() {
-        setTitle(I18n.format("sidebar_button.serverutilitieslib.settings"));
+        setTitle(I18n.format("sidebar_button.serverutilities.settings"));
     }
 
     @Override
@@ -121,7 +122,7 @@ public class GuiClientConfig extends GuiButtonListBase {
 
             @Override
             public WidgetType getWidgetType() {
-                return SidedUtils.isModLoadedOnServer(ServerUtilitiesLib.MOD_ID) ? super.getWidgetType()
+                return SidedUtils.isModLoadedOnServer(ServerUtilities.MOD_ID) ? super.getWidgetType()
                         : WidgetType.DISABLED;
             }
         });
@@ -130,7 +131,7 @@ public class GuiClientConfig extends GuiButtonListBase {
                 new SimpleTextButton(
                         panel,
                         I18n.format("sidebar_button"),
-                        Icon.getIcon("serverutilitieslib:textures/gui/teams.png")) {
+                        Icon.getIcon("serverutilities:textures/gui/teams.png")) {
 
                     @Override
                     public void onClicked(MouseButton button) {
@@ -141,7 +142,7 @@ public class GuiClientConfig extends GuiButtonListBase {
 
         List<Button> buttons = new ArrayList<>();
 
-        for (ClientConfig config : ServerUtilitiesLibClient.CLIENT_CONFIG_MAP.values()) {
+        for (ClientConfig config : ServerUtilitiesClient.CLIENT_CONFIG_MAP.values()) {
             buttons.add(new ButtonClientConfig(panel, config));
         }
 

@@ -13,12 +13,12 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.util.StringUtils;
-import serverutils.utils.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesCommon;
 import serverutils.utils.data.Leaderboard;
 
 public class CmdLeaderboard extends CmdBase {
@@ -43,7 +43,7 @@ public class CmdLeaderboard extends CmdBase {
             component.getChatStyle().setChatHoverEvent(
                     new HoverEvent(
                             HoverEvent.Action.SHOW_TEXT,
-                            StringUtils.color(ServerUtilitiesLib.lang(sender, "click_here"), EnumChatFormatting.GOLD)));
+                            StringUtils.color(ServerUtilities.lang(sender, "click_here"), EnumChatFormatting.GOLD)));
             boolean first = true;
 
             for (Leaderboard leaderboard : ServerUtilitiesCommon.LEADERBOARDS.values()) {

@@ -1,4 +1,4 @@
-package serverutils.utils.handlers;
+package serverutils.mod.handlers;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -7,6 +7,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.ISyncData;
+import serverutils.mod.handlers.ServerUtilitiesClientEventHandler;
 import serverutils.utils.data.ServerUtilitiesUniverseData;
 
 public class ServerUtilitiesSyncData implements ISyncData {

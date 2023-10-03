@@ -7,8 +7,8 @@ import net.minecraft.command.ICommandSender;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CmdTreeBase;
 import serverutils.lib.lib.util.FileUtils;
-import serverutils.utils.ServerUtilities;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.backups.Backups;
 
 public class CmdBackup extends CmdTreeBase {

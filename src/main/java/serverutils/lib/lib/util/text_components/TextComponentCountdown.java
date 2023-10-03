@@ -5,9 +5,9 @@ import java.util.List;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.math.Ticks;
 import serverutils.lib.lib.util.StringJoiner;
+import serverutils.mod.ServerUtilities;
 
 public class TextComponentCountdown extends ChatComponentText {
 
@@ -24,7 +24,7 @@ public class TextComponentCountdown extends ChatComponentText {
 
     @Override
     public String getChatComponentText_TextValue() {
-        return Ticks.get(countdown - ServerUtilitiesLib.PROXY.getWorldTime() - (countdown % 20L)).toTimeString();
+        return Ticks.get(countdown - ServerUtilities.PROXY.getWorldTime() - (countdown % 20L)).toTimeString();
     }
 
     @Override

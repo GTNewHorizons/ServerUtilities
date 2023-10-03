@@ -5,7 +5,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import serverutils.lib.lib.command.CmdBase;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 
 public class CmdKickme extends CmdBase {
 

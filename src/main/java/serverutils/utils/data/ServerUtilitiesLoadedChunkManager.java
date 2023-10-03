@@ -15,13 +15,12 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.ForgeChunkManager;
 
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.math.ChunkDimPos;
 import serverutils.lib.lib.util.ServerUtils;
-import serverutils.utils.ServerUtilities;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
 
 public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.LoadingCallback {
@@ -127,7 +126,7 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
                                 + ": "
                                 + ex);
 
-                if (ServerUtilitiesLibConfig.debugging.print_more_errors) {
+                if (ServerUtilitiesConfig.debugging.print_more_errors) {
                     ex.printStackTrace();
                 }
             }

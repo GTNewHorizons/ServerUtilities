@@ -3,11 +3,11 @@ package serverutils.lib.command.team;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.EnumTeamStatus;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.data.ForgePlayer;
+import serverutils.mod.ServerUtilities;
 
 public class CmdTransferOwnership extends CmdBase {
 
@@ -25,9 +25,9 @@ public class CmdTransferOwnership extends CmdBase {
         ForgePlayer p = CommandUtils.getForgePlayer(getCommandSenderAsPlayer(sender));
 
         if (!p.hasTeam()) {
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.no_team");
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.error.no_team");
         } else if (!p.team.isOwner(p)) {
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.not_owner");
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.error.not_owner");
         }
 
         checkArgs(sender, args, 1);
@@ -35,8 +35,7 @@ public class CmdTransferOwnership extends CmdBase {
         ForgePlayer p1 = CommandUtils.getForgePlayer(sender, args[0]);
 
         if (!p.team.equalsTeam(p1.team)) {
-            throw ServerUtilitiesLib
-                    .error(sender, "serverutilitieslib.lang.team.error.not_member", p1.getDisplayName());
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.error.not_member", p1.getDisplayName());
         }
 
         p.team.setStatus(p1, EnumTeamStatus.OWNER);

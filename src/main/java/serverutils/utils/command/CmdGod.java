@@ -7,7 +7,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.util.NBTUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 
 public class CmdGod extends CmdBase {
 

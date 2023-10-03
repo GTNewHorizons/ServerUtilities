@@ -8,13 +8,12 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.misc.TimeType;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 
 public class CmdTPA extends CmdBase {
@@ -63,7 +62,7 @@ public class CmdTPA extends CmdBase {
 
         other.tpaRequestsFrom.add(self.player);
 
-        IChatComponent accept = ServerUtilitiesLib.lang(other.player.getPlayer(), "click_here");
+        IChatComponent accept = ServerUtilities.lang(other.player.getPlayer(), "click_here");
         accept.getChatStyle().setColor(EnumChatFormatting.GOLD);
         accept.getChatStyle()
                 .setChatClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tpaccept " + self.player.getName()));

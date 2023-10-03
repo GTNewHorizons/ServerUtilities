@@ -30,7 +30,7 @@ import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.math.MathUtils;
 import serverutils.lib.lib.util.NBTUtils;
 import serverutils.lib.lib.util.StringUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.net.MessageEditNBT;
 import serverutils.utils.net.MessageEditNBTRequest;
 
@@ -243,7 +243,7 @@ public class CmdEditNBT extends CmdTreeBase {
             addInfo(list, new ChatComponentText("Name"), new ChatComponentText(player.getGameProfile().getName()));
             addInfo(list, new ChatComponentText("Display Name"), new ChatComponentText(player.getDisplayName()));
             addInfo(list, new ChatComponentText("UUID"), new ChatComponentText(player.getUniqueID().toString()));
-            addInfo(list, new ChatComponentText("ServerUtilitiesLib Team"), new ChatComponentText(p.team.getId()));
+            addInfo(list, new ChatComponentText("ServerUtilities Team"), new ChatComponentText(p.team.getId()));
             info.setTag("text", list);
             info.setString(
                     "title",

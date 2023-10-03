@@ -8,9 +8,8 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.command.CmdBase;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.ranks.Rank;
 import serverutils.utils.ranks.Ranks;
 
@@ -46,7 +45,7 @@ public class CmdRemove extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!Ranks.isActive()) {
-            throw ServerUtilitiesLib.errorFeatureDisabledServer(sender);
+            throw ServerUtilities.errorFeatureDisabledServer(sender);
         }
 
         checkArgs(sender, args, 1);

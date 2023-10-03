@@ -8,12 +8,12 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.util.StringUtils;
+import serverutils.mod.ServerUtilities;
 
 public class CmdInfo extends CmdBase {
 
@@ -36,23 +36,23 @@ public class CmdInfo extends CmdBase {
         ForgeTeam team = Universe.get().getTeam(args[0]);
 
         if (!team.isValid()) {
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.not_found", args[0]);
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.error.not_found", args[0]);
         }
 
         sender.addChatMessage(
-                ServerUtilitiesLib.lang(
+                ServerUtilities.lang(
                         sender,
                         "commands.team.info.id",
                         StringUtils.color(new ChatComponentText(team.getId()), EnumChatFormatting.BLUE)));
         sender.addChatMessage(
-                ServerUtilitiesLib.lang(
+                ServerUtilities.lang(
                         sender,
                         "commands.team.info.uid",
                         StringUtils.color(
                                 new ChatComponentText(team.getUID() + " / " + String.format("%04x", team.getUID())),
                                 EnumChatFormatting.BLUE)));
         sender.addChatMessage(
-                ServerUtilitiesLib.lang(
+                ServerUtilities.lang(
                         sender,
                         "commands.team.info.owner",
                         team.getOwner() == null ? "-"
@@ -74,6 +74,6 @@ public class CmdInfo extends CmdBase {
             component.appendSibling(n);
         }
 
-        sender.addChatMessage(ServerUtilitiesLib.lang(sender, "commands.team.info.members", component));
+        sender.addChatMessage(ServerUtilities.lang(sender, "commands.team.info.members", component));
     }
 }

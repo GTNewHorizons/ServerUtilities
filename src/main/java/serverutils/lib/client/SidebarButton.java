@@ -25,6 +25,7 @@ import serverutils.lib.lib.icon.Icon;
 import serverutils.lib.lib.util.ChainedBooleanSupplier;
 import serverutils.lib.lib.util.JsonUtils;
 import serverutils.lib.lib.util.SidedUtils;
+import serverutils.mod.client.ServerUtilitiesClientConfig;
 
 public class SidebarButton implements Comparable<SidebarButton> {
 
@@ -153,7 +154,7 @@ public class SidebarButton implements Comparable<SidebarButton> {
     }
 
     public boolean isActuallyVisible() {
-        return configValue && ServerUtilitiesLibClientConfig.action_buttons != EnumSidebarButtonPlacement.DISABLED
+        return configValue && ServerUtilitiesClientConfig.action_buttons != EnumSidebarButtonPlacement.DISABLED
                 && isVisible();
     }
 

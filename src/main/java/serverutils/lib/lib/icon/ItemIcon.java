@@ -14,11 +14,11 @@ import net.minecraftforge.client.IItemRenderer.ItemRenderType;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.lib.client.GlStateManager;
 import serverutils.lib.lib.gui.GuiHelper;
 import serverutils.lib.lib.item.ItemStackSerializer;
 import serverutils.lib.lib.util.InvUtils;
+import serverutils.mod.ServerUtilitiesConfig;
 
 /**
  * @author LatvianModder
@@ -41,7 +41,7 @@ public class ItemIcon extends Icon {
                 stack = ItemStackSerializer.parseItem(lazyStackString);
                 createdStack = true;
 
-                if (ServerUtilitiesLibConfig.debugging.print_more_errors && stack == null) {
+                if (ServerUtilitiesConfig.debugging.print_more_errors && stack == null) {
                     stack = InvUtils.brokenItem(lazyStackString);
                 }
             }

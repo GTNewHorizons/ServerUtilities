@@ -13,9 +13,6 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.ServerUtilitiesLibCommon;
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.ServerUtilitiesLibNotifications;
 import serverutils.lib.events.IReloadHandler;
 import serverutils.lib.events.ServerReloadEvent;
@@ -31,6 +28,9 @@ import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.lib.net.MessageCloseGui;
 import serverutils.lib.net.MessageEditConfig;
 import serverutils.lib.net.MessageSyncData;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class ServerUtilitiesLibAPI {
 
@@ -42,7 +42,7 @@ public class ServerUtilitiesLibAPI {
         HashSet<ResourceLocation> failed = new HashSet<>();
         ServerReloadEvent event = new ServerReloadEvent(universe, sender, type, id, failed);
 
-        for (Map.Entry<ResourceLocation, IReloadHandler> entry : ServerUtilitiesLibCommon.RELOAD_IDS.entrySet()) {
+        for (Map.Entry<ResourceLocation, IReloadHandler> entry : ServerUtilitiesCommon.RELOAD_IDS.entrySet()) {
             try {
                 if (event.reload(entry.getKey()) && !entry.getValue().onReload(event)) {
                     event.failedToReload(entry.getKey());
@@ -50,7 +50,7 @@ public class ServerUtilitiesLibAPI {
             } catch (Exception ex) {
                 event.failedToReload(entry.getKey());
 
-                if (ServerUtilitiesLibConfig.debugging.print_more_errors) {
+                if (ServerUtilitiesConfig.debugging.print_more_errors) {
                     ex.printStackTrace();
                 }
             }
@@ -70,27 +70,27 @@ public class ServerUtilitiesLibAPI {
             for (EntityPlayerMP player : (List<EntityPlayerMP>) universe.server
                     .getConfigurationManager().playerEntityList) {
                 Notification notification = Notification.of(ServerUtilitiesLibNotifications.RELOAD_SERVER);
-                notification.addLine(ServerUtilitiesLib.lang(player, "serverutilitieslib.lang.reload_server", millis));
+                notification.addLine(ServerUtilities.lang(player, "serverutilities.lang.reload_server", millis));
 
                 if (event.isClientReloadRequired()) {
                     notification.addLine(
-                            ServerUtilitiesLib.lang(
+                            ServerUtilities.lang(
                                     player,
-                                    "serverutilitieslib.lang.reload_client",
+                                    "serverutilities.lang.reload_client",
                                     StringUtils.color(new ChatComponentText("F3 + T"), EnumChatFormatting.GOLD)));
                 }
 
                 if (!failed.isEmpty()) {
                     notification.addLine(
                             StringUtils.color(
-                                    ServerUtilitiesLib.lang(player, "serverutilitieslib.lang.reload_failed"),
+                                    ServerUtilities.lang(player, "serverutilities.lang.reload_failed"),
                                     EnumChatFormatting.RED));
-                    ServerUtilitiesLib.LOGGER.warn("These IDs failed to reload:");
+                    ServerUtilities.LOGGER.warn("These IDs failed to reload:");
 
                     for (ResourceLocation f : failed) {
                         notification.addLine(
                                 StringUtils.color(new ChatComponentText(f.toString()), EnumChatFormatting.RED));
-                        ServerUtilitiesLib.LOGGER.warn("- " + f);
+                        ServerUtilities.LOGGER.warn("- " + f);
                     }
                 }
 
@@ -101,12 +101,12 @@ public class ServerUtilitiesLibAPI {
         }
         reload(universe.server);
         // universe.server.reload();
-        ServerUtilitiesLib.LOGGER.info("Reloaded server in " + millis);
+        ServerUtilities.LOGGER.info("Reloaded server in " + millis);
     }
 
     public static void editServerConfig(EntityPlayerMP player, ConfigGroup group, IConfigCallback callback) {
-        ServerUtilitiesLibCommon.TEMP_SERVER_CONFIG
-                .put(player.getGameProfile().getId(), new ServerUtilitiesLibCommon.EditingConfig(group, callback));
+        ServerUtilitiesCommon.TEMP_SERVER_CONFIG
+                .put(player.getGameProfile().getId(), new ServerUtilitiesCommon.EditingConfig(group, callback));
         new MessageEditConfig(group).sendTo(player);
     }
 
@@ -115,7 +115,7 @@ public class ServerUtilitiesLibAPI {
             return ConfigNull.INSTANCE;
         }
 
-        ConfigValueProvider provider = ServerUtilitiesLibCommon.CONFIG_VALUE_PROVIDERS.get(id);
+        ConfigValueProvider provider = ServerUtilitiesCommon.CONFIG_VALUE_PROVIDERS.get(id);
         Objects.requireNonNull(provider, "Unknown Config ID: " + id);
         ConfigValue value = provider.get();
         return value == null || value.isNull() ? ConfigNull.INSTANCE : value;

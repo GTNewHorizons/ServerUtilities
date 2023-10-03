@@ -26,6 +26,8 @@ import serverutils.lib.lib.math.Ticks;
 import serverutils.lib.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.lib.lib.util.text_components.TextComponentParser;
+import serverutils.mod.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.data.Leaderboard;
 import serverutils.utils.events.CustomPermissionPrefixesRegistryEvent;
 import serverutils.utils.ranks.Rank;

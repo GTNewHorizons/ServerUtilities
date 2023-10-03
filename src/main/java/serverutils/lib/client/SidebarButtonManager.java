@@ -17,12 +17,12 @@ import net.minecraft.util.ResourceLocation;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.client.resource.IResourceType;
 import serverutils.lib.client.resource.ISelectiveResourceReloadListener;
 import serverutils.lib.events.SidebarButtonCreatedEvent;
 import serverutils.lib.lib.io.DataReader;
 import serverutils.lib.lib.util.JsonUtils;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 
@@ -33,7 +33,7 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
     @Override
     @SuppressWarnings("unchecked")
     public void onResourceManagerReload(IResourceManager manager, Predicate<IResourceType> resourcePredicate) {
-        if (!resourcePredicate.test(ServerUtilitiesLibResourceType.SERVERUTILSLIB_CONFIG)) {
+        if (!resourcePredicate.test(ServerUtilitiesLibResourceType.SERVERUTILS_CONFIG)) {
             return;
         }
 
@@ -96,7 +96,7 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
                                     continue;
                                 }
 
-                                if (!ServerUtilitiesLibConfig.debugging.dev_sidebar_buttons
+                                if (!ServerUtilitiesConfig.debugging.dev_sidebar_buttons
                                         && buttonJson.has("dev_only")
                                         && buttonJson.get("dev_only").getAsBoolean()) {
                                     continue;

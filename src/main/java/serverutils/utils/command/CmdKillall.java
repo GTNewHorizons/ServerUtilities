@@ -19,7 +19,7 @@ import net.minecraft.world.World;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 
 public class CmdKillall extends CmdBase {
 

@@ -8,7 +8,6 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.ServerUtilitiesLibGameRules;
 import serverutils.lib.events.team.ForgeTeamChangedEvent;
 import serverutils.lib.lib.command.CmdBase;
@@ -16,6 +15,7 @@ import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.data.Universe;
+import serverutils.mod.ServerUtilities;
 
 public class CmdJoin extends CmdBase {
 
@@ -57,7 +57,7 @@ public class CmdJoin extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!ServerUtilitiesLibGameRules.canJoinTeam(sender.getEntityWorld())) {
-            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
+            throw ServerUtilities.error(sender, "feature_disabled_server");
         }
 
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
@@ -72,13 +72,12 @@ public class CmdJoin extends CmdBase {
                 new ForgeTeamChangedEvent(team, p.team).post();
                 p.team.removeMember(p);
             } else if (p.hasTeam()) {
-                throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.must_leave");
+                throw ServerUtilities.error(sender, "serverutilities.lang.team.error.must_leave");
             }
 
             team.addMember(p, false);
         } else {
-            throw ServerUtilitiesLib
-                    .error(sender, "serverutilitieslib.lang.team.error.already_member", p.getDisplayName());
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.error.already_member", p.getDisplayName());
         }
     }
 }

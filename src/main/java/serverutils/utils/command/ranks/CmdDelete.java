@@ -6,9 +6,8 @@ import java.util.List;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.command.CmdBase;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.ranks.Rank;
 import serverutils.utils.ranks.Ranks;
 
@@ -40,7 +39,7 @@ public class CmdDelete extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!Ranks.isActive()) {
-            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
+            throw ServerUtilities.error(sender, "feature_disabled_server");
         }
 
         checkArgs(sender, args, 1);
@@ -51,7 +50,7 @@ public class CmdDelete extends CmdBase {
             rank.ranks.save();
             sender.addChatMessage(ServerUtilities.lang(sender, "commands.ranks.delete.deleted", rank.getDisplayName()));
         } else {
-            sender.addChatMessage(ServerUtilitiesLib.lang(sender, "nothing_changed"));
+            sender.addChatMessage(ServerUtilities.lang(sender, "nothing_changed"));
         }
     }
 }

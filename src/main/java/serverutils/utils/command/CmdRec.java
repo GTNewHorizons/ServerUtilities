@@ -11,7 +11,7 @@ import net.minecraft.util.IChatComponent;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.util.NBTUtils;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.net.MessageUpdateTabName;
 
 public class CmdRec extends CmdBase {

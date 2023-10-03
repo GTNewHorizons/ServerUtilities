@@ -1,2 +1,2 @@
 @javax.annotation.ParametersAreNonnullByDefault
-package serverutils.utils.client;
+package serverutils.mod.handlers;

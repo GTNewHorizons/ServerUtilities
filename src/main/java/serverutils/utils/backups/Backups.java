@@ -22,8 +22,8 @@ import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.text_components.Notification;
-import serverutils.utils.ServerUtilities;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class Backups {
 

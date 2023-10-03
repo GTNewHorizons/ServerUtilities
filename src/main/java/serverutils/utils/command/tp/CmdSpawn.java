@@ -9,7 +9,7 @@ import net.minecraft.world.World;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.math.BlockDimPos;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 
 public class CmdSpawn extends CmdBase {

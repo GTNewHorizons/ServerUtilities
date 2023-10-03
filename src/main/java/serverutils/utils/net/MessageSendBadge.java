@@ -8,7 +8,7 @@ import serverutils.lib.lib.io.DataIn;
 import serverutils.lib.lib.io.DataOut;
 import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.net.NetworkWrapper;
-import serverutils.utils.handlers.ServerUtilitiesClientEventHandler;
+import serverutils.mod.handlers.ServerUtilitiesClientEventHandler;
 
 public class MessageSendBadge extends MessageToClient {
 

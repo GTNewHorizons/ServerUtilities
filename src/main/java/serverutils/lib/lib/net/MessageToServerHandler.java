@@ -3,8 +3,8 @@ package serverutils.lib.lib.net;
 import cpw.mods.fml.common.network.simpleimpl.IMessage;
 import cpw.mods.fml.common.network.simpleimpl.IMessageHandler;
 import cpw.mods.fml.common.network.simpleimpl.MessageContext;
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.ServerUtilitiesLibConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 
 enum MessageToServerHandler implements IMessageHandler<MessageToServer, IMessage> {
 
@@ -12,8 +12,8 @@ enum MessageToServerHandler implements IMessageHandler<MessageToServer, IMessage
 
     @Override
     public IMessage onMessage(MessageToServer message, MessageContext context) {
-        if (ServerUtilitiesLibConfig.debugging.log_network) {
-            ServerUtilitiesLib.LOGGER.info("Net TX: " + message.getClass().getName());
+        if (ServerUtilitiesConfig.debugging.log_network) {
+            ServerUtilities.LOGGER.info("Net TX: " + message.getClass().getName());
         }
 
         message.onMessage(context.getServerHandler().playerEntity);

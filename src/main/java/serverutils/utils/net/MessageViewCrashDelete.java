@@ -4,12 +4,12 @@ import java.io.File;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.lib.io.DataIn;
 import serverutils.lib.lib.io.DataOut;
 import serverutils.lib.lib.net.MessageToServer;
 import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.lib.lib.util.permission.PermissionAPI;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
 
 public class MessageViewCrashDelete extends MessageToServer {
@@ -50,7 +50,7 @@ public class MessageViewCrashDelete extends MessageToServer {
                         file.delete();
                     }
                 } catch (Exception ex) {
-                    if (ServerUtilitiesLibConfig.debugging.print_more_errors) {
+                    if (ServerUtilitiesConfig.debugging.print_more_errors) {
                         ex.printStackTrace();
                     }
                 }

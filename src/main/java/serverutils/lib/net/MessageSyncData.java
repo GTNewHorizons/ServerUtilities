@@ -12,9 +12,6 @@ import net.minecraft.server.MinecraftServer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.ServerUtilitiesLibCommon;
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.events.SyncGamerulesEvent;
 import serverutils.lib.lib.client.ClientUtils;
 import serverutils.lib.lib.data.ForgePlayer;
@@ -26,6 +23,9 @@ import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.lib.lib.util.SidedUtils;
 import serverutils.lib.lib.util.StringUtils;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class MessageSyncData extends MessageToClient {
 
@@ -46,7 +46,7 @@ public class MessageSyncData extends MessageToClient {
         universeId = forgePlayer.team.universe.getUUID();
         syncData = new NBTTagCompound();
 
-        for (Map.Entry<String, ISyncData> entry : ServerUtilitiesLibCommon.SYNCED_DATA.entrySet()) {
+        for (Map.Entry<String, ISyncData> entry : ServerUtilitiesCommon.SYNCED_DATA.entrySet()) {
             syncData.setTag(entry.getKey(), entry.getValue().writeSyncData(player, forgePlayer));
         }
 
@@ -83,7 +83,7 @@ public class MessageSyncData extends MessageToClient {
         SidedUtils.UNIVERSE_UUID_CLIENT = universeId;
 
         for (String key : (Set<String>) syncData.func_150296_c()) {
-            ISyncData nbt = ServerUtilitiesLibCommon.SYNCED_DATA.get(key);
+            ISyncData nbt = ServerUtilitiesCommon.SYNCED_DATA.get(key);
 
             if (nbt != null) {
                 nbt.readSyncData(syncData.getCompoundTag(key));
@@ -94,8 +94,8 @@ public class MessageSyncData extends MessageToClient {
             Minecraft.getMinecraft().theWorld.getGameRules().setOrCreateGameRule(entry.getKey(), entry.getValue());
         }
 
-        if (ServerUtilitiesLibConfig.debugging.print_more_info && Bits.getFlag(flags, LOGIN)) {
-            ServerUtilitiesLib.LOGGER
+        if (ServerUtilitiesConfig.debugging.print_more_info && Bits.getFlag(flags, LOGIN)) {
+            ServerUtilities.LOGGER
                     .info("Synced data from universe " + StringUtils.fromUUID(SidedUtils.UNIVERSE_UUID_CLIENT));
         }
 

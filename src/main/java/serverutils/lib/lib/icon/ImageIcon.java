@@ -13,16 +13,16 @@ import com.google.common.base.Objects;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.client.GlStateManager;
 import serverutils.lib.lib.client.IPixelBuffer;
 import serverutils.lib.lib.client.PixelBuffer;
 import serverutils.lib.lib.gui.GuiHelper;
+import serverutils.mod.ServerUtilities;
 
 public class ImageIcon extends Icon {
 
     public static final ResourceLocation MISSING_IMAGE = new ResourceLocation(
-            ServerUtilitiesLib.MOD_ID,
+            ServerUtilities.MOD_ID,
             "textures/gui/missing_image.png");
 
     public final ResourceLocation texture;

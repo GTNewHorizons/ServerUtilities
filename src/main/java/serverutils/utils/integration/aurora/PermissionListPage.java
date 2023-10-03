@@ -26,7 +26,7 @@ import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.permission.DefaultPermissionHandler;
 import serverutils.lib.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.lib.util.permission.PermissionAPI;
-import serverutils.utils.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilitiesCommon;
 import serverutils.utils.data.NodeEntry;
 
 public class PermissionListPage extends HTTPWebPage {

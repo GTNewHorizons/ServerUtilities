@@ -11,12 +11,11 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.config.RankConfigAPI;
 import serverutils.lib.lib.config.RankConfigValueInfo;
 import serverutils.lib.lib.util.StringUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.ranks.Rank;
 import serverutils.utils.ranks.Ranks;
 import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
@@ -68,7 +67,7 @@ public class CmdSetPermission extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!Ranks.isActive()) {
-            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
+            throw ServerUtilities.error(sender, "feature_disabled_server");
         }
 
         checkArgs(sender, args, 3);
@@ -83,7 +82,7 @@ public class CmdSetPermission extends CmdBase {
         }
 
         if (rank.setPermission(node, value) == null) {
-            sender.addChatMessage(ServerUtilitiesLib.lang(sender, "nothing_changed"));
+            sender.addChatMessage(ServerUtilities.lang(sender, "nothing_changed"));
         } else {
             rank.ranks.save();
             IChatComponent nodeText = new ChatComponentText(node);

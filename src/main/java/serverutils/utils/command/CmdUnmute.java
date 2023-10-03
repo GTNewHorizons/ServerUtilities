@@ -5,7 +5,7 @@ import net.minecraft.command.ICommandSender;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.util.NBTUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 
 public class CmdUnmute extends CmdBase {

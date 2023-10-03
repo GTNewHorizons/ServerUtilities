@@ -4,7 +4,6 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.ServerUtilitiesLibGameRules;
 import serverutils.lib.events.team.ForgeTeamCreatedEvent;
 import serverutils.lib.events.team.ForgeTeamPlayerJoinedEvent;
@@ -15,6 +14,7 @@ import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.data.TeamType;
 import serverutils.lib.net.MessageMyTeamGuiResponse;
+import serverutils.mod.ServerUtilities;
 
 public class CmdCreate extends CmdBase {
 
@@ -43,24 +43,24 @@ public class CmdCreate extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!ServerUtilitiesLibGameRules.canCreateTeam(sender.getEntityWorld())) {
-            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
+            throw ServerUtilities.error(sender, "feature_disabled_server");
         }
 
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
         ForgePlayer p = CommandUtils.getForgePlayer(player);
 
         if (p.hasTeam()) {
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.must_leave");
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.error.must_leave");
         }
 
         checkArgs(sender, args, 1);
 
         if (!isValidTeamID(args[0])) {
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.id_invalid");
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.id_invalid");
         }
 
         if (p.team.universe.getTeam(args[0]).isValid()) {
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.id_already_exists");
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.id_already_exists");
         }
 
         p.team.universe.clearCache();
@@ -83,7 +83,7 @@ public class CmdCreate extends CmdBase {
         new ForgeTeamCreatedEvent(team).post();
         ForgeTeamPlayerJoinedEvent event = new ForgeTeamPlayerJoinedEvent(p);
         event.post();
-        sender.addChatMessage(ServerUtilitiesLib.lang(sender, "serverutilitieslib.lang.team.created", team.getId()));
+        sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.team.created", team.getId()));
 
         if (event.getDisplayGui() != null) {
             event.getDisplayGui().run();

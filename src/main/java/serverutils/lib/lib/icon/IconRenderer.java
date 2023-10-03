@@ -24,9 +24,9 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import cpw.mods.fml.common.Loader;
-import serverutils.lib.client.ServerUtilitiesLibClientEventHandler;
 import serverutils.lib.lib.client.GlStateManager;
 import serverutils.lib.lib.client.IPixelBuffer;
+import serverutils.mod.handlers.ServerUtilitiesClientEventHandler;
 
 public class IconRenderer {
 
@@ -38,7 +38,7 @@ public class IconRenderer {
         @Override
         public void run() {
             QUEUE.add(this);
-            ServerUtilitiesLibClientEventHandler.shouldRenderIcons = true;
+            ServerUtilitiesClientEventHandler.shouldRenderIcons = true;
         }
     }
 
@@ -59,7 +59,7 @@ public class IconRenderer {
                 } else {
                     nullImage = ImageIO.read(
                             IconRenderer.class
-                                    .getResourceAsStream("/assets/serverutilitieslib/textures/icons/cancel.png"));
+                                    .getResourceAsStream("/assets/serverutilities/textures/icons/cancel.png"));
                 }
             } catch (IOException e) {
                 // nop

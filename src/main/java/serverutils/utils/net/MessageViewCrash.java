@@ -4,13 +4,13 @@ import java.io.File;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.lib.io.DataIn;
 import serverutils.lib.lib.io.DataOut;
 import serverutils.lib.lib.io.DataReader;
 import serverutils.lib.lib.net.MessageToServer;
 import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.lib.lib.util.permission.PermissionAPI;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
 
 public class MessageViewCrash extends MessageToServer {
@@ -48,7 +48,7 @@ public class MessageViewCrash extends MessageToServer {
                     new MessageViewCrashResponse(file.getName(), DataReader.get(file).stringList()).sendTo(player);
                 }
             } catch (Exception ex) {
-                if (ServerUtilitiesLibConfig.debugging.print_more_errors) {
+                if (ServerUtilitiesConfig.debugging.print_more_errors) {
                     ex.printStackTrace();
                 }
             }

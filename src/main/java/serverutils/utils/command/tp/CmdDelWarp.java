@@ -7,7 +7,7 @@ import net.minecraft.command.ICommandSender;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.data.Universe;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.data.ServerUtilitiesUniverseData;
 
 public class CmdDelWarp extends CmdBase {

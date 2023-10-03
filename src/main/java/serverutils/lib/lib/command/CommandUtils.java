@@ -13,13 +13,13 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.DimensionManager;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.math.MathUtils;
 import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.permission.PermissionAPI;
+import serverutils.mod.ServerUtilities;
 
 public class CommandUtils {
 
@@ -98,7 +98,7 @@ public class CommandUtils {
             return team;
         }
 
-        throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.not_found", id);
+        throw ServerUtilities.error(sender, "serverutilities.lang.team.error.not_found", id);
     }
 
     public static ForgePlayer getSelfOrOther(ICommandSender sender, String[] args, int index) throws CommandException {

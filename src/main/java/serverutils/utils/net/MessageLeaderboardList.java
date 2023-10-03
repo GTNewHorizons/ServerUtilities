@@ -10,7 +10,7 @@ import net.minecraft.util.ResourceLocation;
 import serverutils.lib.lib.net.MessageToServer;
 import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.lib.lib.util.permission.PermissionAPI;
-import serverutils.utils.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilitiesCommon;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.Leaderboard;
 

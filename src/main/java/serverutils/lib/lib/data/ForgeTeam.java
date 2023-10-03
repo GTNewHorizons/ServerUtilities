@@ -27,7 +27,6 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.util.Constants;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.events.team.ForgeTeamConfigEvent;
 import serverutils.lib.events.team.ForgeTeamConfigSavedEvent;
 import serverutils.lib.events.team.ForgeTeamDataEvent;
@@ -43,6 +42,7 @@ import serverutils.lib.lib.icon.PlayerHeadIcon;
 import serverutils.lib.lib.util.FinalIDObject;
 import serverutils.lib.lib.util.INBTSerializable;
 import serverutils.lib.lib.util.StringUtils;
+import serverutils.mod.ServerUtilities;
 
 /**
  * @author LatvianModder
@@ -225,7 +225,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
 
         if (title.isEmpty()) {
             cachedTitle = getOwner() != null ? getOwner().getDisplayName().appendText("'s Team")
-                    : new ChatComponentTranslation("serverutilitieslib.lang.team.no_team");
+                    : new ChatComponentTranslation("serverutilities.lang.team.no_team");
         } else {
             cachedTitle = new ChatComponentText(title);
         }
@@ -574,8 +574,8 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
             ForgeTeamConfigEvent event = new ForgeTeamConfigEvent(this, cachedConfig);
             event.post();
 
-            ConfigGroup main = cachedConfig.getGroup(ServerUtilitiesLib.MOD_ID);
-            main.setDisplayName(new ChatComponentText(ServerUtilitiesLib.MOD_NAME));
+            ConfigGroup main = cachedConfig.getGroup(ServerUtilities.MOD_ID);
+            main.setDisplayName(new ChatComponentText(ServerUtilities.MOD_NAME));
             main.addBool("free_to_join", () -> freeToJoin, v -> freeToJoin = v, false);
 
             ConfigGroup display = main.getGroup("display");
@@ -615,7 +615,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
     }
 
     public File getDataFile(String ext) {
-        File dir = new File(universe.getWorldDirectory(), "data/serverutilitieslib/teams/");
+        File dir = new File(universe.getWorldDirectory(), "data/serverutilities/teams/");
 
         if (ext.isEmpty()) {
             return new File(dir, getId() + ".dat");

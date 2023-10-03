@@ -37,9 +37,9 @@ import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.permission.DefaultPermissionHandler;
 import serverutils.lib.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.lib.util.permission.PermissionAPI;
-import serverutils.utils.ServerUtilities;
-import serverutils.utils.ServerUtilitiesCommon;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.NodeEntry;
 

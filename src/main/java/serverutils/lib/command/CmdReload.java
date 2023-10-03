@@ -9,13 +9,13 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ResourceLocation;
 
-import serverutils.lib.ServerUtilitiesLibCommon;
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.events.ServerReloadEvent;
 import serverutils.lib.lib.EnumReloadType;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.data.ServerUtilitiesLibAPI;
 import serverutils.lib.lib.data.Universe;
+import serverutils.mod.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class CmdReload extends CmdBase {
 
@@ -27,7 +27,7 @@ public class CmdReload extends CmdBase {
         tab = new HashSet<>();
         tab.add("*");
 
-        for (ResourceLocation r : ServerUtilitiesLibCommon.RELOAD_IDS.keySet()) {
+        for (ResourceLocation r : ServerUtilitiesCommon.RELOAD_IDS.keySet()) {
             tab.add(r.toString());
             tab.add(r.getResourceDomain() + ":*");
         }
@@ -38,7 +38,7 @@ public class CmdReload extends CmdBase {
 
     public CmdReload() {
         this(
-                ServerUtilitiesLibConfig.general.replace_reload_command ? "reload" : "serverutilitieslib_reload",
+                ServerUtilitiesConfig.general.replace_reload_command ? "reload" : "serverutilities_reload",
                 Level.OP_OR_SP);
     }
 

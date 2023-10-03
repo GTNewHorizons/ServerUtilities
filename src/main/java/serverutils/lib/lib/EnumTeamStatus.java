@@ -8,10 +8,10 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.util.IStringSerializable;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.misc.NameMap;
+import serverutils.mod.ServerUtilities;
 
 public enum EnumTeamStatus implements IStringSerializable {
 
@@ -25,7 +25,7 @@ public enum EnumTeamStatus implements IStringSerializable {
 
     public static final EnumTeamStatus[] VALUES = values();
     public static final BiFunction<ICommandSender, EnumTeamStatus, IChatComponent> NAME_GETTER = (sender,
-            value) -> StringUtils.color(ServerUtilitiesLib.lang(sender, value.getLangKey()), value.getColor());
+            value) -> StringUtils.color(ServerUtilities.lang(sender, value.getLangKey()), value.getColor());
     public static final NameMap<EnumTeamStatus> NAME_MAP = NameMap.createWithName(NONE, NAME_GETTER, VALUES);
     public static final NameMap<EnumTeamStatus> NAME_MAP_PERMS = NameMap
             .createWithName(ALLY, NAME_GETTER, NONE, ALLY, MEMBER);
@@ -49,7 +49,7 @@ public enum EnumTeamStatus implements IStringSerializable {
         name = n;
         status = s;
         color = c;
-        langKey = "serverutilitieslib.lang.team_status." + name;
+        langKey = "serverutilities.lang.team_status." + name;
         canBeSet = cs;
     }
 

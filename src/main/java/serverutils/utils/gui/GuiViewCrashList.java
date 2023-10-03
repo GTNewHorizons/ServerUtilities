@@ -39,7 +39,7 @@ public class GuiViewCrashList extends GuiButtonListBase {
 
     @Override
     public String getTitle() {
-        return I18n.format("sidebar_button.serverutilitieslib.admin_panel") + " > "
+        return I18n.format("sidebar_button.serverutilities.admin_panel") + " > "
                 + I18n.format("admin_panel.serverutilities.crash_reports");
     }
 

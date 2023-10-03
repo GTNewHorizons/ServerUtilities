@@ -24,7 +24,7 @@ import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.lib.math.ChunkDimPos;
 import serverutils.lib.lib.util.permission.PermissionAPI;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.events.chunks.ChunkModifiedEvent;

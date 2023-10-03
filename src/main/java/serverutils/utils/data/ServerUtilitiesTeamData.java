@@ -26,7 +26,7 @@ import serverutils.lib.lib.data.TeamData;
 import serverutils.lib.lib.math.ChunkDimPos;
 import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.NBTUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.ServerUtilitiesPermissions;
 
 public class ServerUtilitiesTeamData extends TeamData {

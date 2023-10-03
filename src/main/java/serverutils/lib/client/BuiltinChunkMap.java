@@ -3,7 +3,6 @@ package serverutils.lib.client;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.client.ClientUtils;
 import serverutils.lib.lib.client.GlStateManager;
 import serverutils.lib.lib.gui.GuiBase;
@@ -13,10 +12,11 @@ import serverutils.lib.lib.gui.misc.GuiChunkSelectorBase;
 import serverutils.lib.lib.icon.Color4I;
 import serverutils.lib.lib.icon.Icon;
 import serverutils.lib.lib.math.MathUtils;
+import serverutils.mod.ServerUtilities;
 
 public class BuiltinChunkMap extends ChunkSelectorMap {
 
-    public static final Icon TEX_ENTITY = Icon.getIcon(ServerUtilitiesLib.MOD_ID + ":textures/gui/entity.png")
+    public static final Icon TEX_ENTITY = Icon.getIcon(ServerUtilities.MOD_ID + ":textures/gui/entity.png")
             .withColor(Color4I.WHITE.withAlpha(140));
     public static final double UV = (double) TILES_GUI / (double) TILES_TEX;
 

@@ -1,4 +1,4 @@
-package serverutils.utils.handlers;
+package serverutils.mod.handlers;
 
 import java.util.List;
 import java.util.Map;
@@ -29,9 +29,9 @@ import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.lib.lib.util.text_components.TextComponentParser;
-import serverutils.utils.ServerUtilities;
-import serverutils.utils.ServerUtilitiesCommon;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesCommon;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.backups.Backups;
 import serverutils.utils.command.CmdShutdown;

@@ -6,7 +6,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.ServerUtilitiesPermissions;
 
 public class CmdHeal extends CmdBase {

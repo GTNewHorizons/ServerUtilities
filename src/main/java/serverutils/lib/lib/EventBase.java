@@ -3,8 +3,8 @@ package serverutils.lib.lib;
 import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.eventhandler.Event;
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.ServerUtilitiesLibConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class EventBase extends Event {
 
@@ -15,8 +15,8 @@ public class EventBase extends Event {
             canPost = false;
             boolean b = MinecraftForge.EVENT_BUS.post(this);
 
-            if (ServerUtilitiesLibConfig.debugging.log_events) {
-                ServerUtilitiesLib.LOGGER.info("Event " + getClass().getName() + " fired, cancelled: " + b);
+            if (ServerUtilitiesConfig.debugging.log_events) {
+                ServerUtilities.LOGGER.info("Event " + getClass().getName() + " fired, cancelled: " + b);
             }
 
             return b;

@@ -24,8 +24,6 @@ import net.minecraftforge.common.util.FakePlayer;
 
 import com.mojang.authlib.GameProfile;
 
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.events.player.ForgePlayerConfigEvent;
 import serverutils.lib.events.player.ForgePlayerConfigSavedEvent;
 import serverutils.lib.events.player.ForgePlayerDataEvent;
@@ -48,6 +46,8 @@ import serverutils.lib.lib.util.permission.context.IContext;
 import serverutils.lib.lib.util.permission.context.PlayerContext;
 import serverutils.lib.lib.util.permission.context.WorldContext;
 import serverutils.lib.net.MessageSyncData;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable<ForgePlayer>, IConfigCallback {
 
@@ -142,7 +142,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
 
     public EntityPlayerMP getCommandPlayer(ICommandSender sender) throws CommandException {
         if (!isOnline()) {
-            throw ServerUtilitiesLib.error(sender, "player_must_be_online");
+            throw ServerUtilities.error(sender, "player_must_be_online");
         }
 
         return getPlayer();
@@ -227,9 +227,9 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
 
         boolean sendTeamJoinEvent = false, sendTeamCreatedEvent = false;
 
-        if (firstLogin && (ServerUtilitiesLibConfig.teams.disable_teams
-                || (player.mcServer.isSinglePlayer() ? ServerUtilitiesLibConfig.teams.autocreate_sp
-                        : ServerUtilitiesLibConfig.teams.autocreate_mp))) {
+        if (firstLogin && (ServerUtilitiesConfig.teams.disable_teams
+                || (player.mcServer.isSinglePlayer() ? ServerUtilitiesConfig.teams.autocreate_sp
+                        : ServerUtilitiesConfig.teams.autocreate_mp))) {
             if (player.mcServer.isSinglePlayer()) {
                 team = universe.getTeam("singleplayer");
 
@@ -266,7 +266,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
 
         if (!isFake()) {
             lastTimeSeen = universe.ticks.ticks();
-            // ServerUtilitiesLibStats.updateLastSeen(stats());
+            // ServerUtilitiesStats.updateLastSeen(stats());
             new MessageSyncData(true, player, this).sendTo(player);
         }
 
@@ -286,27 +286,27 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
         }
 
         if (!hideTeamNotification() && !hasTeam()) {
-            IChatComponent b1 = ServerUtilitiesLib.lang(player, "click_here");
+            IChatComponent b1 = ServerUtilities.lang(player, "click_here");
             b1.getChatStyle().setColor(EnumChatFormatting.GOLD);
             b1.getChatStyle().setChatClickEvent(
                     new ClickEvent(
                             ClickEvent.Action.RUN_COMMAND,
-                            "/serverutilitieslib_simulate_button custom:serverutilitieslib:my_team_gui"));
+                            "/serverutilities_simulate_button custom:serverutilities:my_team_gui"));
             b1.getChatStyle().setChatHoverEvent(
                     new HoverEvent(
                             HoverEvent.Action.SHOW_TEXT,
-                            ServerUtilitiesLib.lang(player, "sidebar_button.serverutilitieslib.my_team")));
-            IChatComponent b2 = ServerUtilitiesLib.lang(player, "click_here");
+                            ServerUtilities.lang(player, "sidebar_button.serverutilities.my_team")));
+            IChatComponent b2 = ServerUtilities.lang(player, "click_here");
             b2.getChatStyle().setColor(EnumChatFormatting.GOLD);
             b2.getChatStyle().setChatClickEvent(
                     new ClickEvent(
                             ClickEvent.Action.RUN_COMMAND,
-                            "/my_settings " + ServerUtilitiesLib.MOD_ID + ".hide_team_notification toggle"));
+                            "/my_settings " + ServerUtilities.MOD_ID + ".hide_team_notification toggle"));
             b2.getChatStyle().setChatHoverEvent(
                     new HoverEvent(
                             HoverEvent.Action.SHOW_TEXT,
-                            ServerUtilitiesLib.lang(player, "serverutilitieslib.lang.team.notification.hide")));
-            player.addChatMessage(ServerUtilitiesLib.lang(player, "serverutilitieslib.lang.team.notification", b1, b2));
+                            ServerUtilities.lang(player, "serverutilities.lang.team.notification.hide")));
+            player.addChatMessage(ServerUtilities.lang(player, "serverutilities.lang.team.notification", b1, b2));
         }
 
         universe.clearCache();
@@ -340,8 +340,8 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
             ForgePlayerConfigEvent event = new ForgePlayerConfigEvent(this, cachedConfig);
             event.post();
 
-            ConfigGroup config = cachedConfig.getGroup(ServerUtilitiesLib.MOD_ID);
-            config.setDisplayName(new ChatComponentText(ServerUtilitiesLib.MOD_NAME));
+            ConfigGroup config = cachedConfig.getGroup(ServerUtilities.MOD_ID);
+            config.setDisplayName(new ChatComponentText(ServerUtilities.MOD_NAME));
             config.addBool("hide_team_notification", () -> hideTeamNotification, v -> hideTeamNotification = v, false);
         }
 
@@ -392,7 +392,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
     }
 
     public boolean hideTeamNotification() {
-        return ServerUtilitiesLibConfig.teams.hide_team_notification || hideTeamNotification || isFake();
+        return ServerUtilitiesConfig.teams.hide_team_notification || hideTeamNotification || isFake();
     }
 
     public long getLastTimeSeen() {
@@ -420,7 +420,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
     }
 
     public File getDataFile(String ext) {
-        File dir = new File(team.universe.getWorldDirectory(), "data/serverutilitieslib/players/");
+        File dir = new File(team.universe.getWorldDirectory(), "data/serverutilities/players/");
 
         if (ext.isEmpty()) {
             return new File(dir, getName().toLowerCase() + ".dat");

@@ -6,11 +6,11 @@ import java.util.OptionalInt;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.data.Universe;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.data.ClaimedChunk;
 import serverutils.utils.data.ClaimedChunks;
 
@@ -32,7 +32,7 @@ public class CmdUnloadEverything extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!ClaimedChunks.isActive()) {
-            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
+            throw ServerUtilities.error(sender, "feature_disabled_server");
         }
 
         OptionalInt dimension = CommandUtils.parseDimension(sender, args, 0);

@@ -6,9 +6,9 @@ import net.minecraft.server.MinecraftServer;
 import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.events.RegisterRankConfigEvent;
 import serverutils.lib.events.RegisterRankConfigHandlerEvent;
+import serverutils.mod.ServerUtilities;
 
 public class RankConfigAPI {
 
@@ -16,7 +16,7 @@ public class RankConfigAPI {
 
     private static void setHandler(IRankConfigHandler h) {
         Preconditions.checkNotNull(h, "Permission handler can't be null!");
-        ServerUtilitiesLib.LOGGER.warn("Replacing " + handler.getClass().getName() + " with " + h.getClass().getName());
+        ServerUtilities.LOGGER.warn("Replacing " + handler.getClass().getName() + " with " + h.getClass().getName());
         handler = h;
     }
 

@@ -9,7 +9,7 @@ import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.math.BlockDimPos;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.data.ServerUtilitiesUniverseData;
 
 public class CmdSetWarp extends CmdBase {

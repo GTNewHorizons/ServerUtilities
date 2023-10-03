@@ -1,4 +1,4 @@
-package serverutils.utils.handlers;
+package serverutils.mod.handlers;
 
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NBTTagCompound;
@@ -17,7 +17,7 @@ import serverutils.lib.lib.data.ServerUtilitiesLibAPI;
 import serverutils.lib.lib.gui.GuiIcons;
 import serverutils.lib.lib.icon.ItemIcon;
 import serverutils.lib.lib.util.StringUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ServerUtilitiesUniverseData;
 import serverutils.utils.net.MessageViewCrashList;
@@ -28,7 +28,7 @@ public class ServerUtilitiesRegistryEventHandler {
     public static final ServerUtilitiesRegistryEventHandler INST = new ServerUtilitiesRegistryEventHandler();
 
     @SubscribeEvent
-    public void onServerUtilitiesLibPreInitRegistry(ServerUtilitiesLibPreInitRegistryEvent event) {
+    public void onServerUtilitiesPreInitRegistry(ServerUtilitiesLibPreInitRegistryEvent event) {
         ServerUtilitiesLibPreInitRegistryEvent.Registry registry = event.getRegistry();
         registry.registerServerReloadHandler(
                 new ResourceLocation(ServerUtilities.MOD_ID, "ranks"),

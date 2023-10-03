@@ -12,7 +12,7 @@ public enum EnumPrivacyLevel implements IStringSerializable {
 
     public static final EnumPrivacyLevel[] VALUES = values();
     public static final NameMap<EnumPrivacyLevel> NAME_MAP = NameMap
-            .createWithBaseTranslationKey(PUBLIC, "serverutilitieslib.privacy", VALUES);
+            .createWithBaseTranslationKey(PUBLIC, "serverutilities.privacy", VALUES);
 
     private final String name;
 

@@ -7,10 +7,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.EnumTeamStatus;
 import serverutils.lib.lib.gui.GuiIcons;
 import serverutils.lib.net.MessageMyTeamPlayerList;
+import serverutils.mod.ServerUtilities;
 
 public class ServerUtilitiesLibTeamGuiActions {
 
@@ -22,11 +22,7 @@ public class ServerUtilitiesLibTeamGuiActions {
     private static final Predicate<EnumTeamStatus> ENEMIES_PREDICATE = status -> status == EnumTeamStatus.ENEMY
             || status == EnumTeamStatus.NONE;
 
-    public static final TeamAction CONFIG = new TeamAction(
-            ServerUtilitiesLib.MOD_ID,
-            "config",
-            GuiIcons.SETTINGS,
-            -100) {
+    public static final TeamAction CONFIG = new TeamAction(ServerUtilities.MOD_ID, "config", GuiIcons.SETTINGS, -100) {
 
         @Override
         public Type getType(ForgePlayer player, NBTTagCompound data) {
@@ -39,7 +35,7 @@ public class ServerUtilitiesLibTeamGuiActions {
         }
     }.setTitle(new ChatComponentTranslation("gui.settings"));
 
-    public static final TeamAction INFO = new TeamAction(ServerUtilitiesLib.MOD_ID, "info", GuiIcons.INFO, 0) {
+    public static final TeamAction INFO = new TeamAction(ServerUtilities.MOD_ID, "info", GuiIcons.INFO, 0) {
 
         @Override
         public Type getType(ForgePlayer player, NBTTagCompound data) {
@@ -52,11 +48,7 @@ public class ServerUtilitiesLibTeamGuiActions {
         }
     }.setTitle(new ChatComponentTranslation("gui.info"));
 
-    public static final TeamAction MEMBERS = new TeamAction(
-            ServerUtilitiesLib.MOD_ID,
-            "members",
-            GuiIcons.FRIENDS,
-            30) {
+    public static final TeamAction MEMBERS = new TeamAction(ServerUtilities.MOD_ID, "members", GuiIcons.FRIENDS, 30) {
 
         @Override
         public Type getType(ForgePlayer player, NBTTagCompound data) {
@@ -97,7 +89,7 @@ public class ServerUtilitiesLibTeamGuiActions {
                         }
                     } else if (p.isOnline()) {
                         IChatComponent component = new ChatComponentTranslation(
-                                "serverutilitieslib.lang.team.invited_you",
+                                "serverutilities.lang.team.invited_you",
                                 player.team,
                                 player.getDisplayName());
                         component.getChatStyle().setChatClickEvent(
@@ -122,7 +114,7 @@ public class ServerUtilitiesLibTeamGuiActions {
         }
     };
 
-    public static final TeamAction ALLIES = new TeamAction(ServerUtilitiesLib.MOD_ID, "allies", GuiIcons.STAR, 40) {
+    public static final TeamAction ALLIES = new TeamAction(ServerUtilities.MOD_ID, "allies", GuiIcons.STAR, 40) {
 
         @Override
         public Type getType(ForgePlayer player, NBTTagCompound data) {
@@ -145,7 +137,7 @@ public class ServerUtilitiesLibTeamGuiActions {
     };
 
     public static final TeamAction MODERATORS = new TeamAction(
-            ServerUtilitiesLib.MOD_ID,
+            ServerUtilities.MOD_ID,
             "moderators",
             GuiIcons.SHIELD,
             50) {
@@ -170,7 +162,7 @@ public class ServerUtilitiesLibTeamGuiActions {
         }
     };
 
-    public static final TeamAction ENEMIES = new TeamAction(ServerUtilitiesLib.MOD_ID, "enemies", GuiIcons.CLOSE, 60) {
+    public static final TeamAction ENEMIES = new TeamAction(ServerUtilities.MOD_ID, "enemies", GuiIcons.CLOSE, 60) {
 
         @Override
         public Type getType(ForgePlayer player, NBTTagCompound data) {
@@ -192,7 +184,7 @@ public class ServerUtilitiesLibTeamGuiActions {
         }
     };
 
-    public static final TeamAction LEAVE = new TeamAction(ServerUtilitiesLib.MOD_ID, "leave", GuiIcons.REMOVE, 10000) {
+    public static final TeamAction LEAVE = new TeamAction(ServerUtilities.MOD_ID, "leave", GuiIcons.REMOVE, 10000) {
 
         @Override
         public Type getType(ForgePlayer player, NBTTagCompound data) {
@@ -208,7 +200,7 @@ public class ServerUtilitiesLibTeamGuiActions {
     }.setRequiresConfirm();
 
     public static final TeamAction TRANSFER_OWNERSHIP = new TeamAction(
-            ServerUtilitiesLib.MOD_ID,
+            ServerUtilities.MOD_ID,
             "transfer_ownership",
             GuiIcons.RIGHT,
             10000) {

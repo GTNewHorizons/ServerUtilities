@@ -23,7 +23,7 @@ import net.minecraft.util.IChatComponent;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.util.StringUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 
 public class CommandPing extends CmdBase {
 

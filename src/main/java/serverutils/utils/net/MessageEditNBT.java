@@ -4,12 +4,12 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.lib.io.DataIn;
 import serverutils.lib.lib.io.DataOut;
 import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.net.NetworkWrapper;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.gui.GuiEditNBT;
 
 public class MessageEditNBT extends MessageToClient {
@@ -22,7 +22,7 @@ public class MessageEditNBT extends MessageToClient {
         info = i;
         mainNbt = nbt;
 
-        if (ServerUtilitiesLibConfig.debugging.log_config_editing) {
+        if (ServerUtilitiesConfig.debugging.log_config_editing) {
             ServerUtilities.LOGGER.info("Editing NBT: " + mainNbt);
         }
     }

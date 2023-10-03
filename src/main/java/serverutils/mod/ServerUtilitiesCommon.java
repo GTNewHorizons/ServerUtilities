@@ -1,7 +1,9 @@
-package serverutils.lib;
+package serverutils.mod;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
@@ -13,10 +15,14 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeChunkManager;
+import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import serverutils.aurora.AuroraConfig;
 import serverutils.lib.events.IReloadHandler;
 import serverutils.lib.events.ServerReloadEvent;
 import serverutils.lib.events.ServerUtilitiesLibPreInitRegistryEvent;
@@ -53,12 +59,32 @@ import serverutils.lib.lib.icon.Color4I;
 import serverutils.lib.lib.math.Ticks;
 import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.util.InvUtils;
+import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.lib.net.ServerLibNetHandler;
+import serverutils.utils.ServerUtilitiesLeaderboards;
+import serverutils.utils.ServerUtilitiesPermissions;
+import serverutils.utils.backups.Backups;
+import serverutils.utils.data.Leaderboard;
+import serverutils.utils.data.NodeEntry;
+import serverutils.utils.data.ServerUtilitiesLoadedChunkManager;
+import serverutils.utils.data.ServerUtilitiesUniverseData;
+import serverutils.utils.events.CustomPermissionPrefixesRegistryEvent;
+import serverutils.utils.events.LeaderboardRegistryEvent;
+import serverutils.mod.handlers.ServerUtilitiesPlayerEventHandler;
+import serverutils.mod.handlers.ServerUtilitiesRegistryEventHandler;
+import serverutils.mod.handlers.ServerUtilitiesServerEventHandler;
+import serverutils.mod.handlers.ServerUtilitiesWorldEventHandler;
+import serverutils.utils.integration.aurora.AuroraIntegration;
+import serverutils.utils.net.ServerUtilitiesNetHandler;
+import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
 
-public class ServerUtilitiesLibCommon {
+public class ServerUtilitiesCommon {
 
+    public static final Collection<NodeEntry> CUSTOM_PERM_PREFIX_REGISTRY = new HashSet<>();
+    public static final Map<ResourceLocation, Leaderboard> LEADERBOARDS = new HashMap<>();
+    public static final Map<String, String> KAOMOJIS = new HashMap<>();
     public static final Map<String, ConfigValueProvider> CONFIG_VALUE_PROVIDERS = new HashMap<>();
-    public static final Map<UUID, EditingConfig> TEMP_SERVER_CONFIG = new HashMap<>();
+    public static final Map<UUID, ServerUtilitiesCommon.EditingConfig> TEMP_SERVER_CONFIG = new HashMap<>();
     public static final Map<String, ISyncData> SYNCED_DATA = new HashMap<>();
     public static final HashMap<ResourceLocation, IReloadHandler> RELOAD_IDS = new HashMap<>();
     public static final Map<ResourceLocation, TeamAction> TEAM_GUI_ACTIONS = new HashMap<>();
@@ -85,11 +111,52 @@ public class ServerUtilitiesLibCommon {
 
     public void preInit(FMLPreInitializationEvent event) {
         if ((Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
-            ServerUtilitiesLib.LOGGER.info("Loading ServerUtilitiesLib in development environment");
+            ServerUtilities.LOGGER.info("Loading ServerUtilities in development environment");
+        }
+
+        ServerUtilitiesConfig.init(event);
+        AuroraConfig.init(event);
+
+        if (ServerUtilitiesConfig.ranks.enabled) {
+            PermissionAPI.setPermissionHandler(ServerUtilitiesPermissionHandler.INSTANCE);
+        }
+
+        ServerUtilitiesNetHandler.init();
+
+        if (!ForgeChunkManager.getConfig().hasCategory(ServerUtilities.MOD_ID)) {
+            ForgeChunkManager.getConfig().get(ServerUtilities.MOD_ID, "maximumChunksPerTicket", 1000000).setMinValue(0);
+            ForgeChunkManager.getConfig().get(ServerUtilities.MOD_ID, "maximumTicketCount", 1000000).setMinValue(0);
+            ForgeChunkManager.getConfig().save();
+        }
+
+        ForgeChunkManager
+                .setForcedChunkLoadingCallback(ServerUtilities.INST, ServerUtilitiesLoadedChunkManager.INSTANCE);
+        new CustomPermissionPrefixesRegistryEvent(CUSTOM_PERM_PREFIX_REGISTRY::add).post();
+
+        KAOMOJIS.put("shrug", "\u00AF\\_(\u30C4)_/\u00AF");
+        KAOMOJIS.put("tableflip", "(\u256F\u00B0\u25A1\u00B0)\u256F \uFE35 \u253B\u2501\u253B");
+        KAOMOJIS.put("unflip", "\u252C\u2500\u252C\u30CE( \u309C-\u309C\u30CE)");
+
+        Backups.init();
+
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesConfig.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesPlayerEventHandler.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesRegistryEventHandler.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesServerEventHandler.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesWorldEventHandler.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesUniverseData.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesPermissions.INST);
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesLeaderboards.INST);
+        FMLCommonHandler.instance().bus().register(ServerUtilitiesServerEventHandler.INST);
+        if (AuroraConfig.general.enable) {
+            MinecraftForge.EVENT_BUS.register(AuroraIntegration.INST);
+            FMLCommonHandler.instance().bus().register(AuroraIntegration.INST);
         }
     }
 
     public void init(FMLInitializationEvent event) {
+        new LeaderboardRegistryEvent(leaderboard -> LEADERBOARDS.put(leaderboard.id, leaderboard)).post();
+        ServerUtilitiesPermissions.registerPermissions();
         ServerLibNetHandler.init();
 
         ServerUtilitiesLibPreInitRegistryEvent.Registry registry = new ServerUtilitiesLibPreInitRegistryEvent.Registry() {
@@ -129,7 +196,6 @@ public class ServerUtilitiesLibCommon {
         registry.registerConfigValueProvider(ConfigString.ID, () -> new ConfigString(""));
         registry.registerConfigValueProvider(ConfigColor.ID, () -> new ConfigColor(Color4I.WHITE));
         registry.registerConfigValueProvider(ConfigEnum.ID, () -> new ConfigStringEnum(Collections.emptyList(), ""));
-        // registry.registerConfigValueProvider(ConfigBlockState.ID, () -> new ConfigBlockState(BlockUtils.AIR_STATE));
         registry.registerConfigValueProvider(ConfigItemStack.ID, () -> new ConfigItemStack(InvUtils.EMPTY_STACK));
         registry.registerConfigValueProvider(
                 ConfigTextComponent.ID,
@@ -140,7 +206,7 @@ public class ServerUtilitiesLibCommon {
         registry.registerConfigValueProvider(ConfigTeam.TEAM_ID, () -> new ConfigTeamClient(""));
 
         registry.registerAdminPanelAction(
-                new AdminPanelAction(ServerUtilitiesLib.MOD_ID, "reload", GuiIcons.REFRESH, -1000) {
+                new AdminPanelAction(ServerUtilities.MOD_ID, "reload", GuiIcons.REFRESH, -1000) {
 
                     @Override
                     public Type getType(ForgePlayer player, NBTTagCompound data) {
@@ -155,7 +221,7 @@ public class ServerUtilitiesLibCommon {
                                 EnumReloadType.RELOAD_COMMAND,
                                 ServerReloadEvent.ALL);
                     }
-                }.setTitle(new ChatComponentTranslation("serverutilitieslib.lang.reload_server_button")));
+                }.setTitle(new ChatComponentTranslation("serverutilities.lang.reload_server_button")));
 
         registry.registerTeamAction(ServerUtilitiesLibTeamGuiActions.CONFIG);
         registry.registerTeamAction(ServerUtilitiesLibTeamGuiActions.INFO);
@@ -172,15 +238,11 @@ public class ServerUtilitiesLibCommon {
 
         CHAT_FORMATTING_SUBSTITUTES.put("name", ForgePlayer::getDisplayName);
         CHAT_FORMATTING_SUBSTITUTES.put("team", player -> player.team.getTitle());
-        // CHAT_FORMATTING_SUBSTITUTES.put("tag", player -> new ChatComponentText(player.getTag())); //TODO
     }
 
     public void postInit() {}
 
-    /*
-     * public void reloadConfig(LoaderState.ModState state) { JsonElement overridesE = JsonUtils.fromJson(new
-     * File(CommonUtils.folderConfig, "config_overrides.json")); if (overridesE.isJsonObject()) { } }
-     */
+    public void imc(FMLInterModComms.IMCMessage message) {}
 
     public void handleClientMessage(MessageToClient message) {}
 

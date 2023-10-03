@@ -17,8 +17,8 @@ import net.minecraft.util.ResourceLocation;
 import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
-import serverutils.utils.ServerUtilities;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class ThreadBackup extends Thread {
 

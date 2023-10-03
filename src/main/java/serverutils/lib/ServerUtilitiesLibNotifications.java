@@ -4,13 +4,12 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ResourceLocation;
 
 import serverutils.lib.lib.util.text_components.Notification;
+import serverutils.mod.ServerUtilities;
 
 public class ServerUtilitiesLibNotifications {
 
-    public static final ResourceLocation RELOAD_SERVER = new ResourceLocation(
-            ServerUtilitiesLib.MOD_ID,
-            "reload_server");
+    public static final ResourceLocation RELOAD_SERVER = new ResourceLocation(ServerUtilities.MOD_ID, "reload_server");
     public static final Notification NO_TEAM = Notification.of(
-            new ResourceLocation(ServerUtilitiesLib.MOD_ID, "no_team"),
-            new ChatComponentTranslation("serverutilitieslib.lang.team.error.no_team")).setError();
+            new ResourceLocation(ServerUtilities.MOD_ID, "no_team"),
+            new ChatComponentTranslation("serverutilities.lang.team.error.no_team")).setError();
 }

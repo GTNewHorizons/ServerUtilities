@@ -23,7 +23,6 @@ import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.events.team.ForgeTeamDataEvent;
 import serverutils.lib.events.universe.UniverseClosedEvent;
 import serverutils.lib.events.universe.UniverseLoadedEvent;
@@ -39,8 +38,8 @@ import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.misc.TimeType;
 import serverutils.lib.lib.util.text_components.Notification;
-import serverutils.utils.ServerUtilities;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.backups.Backups;
 import serverutils.utils.ranks.Ranks;
@@ -288,7 +287,7 @@ public class ServerUtilitiesUniverseData {
                     return badge;
                 }
             } catch (Exception ex) {
-                if (ServerUtilitiesLibConfig.debugging.print_more_errors) {
+                if (ServerUtilitiesConfig.debugging.print_more_errors) {
                     ServerUtilities.LOGGER.warn("Badge API errored! " + ex);
                 }
             }

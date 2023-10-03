@@ -7,8 +7,6 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.lib.config.ConfigGroup;
 import serverutils.lib.lib.config.ConfigValue;
 import serverutils.lib.lib.config.ConfigValueInstance;
@@ -16,6 +14,8 @@ import serverutils.lib.lib.config.IConfigCallback;
 import serverutils.lib.lib.data.ServerUtilitiesLibAPI;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.text_components.Notification;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public abstract class CmdEditConfigBase extends CmdBase {
 
@@ -77,7 +77,7 @@ public abstract class CmdEditConfigBase extends CmdBase {
         ConfigValueInstance instance = group.getValueInstance(args[0]);
 
         if (instance == null) {
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.config_command.invalid_key", args[0]);
+            throw ServerUtilities.error(sender, "serverutilities.lang.config_command.invalid_key", args[0]);
         }
 
         if (args.length >= 2) {
@@ -87,8 +87,8 @@ public abstract class CmdEditConfigBase extends CmdBase {
                 return;
             }
 
-            if (ServerUtilitiesLibConfig.debugging.log_config_editing) {
-                ServerUtilitiesLib.LOGGER.info("Setting " + instance.getPath() + " to " + valueString);
+            if (ServerUtilitiesConfig.debugging.log_config_editing) {
+                ServerUtilities.LOGGER.info("Setting " + instance.getPath() + " to " + valueString);
             }
 
             instance.getValue().setValueFromString(sender, valueString, false);
@@ -96,9 +96,9 @@ public abstract class CmdEditConfigBase extends CmdBase {
             Notification
                     .of(
                             Notification.VANILLA_STATUS,
-                            ServerUtilitiesLib.lang(
+                            ServerUtilities.lang(
                                     sender,
-                                    "serverutilitieslib.lang.config_command.set",
+                                    "serverutilities.lang.config_command.set",
                                     instance.getDisplayName(),
                                     group.getValue(args[0]).toString()))
                     .send(getCommandSenderAsPlayer(sender).mcServer, getCommandSenderAsPlayer(sender));

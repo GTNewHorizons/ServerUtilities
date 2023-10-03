@@ -13,7 +13,7 @@ import serverutils.lib.lib.io.DataOut;
 import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.lib.lib.util.NBTUtils;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class MessageUpdateTabName extends MessageToClient {
 

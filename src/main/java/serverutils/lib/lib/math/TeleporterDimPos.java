@@ -6,10 +6,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
 
-import serverutils.lib.ServerUtilitiesLib;
-import serverutils.lib.ServerUtilitiesLibConfig;
 import serverutils.lib.lib.util.ITeleporter;
 import serverutils.lib.lib.util.ServerUtils;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class TeleporterDimPos implements ITeleporter {
 
@@ -58,8 +58,8 @@ public class TeleporterDimPos implements ITeleporter {
             return entity;
         }
 
-        if (ServerUtilitiesLibConfig.debugging.log_teleport) {
-            ServerUtilitiesLib.LOGGER.info(
+        if (ServerUtilitiesConfig.debugging.log_teleport) {
+            ServerUtilities.LOGGER.info(
                     "Teleporting '" + entity.getCommandSenderName()
                             + "' to ["
                             + posX

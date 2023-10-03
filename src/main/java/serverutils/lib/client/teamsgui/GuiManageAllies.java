@@ -59,6 +59,6 @@ public class GuiManageAllies extends GuiManagePlayersBase {
     }
 
     public GuiManageAllies(Collection<MessageMyTeamPlayerList.Entry> m) {
-        super(I18n.format("team_action.serverutilitieslib.allies"), m, ButtonPlayer::new);
+        super(I18n.format("team_action.serverutilities.allies"), m, ButtonPlayer::new);
     }
 }

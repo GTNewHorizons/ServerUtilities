@@ -11,13 +11,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.client.GlStateManager;
 import serverutils.lib.lib.icon.Color4I;
 import serverutils.lib.lib.icon.Icon;
 import serverutils.lib.lib.icon.ImageIcon;
 import serverutils.lib.lib.icon.PartIcon;
 import serverutils.lib.lib.io.Bits;
+import serverutils.mod.ServerUtilities;
 
 public class Theme {
 
@@ -36,13 +36,14 @@ public class Theme {
     private static final Color4I CONTENT_COLOR_DARK = Color4I.rgb(4210752);
 
     public static final ImageIcon BACKGROUND_SQUARES = (ImageIcon) Icon
-            .getIcon(ServerUtilitiesLib.MOD_ID + ":textures/gui/background_squares.png");
+            .getIcon(ServerUtilities.MOD_ID + ":textures/gui/background_squares.png");
     private static final ImageIcon TEXTURE_BEACON = (ImageIcon) Icon.getIcon("textures/gui/container/beacon.png");
     private static final ImageIcon TEXTURE_WIDGETS = (ImageIcon) Icon.getIcon("textures/gui/widgets.png");
-    private static final ImageIcon TEXTURE_ENCHANTING_TABLE = (ImageIcon) Icon
-            .getIcon("textures/gui/container/enchanting_table.png");
+    private static final ImageIcon TEXTURE_RECIPE_BOOK = (ImageIcon) Icon.getIcon("textures/gui/recipe_book.png");
     private static final ImageIcon TEXTURE_TABS = (ImageIcon) Icon
             .getIcon("textures/gui/container/creative_inventory/tabs.png");
+    private static final ImageIcon TEXTURE_ENCHANTING_TABLE = (ImageIcon) Icon
+            .getIcon("textures/gui/container/enchanting_table.png");
 
     private static final Icon GUI = new PartIcon(TEXTURE_TABS, 0, 97, 28, 28, 4);
     private static final Icon GUI_MOUSE_OVER = GUI.withTint(Color4I.rgb(0xAFB6DA));
@@ -63,8 +64,8 @@ public class Theme {
 
     private static final Icon TEXT_BOX = new PartIcon(TEXTURE_ENCHANTING_TABLE, 0, 185, 108, 19, 6);
 
-    private static final Icon TAB_H_UNSELECTED = TEXTURE_TABS.withUV(0, 97, 28, 28, 256, 256);
-    private static final Icon TAB_H_SELECTED = TEXTURE_TABS.withUV(0, 64, 27, 27, 256, 256);
+    private static final Icon TAB_H_UNSELECTED = TEXTURE_RECIPE_BOOK.withUV(150, 2, 35, 26, 256, 256);
+    private static final Icon TAB_H_SELECTED = TEXTURE_RECIPE_BOOK.withUV(188, 2, 35, 26, 256, 256);
 
     private final Deque<Boolean> fontUnicode = new ArrayDeque<>();
 

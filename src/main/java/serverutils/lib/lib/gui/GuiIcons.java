@@ -80,6 +80,6 @@ public interface GuiIcons {
     Icon SUPPORT = get("support");
 
     static Icon get(String id) {
-        return Icon.getIcon("serverutilitieslib:textures/icons/" + id + ".png");
+        return Icon.getIcon("serverutilities:textures/icons/" + id + ".png");
     }
 }

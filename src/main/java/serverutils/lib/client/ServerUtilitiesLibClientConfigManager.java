@@ -14,6 +14,7 @@ import com.google.gson.JsonElement;
 import serverutils.lib.client.resource.IResourceType;
 import serverutils.lib.client.resource.ISelectiveResourceReloadListener;
 import serverutils.lib.lib.io.DataReader;
+import serverutils.mod.client.ServerUtilitiesClient;
 
 /**
  * @author LatvianModder
@@ -24,11 +25,11 @@ public enum ServerUtilitiesLibClientConfigManager implements ISelectiveResourceR
 
     @Override
     public void onResourceManagerReload(IResourceManager manager, Predicate<IResourceType> resourcePredicate) {
-        if (!resourcePredicate.test(ServerUtilitiesLibResourceType.SERVERUTILSLIB_CONFIG)) {
+        if (!resourcePredicate.test(ServerUtilitiesLibResourceType.SERVERUTILS_CONFIG)) {
             return;
         }
 
-        ServerUtilitiesLibClient.CLIENT_CONFIG_MAP.clear();
+        ServerUtilitiesClient.CLIENT_CONFIG_MAP.clear();
 
         for (String domain : (Set<String>) manager.getResourceDomains()) {
             try {
@@ -36,7 +37,7 @@ public enum ServerUtilitiesLibClientConfigManager implements ISelectiveResourceR
                         .getAllResources(new ResourceLocation(domain, "client_config.json"))) {
                     for (JsonElement e : DataReader.get(resource).json().getAsJsonArray()) {
                         ClientConfig c = new ClientConfig(e.getAsJsonObject());
-                        ServerUtilitiesLibClient.CLIENT_CONFIG_MAP.put(c.id, c);
+                        ServerUtilitiesClient.CLIENT_CONFIG_MAP.put(c.id, c);
                     }
                 }
             } catch (Exception ex) {

@@ -4,13 +4,13 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.command.CmdEditConfigBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.config.ConfigGroup;
 import serverutils.lib.lib.config.IConfigCallback;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.data.ServerUtilitiesLibAPI;
+import serverutils.mod.ServerUtilities;
 
 public class CmdSettings extends CmdEditConfigBase {
 
@@ -25,7 +25,7 @@ public class CmdSettings extends CmdEditConfigBase {
 
         if (!p.hasTeam()) {
             ServerUtilitiesLibAPI.sendCloseGuiPacket(player);
-            throw ServerUtilitiesLib.error(sender, "serverutilitieslib.lang.team.error.no_team");
+            throw ServerUtilities.error(sender, "serverutilities.lang.team.error.no_team");
         } else if (!p.team.isModerator(p)) {
             ServerUtilitiesLibAPI.sendCloseGuiPacket(player);
             throw new CommandException("commands.generic.permission");

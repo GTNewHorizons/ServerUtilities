@@ -1,7 +1,8 @@
-package serverutils.utils.handlers;
+package serverutils.mod.handlers;
 
 import java.util.List;
 
+import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.EntityLivingBase;
@@ -34,7 +35,8 @@ import serverutils.lib.lib.util.InvUtils;
 import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.permission.PermissionAPI;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.lib.net.MessageSyncData;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.backups.Backups;
@@ -258,6 +260,24 @@ public class ServerUtilitiesPlayerEventHandler {
                     }
 
                     event.displayname = name;
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.player.ticksExisted % 5 == 2 && event.player instanceof EntityPlayerMP) {
+            EntityPlayerMP player = (EntityPlayerMP) event.player;
+            byte opState = player.getEntityData().getByte("ServerLibOP");
+            byte newOpState = ServerUtils.isOP(player) ? (byte) 2 : (byte) 1;
+
+            if (opState != newOpState) {
+                player.getEntityData().setByte("ServerLibOP", newOpState);
+                Universe.get().clearCache();
+                ForgePlayer forgePlayer = Universe.get().getPlayer(player.getGameProfile());
+                if (forgePlayer != null) {
+                    new MessageSyncData(false, player, forgePlayer).sendTo(player);
                 }
             }
         }

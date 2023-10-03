@@ -10,7 +10,7 @@ import serverutils.lib.lib.util.StringUtils;
 public class CommandSimulateButton extends CmdBase {
 
     public CommandSimulateButton() {
-        super("serverutilitieslib_simulate_button", Level.ALL);
+        super("serverutilities_simulate_button", Level.ALL);
     }
 
     @Override

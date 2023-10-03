@@ -6,11 +6,10 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.math.ChunkDimPos;
 import serverutils.lib.lib.util.ServerUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.data.ClaimedChunk;
 import serverutils.utils.data.ClaimedChunks;
 
@@ -23,7 +22,7 @@ public class CmdInfo extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (!ClaimedChunks.isActive()) {
-            throw ServerUtilitiesLib.error(sender, "feature_disabled_server");
+            throw ServerUtilities.error(sender, "feature_disabled_server");
         }
 
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);

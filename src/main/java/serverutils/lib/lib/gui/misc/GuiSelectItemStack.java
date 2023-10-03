@@ -97,7 +97,7 @@ public class GuiSelectItemStack extends GuiBase {
 
         @Override
         public void drawIcon(Theme theme, int x, int y, int w, int h) {
-            // if (stack.getItem() == ServerUtilitiesLib.CUSTOM_ICON_ITEM && stack.hasTagCompound()
+            // if (stack.getItem() == ServerUtilities.CUSTOM_ICON_ITEM && stack.hasTagCompound()
             // && !stack.getTagCompound().getString("icon").isEmpty()) {
             if (!stack.getTagCompound().getString("icon").isEmpty()) {
                 Icon.getIcon(stack.getTagCompound().getString("icon")).draw(x, y, w, h);
@@ -135,9 +135,9 @@ public class GuiSelectItemStack extends GuiBase {
         @Override
         public String getTitle() {
             return I18n.format(
-                    "serverutilitieslib.select_item.list_mode",
-                    EnumChatFormatting.GRAY + (allItems ? I18n.format("serverutilitieslib.select_item.list_mode.all")
-                            : I18n.format("serverutilitieslib.select_item.list_mode.inv")))
+                    "serverutilities.select_item.list_mode",
+                    EnumChatFormatting.GRAY + (allItems ? I18n.format("serverutilities.select_item.list_mode.all")
+                            : I18n.format("serverutilities.select_item.list_mode.inv")))
                     + EnumChatFormatting.DARK_GRAY
                     + " ["
                     + (panelStacks.widgets.size() - 1)
@@ -199,7 +199,7 @@ public class GuiSelectItemStack extends GuiBase {
     private class ButtonCount extends ButtonStackConfig {
 
         public ButtonCount(Panel panel) {
-            super(panel, I18n.format("serverutilitieslib.select_item.count"), ItemIcon.getItemIcon(Items.paper));
+            super(panel, I18n.format("serverutilities.select_item.count"), ItemIcon.getItemIcon(Items.paper));
         }
 
         @Override
@@ -229,7 +229,7 @@ public class GuiSelectItemStack extends GuiBase {
         public ButtonMeta(Panel panel) {
             super(
                     panel,
-                    I18n.format("serverutilitieslib.select_item.meta"),
+                    I18n.format("serverutilities.select_item.meta"),
                     ItemIcon.getItemIcon(new ItemStack(Blocks.stonebrick, 1, 2)));
         }
 
@@ -252,7 +252,7 @@ public class GuiSelectItemStack extends GuiBase {
     private class ButtonNBT extends ButtonStackConfig {
 
         public ButtonNBT(Panel panel) {
-            super(panel, I18n.format("serverutilitieslib.select_item.nbt"), ItemIcon.getItemIcon(Items.name_tag));
+            super(panel, I18n.format("serverutilities.select_item.nbt"), ItemIcon.getItemIcon(Items.name_tag));
         }
 
         @Override
@@ -274,7 +274,7 @@ public class GuiSelectItemStack extends GuiBase {
     private class ButtonCaps extends ButtonStackConfig {
 
         public ButtonCaps(Panel panel) {
-            super(panel, I18n.format("serverutilitieslib.select_item.caps"), ItemIcon.getItemIcon(Blocks.anvil));
+            super(panel, I18n.format("serverutilities.select_item.caps"), ItemIcon.getItemIcon(Blocks.anvil));
         }
 
         @Override
@@ -307,7 +307,7 @@ public class GuiSelectItemStack extends GuiBase {
     private class ButtonDisplayName extends ButtonStackConfig {
 
         public ButtonDisplayName(Panel panel) {
-            super(panel, I18n.format("serverutilitieslib.select_item.display_name"), ItemIcon.getItemIcon(Items.sign));
+            super(panel, I18n.format("serverutilities.select_item.display_name"), ItemIcon.getItemIcon(Items.sign));
         }
 
         @Override

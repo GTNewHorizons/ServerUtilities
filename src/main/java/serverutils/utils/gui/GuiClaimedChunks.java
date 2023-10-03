@@ -167,7 +167,7 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
         if (maxClaimedChunks < 0) {
             if (corner == Corner.BOTTOM_RIGHT) {
                 if (maxClaimedChunks == -2) {
-                    list.add(EnumChatFormatting.RED + I18n.format("serverutilitieslib.lang.team.error.no_team"));
+                    list.add(EnumChatFormatting.RED + I18n.format("serverutilities.lang.team.error.no_team"));
                 } else {
                     list.add(EnumChatFormatting.RED + I18n.format("feature_disabled_server"));
                 }

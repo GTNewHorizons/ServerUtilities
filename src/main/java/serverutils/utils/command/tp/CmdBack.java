@@ -8,7 +8,7 @@ import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.util.permission.PermissionAPI;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 import serverutils.utils.data.TeleportLog;

@@ -1,7 +1,7 @@
 package serverutils.utils.integration.kubejs;
 
 // import serverutils.lib.lib.data.Universe;
-// import serverutils.utils.ServerUtilitiesConfig;
+// import serverutils.mod.ServerUtilitiesConfig;
 // import serverutils.utils.data.ClaimedChunk;
 // import serverutils.utils.data.ClaimedChunks;
 // import serverutils.utils.data.ServerUtilitiesPlayerData;

@@ -59,6 +59,6 @@ public class GuiManageModerators extends GuiManagePlayersBase {
     }
 
     public GuiManageModerators(Collection<MessageMyTeamPlayerList.Entry> m) {
-        super(I18n.format("team_action.serverutilitieslib.moderators"), m, ButtonPlayer::new);
+        super(I18n.format("team_action.serverutilities.moderators"), m, ButtonPlayer::new);
     }
 }

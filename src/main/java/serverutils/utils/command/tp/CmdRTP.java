@@ -13,8 +13,8 @@ import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.math.ChunkDimPos;
 import serverutils.lib.lib.math.TeleporterDimPos;
-import serverutils.utils.ServerUtilities;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilities;
+import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.utils.data.ClaimedChunks;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 

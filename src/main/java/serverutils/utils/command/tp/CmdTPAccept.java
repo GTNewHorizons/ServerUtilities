@@ -12,7 +12,7 @@ import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
 import serverutils.lib.lib.math.TeleporterDimPos;
 import serverutils.lib.lib.util.StringUtils;
-import serverutils.utils.ServerUtilities;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 

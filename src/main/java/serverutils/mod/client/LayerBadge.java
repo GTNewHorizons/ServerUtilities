@@ -1,4 +1,4 @@
-package serverutils.utils.client;
+package serverutils.mod.client;
 
 public enum LayerBadge // implements LayerRenderer<AbstractClientPlayer>
 {

@@ -14,7 +14,7 @@ import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CmdTreeBase;
 import serverutils.lib.lib.command.CmdTreeHelp;
 import serverutils.lib.lib.command.CommandUtils;
-import serverutils.utils.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesConfig;
 
 public class CmdInv extends CmdTreeBase {
 
