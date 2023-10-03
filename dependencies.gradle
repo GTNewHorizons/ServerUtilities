@@ -3,5 +3,6 @@
 dependencies {
     api("com.github.GTNewHorizons:waila:1.6.0:dev")
 	api('curse.maven:journeymap-32274:4500659')
+    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.3.81-GTNH:dev")
     shadowCompile("it.unimi.dsi:fastutil:8.5.12")
 }

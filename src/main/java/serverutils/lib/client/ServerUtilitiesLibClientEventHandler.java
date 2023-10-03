@@ -13,6 +13,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.client.resources.I18n;
@@ -28,11 +29,14 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
+import codechicken.nei.GuiExtendedCreativeInv;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import serverutils.lib.ServerUtilitiesLib;
 import serverutils.lib.events.client.CustomClickEvent;
+import serverutils.lib.lib.OtherMods;
 import serverutils.lib.lib.client.ClientUtils;
 import serverutils.lib.lib.client.GlStateManager;
 import serverutils.lib.lib.gui.Widget;
@@ -207,14 +211,22 @@ public class ServerUtilitiesLibClientEventHandler {
     @SubscribeEvent
     public void onGuiInit(final GuiScreenEvent.InitGuiEvent.Post event) {
         if (areButtonsVisible(event.gui)) {
-            event.buttonList.add(new GuiButtonSidebarGroup((InventoryEffectRenderer) event.gui));
+            event.buttonList.add(new GuiButtonSidebarGroup((GuiContainer) event.gui));
         }
     }
 
     public static boolean areButtonsVisible(@Nullable GuiScreen gui) {
         return ServerUtilitiesLibClientConfig.action_buttons != EnumSidebarButtonPlacement.DISABLED
-                && gui instanceof InventoryEffectRenderer
+                && getAllowedGui(gui)
                 && !SidebarButtonManager.INSTANCE.groups.isEmpty();
+    }
+
+    private static boolean getAllowedGui(GuiScreen gui) {
+        if (Loader.isModLoaded(OtherMods.NEI_GTNH)) {
+            return gui instanceof InventoryEffectRenderer || gui instanceof GuiExtendedCreativeInv;
+        } else {
+            return gui instanceof InventoryEffectRenderer;
+        }
     }
 
     @SubscribeEvent
@@ -339,11 +351,11 @@ public class ServerUtilitiesLibClientEventHandler {
 
     private static class GuiButtonSidebarGroup extends GuiButton {
 
-        private final InventoryEffectRenderer gui;
+        private final GuiContainer gui;
         public final List<GuiButtonSidebar> buttons;
         private GuiButtonSidebar mouseOver;
 
-        public GuiButtonSidebarGroup(InventoryEffectRenderer g) {
+        public GuiButtonSidebarGroup(GuiContainer g) {
             super(495829, 0, 0, 0, 0, "");
             gui = g;
             buttons = new ArrayList<>();
@@ -355,9 +367,7 @@ public class ServerUtilitiesLibClientEventHandler {
             mouseOver = null;
             int rx, ry = 0;
             boolean addedAny;
-            boolean top = ServerUtilitiesLibClientConfig.action_buttons.top()
-                    || !gui.mc.thePlayer.getActivePotionEffects().isEmpty();
-            // || (gui instanceof GuiInventory && ((GuiInventory) gui).func_194310_f().isVisible());
+            boolean top = ServerUtilitiesLibClientConfig.action_buttons.top();
 
             for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
                 rx = 0;
@@ -385,14 +395,22 @@ public class ServerUtilitiesLibClientEventHandler {
                     button.y = 1 + button.buttonY * 17;
                 }
             } else {
+                int offsetX = 18;
                 int offsetY = 8;
 
                 if (gui instanceof GuiContainerCreative) {
                     offsetY = 6;
                 }
 
+                if (Loader.isModLoaded(OtherMods.NEI_GTNH)) {
+                    if (gui instanceof GuiExtendedCreativeInv) {
+                        offsetY = 22;
+                        offsetX = 41;
+                    }
+                }
+
                 for (GuiButtonSidebar button : buttons) {
-                    button.x = guiLeft - 18 - button.buttonY * 17;
+                    button.x = guiLeft - offsetX - button.buttonY * 17;
                     button.y = guiTop + offsetY + button.buttonX * 17;
                 }
             }
