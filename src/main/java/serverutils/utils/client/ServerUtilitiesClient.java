@@ -9,6 +9,7 @@ import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.input.Keyboard;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import serverutils.lib.ServerUtilitiesLib;
 import serverutils.utils.ServerUtilitiesCommon;
@@ -38,6 +39,7 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon // ServerUtilit
                         ServerUtilitiesLib.KEY_CATEGORY));
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientEventHandler.INST);
+        FMLCommonHandler.instance().bus().register(ServerUtilitiesClientEventHandler.INST);
     }
 
     @Override
