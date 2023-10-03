@@ -322,8 +322,8 @@ public class ServerUtilitiesPlayerEventHandler {
                     String.format(
                             "%s clicked %s in air at %s in %s",
                             player.getDisplayName(),
-                            event.entityPlayer.getItemInUse().getItem()
-                                    .getItemStackDisplayName(event.entityPlayer.getItemInUse()),
+                            event.entityPlayer.getHeldItem().getItem()
+                                    .getItemStackDisplayName(event.entityPlayer.getHeldItem()),
                             getPos(event.x, event.y, event.z),
                             getDim(player)));
         }
