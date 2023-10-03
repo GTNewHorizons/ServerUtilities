@@ -65,17 +65,18 @@ public class CommandListPage extends HTTPWebPage {
             Tag row = nodeTable.tr();
             row.td().paired("code", c.node.toString());
             Tag n = row.td();
-            boolean first = true;
 
-            for (String s : Tag.fixHTML(c.usage.getUnformattedText()).split(" OR ")) {
-                if (first) {
-                    first = false;
-                } else {
-                    n.br();
-                }
+            // boolean first = true;
 
-                n.text(s);
-            }
+            // for (String s : Tag.fixHTML(c.usage.getUnformattedText()).split(" OR ")) {
+            // if (first) {
+            // first = false;
+            // } else {
+            // n.br();
+            // }
+            //
+            // n.text(s);
+            // }
         }
     }
 }
