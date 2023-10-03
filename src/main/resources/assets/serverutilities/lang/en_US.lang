@@ -1,5 +1,5 @@
 # Config
-serverutilities=Server Utilities Common
+serverutilities=Server Utilities
 serverutilities.auto_shutdown=Auto Shutdown
 serverutilities.auto_shutdown.enabled_singleplayer=Enabled in Singleplayer
 serverutilities.auto_shutdown.times=Shutdown Times
@@ -342,3 +342,282 @@ cmd.backup_manual_launch=%s launched a manual backup!
 cmd.backup_already_running=Backup in progress!
 cmd.backup_not_running=Backup is not running!
 cmd.backup_size=Current world size: %s, total backups folder size: %s
+
+#LIB
+# Gui
+## Buttons
+gui.accept=Accept
+gui.add=Add
+gui.added=Added
+gui.remove=Remove
+gui.removed=Removed
+gui.close=Close
+gui.open=Open
+gui.saved=Saved
+gui.loaded=Loaded
+gui.info=Info
+gui.collapse_all=Collapse All
+gui.expand_all=Expand All
+gui.download=Download
+gui.downloaded=Downloaded
+gui.update=Update
+gui.updated=Updated
+gui.active=Active
+gui.inactive=Inactive
+gui.settings=Settings
+gui.rename=Rename
+gui.search_box=Search...
+gui.move=Move
+gui.copy=Copy
+gui.paste=Paste
+gui.cut=Cut
+
+## Labels
+gui.other=Other
+gui.server_forced=Server Forced: %s
+gui.online=Online
+gui.offline=Offline
+gui.whitelist=Whitelist
+gui.blacklist=Blacklist
+gui.color=Color
+gui.downloading=Downloading...
+gui.infinite=Infinite
+
+## Sides
+facing.north=North
+facing.south=South
+facing.west=West
+facing.east=East
+
+relative_facing.bottom=Bottom
+relative_facing.top=Top
+relative_facing.back=Back
+relative_facing.front=Front
+relative_facing.left=Left
+relative_facing.right=Right
+
+# ServerUtilitiesLib Lang
+wip=Work In Progress!
+deprecated=This method is deprecated, please use %s
+example=Example:
+click_here=[Click Here]
+feature_disabled=This feature is disabled!
+feature_disabled_server=This feature is disabled on server!
+error=Error: %s
+owner=Owner: %s
+delete_item=Do you want to delete '%s'?
+server_forced=Server overrides to '%s'
+commands=Commands
+my_permissions=My Permissions
+all_permissions=All Permissions
+key.categories.serverutilitiesmods=Server Utilities Mods
+stand_still=Please, stand still for %d seconds.
+stand_still_failed=You moved! Teleport cancelled.
+teleporting=Teleporting...
+cooldown=Cooldown
+cant_use_now=Can't use that right now!
+cant_use_now_cooldown=Can't use that right now! Cooldown: %s
+action_bar=Action Bar
+nothing_changed=Nothing changed!
+player_must_be_online=Player must be online!
+lat_support=Like this mod? Click to support my projects!
+
+serverutilities.lang.reload_server_button=Reload Server
+serverutilities.lang.reload_server=Server reloaded in %s
+serverutilities.lang.reload_client=You can press %s to reload client
+serverutilities.lang.reload_failed=These IDs failed to reload:
+
+serverutilities.lang.config_command.invalid_key=Can't find config value '%s'!
+serverutilities.lang.config_command.set='%s' set to %s
+
+serverutilities.lang.add_fake_player.invalid_uuid=Invalid UUID!
+serverutilities.lang.add_fake_player.player_exists=Player already exists!
+serverutilities.lang.add_fake_player.added=Fake player %s added!
+
+serverutilities.select_fluid.gui=Select Fluid
+serverutilities.select_fluid.none=None
+serverutilities.select_item.list_mode=List Mode: %s
+serverutilities.select_item.list_mode.all=All Items
+serverutilities.select_item.list_mode.inv=Inventory
+serverutilities.select_item.count=Set Size
+serverutilities.select_item.meta=Set Metadata
+serverutilities.select_item.nbt=Edit NBT
+serverutilities.select_item.caps=Edit Capabilities
+serverutilities.select_item.display_name=Set Display Name
+serverutilities.select_team.gui=Select Team
+
+serverutilities.world.dimension.overworld=Overworld
+serverutilities.world.dimension.end=The End
+serverutilities.world.dimension.nether=Nether
+
+# Config
+serverutilities.general.clientless_mode=Clientless Mode
+serverutilities.general.replace_reload_command=Replace /reload Command
+serverutilities.general.merge_offline_mode_players=Merge Offline Mode Players
+
+serverutilities.teams=Teams
+serverutilities.teams.autocreate_sp=Autocreate on Singleplayer
+serverutilities.teams.autocreate_mp=Autocreate on Multiplayer
+
+serverutilities.debugging=Debugging
+serverutilities.debugging.special_commands=Special Commands
+serverutilities.debugging.print_more_info=Print More Info
+serverutilities.debugging.print_more_errors=Print More Errors
+serverutilities.debugging.log_network=Log Network IO
+serverutilities.debugging.log_teleport=Log Teleporting
+serverutilities.debugging.log_config_editing=Log Config Editing
+serverutilities.debugging.dev_sidebar_buttons=Dev-only Sidebar Buttons
+serverutilities.debugging.gui_widget_bounds=GUI Widget Bounds
+serverutilities.debugging.log_events=Log Events
+
+# Client Config
+serverutilities_client.general.item_ore_names=Display Item OreDictionary names
+serverutilities_client.general.item_ore_names.item_tooltip=Ore Dictionary Names:
+serverutilities_client.general.item_nbt=Display Item NBT
+serverutilities_client.general.replace_vanilla_status_messages=Replace vanilla status messages
+serverutilities_client.general.debug_helper=Debug Helper
+
+# Player Settings
+player_config=My Server Settings
+player_config.serverutilities.hide_team_notification=Hide Team Notification on Login
+
+# Team Settings
+team_config.serverutilities.display=Display
+team_config.serverutilities.display.color=Color
+team_config.serverutilities.display.fake_player_status=Fake Player Status
+team_config.serverutilities.display.title=Title
+team_config.serverutilities.display.title.tooltip=Displays when you enter a claimed chunk
+team_config.serverutilities.display.desc=Description
+team_config.serverutilities.display.desc.tooltip=Displays under Title
+team_config.serverutilities.free_to_join=Free to Join
+team_config.serverutilities.free_to_join.tooltip=Anyone can join without invitation
+
+# Teams
+serverutilities.lang.team.no_team=No Team
+serverutilities.lang.team.created=Team '%s' created
+serverutilities.lang.team.id_already_exists=ID already registered!
+serverutilities.lang.team.id_invalid=ID can only contain lowercase a-z, _ and |!
+serverutilities.lang.team.deleted=Team '%s' deleted
+serverutilities.lang.team.member_left=%s left your team!
+serverutilities.lang.team.member_joined=%s joined your team!
+serverutilities.lang.team.transferred_ownership=New owner now is %s
+serverutilities.lang.team.invited=Invited %s to '%s'
+serverutilities.lang.team.invited_you=You have been invited to '%s' by %s. Click here to join!
+serverutilities.lang.team.cancel_invite=Cancel invite
+serverutilities.lang.team.error.not_found=Team '%s' not found!
+serverutilities.lang.team.error.no_team=You must be in a Team to do that!
+serverutilities.lang.team.error.must_leave=You must leave your Team to do that!
+serverutilities.lang.team.error.not_owner=You are not the owner of this Team!
+serverutilities.lang.team.error.not_member=%s is not a member of this Team!
+serverutilities.lang.team.error.already_member=%s is already a member of this Team!
+serverutilities.lang.team.error.must_transfer_ownership=You must transfer ownership!
+serverutilities.lang.team.error.already_invited=%s already is invited!
+serverutilities.lang.team.error.failed_to_join=Can't join this team!
+serverutilities.lang.team.permission.set=Permission '%s' for %s set to %s
+serverutilities.lang.team.permission.owner=Can't change owner's permissions!
+serverutilities.lang.team.notification=You haven't joined or created a team yet! %s to open TeamsGUI or %s to hide this message.
+serverutilities.lang.team.notification.hide=Hide this Message
+serverutilities.lang.team.chat_message=[Team %s] %s
+
+team_action.serverutilities.select_team=Select Team to Join
+team_action.serverutilities.create_team=Create a New Team
+team_action.serverutilities.members=Members
+team_action.serverutilities.allies=Allies
+team_action.serverutilities.moderators=Moderators
+team_action.serverutilities.enemies=Enemies
+team_action.serverutilities.change_team=Join another Team
+team_action.serverutilities.leave=Leave Team
+team_action.serverutilities.leave.confirmation=Warning! You may lose quest progress and other things if you do!
+team_action.serverutilities.transfer_ownership=Transfer Ownership
+
+serverutilities.lang.team.gui.join_team=Click to join '%s'
+serverutilities.lang.team.gui.request_invite=Click to request invite to '%s'
+serverutilities.lang.team.gui.members.invite=Click to invite to your team
+serverutilities.lang.team.gui.members.requesting_invite=This player is requesting invite
+serverutilities.lang.team.gui.members.deny_request=Right-click to deny request
+serverutilities.lang.team.gui.members.cancel_invite=Right-click to cancel invite
+serverutilities.lang.team.gui.members.kick=Right-click to kick member
+
+serverutilities.lang.team_status.enemy=Enemy
+serverutilities.lang.team_status.none=None
+serverutilities.lang.team_status.requesting_invite=Requesting Invite
+serverutilities.lang.team_status.invited=Invited
+serverutilities.lang.team_status.ally=Ally
+serverutilities.lang.team_status.member=Member
+serverutilities.lang.team_status.mod=Moderator
+serverutilities.lang.team_status.owner=Owner
+
+# Sidebar Buttons
+sidebar_button=Sidebar Buttons
+sidebar_button.serverutilities.my_team=My Team
+sidebar_button.serverutilities.my_team.tooltip=Opens a GUI where you can manage your team
+sidebar_button.serverutilities.settings=Client Settings
+sidebar_button.serverutilities.settings.tooltip=Edit client-side-only settings
+sidebar_button.serverutilities.notifications=Notifications
+sidebar_button.serverutilities.admin_panel=Admin Panel
+
+# Privacy Level
+privacy=Privacy
+privacy.public=Public
+privacy.private=Private
+privacy.team=Team
+
+# Redstone Mode
+redstone_mode=Redstone Mode
+redstone_mode.disabled=Disabled
+redstone_mode.active_high=Active High
+redstone_mode.active_low=Active Low
+redstone_mode.pulse=Pulse
+
+# IO Mode
+io_mode=IO Mode
+io_mode.io=IO
+io_mode.in=Input Only
+io_mode.out=Output Only
+io_mode.none=Disabled
+
+# Click Actions
+click_action.cmd=Command
+click_action.show_cmd=Show Command
+click_action.url=Open URL
+click_action.file=Open File
+click_action.gui=Open Gui
+
+# Commands
+commands.reload.usage=/reload [*|domain:*|domain:id]
+commands.my_settings.usage=/my_settings <config id> [value]
+commands.team.usage=/team
+commands.team.settings.usage=/team settings <config id> [value]
+commands.team.create.usage=/team create <id> [color]
+commands.team.leave.usage=/team leave
+commands.team.transfer_ownership.usage=/team transfer_ownership <player>
+commands.team.kick.usage=/team kick <player>
+commands.team.join.usage=/team join <team>
+commands.team.status.usage=/team status <player> [set_status]
+commands.team.status.set=Status for %s set to %s
+commands.team.status.cant_set=Status can't be set!
+commands.team.msg.usage=/team msg <message...>
+commands.team.delete.usage=/team delete <team>
+commands.team.request_invite.usage=/team request_invite <team>
+commands.team.create_server_team.usage=/team create_server_team <id>
+commands.team.info.usage=/team info <team>
+commands.team.info.id=ID: %s
+commands.team.info.uid=UID: %s
+commands.team.info.owner=Owner: %s
+commands.team.info.members=Members: %s
+commands.team.get.usage=/team get <player>
+commands.team.list.usage=/team list
+commands.team.list.teams=List of all teams (%d):
+commands.add_fake_player.usage=/add_fake_player <uuid> <name>
+
+# Client Commands
+commands.client_config.usage=/client_config
+
+# Forge
+commands.tree_base.invalid_cmd=Invalid subcommand '%s'!
+commands.tree_base.invalid_cmd.list_subcommands=Invalid subcommand '%s'! Available subcommands: %s
+commands.tree_base.available_subcommands=Available SubCommands: %s
+
+# Aurora
+aurora=Server Utilities Aurora
+aurora.port=Port

@@ -2,38 +2,7 @@
   "modListVersion": 2,
   "modList": [
     {
-      "modid": "ServerUtilitiesLibrary",
-      "name": "ServerUtilitiesLibrary",
-      "description": "The libraries for ServerUtilities",
-      "version": "${modVersion}",
-      "mcversion": "${minecraftVersion}",
-      "url": "https://feed-the-beast.com",
-      "updateUrl": "",
-      "authorList": [
-        "LatvianModder",
-        "Jared",
-        "mitchej123",
-        "GTNH Team"
-      ],
-      "credits": "GTNH",
-      "logoFile": "assets/serverutilitieslib/textures/logo.png",
-      "screenshots": [],
-      "parent": "",
-      "requiredMods": [
-        "Forge"
-      ],
-      "dependencies": [
-        "Forge",
-        "Baubles",
-        "NotEnoughItems",
-        "Waila",
-        "MineTweaker3"
-      ],
-      "dependants": [],
-      "useDependencyInformation": true
-    },
-    {
-      "modid": "ServerUtilities",
+      "modid": "serverutilities",
       "name": "ServerUtilities",
       "description": "Server Utilities",
       "version": "${modVersion}",
@@ -46,14 +15,10 @@
         "GTNH Team"
       ],
       "credits": "GTNH",
-      "logoFile": "assets/serverutils/textures/logo.png",
+      "logoFile": "",
       "screenshots": [],
       "parent": "",
-      "requiredMods": [
-        "ServerUtilitiesLibrary"
-      ],
       "dependencies": [
-        "ServerUtilitiesLibrary",
         "Baubles",
         "Waila"
       ],
