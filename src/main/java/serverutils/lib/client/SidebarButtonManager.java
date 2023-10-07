@@ -96,8 +96,7 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
                                     continue;
                                 }
 
-                                if (!ServerUtilitiesConfig.debugging.dev_sidebar_buttons
-                                        && buttonJson.has("dev_only")
+                                if (!ServerUtilitiesConfig.debugging.dev_sidebar_buttons && buttonJson.has("dev_only")
                                         && buttonJson.get("dev_only").getAsBoolean()) {
                                     continue;
                                 }
@@ -113,10 +112,6 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
                                         new ResourceLocation(domain, entry.getKey()),
                                         group,
                                         buttonJson);
-
-                                if (group.getButtons().contains(button)) {
-                                    continue;
-                                }
 
                                 group.getButtons().add(button);
 
