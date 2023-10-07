@@ -4,10 +4,7 @@ import java.io.File;
 
 import net.minecraftforge.common.config.Configuration;
 
-import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import serverutils.mod.ServerUtilities;
 
 public class AuroraConfig {
 
@@ -98,12 +95,5 @@ public class AuroraConfig {
         public String[] modlist_excluded_mods;
         public int port;
 
-    }
-
-    @SubscribeEvent
-    public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (event.modID.equals(ServerUtilities.MOD_ID)) {
-            sync();
-        }
     }
 }

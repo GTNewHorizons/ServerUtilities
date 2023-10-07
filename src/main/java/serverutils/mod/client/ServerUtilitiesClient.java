@@ -63,7 +63,6 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
                             + " Dev :: "
                             + Minecraft.getMinecraft().getSession().getUsername());
         }
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientConfig.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientEventHandler.INST);
         FMLCommonHandler.instance().bus().register(ServerUtilitiesClientEventHandler.INST);
 

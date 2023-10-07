@@ -118,11 +118,11 @@ serverutilities.debugging.gui_widget_bounds=Bornes du widget GUI
 serverutilities.debugging.log_events=Logger les événements
 
 # Client Config
-serverutilities_client.general.item_ore_names=Afficher les noms des objets de l'OreDictionary
-serverutilities_client.general.item_ore_names.item_tooltip=Noms de l'OreDictionary :
-serverutilities_client.general.item_nbt=Afficher les objets NBT
-serverutilities_client.general.replace_vanilla_status_messages=Remplacer le statut des messages vanilla
-serverutilities_client.general.debug_helper=Aide de débogage
+serverutilities_client.item_ore_names=Afficher les noms des objets de l'OreDictionary
+serverutilities_client.item_ore_names.item_tooltip=Noms de l'OreDictionary :
+serverutilities_client.item_nbt=Afficher les objets NBT
+serverutilities_client.replace_vanilla_status_messages=Remplacer le statut des messages vanilla
+serverutilities_client.debug_helper=Aide de débogage
 
 # Player Settings
 player_config=Les paramètres de mon serveur

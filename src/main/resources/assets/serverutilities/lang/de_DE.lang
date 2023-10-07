@@ -117,13 +117,13 @@ serverutilities.debugging.gui_widget_bounds=GUI-Widgetgrenzen
 serverutilities.debugging.log_events=Ereignisse loggen
 
 # Client Config
-serverutilities_client.general.item_ore_names=Item OreDictionary-Namen anzeigen
-serverutilities_client.general.item_ore_names.item_tooltip=OreDictionary Namen:
-serverutilities_client.general.item_nbt=Item NBT anzeigen
-serverutilities_client.general.replace_vanilla_status_messages=Ersetze Vanilla Statusmeldungen
-serverutilities_client.general.debug_helper=Debug Helfer
-serverutilities_client.general.collapse_sidebar_buttons=Seitenleisten-Schaltflächen schließen
-serverutilities_client.general.sidebar_button_collapse_speed=Seitenleisten-Schaltflächen Schließtempo
+serverutilities_client.item_ore_names=Item OreDictionary-Namen anzeigen
+serverutilities_client.item_ore_names.item_tooltip=OreDictionary Namen:
+serverutilities_client.item_nbt=Item NBT anzeigen
+serverutilities_client.replace_vanilla_status_messages=Ersetze Vanilla Statusmeldungen
+serverutilities_client.debug_helper=Debug Helfer
+serverutilities_client.collapse_sidebar_buttons=Seitenleisten-Schaltflächen schließen
+serverutilities_client.sidebar_button_collapse_speed=Seitenleisten-Schaltflächen Schließtempo
 
 # Player Settings
 player_config=My Server Settings

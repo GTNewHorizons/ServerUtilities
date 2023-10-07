@@ -415,11 +415,11 @@ serverutilities.debugging.gui_widget_bounds=Границы графическо�
 serverutilities.debugging.log_events=Журнал событий
 
 # Client Config
-serverutilities_client.general.item_ore_names=Показать названия предметы словаря руды
-serverutilities_client.general.item_ore_names.item_tooltip=Названия словаря руды:
-serverutilities_client.general.item_nbt=Показать предмет NBT
-serverutilities_client.general.replace_vanilla_status_messages=Заменить ванильные статус сообщения
-serverutilities_client.general.debug_helper=Помощник отладки
+serverutilities_client.item_ore_names=Показать названия предметы словаря руды
+serverutilities_client.item_ore_names.item_tooltip=Названия словаря руды:
+serverutilities_client.item_nbt=Показать предмет NBT
+serverutilities_client.replace_vanilla_status_messages=Заменить ванильные статус сообщения
+serverutilities_client.debug_helper=Помощник отладки
 
 # Player Settings
 player_config=Настройки моего сервера

@@ -12,9 +12,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.oredict.OreDictionary;
 
-import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.GameData;
 import serverutils.lib.lib.config.EnumTristate;
 import serverutils.lib.lib.io.DataReader;
@@ -29,7 +27,6 @@ public class ServerUtilitiesConfig {
     public static final ServerUtilitiesConfig INST = new ServerUtilitiesConfig();
 
     public static Configuration config;
-
     public static final String GEN_CAT = Configuration.CATEGORY_GENERAL;
     public static final String TEAM_CAT = "team";
     public static final String DEBUG_CAT = "debugging";
@@ -619,13 +616,6 @@ public class ServerUtilitiesConfig {
             }
 
             return false;
-        }
-    }
-
-    @SubscribeEvent
-    public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (event.modID.equals(ServerUtilities.MOD_ID)) {
-            sync();
         }
     }
 }

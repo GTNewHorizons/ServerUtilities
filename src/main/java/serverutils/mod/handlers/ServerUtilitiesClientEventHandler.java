@@ -304,7 +304,7 @@ public class ServerUtilitiesClientEventHandler {
             Collection<String> ores = InvUtils.getOreNames(null, event.itemStack);
 
             if (!ores.isEmpty()) {
-                event.toolTip.add(I18n.format("serverutilities_client.general.item_ore_names.item_tooltip"));
+                event.toolTip.add(I18n.format("serverutilities_client.item_ore_names.item_tooltip"));
 
                 for (String or : ores) {
                     event.toolTip.add("> " + or);
@@ -401,7 +401,6 @@ public class ServerUtilitiesClientEventHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onFrameStart(TickEvent.RenderTickEvent e) {}
-
 
     public static class NotificationWidget {
 

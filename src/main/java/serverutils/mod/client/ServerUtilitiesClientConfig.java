@@ -4,41 +4,39 @@ import java.io.File;
 
 import net.minecraftforge.common.config.Configuration;
 
-import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.lib.client.EnumSidebarButtonPlacement;
 import serverutils.lib.lib.math.Ticks;
-import serverutils.mod.ServerUtilities;
 
 public class ServerUtilitiesClientConfig {
 
     public static Configuration config;
 
-    public static final ServerUtilitiesClientConfig INST = new ServerUtilitiesClientConfig();
+    public static final String CLIENT_LANG_KEY = "serverutilities_client.";
 
     public static void init(FMLPreInitializationEvent event) {
         config = new Configuration(
                 new File(event.getModConfigurationDirectory() + "/../server utilities/client/serverutilities.cfg"));
+        config.load();
         sync();
     }
 
     public static boolean sync() {
-
-        config.load();
-
-        item_ore_names = config.get(
-                Configuration.CATEGORY_GENERAL,
-                "item_ore_names",
-                false,
-                "Show item Ore Dictionary names in inventory.").getBoolean();
+        config.setCategoryLanguageKey(Configuration.CATEGORY_GENERAL, CLIENT_LANG_KEY + "general");
+        item_ore_names = config
+                .get(
+                        Configuration.CATEGORY_GENERAL,
+                        "item_ore_names",
+                        false,
+                        "Show item Ore Dictionary names in inventory.")
+                .setLanguageKey(CLIENT_LANG_KEY + "item_ore_names").getBoolean();
 
         item_nbt = config.get(Configuration.CATEGORY_GENERAL, "item_nbt", false, "Show item NBT in inventory.")
-                .getBoolean();
+                .setLanguageKey(CLIENT_LANG_KEY + "item_nbt").getBoolean();
 
         debug_helper = config
                 .get(Configuration.CATEGORY_GENERAL, "debug_helper", true, "Show help text while holding F3.")
-                .getBoolean();
+                .setLanguageKey(CLIENT_LANG_KEY + "debug_helper").getBoolean();
 
         replace_vanilla_status_messages = config
                 .get(
@@ -46,7 +44,7 @@ public class ServerUtilitiesClientConfig {
                         "replace_vanilla_status_messages",
                         true,
                         "Replace vanilla status message with Notifications, which support colors and timers.")
-                .getBoolean();
+                .setLanguageKey(CLIENT_LANG_KEY + "replace_vanilla_status_messages").getBoolean();
 
         action_buttons = EnumSidebarButtonPlacement.string2placement(
                 config.get(
@@ -54,7 +52,7 @@ public class ServerUtilitiesClientConfig {
                         "action_buttons",
                         "auto",
                         "DISABLED: Buttons are hidden;\nTOP_LEFT: Buttons are placed on top-left corner, where NEI has it's buttons;\nINVENTORY_SIDE: Buttons are placed on the side or top of your inventory, depending on potion effects and crafting book;\nAUTO: When NEI is installed, INVENTORY_SIDE, else TOP_LEFT.")
-                        .getString());
+                        .setLanguageKey(CLIENT_LANG_KEY + "action_buttons").getString());
         general.show_shutdown_timer_ms = -1L;
         // general.render_badges = config.get(Configuration.CATEGORY_GENERAL, "render_badges", false, "Render
         // badges.").getBoolean();
@@ -63,20 +61,25 @@ public class ServerUtilitiesClientConfig {
         // "journeymap_overlay",
         // false,
         // "Enable JourneyMap overlay. Requires a restart to work.").getBoolean();
-        general.show_shutdown_timer = config.get(
-                Configuration.CATEGORY_GENERAL,
-                "show_shutdown_timer",
-                true,
-                "Show when server will shut down in corner.").getBoolean();
-        general.shutdown_timer_start = config.get(
-                Configuration.CATEGORY_GENERAL,
-                "shutdown_timer_start",
-                "1m",
-                "When will it start to show the shutdown timer.").getString();
+        general.show_shutdown_timer = config
+                .get(
+                        Configuration.CATEGORY_GENERAL,
+                        "show_shutdown_timer",
+                        true,
+                        "Show when server will shut down in corner.")
+                .setLanguageKey(CLIENT_LANG_KEY + "show_shutdown_timer").getBoolean();
+        general.shutdown_timer_start = config
+                .get(
+                        Configuration.CATEGORY_GENERAL,
+                        "shutdown_timer_start",
+                        "1m",
+                        "When will it start to show the shutdown timer.")
+                .setLanguageKey(CLIENT_LANG_KEY + "shutdown_timer_start").getString();
         general.button_daytime = config.get(Configuration.CATEGORY_GENERAL, "button_daytime", 6000, "", 0, 23999)
-                .getInt();
+                .setLanguageKey(CLIENT_LANG_KEY + "button_daytime").getInt();
         general.button_nighttime = config.get(Configuration.CATEGORY_GENERAL, "button_nighttime", 18000, "", 0, 239999)
-                .getInt();
+                .setLanguageKey(CLIENT_LANG_KEY + "button_nighttime").getInt();
+
         config.save();
 
         return true;
@@ -109,12 +112,4 @@ public class ServerUtilitiesClientConfig {
         public int button_daytime;
         public int button_nighttime;
     }
-
-    @SubscribeEvent
-    public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (event.modID.equals(ServerUtilities.MOD_ID)) {
-            sync();
-        }
-    }
-
 }

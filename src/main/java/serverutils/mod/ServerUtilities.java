@@ -48,6 +48,7 @@ import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.util.CommonUtils;
 import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.SidedUtils;
+import serverutils.mod.client.ServerUtilitiesClientConfig;
 import serverutils.utils.command.ServerUtilitiesCommands;
 import serverutils.utils.ranks.CommandOverride;
 import serverutils.utils.ranks.Rank;

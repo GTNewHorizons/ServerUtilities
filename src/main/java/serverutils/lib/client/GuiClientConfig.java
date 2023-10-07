@@ -1,23 +1,15 @@
 package serverutils.lib.client;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.ChatComponentText;
-import net.minecraftforge.common.MinecraftForge;
-
-import org.apache.logging.log4j.Level;
+import net.minecraftforge.common.config.ConfigElement;
+import net.minecraftforge.common.config.Configuration;
 
 import cpw.mods.fml.client.config.GuiConfig;
-import cpw.mods.fml.client.config.GuiMessageDialog;
-import cpw.mods.fml.client.event.ConfigChangedEvent;
-import cpw.mods.fml.common.FMLLog;
-import cpw.mods.fml.common.eventhandler.Event;
+import cpw.mods.fml.client.config.IConfigElement;
 import serverutils.lib.lib.client.ClientUtils;
-import serverutils.lib.lib.gui.Button;
 import serverutils.lib.lib.gui.GuiHelper;
 import serverutils.lib.lib.gui.GuiIcons;
 import serverutils.lib.lib.gui.Panel;
@@ -29,79 +21,25 @@ import serverutils.lib.lib.icon.Icon;
 import serverutils.lib.lib.util.SidedUtils;
 import serverutils.lib.lib.util.misc.MouseButton;
 import serverutils.mod.ServerUtilities;
-import serverutils.mod.client.ServerUtilitiesClient;
+import serverutils.mod.client.ServerUtilitiesClientConfig;
 
 public class GuiClientConfig extends GuiButtonListBase {
 
+    private List<IConfigElement> configElement = new ConfigElement<>(
+            ServerUtilitiesClientConfig.config.getCategory(Configuration.CATEGORY_GENERAL)).getChildElements();
+
     private class GuiCustomConfig extends GuiConfig {
 
-        public GuiCustomConfig(String modid, String title) {
-            super(Minecraft.getMinecraft().currentScreen, new ArrayList<>(), modid, false, false, title);
-        }
-
-        @Override
-        protected void actionPerformed(GuiButton button) {
-            if (button.id == 2000) {
-                boolean flag = true;
-                try {
-                    if ((configID != null || !(parentScreen instanceof GuiConfig)) && entryList.hasChangedEntry(true)) {
-                        boolean requiresMcRestart = entryList.saveConfigElements();
-
-                        ConfigChangedEvent event = new ConfigChangedEvent.OnConfigChangedEvent(
-                                modID,
-                                configID,
-                                isWorldRunning,
-                                requiresMcRestart);
-                        MinecraftForge.EVENT_BUS.post(event);
-                        if (!event.getResult().equals(Event.Result.DENY)) {
-                            MinecraftForge.EVENT_BUS.post(
-                                    new ConfigChangedEvent.PostConfigChangedEvent(
-                                            modID,
-                                            configID,
-                                            isWorldRunning,
-                                            requiresMcRestart));
-                        }
-
-                        if (requiresMcRestart) {
-                            flag = false;
-                            mc.displayGuiScreen(
-                                    new GuiMessageDialog(
-                                            parentScreen,
-                                            "fml.configgui.gameRestartTitle",
-                                            new ChatComponentText(I18n.format("fml.configgui.gameRestartRequired")),
-                                            "fml.configgui.confirmRestartMessage"));
-                        }
-
-                        if (parentScreen instanceof GuiConfig) {
-                            ((GuiConfig) parentScreen).needsRefresh = true;
-                        }
-                    }
-                } catch (Throwable e) {
-                    FMLLog.log(Level.ERROR, "Error performing GuiConfig action:", e);
-                }
-
-                if (flag) {
-                    mc.displayGuiScreen(parentScreen);
-                }
-            } else {
-                super.actionPerformed(button);
-            }
-        }
-    }
-
-    private class ButtonClientConfig extends SimpleTextButton {
-
-        private final String modId;
-
-        public ButtonClientConfig(Panel panel, ClientConfig config) {
-            super(panel, config.name.getFormattedText(), config.icon);
-            modId = config.id;
-        }
-
-        @Override
-        public void onClicked(MouseButton button) {
-            GuiHelper.playClickSound();
-            Minecraft.getMinecraft().displayGuiScreen(new GuiCustomConfig(modId, getTitle()));
+        public GuiCustomConfig(String title) {
+            super(
+                    Minecraft.getMinecraft().currentScreen,
+                    configElement,
+                    ServerUtilities.MOD_ID,
+                    "serverutilities_client",
+                    false,
+                    false,
+                    title,
+                    getAbridgedConfigPath("/server utilities/client/serverutilities.cfg"));
         }
     }
 
@@ -140,14 +78,18 @@ public class GuiClientConfig extends GuiButtonListBase {
                     }
                 });
 
-        List<Button> buttons = new ArrayList<>();
+        panel.add(
+                new SimpleTextButton(
+                        panel,
+                        ServerUtilities.MOD_NAME,
+                        Icon.getIcon("serverutilities:textures/logo_small.png")) {
 
-        for (ClientConfig config : ServerUtilitiesClient.CLIENT_CONFIG_MAP.values()) {
-            buttons.add(new ButtonClientConfig(panel, config));
-        }
-
-        buttons.sort((o1, o2) -> o1.getTitle().compareToIgnoreCase(o2.getTitle()));
-        panel.addAll(buttons);
+                    @Override
+                    public void onClicked(MouseButton button) {
+                        GuiHelper.playClickSound();
+                        Minecraft.getMinecraft().displayGuiScreen(new GuiCustomConfig(getTitle()));
+                    }
+                });
     }
 
     @Override

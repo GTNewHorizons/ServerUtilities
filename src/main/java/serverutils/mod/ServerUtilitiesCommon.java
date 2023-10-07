@@ -61,6 +61,10 @@ import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.util.InvUtils;
 import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.lib.net.ServerLibNetHandler;
+import serverutils.mod.handlers.ServerUtilitiesPlayerEventHandler;
+import serverutils.mod.handlers.ServerUtilitiesRegistryEventHandler;
+import serverutils.mod.handlers.ServerUtilitiesServerEventHandler;
+import serverutils.mod.handlers.ServerUtilitiesWorldEventHandler;
 import serverutils.utils.ServerUtilitiesLeaderboards;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.backups.Backups;
@@ -70,10 +74,6 @@ import serverutils.utils.data.ServerUtilitiesLoadedChunkManager;
 import serverutils.utils.data.ServerUtilitiesUniverseData;
 import serverutils.utils.events.CustomPermissionPrefixesRegistryEvent;
 import serverutils.utils.events.LeaderboardRegistryEvent;
-import serverutils.mod.handlers.ServerUtilitiesPlayerEventHandler;
-import serverutils.mod.handlers.ServerUtilitiesRegistryEventHandler;
-import serverutils.mod.handlers.ServerUtilitiesServerEventHandler;
-import serverutils.mod.handlers.ServerUtilitiesWorldEventHandler;
 import serverutils.utils.integration.aurora.AuroraIntegration;
 import serverutils.utils.net.ServerUtilitiesNetHandler;
 import serverutils.utils.ranks.ServerUtilitiesPermissionHandler;
@@ -139,7 +139,6 @@ public class ServerUtilitiesCommon {
 
         Backups.init();
 
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesConfig.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPlayerEventHandler.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesRegistryEventHandler.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesServerEventHandler.INST);
