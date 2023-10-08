@@ -37,7 +37,7 @@ import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.lib.net.MessageSyncData;
 import serverutils.mod.ServerUtilitiesConfig;
-import serverutils.utils.ServerUtilitiesNotifications;
+import serverutils.mod.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.backups.Backups;
 import serverutils.utils.data.ClaimedChunks;

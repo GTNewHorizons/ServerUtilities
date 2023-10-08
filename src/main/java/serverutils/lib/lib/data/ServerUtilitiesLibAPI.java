@@ -13,7 +13,6 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 
-import serverutils.lib.ServerUtilitiesLibNotifications;
 import serverutils.lib.events.IReloadHandler;
 import serverutils.lib.events.ServerReloadEvent;
 import serverutils.lib.lib.EnumReloadType;
@@ -31,6 +30,7 @@ import serverutils.lib.net.MessageSyncData;
 import serverutils.mod.ServerUtilities;
 import serverutils.mod.ServerUtilitiesCommon;
 import serverutils.mod.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesNotifications;
 
 public class ServerUtilitiesLibAPI {
 
@@ -69,7 +69,7 @@ public class ServerUtilitiesLibAPI {
         if (type == EnumReloadType.RELOAD_COMMAND) {
             for (EntityPlayerMP player : (List<EntityPlayerMP>) universe.server
                     .getConfigurationManager().playerEntityList) {
-                Notification notification = Notification.of(ServerUtilitiesLibNotifications.RELOAD_SERVER);
+                Notification notification = Notification.of(ServerUtilitiesNotifications.RELOAD_SERVER);
                 notification.addLine(ServerUtilities.lang(player, "serverutilities.lang.reload_server", millis));
 
                 if (event.isClientReloadRequired()) {

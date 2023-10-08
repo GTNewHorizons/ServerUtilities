@@ -1,8 +1,9 @@
 package serverutils.utils.backups;
 
+import static serverutils.mod.ServerUtilitiesNotifications.BACKUP_START_ID;
+
 import java.io.File;
 import java.util.Arrays;
-import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommandSender;
@@ -10,9 +11,6 @@ import net.minecraft.command.server.CommandSaveAll;
 import net.minecraft.command.server.CommandSaveOff;
 import net.minecraft.command.server.CommandSaveOn;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 import org.apache.logging.log4j.LogManager;
@@ -20,16 +18,12 @@ import org.apache.logging.log4j.Logger;
 
 import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.ServerUtils;
-import serverutils.lib.lib.util.StringUtils;
-import serverutils.lib.lib.util.text_components.Notification;
-import serverutils.mod.ServerUtilities;
 import serverutils.mod.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesNotifications;
 
 public class Backups {
 
     public static final Logger logger = LogManager.getLogger("ServerUtilities Backup");
-
-    public static final ResourceLocation BACKUP_START_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_start");
     public static File backupsFolder;
     public static long nextBackup = -1L;
     public static ThreadBackup thread = null;
@@ -60,7 +54,8 @@ public class Backups {
             if (!hasOnlinePlayers() && !hadPlayer) return true;
             hadPlayer = false;
         }
-        backupNotification(ServerUtils.getServer(), BACKUP_START_ID, "cmd.backup_start", ics.getCommandSenderName());
+        ServerUtilitiesNotifications
+                .backupNotification(BACKUP_START_ID, "cmd.backup_start", ics.getCommandSenderName());
 
         try {
             new CommandSaveOff().processCommand(ServerUtils.getServer(), new String[0]);
@@ -113,19 +108,6 @@ public class Backups {
             new CommandSaveOn().processCommand(ServerUtils.getServer(), new String[0]);
         } catch (Exception ex) {
             ex.printStackTrace();
-        }
-    }
-
-    public static void backupNotification(MinecraftServer server, ResourceLocation id, String key, Object... args) {
-        if (!ServerUtilitiesConfig.backups.silent_backup) {
-            for (EntityPlayerMP player : (List<EntityPlayerMP>) server.getConfigurationManager().playerEntityList) {
-                Notification
-                        .of(
-                                id,
-                                StringUtils
-                                        .color(ServerUtilities.lang(null, key, args), EnumChatFormatting.LIGHT_PURPLE))
-                        .send(server, player);
-            }
         }
     }
 }

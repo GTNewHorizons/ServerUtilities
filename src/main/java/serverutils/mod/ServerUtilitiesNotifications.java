@@ -1,16 +1,17 @@
-package serverutils.utils;
+package serverutils.mod;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 
 import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.math.ChunkDimPos;
+import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.text_components.Notification;
-import serverutils.mod.ServerUtilities;
 import serverutils.utils.data.ClaimedChunk;
 import serverutils.utils.data.ClaimedChunks;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
@@ -26,6 +27,14 @@ public class ServerUtilitiesNotifications {
             "cant_claim_chunk");
     public static final ResourceLocation UNCLAIMED_ALL = new ResourceLocation(ServerUtilities.MOD_ID, "unclaimed_all");
     public static final ResourceLocation TELEPORT = new ResourceLocation(ServerUtilities.MOD_ID, "teleport");
+    public static final ResourceLocation RELOAD_SERVER = new ResourceLocation(ServerUtilities.MOD_ID, "reload_server");
+    public static final ResourceLocation BACKUP_START_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_start");
+    public static final ResourceLocation BACKUP_END1_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end1");
+    public static final ResourceLocation BACKUP_END2_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end2");
+
+    public static final Notification NO_TEAM = Notification.of(
+            new ResourceLocation(ServerUtilities.MOD_ID, "no_team"),
+            new ChatComponentTranslation("serverutilities.lang.team.error.no_team")).setError();
 
     public static void sendCantModifyChunk(MinecraftServer server, EntityPlayerMP player) {
         Notification
@@ -67,6 +76,14 @@ public class ServerUtilitiesNotifications {
                                 EnumChatFormatting.DARK_GREEN))
                         .send(player.mcServer, player);
             }
+        }
+    }
+
+    public static void backupNotification(ResourceLocation id, String key, Object... args) {
+        if (!ServerUtilitiesConfig.backups.silent_backup) {
+            Notification
+                    .of(id, StringUtils.color(ServerUtilities.lang(null, key, args), EnumChatFormatting.LIGHT_PURPLE))
+                    .send(ServerUtils.getServer(), null);
         }
     }
 }

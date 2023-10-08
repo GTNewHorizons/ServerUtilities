@@ -1,5 +1,8 @@
 package serverutils.utils.backups;
 
+import static serverutils.mod.ServerUtilitiesNotifications.BACKUP_END1_ID;
+import static serverutils.mod.ServerUtilitiesNotifications.BACKUP_END2_ID;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -12,18 +15,16 @@ import java.util.zip.ZipOutputStream;
 
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-import net.minecraft.util.ResourceLocation;
 
 import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.mod.ServerUtilities;
 import serverutils.mod.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesNotifications;
 
 public class ThreadBackup extends Thread {
 
-    public static final ResourceLocation BACKUP_END1_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end1");
-    public static final ResourceLocation BACKUP_END2_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end2");
     private File src0;
     public boolean isDone = false;
 
@@ -149,15 +150,13 @@ public class ThreadBackup extends Thread {
             if (ServerUtilitiesConfig.backups.display_file_size) {
                 String sizeB = FileUtils.getSizeString(dstFile);
                 String sizeT = FileUtils.getSizeString(Backups.backupsFolder);
-                Backups.backupNotification(
-                        ServerUtils.getServer(),
+                ServerUtilitiesNotifications.backupNotification(
                         BACKUP_END2_ID,
                         "cmd.backup_end_2",
                         getDoneTime(Calendar.getInstance().getTimeInMillis()),
                         (sizeB.equals(sizeT) ? sizeB : (sizeB + " | " + sizeT)));
             } else {
-                Backups.backupNotification(
-                        ServerUtils.getServer(),
+                ServerUtilitiesNotifications.backupNotification(
                         BACKUP_END1_ID,
                         "cmd.backup_end_1",
                         getDoneTime(Calendar.getInstance().getTimeInMillis()));

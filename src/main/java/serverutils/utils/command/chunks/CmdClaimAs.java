@@ -17,7 +17,7 @@ import serverutils.lib.lib.data.Universe;
 import serverutils.lib.lib.math.ChunkDimPos;
 import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.mod.ServerUtilities;
-import serverutils.utils.ServerUtilitiesNotifications;
+import serverutils.mod.ServerUtilitiesNotifications;
 import serverutils.utils.data.ClaimResult;
 import serverutils.utils.data.ClaimedChunks;
 

@@ -10,7 +10,7 @@ import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.math.ChunkDimPos;
 import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.mod.ServerUtilities;
-import serverutils.utils.ServerUtilitiesNotifications;
+import serverutils.mod.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ClaimedChunks;
 

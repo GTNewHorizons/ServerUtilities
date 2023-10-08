@@ -15,7 +15,7 @@ import serverutils.lib.lib.math.BlockDimPos;
 import serverutils.lib.lib.util.StringJoiner;
 import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.mod.ServerUtilities;
-import serverutils.utils.ServerUtilitiesNotifications;
+import serverutils.mod.ServerUtilitiesNotifications;
 import serverutils.utils.data.ServerUtilitiesPlayerData;
 import serverutils.utils.data.ServerUtilitiesUniverseData;
 import serverutils.utils.ranks.Rank;

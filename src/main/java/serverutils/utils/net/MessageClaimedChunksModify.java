@@ -5,13 +5,13 @@ import java.util.Collection;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.ChunkCoordIntPair;
 
-import serverutils.lib.ServerUtilitiesLibNotifications;
 import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.io.DataIn;
 import serverutils.lib.lib.io.DataOut;
 import serverutils.lib.lib.math.ChunkDimPos;
 import serverutils.lib.lib.net.MessageToServer;
 import serverutils.lib.lib.net.NetworkWrapper;
+import serverutils.mod.ServerUtilitiesNotifications;
 import serverutils.utils.ServerUtilitiesPermissions;
 import serverutils.utils.data.ClaimedChunks;
 
@@ -65,7 +65,7 @@ public class MessageClaimedChunksModify extends MessageToServer {
         ForgePlayer p = ClaimedChunks.instance.universe.getPlayer(player);
 
         if (!p.hasTeam()) {
-            ServerUtilitiesLibNotifications.NO_TEAM.send(player.mcServer, player);
+            ServerUtilitiesNotifications.NO_TEAM.send(player.mcServer, player);
             return;
         }
 
