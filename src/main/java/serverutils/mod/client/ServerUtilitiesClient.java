@@ -1,6 +1,5 @@
 package serverutils.mod.client;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import net.minecraft.client.Minecraft;
@@ -19,8 +18,6 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import serverutils.lib.client.BuiltinChunkMap;
-import serverutils.lib.client.ClientConfig;
-import serverutils.lib.client.ServerUtilitiesLibClientConfigManager;
 import serverutils.lib.client.SidebarButtonManager;
 import serverutils.lib.command.client.CommandClientConfig;
 import serverutils.lib.command.client.CommandPrintItem;
@@ -40,7 +37,6 @@ import serverutils.utils.command.client.CommandPing;
 
 public class ServerUtilitiesClient extends ServerUtilitiesCommon {
 
-    public static final Map<String, ClientConfig> CLIENT_CONFIG_MAP = new HashMap<>();
     public static KeyBinding KEY_NBT, KEY_TRASH;
 
     @Override
@@ -49,8 +45,6 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
 
         ServerUtilitiesClientConfig.init(event);
         ClientUtils.localPlayerHead = new PlayerHeadIcon(Minecraft.getMinecraft().getSession().func_148256_e().getId());
-        ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager())
-                .registerReloadListener(ServerUtilitiesLibClientConfigManager.INSTANCE);
         ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager())
                 .registerReloadListener(SidebarButtonManager.INSTANCE);
         ChunkSelectorMap.setMap(new BuiltinChunkMap());
