@@ -30,9 +30,9 @@ public class CmdFly extends CmdBase {
             nbt.removeTag("fly");
             player.capabilities.allowFlying = false;
             player.capabilities.isFlying = false;
-            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.fly_on", name));
-        } else {
             sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.fly_off", name));
+        } else {
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.fly_on", name));
             nbt.setBoolean("fly", true);
             player.capabilities.allowFlying = true;
         }

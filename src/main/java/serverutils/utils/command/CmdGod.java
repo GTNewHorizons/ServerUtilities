@@ -29,11 +29,11 @@ public class CmdGod extends CmdBase {
         if (nbt.getBoolean("god")) {
             nbt.removeTag("god");
             player.capabilities.disableDamage = false;
-            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.god_on", name));
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.god_off", name));
         } else {
             nbt.setBoolean("god", true);
             player.capabilities.disableDamage = true;
-            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.god_off", name));
+            sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.god_on", name));
         }
 
         player.sendPlayerAbilities();
