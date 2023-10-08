@@ -1,13 +1,13 @@
 package serverutils.utils.command.tp;
 
-import net.minecraft.block.material.Material;
+import net.minecraft.block.Block;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
-import net.minecraft.world.chunk.Chunk;
 
 import serverutils.lib.lib.command.CmdBase;
 import serverutils.lib.lib.command.CommandUtils;
@@ -64,16 +64,15 @@ public class CmdRTP extends CmdBase {
 
         // TODO: Find a better way to check for biome without loading the chunk
         BiomeGenBase biome = world.getBiomeGenForCoords(x, z);
-        if (biome.biomeName.contains("ocean")) {
+        if (biome.biomeName.contains("Ocean")) {
             return findBlockPos(world, player, depth);
         }
-
-        Chunk chunk = world.getChunkFromChunkCoords(x >> 4, z >> 4);
 
         while (y > 0) {
             y--;
 
-            if (chunk.getBlock(x, y, z).getMaterial() != Material.air) {
+            Block block = world.getBlock(x, y, z);
+            if (!block.equals(Blocks.air)) {
                 return TeleporterDimPos.of(x + 0.5D, y + 2.5D, z + 0.5D, world.provider.dimensionId);
             }
         }

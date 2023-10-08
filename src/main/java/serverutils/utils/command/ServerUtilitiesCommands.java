@@ -8,6 +8,7 @@ import serverutils.utils.command.tp.CmdBack;
 import serverutils.utils.command.tp.CmdDelHome;
 import serverutils.utils.command.tp.CmdDelWarp;
 import serverutils.utils.command.tp.CmdHome;
+import serverutils.utils.command.tp.CmdRTP;
 import serverutils.utils.command.tp.CmdSetHome;
 import serverutils.utils.command.tp.CmdSetWarp;
 import serverutils.utils.command.tp.CmdSpawn;
@@ -115,9 +116,9 @@ public class ServerUtilitiesCommands {
             event.registerServerCommand(new CmdBackup());
         }
 
-        // if (ServerUtilitiesConfig.commands.rtp) {
-        // event.registerServerCommand(new CmdRTP());
-        // }
+        if (ServerUtilitiesConfig.commands.rtp) {
+            event.registerServerCommand(new CmdRTP());
+        }
 
         if (ServerUtilitiesConfig.commands.god) {
             event.registerServerCommand(new CmdGod());
