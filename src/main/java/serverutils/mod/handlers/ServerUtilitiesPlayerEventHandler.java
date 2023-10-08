@@ -2,7 +2,6 @@ package serverutils.mod.handlers;
 
 import java.util.List;
 
-import cpw.mods.fml.common.gameevent.TickEvent;
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.EntityLivingBase;
@@ -23,6 +22,7 @@ import net.minecraftforge.event.world.BlockEvent;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent;
 import serverutils.lib.events.player.ForgePlayerConfigEvent;
 import serverutils.lib.events.player.ForgePlayerDataEvent;
 import serverutils.lib.events.player.ForgePlayerLoggedInEvent;
