@@ -111,13 +111,11 @@ public class ServerUtilities {
     @Mod.EventHandler
     public void onInit(FMLInitializationEvent event) {
         PROXY.init(event);
-        // UTILPROXY.init();
     }
 
     @Mod.EventHandler
     public void onPostInit(FMLPostInitializationEvent event) {
         PROXY.postInit();
-        // UTILPROXY.postInit();
     }
 
     @Mod.EventHandler

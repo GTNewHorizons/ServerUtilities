@@ -126,6 +126,5 @@ public class ServerUtilitiesCommands {
         if (ServerUtilitiesConfig.commands.rec) {
             event.registerServerCommand(new CmdRec());
         }
-        event.registerServerCommand(new CmdDumpPerms());
     }
 }
