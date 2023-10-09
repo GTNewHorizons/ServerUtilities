@@ -31,6 +31,9 @@ public class ServerUtilitiesNotifications {
     public static final ResourceLocation BACKUP_START_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_start");
     public static final ResourceLocation BACKUP_END1_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end1");
     public static final ResourceLocation BACKUP_END2_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end2");
+    public static final ResourceLocation CONFIG_CHANGED = new ResourceLocation(
+            ServerUtilities.MOD_ID,
+            "config_changed");
 
     public static final Notification NO_TEAM = Notification.of(
             new ResourceLocation(ServerUtilities.MOD_ID, "no_team"),

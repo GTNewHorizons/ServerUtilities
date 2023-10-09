@@ -12,10 +12,12 @@ import serverutils.lib.lib.config.ConfigValue;
 import serverutils.lib.lib.config.ConfigValueInstance;
 import serverutils.lib.lib.config.IConfigCallback;
 import serverutils.lib.lib.data.ServerUtilitiesLibAPI;
+import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.mod.ServerUtilities;
 import serverutils.mod.ServerUtilitiesConfig;
+import serverutils.mod.ServerUtilitiesNotifications;
 
 public abstract class CmdEditConfigBase extends CmdBase {
 
@@ -93,14 +95,13 @@ public abstract class CmdEditConfigBase extends CmdBase {
 
             instance.getValue().setValueFromString(sender, valueString, false);
             getCallback(sender).onConfigSaved(group, sender);
-            Notification
-                    .of(
-                            Notification.VANILLA_STATUS,
-                            ServerUtilities.lang(
-                                    sender,
-                                    "serverutilities.lang.config_command.set",
-                                    instance.getDisplayName(),
-                                    group.getValue(args[0]).toString()))
+            Notification.of(
+                    ServerUtilitiesNotifications.CONFIG_CHANGED,
+                    ServerUtilities.lang(
+                            sender,
+                            "serverutilities.lang.config_command.set",
+                            instance.getDisplayName(),
+                            group.getValue(args[0]).toString()))
                     .send(getCommandSenderAsPlayer(sender).mcServer, getCommandSenderAsPlayer(sender));
         }
 

@@ -188,7 +188,7 @@ public class ConfigGroup extends FinalIDObject {
     @Nullable
     public ConfigValueInstance getValueInstance(String key) {
         int index = key.indexOf('.');
-        return index == -1 ? values.get(key) : getGroup(key.substring(0, index)).values.get(key);
+        return index == -1 ? values.get(key) : getGroup(key.substring(0, index)).values.get(key.substring(index + 1));
     }
 
     public ConfigValue getValue(String key) {
