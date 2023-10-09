@@ -39,7 +39,6 @@ public class Theme {
             .getIcon(ServerUtilities.MOD_ID + ":textures/gui/background_squares.png");
     private static final ImageIcon TEXTURE_BEACON = (ImageIcon) Icon.getIcon("textures/gui/container/beacon.png");
     private static final ImageIcon TEXTURE_WIDGETS = (ImageIcon) Icon.getIcon("textures/gui/widgets.png");
-    private static final ImageIcon TEXTURE_RECIPE_BOOK = (ImageIcon) Icon.getIcon("textures/gui/recipe_book.png");
     private static final ImageIcon TEXTURE_TABS = (ImageIcon) Icon
             .getIcon("textures/gui/container/creative_inventory/tabs.png");
     private static final ImageIcon TEXTURE_ENCHANTING_TABLE = (ImageIcon) Icon
@@ -64,8 +63,8 @@ public class Theme {
 
     private static final Icon TEXT_BOX = new PartIcon(TEXTURE_ENCHANTING_TABLE, 0, 185, 108, 19, 6);
 
-    private static final Icon TAB_H_UNSELECTED = TEXTURE_RECIPE_BOOK.withUV(150, 2, 35, 26, 256, 256);
-    private static final Icon TAB_H_SELECTED = TEXTURE_RECIPE_BOOK.withUV(188, 2, 35, 26, 256, 256);
+    private static final Icon TAB_H_UNSELECTED = TEXTURE_TABS.withUV(0, 97, 28, 28, 256, 256);
+    private static final Icon TAB_H_SELECTED = TEXTURE_TABS.withUV(0, 64, 27, 27, 256, 256);
 
     private final Deque<Boolean> fontUnicode = new ArrayDeque<>();
 
