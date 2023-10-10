@@ -2,6 +2,8 @@ package serverutils.utils.gui;
 
 import java.io.File;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.Collection;
 
 import net.minecraft.client.Minecraft;
@@ -28,7 +30,6 @@ import serverutils.lib.lib.io.DataReader;
 import serverutils.lib.lib.io.HttpDataReader;
 import serverutils.lib.lib.io.RequestMethod;
 import serverutils.lib.lib.util.FileUtils;
-import serverutils.lib.lib.util.StringJoiner;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.utils.net.MessageViewCrashDelete;
 
@@ -41,21 +42,23 @@ public class GuiViewCrash extends GuiBase {
             try {
                 File urlFile = new File(
                         Minecraft.getMinecraft().mcDataDir,
-                        "server utilities/serverutilities/uploaded_crash_reports/crash-" + name.text[0] + ".txt");
+                        "server utilities/serverutilities/uploaded_crash_reports/" + name.text[0]);
                 String url = DataReader.get(urlFile).safeString();
 
                 if (url.isEmpty()) {
-                    URL hastebinURL = new URL("https://hastebin.com/documents");
-                    String outText = StringUtils.unformatted(StringJoiner.with('\n').joinStrings(text.text));
+                    URL mclogsURL = new URL("https://api.mclo.gs/1/log");
+                    String outText = "content="
+                            + URLEncoder.encode(StringUtils.fromStringList(Arrays.asList(text.text)), "UTF-8");
+
                     JsonElement json = DataReader.get(
-                            hastebinURL,
+                            mclogsURL,
                             RequestMethod.POST,
-                            DataReader.TEXT,
+                            DataReader.URLENCODED,
                             new HttpDataReader.HttpDataOutput.StringOutput(outText),
                             Minecraft.getMinecraft().getProxy()).json();
 
-                    if (json.isJsonObject() && json.getAsJsonObject().has("key")) {
-                        url = "https://hastebin.com/" + json.getAsJsonObject().get("key").getAsString() + ".md";
+                    if (json.isJsonObject() && json.getAsJsonObject().has("id")) {
+                        url = "https://mclo.gs/" + json.getAsJsonObject().get("id").getAsString();
                         FileUtils.saveSafe(urlFile, url);
                     }
                 }

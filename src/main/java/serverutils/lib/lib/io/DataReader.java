@@ -33,6 +33,7 @@ public abstract class DataReader {
     public static final String HTML = "text/html; charset=utf-8";
     public static final String XML = "text/xml; charset=utf-8";
     public static final String PNG = "image/png";
+    public static final String URLENCODED = "application/x-www-form-urlencoded; charset=utf-8";
 
     public static HttpDataReader get(URL url, RequestMethod requestMethod, String contentType,
             @Nullable HttpDataReader.HttpDataOutput data, Proxy proxy) {
