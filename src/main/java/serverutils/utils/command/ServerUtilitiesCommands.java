@@ -28,9 +28,9 @@ public class ServerUtilitiesCommands {
             }
         }
 
-        // if (ServerUtilitiesConfig.commands.inv) {
-        // event.registerServerCommand(new CmdInv());
-        // }
+        if (ServerUtilitiesConfig.commands.inv) {
+            event.registerServerCommand(new CmdInv());
+        }
 
         if (ServerUtilitiesConfig.commands.warp) {
             event.registerServerCommand(new CmdWarp());

@@ -195,4 +195,29 @@ public class InvUtils {
     public static void forceUpdate(EntityPlayer player) {
         forceUpdate(player.inventoryContainer);
     }
+
+    public static boolean clear(IInventory inv) {
+        if (inv == null) return false;
+        boolean hadItems = false;
+
+        for (int i = 0; i < inv.getSizeInventory(); i++) {
+            ItemStack is = removeStackFromSlot(inv, i);
+            if (!hadItems && is != null && is.stackSize > 0) hadItems = true;
+        }
+
+        if (hadItems) inv.markDirty();
+        return hadItems;
+    }
+
+    public static ItemStack removeStackFromSlot(IInventory inv, int i) {
+        if (inv == null) return null;
+        ItemStack is = inv.getStackInSlot(i);
+
+        if (is != null) {
+            inv.setInventorySlotContents(i, null);
+            return (is.stackSize > 0) ? is : null;
+        }
+
+        return null;
+    }
 }

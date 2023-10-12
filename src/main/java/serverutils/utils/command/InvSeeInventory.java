@@ -1,22 +1,30 @@
 package serverutils.utils.command;
 
+import java.lang.reflect.Method;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.IChatComponent;
+
+import cpw.mods.fml.common.FMLLog;
+import serverutils.lib.lib.util.InvUtils;
 
 public class InvSeeInventory implements IInventory {
 
+    public static final int[] slotMapping = { 39, 38, 37, 36, -1, 40, 41, 42, 43, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+            19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 0, 1, 2, 3, 4, 5, 6, 7, 8, };
     private final IInventory inventory;
     private final EntityPlayerMP player;
+    private final IInventory baubles;
+    private static Method getBaubles = null;
 
     public InvSeeInventory(IInventory inv, @Nullable EntityPlayerMP ep) {
         inventory = inv;
         player = ep;
+        baubles = getBaubles(ep);
     }
 
     @Override
@@ -24,54 +32,46 @@ public class InvSeeInventory implements IInventory {
         return 45;
     }
 
-    // @Override
-    // public boolean isEmpty() {
-    // return inventory.isEmpty();
-    // }
-
     public int getSlot(int slot) {
-        if (slot == 8) {
-            return 40;
-        } else if (slot >= 0 && slot <= 3) {
-            return 39 - slot;
-        } else if (slot >= 9 && slot <= 35) {
-            return slot;
-        } else if (slot >= 36 && slot <= 44) {
-            return slot - 36;
-        }
+        return (slot == -1) ? -1 : (slot % 40);
+    }
 
-        return -1;
+    public IInventory getInv(int slot) {
+        if (slot == -1) return null;
+        if (slot >= 40) return baubles;
+        return inventory;
     }
 
     @Override
     public ItemStack getStackInSlot(int index) {
-        int slot = getSlot(index);
-        return slot == -1 ? null : inventory.getStackInSlot(slot);
+        int slot = slotMapping[index];
+        IInventory inv = getInv(slot);
+        return (inv == null) ? null : inv.getStackInSlot(getSlot(slot));
     }
 
     @Override
     public ItemStack decrStackSize(int index, int count) {
-        int slot = getSlot(index);
-        return slot == -1 ? null : inventory.decrStackSize(slot, count);
+        int slot = slotMapping[index];
+        IInventory inv = getInv(slot);
+        return (inv == null) ? null : inv.decrStackSize(getSlot(slot), count);
     }
-
-    // public ItemStack removeStackFromSlot(int index) {
-    // int slot = getSlot(index);
-    // return slot == -1 ? null : inventory.removeStackFromSlot(slot);
-    // }
 
     @Override
     public void setInventorySlotContents(int index, ItemStack is) {
-        int slot = getSlot(index);
-
-        if (slot != -1) {
-            inventory.setInventorySlotContents(slot, is);
-            markDirty();
+        int slot = slotMapping[index];
+        IInventory inv = getInv(slot);
+        if (inv != null) {
+            inv.setInventorySlotContents(getSlot(slot), is);
+            inv.markDirty();
         }
     }
 
     @Override
     public String getInventoryName() {
+        if (player != null) {
+            return player.getDisplayName();
+        }
+
         return inventory.getInventoryName();
     }
 
@@ -81,36 +81,22 @@ public class InvSeeInventory implements IInventory {
     }
 
     @Override
-    public void closeInventory() {
-        // TODO Auto-generated method stub
-
-    }
+    public void closeInventory() {}
 
     @Override
     public ItemStack getStackInSlotOnClosing(int index) {
-        // TODO Auto-generated method stub
-        return null;
+        int slot = slotMapping[index];
+        IInventory inv = getInv(slot);
+        return inv == null ? null : inv.getStackInSlotOnClosing(getSlot(slot));
     }
 
     @Override
     public boolean isUseableByPlayer(EntityPlayer player) {
-        // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
     @Override
-    public void openInventory() {
-        // TODO Auto-generated method stub
-
-    }
-
-    public IChatComponent getDisplayName() {
-        if (player != null) {
-            return new ChatComponentText(player.getDisplayName());
-        }
-
-        return new ChatComponentText(inventory.getInventoryName());
-    }
+    public void openInventory() {}
 
     @Override
     public int getInventoryStackLimit() {
@@ -124,6 +110,9 @@ public class InvSeeInventory implements IInventory {
         if (player != null) {
             player.openContainer.detectAndSendChanges();
         }
+        if (baubles != null) {
+            baubles.markDirty();
+        }
     }
 
     public boolean isUsableByPlayer(EntityPlayer player) {
@@ -132,21 +121,30 @@ public class InvSeeInventory implements IInventory {
 
     @Override
     public boolean isItemValidForSlot(int index, ItemStack stack) {
-        int slot = getSlot(index);
-        return slot != -1 && inventory.isItemValidForSlot(slot, stack);
+        int slot = slotMapping[index];
+        IInventory inv = getInv(slot);
+        return inv != null && inv.isItemValidForSlot(getSlot(slot), stack);
     }
 
-    public int getField(int id) {
-        return 0;
+    public void clear() {
+        InvUtils.clear(inventory);
+        InvUtils.clear(baubles);
     }
 
-    public void setField(int id, int value) {}
+    public static IInventory getBaubles(EntityPlayer player) {
+        IInventory ot = null;
 
-    public int getFieldCount() {
-        return 0;
+        try {
+            if (getBaubles == null) {
+                Class<?> fake = Class.forName("baubles.common.lib.PlayerHandler");
+                getBaubles = fake.getMethod("getPlayerBaubles", EntityPlayer.class);
+            }
+
+            ot = (IInventory) getBaubles.invoke(null, player);
+        } catch (Exception ex) {
+            FMLLog.warning("[Baubles API] Could not invoke baubles.common.lib.PlayerHandler method getPlayerBaubles");
+        }
+
+        return ot;
     }
-
-    // public void clear() {
-    // inventory.clear();
-    // }
 }
