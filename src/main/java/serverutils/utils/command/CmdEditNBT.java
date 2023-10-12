@@ -110,7 +110,13 @@ public class CmdEditNBT extends CmdTreeBase {
             TileEntity tile = player.worldObj.getTileEntity(x, y, z);
             NBTTagCompound nbt = new NBTTagCompound();
 
-            if (tile != null) {
+            if (tile == null) {
+                player.addChatMessage(
+                        ServerUtilities.lang(
+                                player,
+                                "commands.nbtedit.tile_not_found",
+                                player.worldObj.getBlock(x, y, z).getLocalizedName()));
+            } else {
                 info.setString("type", "block");
                 info.setInteger("x", x);
                 info.setInteger("y", y);

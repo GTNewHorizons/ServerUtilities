@@ -306,6 +306,7 @@ commands.nbtedit.block.usage=/nbtedit block <x> <y> <z>
 commands.nbtedit.entity.usage=/nbtedit entity <id>
 commands.nbtedit.player.usage=/nbtedit player <player>
 commands.nbtedit.item.usage=/nbtedit item
+commands.nbtedit.tile_not_found= %s is not a valid block.
 commands.tpa.usage=/tpa <player>
 commands.tpaccept.usage=/tpaccept <player>
 commands.tpdeny.usage=/tpdeny <player>
