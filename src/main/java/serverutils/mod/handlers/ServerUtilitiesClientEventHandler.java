@@ -22,6 +22,7 @@ import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.stats.StatList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
@@ -55,8 +56,10 @@ import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.lib.icon.Color4I;
 import serverutils.lib.lib.icon.Icon;
 import serverutils.lib.lib.icon.IconRenderer;
+import serverutils.lib.lib.math.Ticks;
 import serverutils.lib.lib.util.InvUtils;
 import serverutils.lib.lib.util.NBTUtils;
+import serverutils.lib.lib.util.StringUtils;
 import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.lib.net.MessageAdminPanelGui;
 import serverutils.lib.net.MessageMyTeamGui;
@@ -213,9 +216,32 @@ public class ServerUtilitiesClientEventHandler {
 
     @SubscribeEvent
     public void onDebugInfoEvent(RenderGameOverlayEvent.Text event) {
-        if (ServerUtilitiesClientConfig.debug_helper && !Minecraft.getMinecraft().gameSettings.showDebugInfo
-                && Keyboard.isKeyDown(Keyboard.KEY_F3)) {
+
+        if (Minecraft.getMinecraft().gameSettings.showDebugInfo) {
+            return;
+        }
+
+        if (ServerUtilitiesClientConfig.debug_helper && Keyboard.isKeyDown(Keyboard.KEY_F3)) {
             event.left.add(I18n.format("debug.help.help"));
+        }
+
+        if (shutdownTime > 0L && ServerUtilitiesClientConfig.general.show_shutdown_timer) {
+            long timeLeft = Math.max(0L, shutdownTime - System.currentTimeMillis());
+
+            if (timeLeft > 0L && timeLeft <= ServerUtilitiesClientConfig.general.getShowShutdownTimer()) {
+                event.left.add(
+                        EnumChatFormatting.DARK_RED + I18n
+                                .format("serverutilities.lang.timer.shutdown", StringUtils.getTimeString(timeLeft)));
+            }
+        }
+
+        if (ServerUtilitiesConfig.world.show_playtime) {
+            event.left.add(
+                    StatList.minutesPlayedStat.func_150951_e().getUnformattedText() + ": "
+                            + Ticks.get(
+                                    Minecraft.getMinecraft().thePlayer.getStatFileWriter()
+                                            .writeStat(StatList.minutesPlayedStat))
+                                    .toTimeString());
         }
     }
 
