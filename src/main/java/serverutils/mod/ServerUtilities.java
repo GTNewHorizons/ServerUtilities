@@ -203,9 +203,6 @@ public class ServerUtilities {
     public void onServerStopping(FMLServerStoppingEvent event) {
         Universe.onServerStopping(event);
         Aurora.stop();
-        ServerCommandManager manager = (ServerCommandManager) Ranks.INSTANCE.universe.server.getCommandManager();
-        List<ICommand> commands = new ArrayList<>(manager.getCommands().values());
-
     }
 
     @NetworkCheckHandler
