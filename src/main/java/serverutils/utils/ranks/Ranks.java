@@ -97,6 +97,8 @@ public class Ranks {
             pRank.add();
             pRank.setPermission(Rank.NODE_DEFAULT_PLAYER, true);
             pRank.setPermission(Rank.NODE_POWER, 1);
+            pRank.setPermission(ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS, 100);
+            pRank.setPermission(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS, 50);
             pRank.setPermission("example.permission", true);
             pRank.setPermission("example.other_permission", false);
             pRank.setPermission("example.permission_with_value", 0);
@@ -104,7 +106,9 @@ public class Ranks {
             Rank vRank = new Rank(this, "vip");
             vRank.add();
             vRank.setPermission(Rank.NODE_POWER, 20);
-            vRank.setPermission("serverutilities.chat.name_format", "<&bVIP {name}&r>");
+            vRank.setPermission(ServerUtilitiesPermissions.CHAT_NAME_FORMAT, "<&bVIP {name}&r>");
+            vRank.setPermission(ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS, 500);
+            vRank.setPermission(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS, 100);
             vRank.setPermission("example.other_permission", true);
             vRank.setPermission("example.permission_with_value", 15);
 
@@ -112,7 +116,10 @@ public class Ranks {
             aRank.add();
             aRank.setPermission(Rank.NODE_DEFAULT_OP, true);
             aRank.setPermission(Rank.NODE_POWER, 100);
-            aRank.setPermission("serverutilities.chat.name_format", "<&2{name}&r>");
+            aRank.setPermission(ServerUtilitiesPermissions.CHAT_NAME_FORMAT, "<&2{name}&r>");
+            aRank.setPermission(ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS, 5000);
+            aRank.setPermission(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS, 1000);
+            aRank.setPermission(ServerUtilitiesPermissions.CLAIMS_BYPASS_LIMITS, true);
             aRank.setPermission("example.permission_with_value", 100);
 
             PlayerRank fpRank = new PlayerRank(
