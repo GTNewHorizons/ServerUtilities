@@ -1,5 +1,8 @@
 package serverutils.utils.command.tp;
 
+import java.util.Arrays;
+import java.util.List;
+
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -23,6 +26,9 @@ public class CmdRTP extends CmdBase {
     public CmdRTP() {
         super("rtp", Level.ALL);
     }
+
+    private static final List<Block> UNSAFE_BLOCKS = Arrays
+            .asList(Blocks.cactus, Blocks.fire, Blocks.lava, Blocks.water, Blocks.flowing_lava, Blocks.flowing_water);
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
@@ -71,9 +77,12 @@ public class CmdRTP extends CmdBase {
         while (y > 0) {
             y--;
 
-            Block block = world.getBlock(x, y, z);
-            if (!block.equals(Blocks.air)) {
-                return TeleporterDimPos.of(x + 0.5D, y + 2.5D, z + 0.5D, world.provider.dimensionId);
+            Block blockFeet = world.getBlock(x, y, z);
+            Block blockHead = world.getBlock(x, y + 2, z);
+            if (!blockFeet.equals(Blocks.air)) {
+                if (blockHead.equals(Blocks.air) && !UNSAFE_BLOCKS.contains(blockFeet)) {
+                    return TeleporterDimPos.of(x + 0.5D, y + 2.5D, z + 0.5D, world.provider.dimensionId);
+                }
             }
         }
 
