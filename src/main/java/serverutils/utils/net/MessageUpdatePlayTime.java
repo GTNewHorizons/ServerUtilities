@@ -39,6 +39,6 @@ public class MessageUpdatePlayTime extends MessageToClient {
     @SideOnly(Side.CLIENT)
     public void onMessage() {
         Minecraft.getMinecraft().thePlayer.getStatFileWriter()
-                .func_150871_b(Minecraft.getMinecraft().thePlayer, StatList.minutesPlayedStat, time);
+                .func_150873_a(Minecraft.getMinecraft().thePlayer, StatList.minutesPlayedStat, time);
     }
 }
