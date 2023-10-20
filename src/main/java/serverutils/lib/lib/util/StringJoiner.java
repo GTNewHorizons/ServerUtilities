@@ -20,16 +20,12 @@ public abstract class StringJoiner {
     }
 
     public static StringJoiner with(char character) {
-        switch (character) {
-            case ',':
-                return WithChar.WITH_COMMA;
-            case '.':
-                return WithChar.WITH_PERIOD;
-            case ' ':
-                return WithChar.WITH_SPACE;
-            default:
-                return new WithChar(character);
-        }
+        return switch (character) {
+            case ',' -> WithChar.WITH_COMMA;
+            case '.' -> WithChar.WITH_PERIOD;
+            case ' ' -> WithChar.WITH_SPACE;
+            default -> new WithChar(character);
+        };
     }
 
     public static StringJoiner properties() {

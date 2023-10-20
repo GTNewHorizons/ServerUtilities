@@ -9,9 +9,6 @@ package serverutils.utils.integration.kubejs;
 // import net.minecraftforge.common.MinecraftForge;
 // import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-/**
- * @author LatvianModder
- */
 public class KubeJSIntegration {
     // public static void init()
     // {

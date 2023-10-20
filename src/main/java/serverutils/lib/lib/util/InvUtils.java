@@ -34,16 +34,7 @@ public class InvUtils {
     public static final IInventory EMPTY_INVENTORY = new InventoryBasic("[Null]", true, 0);
     public static final Predicate<ItemStack> NO_FILTER = stack -> true;
 
-    // @GameRegistry.ObjectHolder("itemfilters:missing")
-    // public static Item missingItem;
-
-    public static final ItemStack brokenItem(String id) {
-        // if (missingItem != null) {
-        // ItemStack stack = new ItemStack(missingItem);
-        // stack.setTagInfo("item", new NBTTagString(id));
-        // return stack;
-        // }
-
+    public static ItemStack brokenItem(String id) {
         ItemStack stack = new ItemStack(Items.fish);
         stack.setStackDisplayName("Broken Item with ID " + id);
         return stack;

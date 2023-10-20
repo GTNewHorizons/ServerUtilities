@@ -340,10 +340,6 @@ public class DataOut {
         writeJson(JsonUtils.serializeTextComponent(component));
     }
 
-    // public void writeBlockState(IBlockState state) {
-    // writeInt(state == BlockUtils.AIR_STATE ? 0 : Block.getStateId(state));
-    // }
-
     public void writeIcon(@Nullable Icon icon) {
         writeJson(icon == null || icon.isEmpty() ? JsonNull.INSTANCE : icon.getJson());
     }

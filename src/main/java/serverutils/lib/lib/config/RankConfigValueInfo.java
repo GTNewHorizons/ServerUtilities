@@ -27,7 +27,7 @@ public final class RankConfigValueInfo implements Comparable<RankConfigValueInfo
     }
 
     public boolean equals(Object o) {
-        return o == this || o instanceof RankConfigValueInfo && node.equals(((RankConfigValueInfo) o).node);
+        return o == this || o instanceof RankConfigValueInfo valueInfo && node.equals(valueInfo.node);
     }
 
     @Override

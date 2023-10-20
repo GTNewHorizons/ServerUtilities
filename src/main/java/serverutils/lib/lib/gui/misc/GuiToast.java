@@ -37,7 +37,7 @@ public class GuiToast extends Gui {
                 }
 
                 if (this.visible[i] == null && !this.toastsQueue.isEmpty()) {
-                    this.visible[i] = new ToastInstance(this.toastsQueue.removeFirst());
+                    this.visible[i] = new ToastInstance<>(this.toastsQueue.removeFirst());
                 }
             }
         }

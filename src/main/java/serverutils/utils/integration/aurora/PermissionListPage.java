@@ -147,25 +147,25 @@ public class PermissionListPage extends HTTPWebPage {
                 variants.add("Variants:");
                 variants.add("true");
                 variants.add("false");
-            } else if (entry.player instanceof ConfigInt) {
-                int min = ((ConfigInt) entry.player).getMin();
-                int max = ((ConfigInt) entry.player).getMax();
+            } else if (entry.player instanceof ConfigInt configInt) {
+                int min = configInt.getMin();
+                int max = configInt.getMax();
                 variants.add(
                         String.format(
                                 "%s to %s",
                                 min == Integer.MIN_VALUE ? "-&infin;" : String.valueOf(min),
                                 max == Integer.MAX_VALUE ? "&infin;" : String.valueOf(max)));
-            } else if (entry.player instanceof ConfigDouble) {
-                double min = ((ConfigDouble) entry.player).getMin();
-                double max = ((ConfigDouble) entry.player).getMax();
+            } else if (entry.player instanceof ConfigDouble configDouble) {
+                double min = configDouble.getMin();
+                double max = configDouble.getMax();
 
                 variants.add(
                         String.format(
                                 "%s to %s",
                                 min == Double.NEGATIVE_INFINITY ? "-&infin;" : StringUtils.formatDouble(min),
                                 max == Double.POSITIVE_INFINITY ? "&infin;" : StringUtils.formatDouble(max)));
-            } else if (entry.player instanceof ConfigTimer) {
-                Ticks max = ((ConfigTimer) entry.player).getMax();
+            } else if (entry.player instanceof ConfigTimer configTimer) {
+                Ticks max = configTimer.getMax();
                 variants.add(String.format("0s to %s", !max.hasTicks() ? "&infin;" : max.toString()));
             } else {
                 variants = new ArrayList<>(entry.player.getVariants());

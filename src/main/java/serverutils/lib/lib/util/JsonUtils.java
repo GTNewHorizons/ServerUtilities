@@ -199,10 +199,6 @@ public class JsonUtils {
                 json.addProperty("color", style.getColor().getFriendlyName());
             }
 
-            // if (ATHelper.getInsertion(style) != null) {
-            // json.addProperty("insertion", style.getFormattingCode());
-            // }
-
             if (ATHelper.getClickEvent(style) != null) {
                 json.add("clickEvent", serializeClickEvent(style.getChatClickEvent()));
             }
@@ -225,8 +221,7 @@ public class JsonUtils {
         if (component instanceof ChatComponentText) {
             json.addProperty("text", ((ChatComponentText) component).getChatComponentText_TextValue());
 
-            if (component instanceof Notification) {
-                Notification n = (Notification) component;
+            if (component instanceof Notification n) {
 
                 if (!n.getId().equals(Notification.VANILLA_STATUS)) {
                     json.addProperty("notification", n.getId().toString());
@@ -240,8 +235,7 @@ public class JsonUtils {
                     json.addProperty("important", true);
                 }
             }
-        } else if (component instanceof ChatComponentTranslation) {
-            ChatComponentTranslation translation = (ChatComponentTranslation) component;
+        } else if (component instanceof ChatComponentTranslation translation) {
             json.addProperty("translate", translation.getKey());
 
             if (translation.getFormatArgs().length > 0) {

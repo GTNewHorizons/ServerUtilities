@@ -59,6 +59,7 @@ import serverutils.lib.lib.icon.Color4I;
 import serverutils.lib.lib.math.Ticks;
 import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.util.InvUtils;
+import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.permission.PermissionAPI;
 import serverutils.lib.net.ServerLibNetHandler;
 import serverutils.mod.handlers.ServerUtilitiesPlayerEventHandler;
@@ -252,6 +253,6 @@ public class ServerUtilitiesCommon {
     }
 
     public long getWorldTime() {
-        return FMLCommonHandler.instance().getMinecraftServerInstance().getEntityWorld().getTotalWorldTime(); // getWorld(0).getTotalWorldTime();
+        return ServerUtils.getServerWorld().getTotalWorldTime();
     }
 }

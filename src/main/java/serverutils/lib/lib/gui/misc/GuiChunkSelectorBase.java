@@ -100,15 +100,12 @@ public class GuiChunkSelectorBase extends GuiBase {
                     }
                     ChunkCoordIntPair anchorChunk = gui.mapButtons[gui.anchorIndex].chunkPos;
                     ChunkCoordIntPair mouseChunk = gui.mapButtons[gui.mouseIndex].chunkPos;
-                    if (MathUtils.isNumberBetween(this.chunkPos.chunkXPos, anchorChunk.chunkXPos, mouseChunk.chunkXPos)
+                    isSelected = MathUtils
+                            .isNumberBetween(this.chunkPos.chunkXPos, anchorChunk.chunkXPos, mouseChunk.chunkXPos)
                             && MathUtils.isNumberBetween(
                                     this.chunkPos.chunkZPos,
                                     anchorChunk.chunkZPos,
-                                    mouseChunk.chunkZPos)) {
-                        isSelected = true;
-                    } else {
-                        isSelected = false;
-                    }
+                                    mouseChunk.chunkZPos);
                 } else {
                     if (!isSelected && gui.isMouseOver(this)) {
                         isSelected = true;

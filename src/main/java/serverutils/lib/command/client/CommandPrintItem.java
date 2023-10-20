@@ -24,11 +24,11 @@ public class CommandPrintItem extends CmdBase {
 
     @Override
     public void processCommand(ICommandSender sender, final String[] args) throws CommandException {
-        if (!(sender instanceof EntityPlayer)) {
+        if (!(sender instanceof EntityPlayer player)) {
             return;
         }
 
-        ItemStack stack = ((EntityPlayer) sender).getHeldItem();
+        ItemStack stack = player.getHeldItem();
 
         if (stack == null) {
             return;

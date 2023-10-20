@@ -18,8 +18,8 @@ public interface ICommandWithParent extends ICommand {
     }
 
     static String getCommandPath(ICommand command) {
-        return (command instanceof ICommandWithParent && ((ICommandWithParent) command).getParent() != null
-                ? (getCommandPath(((ICommandWithParent) command).getParent()) + ".")
+        return (command instanceof ICommandWithParent cmdWithParent && cmdWithParent.getParent() != null
+                ? (getCommandPath(cmdWithParent.getParent()) + ".")
                 : "") + command.getCommandName();
     }
 }

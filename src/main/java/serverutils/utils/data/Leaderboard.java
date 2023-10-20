@@ -14,9 +14,6 @@ import serverutils.lib.lib.data.ForgePlayer;
 import serverutils.lib.lib.math.Ticks;
 import serverutils.lib.lib.util.StringUtils;
 
-/**
- * @author LatvianModder
- */
 public class Leaderboard {
 
     public final ResourceLocation id;

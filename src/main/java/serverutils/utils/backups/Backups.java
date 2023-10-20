@@ -1,6 +1,6 @@
 package serverutils.utils.backups;
 
-import static serverutils.mod.ServerUtilitiesNotifications.BACKUP_START_ID;
+import static serverutils.mod.ServerUtilitiesNotifications.BACKUP_START;
 
 import java.io.File;
 import java.util.Arrays;
@@ -54,8 +54,7 @@ public class Backups {
             if (!hasOnlinePlayers() && !hadPlayer) return true;
             hadPlayer = false;
         }
-        ServerUtilitiesNotifications
-                .backupNotification(BACKUP_START_ID, "cmd.backup_start", ics.getCommandSenderName());
+        ServerUtilitiesNotifications.backupNotification(BACKUP_START, "cmd.backup_start", ics.getCommandSenderName());
 
         try {
             new CommandSaveOff().processCommand(ServerUtils.getServer(), new String[0]);

@@ -114,7 +114,7 @@ public class Universe {
     }
 
     public static void onServerStarted(FMLServerStartedEvent event) {
-        INSTANCE.world = (WorldServer) INSTANCE.server.getEntityWorld();
+        INSTANCE.world = INSTANCE.server.worldServers[0];
         INSTANCE.ticks = Ticks.get(INSTANCE.world.getTotalWorldTime());
         INSTANCE.load();
     }
@@ -611,8 +611,7 @@ public class Universe {
     }
 
     public ForgePlayer getPlayer(@Nullable ICommandSender sender) {
-        if (sender instanceof EntityPlayerMP) {
-            EntityPlayerMP player = (EntityPlayerMP) sender;
+        if (sender instanceof EntityPlayerMP player) {
 
             if (ServerUtils.isFake(player)) {
                 fakePlayer.tempPlayer = player;

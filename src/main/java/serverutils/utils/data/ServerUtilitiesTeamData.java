@@ -68,7 +68,7 @@ public class ServerUtilitiesTeamData extends TeamData {
 
         NBTTagCompound claimedChunksTag = new NBTTagCompound();
 
-        for (Map.Entry<Integer, NBTTagList> entry : claimedChunks.entrySet()) {
+        for (Map.Entry<Integer, NBTTagList> entry : claimedChunks.int2ObjectEntrySet()) {
             claimedChunksTag.setTag(entry.getKey().toString(), entry.getValue());
         }
 

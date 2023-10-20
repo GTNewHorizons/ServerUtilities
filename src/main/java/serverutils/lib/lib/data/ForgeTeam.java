@@ -44,9 +44,6 @@ import serverutils.lib.lib.util.INBTSerializable;
 import serverutils.lib.lib.util.StringUtils;
 import serverutils.mod.ServerUtilities;
 
-/**
- * @author LatvianModder
- */
 public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagCompound>, IConfigCallback {
 
     public static final int MAX_TEAM_ID_LENGTH = 35;
@@ -360,24 +357,16 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
             return getFakePlayerStatus(player).isEqualOrGreaterThan(status);
         }
 
-        switch (status) {
-            case NONE:
-                return true;
-            case ENEMY:
-                return isEnemy(player);
-            case ALLY:
-                return isAlly(player);
-            case INVITED:
-                return isInvited(player);
-            case MEMBER:
-                return isMember(player);
-            case MOD:
-                return isModerator(player);
-            case OWNER:
-                return isOwner(player);
-            default:
-                return false;
-        }
+        return switch (status) {
+            case NONE -> true;
+            case ENEMY -> isEnemy(player);
+            case ALLY -> isAlly(player);
+            case INVITED -> isInvited(player);
+            case MEMBER -> isMember(player);
+            case MOD -> isModerator(player);
+            case OWNER -> isOwner(player);
+            default -> false;
+        };
     }
 
     public boolean setStatus(@Nullable ForgePlayer player, EnumTeamStatus status) {

@@ -31,7 +31,6 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import codechicken.nei.GuiExtendedCreativeInv;
@@ -83,7 +82,6 @@ public class ServerUtilitiesClientEventHandler {
     public static boolean shouldRenderIcons = false;
     private static final Map<UUID, Icon> BADGE_CACHE = new HashMap<>();
     public static long shutdownTime = 0L;
-    public static int currentPlaytime = 0;
 
     public static void readSyncData(NBTTagCompound nbt) {
         shutdownTime = System.currentTimeMillis() + nbt.getLong("ShutdownTime");
@@ -139,7 +137,7 @@ public class ServerUtilitiesClientEventHandler {
         Arrays.fill(GuiClaimedChunks.chunkData, null);
 
         for (ClientClaimedChunks.Team team : m.teams.values()) {
-            for (Map.Entry<Integer, ClientClaimedChunks.ChunkData> entry : team.chunks.entrySet()) {
+            for (Map.Entry<Integer, ClientClaimedChunks.ChunkData> entry : team.chunks.int2ObjectEntrySet()) {
                 int x = entry.getKey() % ChunkSelectorMap.TILES_GUI;
                 int z = entry.getKey() / ChunkSelectorMap.TILES_GUI;
                 GuiClaimedChunks.chunkData[x + z * ChunkSelectorMap.TILES_GUI] = entry.getValue();
@@ -219,10 +217,6 @@ public class ServerUtilitiesClientEventHandler {
 
         if (Minecraft.getMinecraft().gameSettings.showDebugInfo) {
             return;
-        }
-
-        if (ServerUtilitiesClientConfig.debug_helper && Keyboard.isKeyDown(Keyboard.KEY_F3)) {
-            event.left.add(I18n.format("debug.help.help"));
         }
 
         if (shutdownTime > 0L && ServerUtilitiesClientConfig.general.show_shutdown_timer) {

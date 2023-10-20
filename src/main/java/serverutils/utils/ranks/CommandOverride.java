@@ -17,8 +17,8 @@ import serverutils.lib.lib.command.CommandTreeBase;
 public class CommandOverride extends CommandBase {
 
     public static ICommand create(ICommand command, String parent, @Nullable ModContainer container) {
-        if (command instanceof CommandTreeBase) {
-            return new CommandTreeOverride((CommandTreeBase) command, parent, container);
+        if (command instanceof CommandTreeBase cmdTreeBase) {
+            return new CommandTreeOverride(cmdTreeBase, parent, container);
         } else {
             return new CommandOverride(command, parent, container);
         }
@@ -72,13 +72,13 @@ public class CommandOverride extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return mirrored instanceof CommandBase ? ((CommandBase) mirrored).getRequiredPermissionLevel() : 4;
+        return mirrored instanceof CommandBase mirroredBase ? mirroredBase.getRequiredPermissionLevel() : 4;
     }
 
     @Override
     public boolean canCommandSenderUseCommand(ICommandSender sender) {
-        if (sender instanceof EntityPlayerMP) {
-            Event.Result result = Ranks.INSTANCE.getPermissionResult((EntityPlayerMP) sender, node, true);
+        if (sender instanceof EntityPlayerMP senderMP) {
+            Event.Result result = Ranks.INSTANCE.getPermissionResult(senderMP, node, true);
 
             if (result != Event.Result.DEFAULT) {
                 return result == Event.Result.ALLOW;
@@ -100,7 +100,7 @@ public class CommandOverride extends CommandBase {
 
     @Override
     public int compareTo(ICommand o) {
-        return o instanceof CommandOverride ? node.compareTo(((CommandOverride) o).node)
+        return o instanceof CommandOverride override ? node.compareTo(override.node)
                 : getCommandName().compareTo(o.getCommandName());
     }
 }

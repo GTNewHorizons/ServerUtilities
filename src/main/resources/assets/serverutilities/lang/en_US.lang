@@ -1,3 +1,75 @@
+# Misc
+gamerules=Gamerules
+serverutilities.lang.timer.shutdown=Server shuts down in %s
+serverutilities.lang.killed_entities=Killed %d entities with type '%s'
+serverutilities.lang.kickme=You kicked yourself!
+serverutilities.lang.upload_crash=Upload Crash Report
+serverutilities.lang.uploaded_crash=Crash Report Uploaded! %s
+serverutilities.lang.nickname_changed=Nickname changed to '%s'
+serverutilities.lang.nickname_reset=Nickname reset
+serverutilities.lang.unmuted= %s has been unmuted
+serverutilities.lang.muted= %s has been muted
+serverutilities.lang.fly_on=Fly turned on for %s
+serverutilities.lang.fly_off=Fly turned off for %s
+serverutilities.lang.god_on=God mode turned on for %s
+serverutilities.lang.god_off=God mode turned off for %s
+serverutilities.lang.heal=%s has been healed
+
+serverutilities.stat.dph=Deaths Per Hour
+serverutilities.stat.last_seen=Last Seen
+
+wip=Work In Progress!
+deprecated=This method is deprecated, please use %s
+example=Example:
+click_here=[Click Here]
+feature_disabled=This feature is disabled!
+feature_disabled_server=This feature is disabled on server!
+error=Error: %s
+owner=Owner: %s
+delete_item=Do you want to delete '%s'?
+server_forced=Server overrides to '%s'
+commands=Commands
+my_permissions=My Permissions
+all_permissions=All Permissions
+key.categories.serverutilities=Server Utilities
+stand_still=Please, stand still for %d seconds.
+stand_still_failed=You moved! Teleport cancelled.
+teleporting=Teleporting...
+cooldown=Cooldown
+cant_use_now=Can't use that right now!
+cant_use_now_cooldown=Can't use that right now! Cooldown: %s
+action_bar=Action Bar
+nothing_changed=Nothing changed!
+player_must_be_online=Player must be online!
+
+serverutilities.lang.reload_server_button=Reload Server
+serverutilities.lang.reload_server=Server reloaded in %s
+serverutilities.lang.reload_client=You can press %s to reload client
+serverutilities.lang.reload_failed=These IDs failed to reload:
+
+serverutilities.lang.config_command.invalid_key=Can't find config value '%s'!
+serverutilities.lang.config_command.set='%s' set to %s
+
+serverutilities.lang.add_fake_player.invalid_uuid=Invalid UUID!
+serverutilities.lang.add_fake_player.player_exists=Player already exists!
+serverutilities.lang.add_fake_player.added=Fake player %s added!
+
+serverutilities.select_fluid.gui=Select Fluid
+serverutilities.select_fluid.none=None
+serverutilities.select_item.list_mode=List Mode: %s
+serverutilities.select_item.list_mode.all=All Items
+serverutilities.select_item.list_mode.inv=Inventory
+serverutilities.select_item.count=Set Size
+serverutilities.select_item.meta=Set Metadata
+serverutilities.select_item.nbt=Edit NBT
+serverutilities.select_item.caps=Edit Capabilities
+serverutilities.select_item.display_name=Set Display Name
+serverutilities.select_team.gui=Select Team
+
+serverutilities.world.dimension.overworld=Overworld
+serverutilities.world.dimension.end=The End
+serverutilities.world.dimension.nether=Nether
+
 # Config
 serverutilities=Server Utilities
 serverutilities.auto_shutdown=Auto Shutdown
@@ -64,7 +136,27 @@ serverutilities.ranks.tags.default_op_rank=Default OP Rank
 
 serverutilities.debugging.log_chunkloading=Log Chunkloading
 
-serverutilities_client=Server Utilities Client
+serverutilities.general.clientless_mode=Clientless Mode
+serverutilities.general.replace_reload_command=Replace /reload Command
+serverutilities.general.merge_offline_mode_players=Merge Offline Mode Players
+
+serverutilities.teams=Teams
+serverutilities.teams.autocreate_sp=Autocreate on Singleplayer
+serverutilities.teams.autocreate_mp=Autocreate on Multiplayer
+
+serverutilities.debugging=Debugging
+serverutilities.debugging.special_commands=Special Commands
+serverutilities.debugging.print_more_info=Print More Info
+serverutilities.debugging.print_more_errors=Print More Errors
+serverutilities.debugging.log_network=Log Network IO
+serverutilities.debugging.log_teleport=Log Teleporting
+serverutilities.debugging.log_config_editing=Log Config Editing
+serverutilities.debugging.dev_sidebar_buttons=Dev-only Sidebar Buttons
+serverutilities.debugging.gui_widget_bounds=GUI Widget Bounds
+serverutilities.debugging.log_events=Log Events
+
+# Client Config
+serverutilities_client=Client Config
 serverutilities_client.render_badges=Show Badges
 serverutilities_client.journeymap_overlay=Enable Journeymap Integration
 serverutilities_client.scan_items_whitelist=/scan_items Whitelist
@@ -73,6 +165,14 @@ serverutilities_client.show_shutdown_timer=Show Shutdown Timer
 serverutilities_client.shutdown_timer_start=Shutdown Timer Start
 serverutilities_client.button_daytime=Button Daytime
 serverutilities_client.button_nighttime=Button Nighttime
+serverutilities_client.item_ore_names=Display Item OreDictionary Names
+serverutilities_client.item_ore_names.item_tooltip=Ore Dictionary Names:
+serverutilities_client.item_nbt=Display Item NBT
+serverutilities_client.replace_vanilla_status_messages=Replace vanilla status messages
+serverutilities_client.debug_helper=Debug Helper
+serverutilities_client.sidebar_buttons=Sidebar Button Location
+serverutilities_client.sidebar_buttons_above_potion=Draw Buttons Above Potion Label
+serverutilities_client.notification_location=Notification Location
 
 # Rank Config
 permission.serverutilities.badge=Badge
@@ -115,6 +215,8 @@ permission.serverutilities.chat.suffix.base.text=Chat Suffix Text [Base]
 permission.serverutilities.chat.suffix.right.text=Chat Suffix Text [Right]
 
 # Player Settings
+player_config=My Server Settings
+player_config.serverutilities.hide_team_notification=Hide Team Notification on Login
 player_config.serverutilities.chat_links=Chat Links
 player_config.serverutilities.disable_global_badge=Disable Global Badge
 player_config.serverutilities.render_badge=Render My Badge
@@ -123,6 +225,15 @@ player_config.serverutilities.nickname=Nickname
 player_config.serverutilities.afk=AFK Notification Position
 
 # Team Settings
+team_config.serverutilities.display=Display
+team_config.serverutilities.display.color=Color
+team_config.serverutilities.display.fake_player_status=Fake Player Status
+team_config.serverutilities.display.title=Title
+team_config.serverutilities.display.title.tooltip=Displays when you enter a claimed chunk
+team_config.serverutilities.display.desc=Description
+team_config.serverutilities.display.desc.tooltip=Displays under Title
+team_config.serverutilities.free_to_join=Free to Join
+team_config.serverutilities.free_to_join.tooltip=Anyone can join without invitation
 team_config.serverutilities.blocks_edit=Required Level for Block Editing
 team_config.serverutilities.blocks_interact=Required Level for Block Interactions
 team_config.serverutilities.attack_entities=Required Level for Attacking Entities
@@ -130,7 +241,14 @@ team_config.serverutilities.use_items=Required Level for Using Items
 team_config.serverutilities.explosions=Enable Explosions in Claimed Chunks
 team_config.serverutilities.fake_players=Allow Fake Players to Interact With Blocks
 
-# Action Buttons
+# Sidebar Buttons
+sidebar_button=Sidebar Buttons
+sidebar_button.serverutilities.my_team=My Team
+sidebar_button.serverutilities.my_team.tooltip=Opens a GUI where you can manage your team
+sidebar_button.serverutilities.settings=Client Settings
+sidebar_button.serverutilities.settings.tooltip=Edit client-side-only settings
+sidebar_button.serverutilities.notifications=Notifications
+sidebar_button.serverutilities.admin_panel=Admin Panel
 sidebar_button.serverutilities.chats=Chats
 sidebar_button.serverutilities.chats.general=General Chat
 sidebar_button.serverutilities.chats.admin=Admin Chat
@@ -171,79 +289,6 @@ admin_panel.serverutilities.edit_world=Edit World
 # Keys
 key.serverutilities.nbt=Edit NBT
 key.serverutilities.trash=Trash Can
-
-# Misc
-gamerules=Gamerules
-serverutilities.lang.timer.shutdown=Server shuts down in %s
-serverutilities.lang.killed_entities=Killed %d entities with type '%s'
-serverutilities.lang.kickme=You kicked yourself!
-serverutilities.lang.upload_crash=Upload Crash Report
-serverutilities.lang.uploaded_crash=Crash Report Uploaded! %s
-serverutilities.lang.nickname_changed=Nickname changed to '%s'
-serverutilities.lang.nickname_reset=Nickname reset
-serverutilities.lang.unmuted= %s has been unmuted
-serverutilities.lang.muted= %s has been muted
-serverutilities.lang.fly_on=Fly turned on for %s
-serverutilities.lang.fly_off=Fly turned off for %s
-serverutilities.lang.god_on=God mode turned on for %s
-serverutilities.lang.god_off=God mode turned off for %s
-serverutilities.lang.heal=%s has been healed
-
-serverutilities.stat.dph=Deaths Per Hour
-serverutilities.stat.last_seen=Last Seen
-
-# Chunks
-serverutilities.lang.chunks.cant_modify_chunk=Can't modify this chunk!
-serverutilities.lang.chunks.unclaimed_all=Unclaimed all chunks
-serverutilities.lang.chunks.chunk_claimed=Chunk claimed
-serverutilities.lang.chunks.chunk_unclaimed=Chunk unclaimed
-serverutilities.lang.chunks.chunk_loaded=Chunk loaded
-serverutilities.lang.chunks.chunk_unloaded=Chunk unloaded
-serverutilities.lang.chunks.unloaded_all=Unloaded all chunks
-
-serverutilities.lang.chunks.unclaim_all=Unclaim all chunks
-serverutilities.lang.chunks.unclaim_all_dim=Unclaim all chunks in %s
-serverutilities.lang.chunks.unclaim_all_q=Unclaim all chunks?
-serverutilities.lang.chunks.unclaim_all_dim_q=Unclaim all chunks in %s?
-serverutilities.lang.chunks.claims_invalid_dim=Can't claim chunks in this dimension
-serverutilities.lang.chunks.claimed_count=Claimed Chunks: %d / %s
-serverutilities.lang.chunks.loaded_count=Loaded Chunks: %d / %s
-serverutilities.lang.chunks.claimed_area=Claimed Area
-serverutilities.lang.chunks.wilderness=Wilderness
-
-# Chunk Types
-serverutilities.lang.chunks.upgrade.loaded=Chunkloaded
-serverutilities.lang.chunks.upgrade.no_explosions=Explosions Disabled
-serverutilities.lang.chunks.upgrade.no_pvp=Ally PVP Disabled
-
-# Warps
-serverutilities.lang.warps.set=Warp '%s' set!
-serverutilities.lang.warps.del=Warp '%s' deleted!
-serverutilities.lang.warps.not_set=Unknown Warp: '%s'!
-serverutilities.lang.warps.cooldown=You can only use warp in %s!
-serverutilities.lang.warps.tp=Teleported to '%s'!
-serverutilities.lang.warps.no_dp=You can only go back once!
-
-# Homes
-serverutilities.lang.homes.set=Home '%s' set!
-serverutilities.lang.homes.del=Home '%s' deleted!
-serverutilities.lang.homes.not_set=Unknown Home: '%s'!
-serverutilities.lang.homes.cooldown=You can only use home in %s!
-serverutilities.lang.homes.cross_dim=You can't teleport to another dimension!
-serverutilities.lang.homes.limit=You can't set any more home locations!
-serverutilities.lang.homes.spectator=Exit spectator mode first!
-
-# TPA
-serverutilities.lang.tpa.from_to=%s -> %s
-serverutilities.lang.tpa.request_received=%s requests TPA! %s to accept.
-serverutilities.lang.tpa.request_sent=Request sent!
-serverutilities.lang.tpa.no_request=%s is not requesting TPA!
-serverutilities.lang.tpa.cant_request=Can't request TPA!
-serverutilities.lang.tpa.request_expired=TPA request expired!
-serverutilities.lang.tpa.request_accepted=TPA Request accepted!
-
-# RTP
-serverutilities.lang.rtp.fail=Could not find a valid location to teleport to!
 
 # Commands
 commands.shutdown.usage=/shutdown
@@ -325,12 +370,101 @@ commands.ping.integrated_server=Integrated Server
 commands.ping.unknown=Unknown
 commands.ping.ping=Ping %s
 commands.backup.usage=/backup
+commands.backup.start.usage=/backup start
+commands.backup.stop.usage=/backup stop
+commands.backup.getsize.usage=/backup getsize
+commands.reload.usage=/reload [*|domain:*|domain:id]
+commands.my_settings.usage=/my_settings <config id> [value]
+commands.team.usage=/team
+commands.team.settings.usage=/team settings <config id> [value]
+commands.team.create.usage=/team create <id> [color]
+commands.team.leave.usage=/team leave
+commands.team.transfer_ownership.usage=/team transfer_ownership <player>
+commands.team.kick.usage=/team kick <player>
+commands.team.join.usage=/team join <team>
+commands.team.status.usage=/team status <player> [set_status]
+commands.team.status.set=Status for %s set to %s
+commands.team.status.cant_set=Status can't be set!
+commands.team.msg.usage=/team msg <message...>
+commands.team.delete.usage=/team delete <team>
+commands.team.request_invite.usage=/team request_invite <team>
+commands.team.create_server_team.usage=/team create_server_team <id>
+commands.team.info.usage=/team info <team>
+commands.team.info.id=ID: %s
+commands.team.info.uid=UID: %s
+commands.team.info.owner=Owner: %s
+commands.team.info.members=Members: %s
+commands.team.get.usage=/team get <player>
+commands.team.list.usage=/team list
+commands.team.list.teams=List of all teams (%d):
+commands.add_fake_player.usage=/add_fake_player <uuid> <name>
+commands.god.usage=/god <player>
+commands.rtp.usage=/rtp
+commands.dump_chunkloaders.usage=/dump_chunkloaders
 
+# Chunks
+serverutilities.lang.chunks.cant_modify_chunk=Can't modify this chunk!
+serverutilities.lang.chunks.unclaimed_all=Unclaimed all chunks
+serverutilities.lang.chunks.chunk_claimed=Chunk claimed
+serverutilities.lang.chunks.chunk_unclaimed=Chunk unclaimed
+serverutilities.lang.chunks.chunk_loaded=Chunk loaded
+serverutilities.lang.chunks.chunk_unloaded=Chunk unloaded
+serverutilities.lang.chunks.unloaded_all=Unloaded all chunks
+
+serverutilities.lang.chunks.unclaim_all=Unclaim all chunks
+serverutilities.lang.chunks.unclaim_all_dim=Unclaim all chunks in %s
+serverutilities.lang.chunks.unclaim_all_q=Unclaim all chunks?
+serverutilities.lang.chunks.unclaim_all_dim_q=Unclaim all chunks in %s?
+serverutilities.lang.chunks.claims_invalid_dim=Can't claim chunks in this dimension
+serverutilities.lang.chunks.claimed_count=Claimed Chunks: %d / %s
+serverutilities.lang.chunks.loaded_count=Loaded Chunks: %d / %s
+serverutilities.lang.chunks.claimed_area=Claimed Area
+serverutilities.lang.chunks.wilderness=Wilderness
+
+# Chunk Types
+serverutilities.lang.chunks.upgrade.loaded=Chunkloaded
+serverutilities.lang.chunks.upgrade.no_explosions=Explosions Disabled
+serverutilities.lang.chunks.upgrade.no_pvp=Ally PVP Disabled
+
+# Warps
+serverutilities.lang.warps.set=Warp '%s' set!
+serverutilities.lang.warps.del=Warp '%s' deleted!
+serverutilities.lang.warps.not_set=Unknown Warp: '%s'!
+serverutilities.lang.warps.cooldown=You can only use warp in %s!
+serverutilities.lang.warps.tp=Teleported to '%s'!
+serverutilities.lang.warps.no_dp=You can only go back once!
+
+# Homes
+serverutilities.lang.homes.set=Home '%s' set!
+serverutilities.lang.homes.del=Home '%s' deleted!
+serverutilities.lang.homes.not_set=Unknown Home: '%s'!
+serverutilities.lang.homes.cooldown=You can only use home in %s!
+serverutilities.lang.homes.cross_dim=You can't teleport to another dimension!
+serverutilities.lang.homes.limit=You can't set any more home locations!
+serverutilities.lang.homes.spectator=Exit spectator mode first!
+
+# TPA
+serverutilities.lang.tpa.from_to=%s -> %s
+serverutilities.lang.tpa.request_received=%s requests TPA! %s to accept.
+serverutilities.lang.tpa.request_sent=Request sent!
+serverutilities.lang.tpa.no_request=%s is not requesting TPA!
+serverutilities.lang.tpa.cant_request=Can't request TPA!
+serverutilities.lang.tpa.request_expired=TPA request expired!
+serverutilities.lang.tpa.request_accepted=TPA Request accepted!
+
+# RTP
+serverutilities.lang.rtp.fail=Could not find a valid location to teleport to!
 
 # Client Commands
+commands.client_config.usage=/client_config
 commands.shrug.usage=/shrug [text...]
 commands.scan_items.usage=/scan_items
 commands.print_item.usage=/print_item
+
+# Forge
+commands.tree_base.invalid_cmd=Invalid subcommand '%s'!
+commands.tree_base.invalid_cmd.list_subcommands=Invalid subcommand '%s'! Available subcommands: %s
+commands.tree_base.available_subcommands=Available SubCommands: %s
 
 # Backup
 cmd.timer_backup=Next backup: %s
@@ -344,7 +478,6 @@ cmd.backup_already_running=Backup in progress!
 cmd.backup_not_running=Backup is not running!
 cmd.backup_size=Current world size: %s, total backups folder size: %s
 
-#LIB
 # Gui
 ## Buttons
 gui.accept=Accept
@@ -396,102 +529,6 @@ relative_facing.back=Back
 relative_facing.front=Front
 relative_facing.left=Left
 relative_facing.right=Right
-
-# ServerUtilitiesLib Lang
-wip=Work In Progress!
-deprecated=This method is deprecated, please use %s
-example=Example:
-click_here=[Click Here]
-feature_disabled=This feature is disabled!
-feature_disabled_server=This feature is disabled on server!
-error=Error: %s
-owner=Owner: %s
-delete_item=Do you want to delete '%s'?
-server_forced=Server overrides to '%s'
-commands=Commands
-my_permissions=My Permissions
-all_permissions=All Permissions
-key.categories.serverutilitiesmods=Server Utilities Mods
-stand_still=Please, stand still for %d seconds.
-stand_still_failed=You moved! Teleport cancelled.
-teleporting=Teleporting...
-cooldown=Cooldown
-cant_use_now=Can't use that right now!
-cant_use_now_cooldown=Can't use that right now! Cooldown: %s
-action_bar=Action Bar
-nothing_changed=Nothing changed!
-player_must_be_online=Player must be online!
-lat_support=Like this mod? Click to support my projects!
-
-serverutilities.lang.reload_server_button=Reload Server
-serverutilities.lang.reload_server=Server reloaded in %s
-serverutilities.lang.reload_client=You can press %s to reload client
-serverutilities.lang.reload_failed=These IDs failed to reload:
-
-serverutilities.lang.config_command.invalid_key=Can't find config value '%s'!
-serverutilities.lang.config_command.set='%s' set to %s
-
-serverutilities.lang.add_fake_player.invalid_uuid=Invalid UUID!
-serverutilities.lang.add_fake_player.player_exists=Player already exists!
-serverutilities.lang.add_fake_player.added=Fake player %s added!
-
-serverutilities.select_fluid.gui=Select Fluid
-serverutilities.select_fluid.none=None
-serverutilities.select_item.list_mode=List Mode: %s
-serverutilities.select_item.list_mode.all=All Items
-serverutilities.select_item.list_mode.inv=Inventory
-serverutilities.select_item.count=Set Size
-serverutilities.select_item.meta=Set Metadata
-serverutilities.select_item.nbt=Edit NBT
-serverutilities.select_item.caps=Edit Capabilities
-serverutilities.select_item.display_name=Set Display Name
-serverutilities.select_team.gui=Select Team
-
-serverutilities.world.dimension.overworld=Overworld
-serverutilities.world.dimension.end=The End
-serverutilities.world.dimension.nether=Nether
-
-# Config
-serverutilities.general.clientless_mode=Clientless Mode
-serverutilities.general.replace_reload_command=Replace /reload Command
-serverutilities.general.merge_offline_mode_players=Merge Offline Mode Players
-
-serverutilities.teams=Teams
-serverutilities.teams.autocreate_sp=Autocreate on Singleplayer
-serverutilities.teams.autocreate_mp=Autocreate on Multiplayer
-
-serverutilities.debugging=Debugging
-serverutilities.debugging.special_commands=Special Commands
-serverutilities.debugging.print_more_info=Print More Info
-serverutilities.debugging.print_more_errors=Print More Errors
-serverutilities.debugging.log_network=Log Network IO
-serverutilities.debugging.log_teleport=Log Teleporting
-serverutilities.debugging.log_config_editing=Log Config Editing
-serverutilities.debugging.dev_sidebar_buttons=Dev-only Sidebar Buttons
-serverutilities.debugging.gui_widget_bounds=GUI Widget Bounds
-serverutilities.debugging.log_events=Log Events
-
-# Client Config
-serverutilities_client.item_ore_names=Display Item OreDictionary names
-serverutilities_client.item_ore_names.item_tooltip=Ore Dictionary Names:
-serverutilities_client.item_nbt=Display Item NBT
-serverutilities_client.replace_vanilla_status_messages=Replace vanilla status messages
-serverutilities_client.debug_helper=Debug Helper
-
-# Player Settings
-player_config=My Server Settings
-player_config.serverutilities.hide_team_notification=Hide Team Notification on Login
-
-# Team Settings
-team_config.serverutilities.display=Display
-team_config.serverutilities.display.color=Color
-team_config.serverutilities.display.fake_player_status=Fake Player Status
-team_config.serverutilities.display.title=Title
-team_config.serverutilities.display.title.tooltip=Displays when you enter a claimed chunk
-team_config.serverutilities.display.desc=Description
-team_config.serverutilities.display.desc.tooltip=Displays under Title
-team_config.serverutilities.free_to_join=Free to Join
-team_config.serverutilities.free_to_join.tooltip=Anyone can join without invitation
 
 # Teams
 serverutilities.lang.team.no_team=No Team
@@ -548,15 +585,6 @@ serverutilities.lang.team_status.member=Member
 serverutilities.lang.team_status.mod=Moderator
 serverutilities.lang.team_status.owner=Owner
 
-# Sidebar Buttons
-sidebar_button=Sidebar Buttons
-sidebar_button.serverutilities.my_team=My Team
-sidebar_button.serverutilities.my_team.tooltip=Opens a GUI where you can manage your team
-sidebar_button.serverutilities.settings=Client Settings
-sidebar_button.serverutilities.settings.tooltip=Edit client-side-only settings
-sidebar_button.serverutilities.notifications=Notifications
-sidebar_button.serverutilities.admin_panel=Admin Panel
-
 # Privacy Level
 privacy=Privacy
 privacy.public=Public
@@ -583,41 +611,6 @@ click_action.show_cmd=Show Command
 click_action.url=Open URL
 click_action.file=Open File
 click_action.gui=Open Gui
-
-# Commands
-commands.reload.usage=/reload [*|domain:*|domain:id]
-commands.my_settings.usage=/my_settings <config id> [value]
-commands.team.usage=/team
-commands.team.settings.usage=/team settings <config id> [value]
-commands.team.create.usage=/team create <id> [color]
-commands.team.leave.usage=/team leave
-commands.team.transfer_ownership.usage=/team transfer_ownership <player>
-commands.team.kick.usage=/team kick <player>
-commands.team.join.usage=/team join <team>
-commands.team.status.usage=/team status <player> [set_status]
-commands.team.status.set=Status for %s set to %s
-commands.team.status.cant_set=Status can't be set!
-commands.team.msg.usage=/team msg <message...>
-commands.team.delete.usage=/team delete <team>
-commands.team.request_invite.usage=/team request_invite <team>
-commands.team.create_server_team.usage=/team create_server_team <id>
-commands.team.info.usage=/team info <team>
-commands.team.info.id=ID: %s
-commands.team.info.uid=UID: %s
-commands.team.info.owner=Owner: %s
-commands.team.info.members=Members: %s
-commands.team.get.usage=/team get <player>
-commands.team.list.usage=/team list
-commands.team.list.teams=List of all teams (%d):
-commands.add_fake_player.usage=/add_fake_player <uuid> <name>
-
-# Client Commands
-commands.client_config.usage=/client_config
-
-# Forge
-commands.tree_base.invalid_cmd=Invalid subcommand '%s'!
-commands.tree_base.invalid_cmd.list_subcommands=Invalid subcommand '%s'! Available subcommands: %s
-commands.tree_base.available_subcommands=Available SubCommands: %s
 
 # Aurora
 aurora=Server Utilities Aurora

@@ -45,7 +45,7 @@ public final class ItemEntry {
                         .getObject(new ResourceLocation(json.get("item").getAsString()));
             }
 
-            if (item == null || item == null) {
+            if (item == null) {
                 return EMPTY;
             }
 

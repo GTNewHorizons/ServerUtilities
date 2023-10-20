@@ -89,7 +89,7 @@ public class Notification extends ChatComponentText {
     }
 
     public boolean equals(Object o) {
-        return o == this || (o instanceof Notification && ((Notification) o).getId().equals(getId()));
+        return o == this || (o instanceof Notification notification && notification.getId().equals(getId()));
     }
 
     public String toString() {

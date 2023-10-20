@@ -46,7 +46,7 @@ public enum EnumDyeColor {
         ID = ordinal();
         name = ItemDye.field_150921_b[ID];
         unlocalizedName = ItemDye.field_150923_a[ID];
-        lang = "serverl.color." + s.toLowerCase();
+        lang = "serverutilities.color." + s.toLowerCase();
         color = ItemDye.field_150922_c[ID];
         colorBright = c;
         chatFormatting = f;

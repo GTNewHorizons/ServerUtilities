@@ -32,7 +32,6 @@ import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
-import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.lib.net.MessageNotification;
 import serverutils.mod.handlers.ServerUtilitiesClientEventHandler;
 
@@ -49,30 +48,23 @@ public class ServerUtils {
     }
 
     public static double getMovementFactor(int dim) {
-        switch (dim) {
-            case 0:
-            case 1:
-                return 1D;
-            case -1:
-                return 8D;
-            default: {
+        return switch (dim) {
+            case 0, 1 -> 1D;
+            case -1 -> 8D;
+            default -> {
                 WorldServer w = DimensionManager.getWorld(dim);
-                return (w == null) ? 1D : w.provider.getMovementFactor();
+                yield (w == null) ? 1D : w.provider.getMovementFactor();
             }
-        }
+        };
     }
 
     public static IChatComponent getDimensionName(int dim) {
-        switch (dim) {
-            case 0:
-                return new ChatComponentTranslation("serverutilities.world.dimension.overworld");
-            case -1:
-                return new ChatComponentTranslation("serverutilities.world.dimension.nether");
-            case 1:
-                return new ChatComponentTranslation("serverutilities.world.dimension.end");
-            default:
-                return new ChatComponentText("dim_" + dim);
-        }
+        return switch (dim) {
+            case 0 -> new ChatComponentTranslation("serverutilities.world.dimension.overworld");
+            case -1 -> new ChatComponentTranslation("serverutilities.world.dimension.nether");
+            case 1 -> new ChatComponentTranslation("serverutilities.world.dimension.end");
+            default -> new ChatComponentText("dim_" + dim);
+        };
     }
 
     public static boolean isVanillaClient(ICommandSender sender) {
@@ -192,6 +184,6 @@ public class ServerUtils {
 
     public static WorldServer getServerWorld() {
         MinecraftServer ms = getServer();
-        return ms != null && ms.worldServers.length != 0 ? ms.worldServers[0] : null;
+        return ms.worldServers[0];
     }
 }

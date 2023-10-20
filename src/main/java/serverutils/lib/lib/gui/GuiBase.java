@@ -27,9 +27,6 @@ import serverutils.lib.lib.util.NetUtils;
 import serverutils.lib.lib.util.misc.MouseButton;
 import serverutils.mod.ServerUtilitiesConfig;
 
-/**
- * @author LatvianModder
- */
 public abstract class GuiBase extends Panel implements IOpenableGui {
 
     public static class PositionedTextData {
@@ -136,8 +133,8 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
 
     @Nullable
     public GuiScreen getPrevScreen() {
-        if (prevScreen instanceof GuiWrapper && ((GuiWrapper) prevScreen).getGui() instanceof GuiLoading) {
-            return ((GuiWrapper) prevScreen).getGui().getPrevScreen();
+        if (prevScreen instanceof GuiWrapper prevScreenWrapper && prevScreenWrapper.getGui() instanceof GuiLoading) {
+            return prevScreenWrapper.getGui().getPrevScreen();
         } else if (prevScreen instanceof GuiChat) {
             return null;
         }
@@ -262,8 +259,8 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
         py = Math.min(py, screen.getScaledHeight() - contextMenu.height - y) - 3;
         contextMenu.setPos(px, py);
 
-        if (contextMenu instanceof GuiBase) {
-            ((GuiBase) contextMenu).initGui();
+        if (contextMenu instanceof GuiBase contextMenuBase) {
+            contextMenuBase.initGui();
         }
     }
 

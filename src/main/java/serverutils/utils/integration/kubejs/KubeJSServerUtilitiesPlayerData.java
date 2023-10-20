@@ -15,9 +15,6 @@ package serverutils.utils.integration.kubejs;
 // import java.util.OptionalInt;
 // import java.util.Set;
 
-/**
- * @author LatvianModder
- */
 public class KubeJSServerUtilitiesPlayerData {
     // private final PlayerDataJS playerData;
     // private ServerUtilitiesPlayerData cached;

@@ -9,9 +9,6 @@ import serverutils.lib.lib.net.MessageToServer;
 import serverutils.lib.lib.net.NetworkWrapper;
 import serverutils.mod.ServerUtilitiesCommon;
 
-/**
- * @author LatvianModder
- */
 public class MessageEditConfigResponse extends MessageToServer {
 
     private NBTTagCompound nbt;

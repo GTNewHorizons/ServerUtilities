@@ -17,9 +17,6 @@ import serverutils.lib.lib.gui.WidgetType;
 import serverutils.lib.lib.gui.misc.GuiButtonListBase;
 import serverutils.lib.lib.util.misc.MouseButton;
 
-/**
- * @author LatvianModder
- */
 public class GuiSelectTeam extends GuiButtonListBase {
 
     private static class ButtonCreateTeam extends SimpleTextButton {

@@ -77,9 +77,4 @@ public final class ATHelper {
     public static HoverEvent getHoverEvent(ChatStyle style) {
         return style.chatHoverEvent;
     }
-
-    // @Nullable
-    // public static String getInsertion(ChatStyle style) {
-    // return style.insertion;
-    // }
 }

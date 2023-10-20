@@ -38,7 +38,6 @@ public class NetworkWrapper {
         nextDiscriminator++;
     }
 
-    @SuppressWarnings("unchecked")
     public void register(MessageToClient m) {
         registerBlank();
         Class<? extends MessageToClient> clazz = m.getClass();
@@ -48,10 +47,9 @@ public class NetworkWrapper {
         channel.pipeline().addAfter(
                 type,
                 clazz.getName(),
-                new SimpleChannelHandlerWrapper(MessageToClientHandler.INSTANCE, Side.CLIENT, clazz));
+                new SimpleChannelHandlerWrapper<>(MessageToClientHandler.INSTANCE, Side.CLIENT, clazz));
     }
 
-    @SuppressWarnings("unchecked")
     public void register(MessageToServer m) {
         registerBlank();
         Class<? extends MessageToServer> clazz = m.getClass();
@@ -61,6 +59,6 @@ public class NetworkWrapper {
         channel.pipeline().addAfter(
                 type,
                 clazz.getName(),
-                new SimpleChannelHandlerWrapper(MessageToServerHandler.INSTANCE, Side.SERVER, clazz));
+                new SimpleChannelHandlerWrapper<>(MessageToServerHandler.INSTANCE, Side.SERVER, clazz));
     }
 }

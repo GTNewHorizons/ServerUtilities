@@ -24,8 +24,6 @@ import serverutils.utils.data.ClaimedChunks;
 
 public class ServerUtilitiesConfig {
 
-    public static final ServerUtilitiesConfig INST = new ServerUtilitiesConfig();
-
     public static Configuration config;
     public static final String GEN_CAT = Configuration.CATEGORY_GENERAL;
     public static final String TEAM_CAT = "team";
@@ -43,7 +41,7 @@ public class ServerUtilitiesConfig {
 
     public static void init(FMLPreInitializationEvent event) {
         config = new Configuration(
-                new File(event.getModConfigurationDirectory() + "/../server utilities/serverutilities.cfg"));
+                new File(event.getModConfigurationDirectory() + "/../serverutilities/serverutilities.cfg"));
         sync();
     }
 
@@ -572,11 +570,9 @@ public class ServerUtilitiesConfig {
                 return true;
             }
 
-            if (blocked_claiming_dimensions.length > 0) {
-                for (int i : blocked_claiming_dimensions) {
-                    if (i == dimension) {
-                        return true;
-                    }
+            for (int i : blocked_claiming_dimensions) {
+                if (i == dimension) {
+                    return true;
                 }
             }
 

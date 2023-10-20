@@ -5,9 +5,6 @@ import java.util.function.Consumer;
 import serverutils.lib.lib.util.permission.DefaultPermissionLevel;
 import serverutils.utils.data.NodeEntry;
 
-/**
- * @author LatvianModder
- */
 public class CustomPermissionPrefixesRegistryEvent extends ServerUtilitiesEvent {
 
     private final Consumer<NodeEntry> callback;

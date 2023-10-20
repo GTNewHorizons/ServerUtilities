@@ -6,8 +6,8 @@ import serverutils.mod.ServerUtilitiesConfig;
 
 public interface ServerUtilitiesLibGameRules {
 
-    String DISABLE_TEAM_CREATION = "serverlib:disable_team_creation";
-    String DISABLE_TEAM_JOINING = "serverlib:disable_team_joining";
+    String DISABLE_TEAM_CREATION = "serverutilities:disable_team_creation";
+    String DISABLE_TEAM_JOINING = "serverutilities:disable_team_joining";
 
     static boolean canCreateTeam(World world) {
         return !ServerUtilitiesConfig.teams.disable_teams

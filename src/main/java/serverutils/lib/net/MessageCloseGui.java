@@ -21,8 +21,8 @@ public class MessageCloseGui extends MessageToClient {
     public void onMessage() {
         Minecraft mc = Minecraft.getMinecraft();
 
-        if (mc.currentScreen instanceof IGuiWrapper) {
-            ((IGuiWrapper) mc.currentScreen).getGui().closeGui();
+        if (mc.currentScreen instanceof IGuiWrapper guiWrapper) {
+            guiWrapper.getGui().closeGui();
         } else if (!(mc.currentScreen instanceof GuiChat)) {
             mc.thePlayer.closeScreen();
         }

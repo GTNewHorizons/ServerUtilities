@@ -17,8 +17,8 @@ public class CmdTreeBase extends CommandTreeBase implements ICommandWithParent {
     public void addSubcommand(ICommand command) {
         super.addSubcommand(command);
 
-        if (command instanceof ICommandWithParent) {
-            ((ICommandWithParent) command).setParent(this);
+        if (command instanceof ICommandWithParent cmdWithParent) {
+            cmdWithParent.setParent(this);
         }
     }
 
@@ -32,8 +32,8 @@ public class CmdTreeBase extends CommandTreeBase implements ICommandWithParent {
         int level = 4;
 
         for (ICommand command : getSubCommands()) {
-            if (command instanceof CommandBase) {
-                level = Math.min(level, ((CommandBase) command).getRequiredPermissionLevel());
+            if (command instanceof CommandBase cmdBase) {
+                level = Math.min(level, cmdBase.getRequiredPermissionLevel());
             }
         }
 

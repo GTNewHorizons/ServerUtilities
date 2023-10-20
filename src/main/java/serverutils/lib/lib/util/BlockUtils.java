@@ -1,5 +1,7 @@
 package serverutils.lib.lib.util;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -82,7 +84,7 @@ public class BlockUtils {
     // return getStateFromName(name, AIR_STATE);
     // }
 
-    public static void notifyBlockUpdate(World world, int posx, int posy, int posz, Block block) {
+    public static void notifyBlockUpdate(World world, int posx, int posy, int posz, @Nullable Block block) {
         if (block == null) {
             block = world.getBlock(posx, posy, posz);
         }
@@ -108,8 +110,5 @@ public class BlockUtils {
             nbt.getCompoundTag("display").removeTag("Lore");
             stack.setTagCompound(NBTUtils.minimize(nbt));
         }
-    }
-
-    public class AIR_STATE {
     }
 }

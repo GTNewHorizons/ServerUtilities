@@ -31,6 +31,7 @@ import serverutils.lib.lib.io.HttpDataReader;
 import serverutils.lib.lib.io.RequestMethod;
 import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.StringUtils;
+import serverutils.mod.ServerUtilities;
 import serverutils.utils.net.MessageViewCrashDelete;
 
 public class GuiViewCrash extends GuiBase {
@@ -42,7 +43,7 @@ public class GuiViewCrash extends GuiBase {
             try {
                 File urlFile = new File(
                         Minecraft.getMinecraft().mcDataDir,
-                        "server utilities/serverutilities/uploaded_crash_reports/" + name.text[0]);
+                        ServerUtilities.SERVER_FOLDER + "uploaded_crash_reports/" + name.text[0]);
                 String url = DataReader.get(urlFile).safeString();
 
                 if (url.isEmpty()) {

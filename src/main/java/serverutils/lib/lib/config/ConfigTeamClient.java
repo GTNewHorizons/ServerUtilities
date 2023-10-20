@@ -101,11 +101,11 @@ public class ConfigTeamClient extends ConfigString {
     public void readFromNBT(NBTTagCompound nbt, String key) {
         NBTBase id = nbt.getTag(key);
 
-        if (id instanceof NBTTagString) {
-            setString(((NBTTagString) id).func_150285_a_());
-        } else if (id instanceof NBTPrimitive) {
+        if (id instanceof NBTTagString tagString) {
+            setString(tagString.func_150285_a_());
+        } else if (id instanceof NBTPrimitive tagPrimitive) {
             ForgeTeam team = null;
-            short ids = ((NBTPrimitive) id).func_150289_e();
+            short ids = tagPrimitive.func_150289_e();
 
             for (TeamInst inst : map.values()) {
                 if (inst.uid == ids) {

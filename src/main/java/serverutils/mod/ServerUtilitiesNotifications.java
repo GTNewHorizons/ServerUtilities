@@ -28,9 +28,9 @@ public class ServerUtilitiesNotifications {
     public static final ResourceLocation UNCLAIMED_ALL = new ResourceLocation(ServerUtilities.MOD_ID, "unclaimed_all");
     public static final ResourceLocation TELEPORT = new ResourceLocation(ServerUtilities.MOD_ID, "teleport");
     public static final ResourceLocation RELOAD_SERVER = new ResourceLocation(ServerUtilities.MOD_ID, "reload_server");
-    public static final ResourceLocation BACKUP_START_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_start");
-    public static final ResourceLocation BACKUP_END1_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end1");
-    public static final ResourceLocation BACKUP_END2_ID = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end2");
+    public static final ResourceLocation BACKUP_START = new ResourceLocation(ServerUtilities.MOD_ID, "backup_start");
+    public static final ResourceLocation BACKUP_END1 = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end1");
+    public static final ResourceLocation BACKUP_END2 = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end2");
     public static final ResourceLocation CONFIG_CHANGED = new ResourceLocation(
             ServerUtilities.MOD_ID,
             "config_changed");

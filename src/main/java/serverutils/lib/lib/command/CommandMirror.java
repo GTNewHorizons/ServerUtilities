@@ -6,12 +6,10 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.server.MinecraftServer;
 
 public class CommandMirror extends CommandBase {
 
     public final ICommand mirrored;
-    private final MinecraftServer server = MinecraftServer.getServer();
 
     public CommandMirror(ICommand c) {
         mirrored = c;
@@ -39,7 +37,7 @@ public class CommandMirror extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return mirrored instanceof CommandBase ? ((CommandBase) mirrored).getRequiredPermissionLevel() : 4;
+        return mirrored instanceof CommandBase mirroredBase ? mirroredBase.getRequiredPermissionLevel() : 4;
     }
 
     @Override

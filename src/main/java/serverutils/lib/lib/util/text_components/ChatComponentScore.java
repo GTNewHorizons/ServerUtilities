@@ -55,10 +55,9 @@ public class ChatComponentScore extends ChatComponentStyle {
     public boolean equals(Object object) {
         if (this == object) {
             return true;
-        } else if (!(object instanceof ChatComponentScore)) {
+        } else if (!(object instanceof ChatComponentScore score)) {
             return false;
         } else {
-            ChatComponentScore score = (ChatComponentScore) object;
             return this.name.equals(score.name) && this.objective.equals(score.objective) && super.equals(object);
         }
     }

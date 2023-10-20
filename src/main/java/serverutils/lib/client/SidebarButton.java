@@ -128,7 +128,7 @@ public class SidebarButton implements Comparable<SidebarButton> {
 
     @Override
     public final boolean equals(Object o) {
-        return o == this || o instanceof SidebarButton && id.equals(((SidebarButton) o).id);
+        return o == this || o instanceof SidebarButton button && id.equals(button.id);
     }
 
     public Icon getIcon() {

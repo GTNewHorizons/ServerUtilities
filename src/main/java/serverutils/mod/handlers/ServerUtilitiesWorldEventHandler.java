@@ -12,7 +12,6 @@ import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.ChunkPosition;
-import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
@@ -30,8 +29,7 @@ public class ServerUtilitiesWorldEventHandler {
     public static final ServerUtilitiesWorldEventHandler INST = new ServerUtilitiesWorldEventHandler();
 
     @SubscribeEvent
-    public void onMobSpawned(EntityJoinWorldEvent event) // FIXME: LivingSpawnEvent.CheckSpawn
-    {
+    public void onMobSpawned(EntityJoinWorldEvent event) {
         if (!event.world.isRemote && !isEntityAllowed(event.entity)) {
             event.entity.setDead();
             event.setCanceled(true);
@@ -65,14 +63,13 @@ public class ServerUtilitiesWorldEventHandler {
     @SubscribeEvent
     public void onExplosionDetonate(ExplosionEvent.Detonate event) {
         World world = event.world;
-        Explosion explosion = event.explosion;
 
-        if (world.isRemote || explosion.affectedBlockPositions.isEmpty()) {
+        if (world.isRemote || event.getAffectedBlocks().isEmpty()) {
             return;
         }
 
-        List<ChunkPosition> list = new ArrayList<>(explosion.affectedBlockPositions);
-        explosion.affectedBlockPositions.clear();
+        List<ChunkPosition> list = new ArrayList<>(event.getAffectedBlocks());
+        event.getAffectedBlocks().clear();
         Map<ChunkDimPos, Boolean> map = new HashMap<>();
         final MinecraftServer server = MinecraftServer.getServer();
 
@@ -94,7 +91,7 @@ public class ServerUtilitiesWorldEventHandler {
             if (map.computeIfAbsent(
                     new ChunkDimPos(pos.chunkPosX, pos.chunkPosY, pos.chunkPosZ, world.provider.dimensionId),
                     func)) {
-                explosion.affectedBlockPositions.add(pos);
+                event.getAffectedBlocks().add(pos);
             }
         }
     }

@@ -23,7 +23,6 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import cpw.mods.fml.common.Loader;
 import serverutils.lib.lib.client.GlStateManager;
 import serverutils.lib.lib.client.IPixelBuffer;
 import serverutils.mod.handlers.ServerUtilitiesClientEventHandler;
@@ -53,14 +52,8 @@ public class IconRenderer {
     public static Image getNullImage() {
         if (nullImage == null) {
             try {
-                if (Loader.isModLoaded("itemfilters")) {
-                    nullImage = ImageIO.read(
-                            IconRenderer.class.getResourceAsStream("/assets/itemfilters/textures/items/missing.png"));
-                } else {
-                    nullImage = ImageIO.read(
-                            IconRenderer.class
-                                    .getResourceAsStream("/assets/serverutilities/textures/icons/cancel.png"));
-                }
+                nullImage = ImageIO.read(
+                        IconRenderer.class.getResourceAsStream("/assets/serverutilities/textures/icons/cancel.png"));
             } catch (IOException e) {
                 // nop
             }

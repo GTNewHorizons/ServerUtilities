@@ -118,8 +118,7 @@ public class ServerUtilitiesPlayerEventHandler {
     @SubscribeEvent
     public void onDeath(LivingDeathEvent event) {
         EntityLivingBase entity = event.entityLiving;
-        if (entity instanceof EntityPlayerMP) {
-            EntityPlayerMP entityPlayerMP = (EntityPlayerMP) entity;
+        if (entity instanceof EntityPlayerMP entityPlayerMP) {
             ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(Universe.get().getPlayer(entityPlayerMP));
             data.setLastDeath(new BlockDimPos(entity));
         }
@@ -127,11 +126,10 @@ public class ServerUtilitiesPlayerEventHandler {
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onChunkChanged(EntityEvent.EnteringChunk event) {
-        if (event.entity.worldObj.isRemote || !(event.entity instanceof EntityPlayerMP) || !Universe.loaded()) {
+        if (event.entity.worldObj.isRemote || !(event.entity instanceof EntityPlayerMP player) || !Universe.loaded()) {
             return;
         }
 
-        EntityPlayerMP player = (EntityPlayerMP) event.entity;
         player.func_143004_u();
         ForgePlayer p = Universe.get().getPlayer(player.getGameProfile());
 
@@ -152,8 +150,6 @@ public class ServerUtilitiesPlayerEventHandler {
             event.setCanceled(true);
         }
     }
-
-    // TODO: I am registering the event handlers because serverutil data was not working!!!
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onEntityAttacked(AttackEntityEvent event) {
@@ -233,10 +229,6 @@ public class ServerUtilitiesPlayerEventHandler {
         }
     }
 
-    /*
-     * @SubscribeEvent(priority = EventPriority.HIGH) public static void onItemPickup(EntityItemPickupEvent event) { }
-     */
-
     @SubscribeEvent(priority = EventPriority.LOW)
     public void onNameFormat(PlayerEvent.NameFormat event) {
         if (ServerUtilitiesConfig.commands.nick && Universe.loaded() && event.entityPlayer instanceof EntityPlayerMP) {
@@ -267,8 +259,7 @@ public class ServerUtilitiesPlayerEventHandler {
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.player.ticksExisted % 5 == 2 && event.player instanceof EntityPlayerMP) {
-            EntityPlayerMP player = (EntityPlayerMP) event.player;
+        if (event.player.ticksExisted % 5 == 2 && event.player instanceof EntityPlayerMP player) {
             byte opState = player.getEntityData().getByte("ServerLibOP");
             byte newOpState = ServerUtils.isOP(player) ? (byte) 2 : (byte) 1;
 
@@ -301,8 +292,8 @@ public class ServerUtilitiesPlayerEventHandler {
     public void onBlockBreakLog(BlockEvent.BreakEvent event) {
         EntityPlayer player = event.getPlayer();
 
-        if (ServerUtilitiesConfig.world.logging.block_broken && player instanceof EntityPlayerMP
-                && ServerUtilitiesConfig.world.logging.log((EntityPlayerMP) player)) {
+        if (ServerUtilitiesConfig.world.logging.block_broken && player instanceof EntityPlayerMP playerMP
+                && ServerUtilitiesConfig.world.logging.log(playerMP)) {
             ServerUtilitiesUniverseData.worldLog(
                     String.format(
                             "%s broke %s at %s in %s",
@@ -317,8 +308,8 @@ public class ServerUtilitiesPlayerEventHandler {
     public void onBlockPlaceLog(BlockEvent.PlaceEvent event) {
         EntityPlayer player = event.player;
 
-        if (ServerUtilitiesConfig.world.logging.block_placed && player instanceof EntityPlayerMP
-                && ServerUtilitiesConfig.world.logging.log((EntityPlayerMP) player)) {
+        if (ServerUtilitiesConfig.world.logging.block_placed && player instanceof EntityPlayerMP playerMP
+                && ServerUtilitiesConfig.world.logging.log(playerMP)) {
             ServerUtilitiesUniverseData.worldLog(
                     String.format(
                             "%s placed %s at %s in %s",
@@ -336,8 +327,8 @@ public class ServerUtilitiesPlayerEventHandler {
         }
         EntityPlayer player = event.entityPlayer;
 
-        if (ServerUtilitiesConfig.world.logging.item_clicked_in_air && player instanceof EntityPlayerMP
-                && ServerUtilitiesConfig.world.logging.log((EntityPlayerMP) player)) {
+        if (ServerUtilitiesConfig.world.logging.item_clicked_in_air && player instanceof EntityPlayerMP playerMP
+                && ServerUtilitiesConfig.world.logging.log(playerMP)) {
             ServerUtilitiesUniverseData.worldLog(
                     String.format(
                             "%s clicked %s in air at %s in %s",

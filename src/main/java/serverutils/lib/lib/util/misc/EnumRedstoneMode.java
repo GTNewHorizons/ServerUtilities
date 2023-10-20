@@ -28,28 +28,19 @@ public enum EnumRedstoneMode implements IStringSerializable {
     }
 
     public boolean isActive(boolean prevValue, boolean value) {
-        switch (this) {
-            case DISABLED:
-                return false;
-            case ACTIVE_HIGH:
-                return value;
-            case ACTIVE_LOW:
-                return !value;
-            default:
-                return false;
-        }
+        return switch (this) {
+            case ACTIVE_HIGH -> value;
+            case ACTIVE_LOW -> !value;
+            default -> false;
+        };
     }
 
     public Icon getIcon() {
-        switch (this) {
-            case ACTIVE_HIGH:
-                return GuiIcons.RS_HIGH;
-            case ACTIVE_LOW:
-                return GuiIcons.RS_LOW;
-            case PULSE:
-                return GuiIcons.RS_PULSE;
-            default:
-                return GuiIcons.RS_NONE;
-        }
+        return switch (this) {
+            case ACTIVE_HIGH -> GuiIcons.RS_HIGH;
+            case ACTIVE_LOW -> GuiIcons.RS_LOW;
+            case PULSE -> GuiIcons.RS_PULSE;
+            default -> GuiIcons.RS_NONE;
+        };
     }
 }

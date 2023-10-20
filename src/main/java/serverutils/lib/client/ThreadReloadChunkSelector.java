@@ -25,7 +25,6 @@ import serverutils.lib.lib.client.PixelBuffer;
 import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.lib.icon.Color4I;
 import serverutils.lib.lib.math.MathUtils;
-import serverutils.mod.ServerUtilities;
 
 public class ThreadReloadChunkSelector extends Thread {
 

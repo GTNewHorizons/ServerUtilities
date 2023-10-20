@@ -8,9 +8,6 @@ import serverutils.lib.lib.data.ForgeTeam;
 import serverutils.lib.lib.data.Universe;
 import serverutils.mod.ServerUtilities;
 
-/**
- * @author LatvianModder
- */
 public class CmdList extends CmdBase {
 
     public CmdList() {

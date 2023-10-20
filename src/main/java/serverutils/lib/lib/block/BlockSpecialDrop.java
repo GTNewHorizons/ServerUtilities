@@ -35,8 +35,8 @@ public class BlockSpecialDrop extends Block {
         if (hasTileEntity(0)) {
             TileEntity tile = world.getTileEntity(posx, posy, posz);
 
-            if (tile instanceof TileBase) {
-                ((TileBase) tile).readFromItem(stack);
+            if (tile instanceof TileBase tileBase) {
+                tileBase.readFromItem(stack);
             }
         }
     }
@@ -50,8 +50,8 @@ public class BlockSpecialDrop extends Block {
         if (player.capabilities.isCreativeMode) {
             TileEntity tileEntity = world.getTileEntity(posx, posy, posz);
 
-            if (tileEntity instanceof TileBase) {
-                ((TileBase) tileEntity).brokenByCreative = true;
+            if (tileEntity instanceof TileBase tileBase) {
+                tileBase.brokenByCreative = true;
             }
         }
     }

@@ -16,9 +16,6 @@ import serverutils.lib.lib.util.misc.MouseButton;
 import serverutils.lib.net.MessageMyTeamAction;
 import serverutils.lib.net.MessageMyTeamPlayerList;
 
-/**
- * @author LatvianModder
- */
 public class GuiManageEnemies extends GuiManagePlayersBase {
 
     private static class ButtonPlayer extends ButtonPlayerBase {

@@ -11,9 +11,6 @@ import net.minecraft.util.ResourceLocation;
 
 import cpw.mods.fml.common.registry.GameData;
 
-/**
- * @author LatvianModder
- */
 public class ItemEntryWithCount {
 
     public static final ItemEntryWithCount EMPTY = new ItemEntryWithCount(ItemEntry.EMPTY, 0) {
@@ -51,7 +48,7 @@ public class ItemEntryWithCount {
             if (ai.length > 0) {
                 Item item = GameData.getItemRegistry().getObjectById(ai[0]);
 
-                if (item != null && item != null) {
+                if (item != null) {
                     count = 1;
                     int meta = 0;
 
@@ -78,7 +75,7 @@ public class ItemEntryWithCount {
                         .getObject(new ResourceLocation(((NBTTagString) id).func_150285_a_()))
                 : GameData.getItemRegistry().getObjectById(((NBTTagInt) id).func_150287_d());
 
-        if (item != null && item != null) {
+        if (item != null) {
             int meta = nbt.getShort("M");
             NBTTagCompound tag = (NBTTagCompound) nbt.getTag("N");
             NBTTagCompound caps = (NBTTagCompound) nbt.getTag("C");

@@ -25,16 +25,12 @@ public enum EnumIO implements IStringSerializable {
     }
 
     public Icon getIcon() {
-        switch (this) {
-            case IO:
-                return GuiIcons.INV_IO;
-            case IN:
-                return GuiIcons.INV_IN;
-            case OUT:
-                return GuiIcons.INV_OUT;
-            default:
-                return GuiIcons.INV_NONE;
-        }
+        return switch (this) {
+            case IO -> GuiIcons.INV_IO;
+            case IN -> GuiIcons.INV_IN;
+            case OUT -> GuiIcons.INV_OUT;
+            default -> GuiIcons.INV_NONE;
+        };
     }
 
     public boolean canInsert() {

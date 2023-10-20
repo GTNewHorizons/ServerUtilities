@@ -93,10 +93,10 @@ public class ConfigTeam extends ConfigValue {
     public void readFromNBT(NBTTagCompound nbt, String key) {
         NBTBase id = nbt.getTag(key);
 
-        if (id instanceof NBTTagString) {
-            set.accept(get.get().universe.getTeam(((NBTTagString) id).func_150285_a_()));
-        } else if (id instanceof NBTPrimitive) {
-            set.accept(get.get().universe.getTeam(((NBTPrimitive) id).func_150289_e()));
+        if (id instanceof NBTTagString tagString) {
+            set.accept(get.get().universe.getTeam(tagString.func_150285_a_()));
+        } else if (id instanceof NBTPrimitive tagPrimitive) {
+            set.accept(get.get().universe.getTeam(tagPrimitive.func_150289_e()));
         }
     }
 

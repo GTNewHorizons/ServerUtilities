@@ -26,14 +26,11 @@ public enum EnumPrivacyLevel implements IStringSerializable {
     }
 
     public Icon getIcon() {
-        switch (this) {
-            case PRIVATE:
-                return GuiIcons.SECURITY_PRIVATE;
-            case TEAM:
-                return GuiIcons.SECURITY_TEAM;
-            default:
-                return GuiIcons.SECURITY_PUBLIC;
-        }
+        return switch (this) {
+            case PRIVATE -> GuiIcons.SECURITY_PRIVATE;
+            case TEAM -> GuiIcons.SECURITY_TEAM;
+            default -> GuiIcons.SECURITY_PUBLIC;
+        };
     }
 
     public boolean isPublic() {

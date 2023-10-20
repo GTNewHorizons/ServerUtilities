@@ -45,8 +45,7 @@ public enum ServerUtilitiesPermissionHandler implements IPermissionHandler, IRan
             return DefaultPermissionHandler.INSTANCE.getDefaultPermissionLevel(node) == DefaultPermissionLevel.ALL;
         }
 
-        if (profile.getId() == null) // TODO: PR this fix in Forge
-        {
+        if (profile.getId() == null) {
             if (profile.getName() == null) {
                 return false;
             }
@@ -54,14 +53,11 @@ public enum ServerUtilitiesPermissionHandler implements IPermissionHandler, IRan
             profile = new GameProfile(EntityPlayer.func_146094_a(profile), profile.getName());
         }
 
-        switch (Ranks.INSTANCE.getPermissionResult(profile, node, true)) {
-            case ALLOW:
-                return true;
-            case DENY:
-                return false;
-            default:
-                return DefaultPermissionHandler.INSTANCE.hasPermission(profile, node, context);
-        }
+        return switch (Ranks.INSTANCE.getPermissionResult(profile, node, true)) {
+            case ALLOW -> true;
+            case DENY -> false;
+            default -> DefaultPermissionHandler.INSTANCE.hasPermission(profile, node, context);
+        };
     }
 
     @Override

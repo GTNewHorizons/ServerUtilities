@@ -1,12 +1,11 @@
 package serverutils.utils.backups;
 
-import static serverutils.mod.ServerUtilitiesNotifications.BACKUP_END1_ID;
-import static serverutils.mod.ServerUtilitiesNotifications.BACKUP_END2_ID;
+import static serverutils.mod.ServerUtilitiesNotifications.BACKUP_END1;
+import static serverutils.mod.ServerUtilitiesNotifications.BACKUP_END2;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -27,12 +26,6 @@ public class ThreadBackup extends Thread {
 
     private File src0;
     public boolean isDone = false;
-
-    public static final DecimalFormat smallDoubleFormatter = new DecimalFormat("#0.00");
-
-    public static String toSmallDouble(double d) {
-        return smallDoubleFormatter.format(d);
-    }
 
     public ThreadBackup(File w) {
         src0 = w;
@@ -55,15 +48,11 @@ public class ThreadBackup extends Thread {
             int allFiles = files.size();
 
             Backups.logger.info("Backing up " + files.size() + " files...");
-
+            long start = System.currentTimeMillis();
             if (ServerUtilitiesConfig.backups.compression_level > 0) {
                 out.append(File.separatorChar).append("backup.zip");
                 dstFile = FileUtils.newFile(new File(Backups.backupsFolder, out.toString()));
-
-                long start = System.currentTimeMillis();
-
                 ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dstFile));
-                // zos.setLevel(9);
                 zos.setLevel(ServerUtilitiesConfig.backups.compression_level);
 
                 long logMillis = System.currentTimeMillis() + 5000L;
@@ -88,7 +77,7 @@ public class ThreadBackup extends Thread {
                         log.append('[');
                         log.append(i);
                         log.append(" | ");
-                        log.append(toSmallDouble((i / (double) allFiles) * 100D));
+                        log.append(StringUtils.formatDouble00((i / (double) allFiles) * 100D));
                         log.append("%]: ");
                         log.append(ze.getName());
                         Backups.logger.info(log.toString());
@@ -132,7 +121,7 @@ public class ThreadBackup extends Thread {
                         log.append('[');
                         log.append(i);
                         log.append(" | ");
-                        log.append(toSmallDouble((i / (double) allFiles) * 100D));
+                        log.append(StringUtils.formatDouble00((i / (double) allFiles) * 100D));
                         log.append("%]: ");
                         log.append(file.getName());
                         Backups.logger.info(log.toString());
@@ -151,15 +140,12 @@ public class ThreadBackup extends Thread {
                 String sizeB = FileUtils.getSizeString(dstFile);
                 String sizeT = FileUtils.getSizeString(Backups.backupsFolder);
                 ServerUtilitiesNotifications.backupNotification(
-                        BACKUP_END2_ID,
+                        BACKUP_END2,
                         "cmd.backup_end_2",
-                        getDoneTime(Calendar.getInstance().getTimeInMillis()),
+                        getDoneTime(start),
                         (sizeB.equals(sizeT) ? sizeB : (sizeB + " | " + sizeT)));
             } else {
-                ServerUtilitiesNotifications.backupNotification(
-                        BACKUP_END1_ID,
-                        "cmd.backup_end_1",
-                        getDoneTime(Calendar.getInstance().getTimeInMillis()));
+                ServerUtilitiesNotifications.backupNotification(BACKUP_END1, "cmd.backup_end_1", getDoneTime(start));
             }
         } catch (Exception e) {
             IChatComponent c = StringUtils.color(

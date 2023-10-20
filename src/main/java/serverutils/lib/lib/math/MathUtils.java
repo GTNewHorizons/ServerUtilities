@@ -23,8 +23,8 @@ public class MathUtils {
     public static final float[] NORMALS_Y = new float[] { -1F, 1F, 0F, 0F, 0F, 0F };
     public static final float[] NORMALS_Z = new float[] { 0F, 0F, -1F, 1F, 0F, 0F };
 
-    public static final int ROTATION_X[] = { 90, 270, 0, 0, 0, 0 };
-    public static final int ROTATION_Y[] = { 0, 0, 180, 0, 90, 270 };
+    public static final int[] ROTATION_X = { 90, 270, 0, 0, 0, 0 };
+    public static final int[] ROTATION_Y = { 0, 0, 180, 0, 90, 270 };
 
     private static final AxisAlignedBB FULL_BLOCK = AxisAlignedBB.getBoundingBox(0, 0, 0, 1, 1, 1);
 
@@ -261,31 +261,24 @@ public class MathUtils {
     }
 
     public static AxisAlignedBB rotateAABB(AxisAlignedBB box, EnumFacing facing) {
-        switch (facing) {
-            case DOWN:
-                return box;
-            case UP:
-                return AxisAlignedBB.getBoundingBox(
-                        1D - box.minX,
-                        1D - box.minY,
-                        1D - box.minZ,
-                        1D - box.maxX,
-                        1D - box.maxY,
-                        1D - box.maxZ);
-            case NORTH:
-                return AxisAlignedBB.getBoundingBox(box.minX, box.minZ, box.minY, box.maxX, box.maxZ, box.maxY);
-            case SOUTH: {
+        return switch (facing) {
+            case UP -> AxisAlignedBB.getBoundingBox(
+                    1D - box.minX,
+                    1D - box.minY,
+                    1D - box.minZ,
+                    1D - box.maxX,
+                    1D - box.maxY,
+                    1D - box.maxZ);
+            case NORTH -> AxisAlignedBB.getBoundingBox(box.minX, box.minZ, box.minY, box.maxX, box.maxZ, box.maxY);
+            case SOUTH -> {
                 box = rotateAABB(box, EnumFacing.NORTH);
-                return AxisAlignedBB
+                yield AxisAlignedBB
                         .getBoundingBox(1D - box.minX, box.minY, 1D - box.minZ, 1D - box.maxX, box.maxY, 1D - box.maxZ);
             }
-            case WEST:
-                return rotateCW(rotateAABB(box, EnumFacing.SOUTH));
-            case EAST:
-                return rotateCW(rotateAABB(box, EnumFacing.NORTH));
-            default:
-                return box;
-        }
+            case WEST -> rotateCW(rotateAABB(box, EnumFacing.SOUTH));
+            case EAST -> rotateCW(rotateAABB(box, EnumFacing.NORTH));
+            default -> box;
+        };
     }
 
     public static AxisAlignedBB rotateCW(AxisAlignedBB box) {

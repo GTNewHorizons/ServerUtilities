@@ -90,7 +90,7 @@ public class Ranks {
 
         boolean save = false;
 
-        ranksFile = universe.server.getFile("server utilities/serverutilities/ranks.txt");
+        ranksFile = universe.server.getFile(ServerUtilities.SERVER_FOLDER + "ranks.txt");
 
         if (!ranksFile.exists()) {
             Rank pRank = new Rank(this, "player");
@@ -220,7 +220,7 @@ public class Ranks {
             }
         }
 
-        File oldPlayerRanksFile = universe.server.getFile("server utilities/serverutilities/player_ranks.txt");
+        File oldPlayerRanksFile = universe.server.getFile(ServerUtilities.SERVER_FOLDER + "player_ranks.txt");
 
         if (oldPlayerRanksFile.exists()) {
             for (String s : DataReader.get(oldPlayerRanksFile).safeStringList()) {
@@ -247,7 +247,7 @@ public class Ranks {
             save = true;
         }
 
-        File badgeFile = universe.server.getFile("server utilities/serverutilities/server_badges.txt");
+        File badgeFile = universe.server.getFile(ServerUtilities.SERVER_FOLDER + "server_badges.txt");
 
         if (badgeFile.exists()) {
             for (String s : DataReader.get(badgeFile).safeStringList()) {
@@ -271,7 +271,7 @@ public class Ranks {
             save = true;
         }
 
-        playersFile = universe.server.getFile("server utilities/serverutilities/players.txt");
+        playersFile = universe.server.getFile(ServerUtilities.SERVER_FOLDER + "players.txt");
 
         currentRank = null;
         lastComment = "";
@@ -582,14 +582,11 @@ public class Ranks {
                 permissionNodes.add(entry.node);
             }
 
-            for (String node : commands.keySet()) {
-                permissionNodes.add(node);
-            }
-
             for (RankConfigValueInfo info : RankConfigAPI.getHandler().getRegisteredConfigs()) {
                 permissionNodes.add(info.node);
             }
 
+            permissionNodes.addAll(commands.keySet());
             permissionNodes = Arrays.asList(permissionNodes.toArray(StringUtils.EMPTY_ARRAY));
         }
 
@@ -630,7 +627,8 @@ public class Ranks {
         for (String node : nodes) {
             if (node.startsWith(last)) {
                 int i;
-                for (i = last.length(); i < node.length() && node.charAt(i) != '.'; i++) {}
+                for (i = last.length(); i < node.length() && node.charAt(i) != '.'; i++);
+                ServerUtilities.LOGGER.info(i);
                 s.add(node.substring(0, i));
             }
         }

@@ -12,9 +12,6 @@ package serverutils.utils.integration.kubejs;
 // import java.util.Map;
 // import java.util.Set;
 
-/**
- * @author LatvianModder
- */
 public class KubeJSServerUtilitiesWrapper {
     // public boolean isRanksActive()
     // {

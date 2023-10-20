@@ -21,6 +21,7 @@ import serverutils.lib.lib.icon.Icon;
 import serverutils.lib.lib.util.SidedUtils;
 import serverutils.lib.lib.util.misc.MouseButton;
 import serverutils.mod.ServerUtilities;
+import serverutils.mod.client.ServerUtilitiesClient;
 import serverutils.mod.client.ServerUtilitiesClientConfig;
 
 public class GuiClientConfig extends GuiButtonListBase {
@@ -39,7 +40,7 @@ public class GuiClientConfig extends GuiButtonListBase {
                     false,
                     false,
                     title,
-                    getAbridgedConfigPath("/server utilities/client/serverutilities.cfg"));
+                    getAbridgedConfigPath(ServerUtilitiesClient.CLIENT_FOLDER + "serverutilities.cfg"));
         }
     }
 

@@ -125,7 +125,7 @@ public abstract class ConfigValue implements IWithID {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof ConfigValue && equalsValue((ConfigValue) o);
+        return o instanceof ConfigValue value && equalsValue(value);
     }
 
     @Override

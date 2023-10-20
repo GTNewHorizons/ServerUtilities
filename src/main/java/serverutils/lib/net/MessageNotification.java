@@ -8,7 +8,6 @@ import serverutils.lib.lib.io.DataIn;
 import serverutils.lib.lib.io.DataOut;
 import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.net.NetworkWrapper;
-import serverutils.lib.lib.util.text_components.Notification;
 import serverutils.mod.handlers.ServerUtilitiesClientEventHandler;
 
 public class MessageNotification extends MessageToClient {

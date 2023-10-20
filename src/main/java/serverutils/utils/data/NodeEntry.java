@@ -44,7 +44,7 @@ public final class NodeEntry implements Comparable<NodeEntry> {
     }
 
     public boolean equals(Object o) {
-        return o == this || o instanceof NodeEntry && node.equals(((NodeEntry) o).node);
+        return o == this || o instanceof NodeEntry entry && node.equals(entry.node);
     }
 
     @Override

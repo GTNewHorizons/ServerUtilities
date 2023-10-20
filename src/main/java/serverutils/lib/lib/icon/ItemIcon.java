@@ -20,9 +20,6 @@ import serverutils.lib.lib.item.ItemStackSerializer;
 import serverutils.lib.lib.util.InvUtils;
 import serverutils.mod.ServerUtilitiesConfig;
 
-/**
- * @author LatvianModder
- */
 public class ItemIcon extends Icon {
 
     private static class LazyItemIcon extends ItemIcon {

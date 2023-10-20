@@ -195,8 +195,8 @@ public class GuiEditConfigList extends GuiBase {
     @Override
     public boolean onInit() {
         for (Widget widget : configPanel.widgets) {
-            if (widget instanceof ButtonConfigValue) {
-                ((ButtonConfigValue) widget).valueString = null;
+            if (widget instanceof ButtonConfigValue value) {
+                value.valueString = null;
             }
         }
 

@@ -90,8 +90,7 @@ public class PixelBuffer implements IPixelBuffer {
             return false;
         } else if (o == this) {
             return true;
-        } else if (o instanceof PixelBuffer) {
-            PixelBuffer b = (PixelBuffer) o;
+        } else if (o instanceof PixelBuffer b) {
             if (width == b.width && height == b.height) {
                 for (int i = 0; i < pixels.length; i++) {
                     if (pixels[i] != b.pixels[i]) {

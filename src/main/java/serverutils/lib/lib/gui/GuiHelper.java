@@ -252,19 +252,13 @@ public class GuiHelper {
             return "";
         }
 
-        switch (event.getAction()) {
-            case OPEN_URL:
-                // case CHANGE_PAGE:
-                // return event.getValue();
-            case OPEN_FILE:
-                return "file:" + event.getValue();
-            case RUN_COMMAND:
-                return "command:" + event.getValue();
-            case SUGGEST_COMMAND:
-                return "suggest_command:" + event.getValue();
-            default:
-                return "";
-        }
+        return switch (event.getAction()) {
+            // case OPEN_URL, CHANGE_PAGE -> event.getValue();
+            case OPEN_FILE -> "file:" + event.getValue();
+            case RUN_COMMAND -> "command:" + event.getValue();
+            case SUGGEST_COMMAND -> "suggest_command:" + event.getValue();
+            default -> "";
+        };
     }
 
     public static void addStackTooltip(ItemStack stack, List<String> list) {

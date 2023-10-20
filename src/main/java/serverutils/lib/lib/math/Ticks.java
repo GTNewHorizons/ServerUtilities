@@ -58,34 +58,15 @@ public class Ticks {
         for (String s : value.split(" ")) {
             if (!s.isEmpty()) {
                 try {
-                    switch (s.charAt(s.length() - 1)) {
-                        case 't':
-                        case 'T':
-                            ticks = ticks.add(Long.parseLong(s.substring(0, s.length() - 1)));
-                            break;
-                        case 's':
-                        case 'S':
-                            ticks = ticks.add(SECOND.x(Long.parseLong(s.substring(0, s.length() - 1))));
-                            break;
-                        case 'm':
-                        case 'M':
-                            ticks = ticks.add(MINUTE.x(Long.parseLong(s.substring(0, s.length() - 1))));
-                            break;
-                        case 'h':
-                        case 'H':
-                            ticks = ticks.add(HOUR.x(Long.parseLong(s.substring(0, s.length() - 1))));
-                            break;
-                        case 'd':
-                        case 'D':
-                            ticks = ticks.add(DAY.x(Long.parseLong(s.substring(0, s.length() - 1))));
-                            break;
-                        case 'w':
-                        case 'W':
-                            ticks = ticks.add(WEEK.x(Long.parseLong(s.substring(0, s.length() - 1))));
-                            break;
-                        default:
-                            ticks = ticks.add(Long.parseLong(s));
-                    }
+                    ticks = switch (s.charAt(s.length() - 1)) {
+                        case 't', 'T' -> ticks.add(Long.parseLong(s.substring(0, s.length() - 1)));
+                        case 's', 'S' -> ticks.add(SECOND.x(Long.parseLong(s.substring(0, s.length() - 1))));
+                        case 'm', 'M' -> ticks.add(MINUTE.x(Long.parseLong(s.substring(0, s.length() - 1))));
+                        case 'h', 'H' -> ticks.add(HOUR.x(Long.parseLong(s.substring(0, s.length() - 1))));
+                        case 'd', 'D' -> ticks.add(DAY.x(Long.parseLong(s.substring(0, s.length() - 1))));
+                        case 'w', 'W' -> ticks.add(WEEK.x(Long.parseLong(s.substring(0, s.length() - 1))));
+                        default -> ticks.add(Long.parseLong(s));
+                    };
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }

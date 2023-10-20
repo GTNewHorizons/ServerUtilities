@@ -9,12 +9,11 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 public class AuroraConfig {
 
     public static Configuration config;
-    public static final AuroraConfig INST = new AuroraConfig();
     public static final String GEN_CAT = Configuration.CATEGORY_GENERAL;
     public static final String PAGES_CAT = "Pages";
 
     public static void init(FMLPreInitializationEvent event) {
-        config = new Configuration(new File(event.getModConfigurationDirectory() + "/../server utilities/aurora.cfg"));
+        config = new Configuration(new File(event.getModConfigurationDirectory() + "/../serverutilities/aurora.cfg"));
         sync();
     }
 

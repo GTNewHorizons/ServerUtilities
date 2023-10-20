@@ -222,7 +222,7 @@ public class DataIn {
 
         Item item = Item.getItemById(id);
 
-        if (item == null || item == null) {
+        if (item == null) {
             return InvUtils.EMPTY_STACK;
         }
 
@@ -253,32 +253,22 @@ public class DataIn {
 
     @Nullable
     public NBTBase readNBTBase() {
-        switch (readByte()) {
-            case Constants.NBT.TAG_END:
-                return null;
-            case Constants.NBT.TAG_BYTE:
-                return new NBTTagByte(readByte());
-            case Constants.NBT.TAG_SHORT:
-                return new NBTTagShort(readShort());
-            case Constants.NBT.TAG_INT:
-                return new NBTTagInt(readInt());
-            case Constants.NBT.TAG_LONG:
-                return new NBTTagLong(readLong());
-            case Constants.NBT.TAG_FLOAT:
-                return new NBTTagFloat(readFloat());
-            case Constants.NBT.TAG_DOUBLE:
-                return new NBTTagDouble(readDouble());
+        return switch (readByte()) {
+            case Constants.NBT.TAG_END -> null;
+            case Constants.NBT.TAG_BYTE -> new NBTTagByte(readByte());
+            case Constants.NBT.TAG_SHORT -> new NBTTagShort(readShort());
+            case Constants.NBT.TAG_INT -> new NBTTagInt(readInt());
+            case Constants.NBT.TAG_LONG -> new NBTTagLong(readLong());
+            case Constants.NBT.TAG_FLOAT -> new NBTTagFloat(readFloat());
+            case Constants.NBT.TAG_DOUBLE -> new NBTTagDouble(readDouble());
             // TAG_BYTE_ARRAY
-            case Constants.NBT.TAG_STRING:
-                return new NBTTagString(readString());
+            case Constants.NBT.TAG_STRING -> new NBTTagString(readString());
             // TAG_LIST
-            case Constants.NBT.TAG_COMPOUND:
-                return readNBT();
+            case Constants.NBT.TAG_COMPOUND -> readNBT();
             // TAG_INT_ARRAY
             // TAG_LONG_ARRAY
-            default:
-                return readNBT().getTag("_");
-        }
+            default -> readNBT().getTag("_");
+        };
     }
 
     public Vec3 readPos() {
@@ -356,11 +346,6 @@ public class DataIn {
         return JsonUtils.deserializeTextComponent(readJson());
     }
 
-    // public IBlockState readBlockState() {
-    // int id = readInt();
-    // return id == 0 ? BlockUtils.AIR_STATE : Block.getStateById(id);
-    // }
-
     public Icon readIcon() {
         return Icon.getIcon(readJson());
     }
@@ -384,32 +369,23 @@ public class DataIn {
     public int readVarInt() {
         int b = readByte();
 
-        switch (b) {
-            case 121:
-                return readByte();
-            case 122:
-                return readShort();
-            case 123:
-                return readInt();
-            default:
-                return b;
-        }
+        return switch (b) {
+            case 121 -> readByte();
+            case 122 -> readShort();
+            case 123 -> readInt();
+            default -> b;
+        };
     }
 
     public long readVarLong() {
         int b = readByte();
 
-        switch (b) {
-            case 121:
-                return readByte();
-            case 122:
-                return readShort();
-            case 123:
-                return readInt();
-            case 124:
-                return readLong();
-            default:
-                return b;
-        }
+        return switch (b) {
+            case 121 -> readByte();
+            case 122 -> readShort();
+            case 123 -> readInt();
+            case 124 -> readLong();
+            default -> b;
+        };
     }
 }

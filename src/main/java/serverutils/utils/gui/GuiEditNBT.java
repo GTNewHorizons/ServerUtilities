@@ -158,26 +158,15 @@ public class GuiEditNBT extends GuiBase {
         }
 
         public void updateTitle() {
-            Object title = "";
-
-            switch (nbt.getId()) {
-                case Constants.NBT.TAG_BYTE:
-                case Constants.NBT.TAG_SHORT:
-                case Constants.NBT.TAG_INT:
-                    title = ((NBTBase.NBTPrimitive) nbt).func_150287_d();
-                    break;
-                case Constants.NBT.TAG_LONG:
-                    title = ((NBTBase.NBTPrimitive) nbt).func_150291_c();
-                    break;
-                case Constants.NBT.TAG_FLOAT:
-                case Constants.NBT.TAG_DOUBLE:
-                case Constants.NBT.TAG_ANY_NUMERIC:
-                    title = ((NBTBase.NBTPrimitive) nbt).func_150286_g();
-                    break;
-                case Constants.NBT.TAG_STRING:
-                    title = ((NBTTagString) nbt).func_150285_a_();
-                    break;
-            }
+            Object title = switch (nbt.getId()) {
+                case Constants.NBT.TAG_BYTE, Constants.NBT.TAG_SHORT, Constants.NBT.TAG_INT -> ((NBTBase.NBTPrimitive) nbt)
+                        .func_150287_d();
+                case Constants.NBT.TAG_LONG -> ((NBTBase.NBTPrimitive) nbt).func_150291_c();
+                case Constants.NBT.TAG_FLOAT, Constants.NBT.TAG_DOUBLE, Constants.NBT.TAG_ANY_NUMERIC -> ((NBTBase.NBTPrimitive) nbt)
+                        .func_150286_g();
+                case Constants.NBT.TAG_STRING -> ((NBTTagString) nbt).func_150285_a_();
+                default -> "";
+            };
 
             setTitle(key + ": " + title);
             setWidth(12 + getTheme().getStringWidth(key + ": " + title));
@@ -302,8 +291,8 @@ public class GuiEditNBT extends GuiBase {
             setCollapsed(c);
 
             for (ButtonNBT button : children.values()) {
-                if (button instanceof ButtonNBTCollection) {
-                    ((ButtonNBTCollection) button).setCollapsedTree(c);
+                if (button instanceof ButtonNBTCollection nbtCollection) {
+                    nbtCollection.setCollapsedTree(c);
                 }
             }
         }
@@ -612,34 +601,29 @@ public class GuiEditNBT extends GuiBase {
     private ButtonNBT getFrom(ButtonNBTCollection b, String key) {
         NBTBase nbt = b.getTag(key);
 
-        switch (nbt.getId()) {
-            case Constants.NBT.TAG_COMPOUND:
-                return new ButtonNBTMap(panelNbt, b, key, (NBTTagCompound) nbt);
-            case Constants.NBT.TAG_LIST:
-                return new ButtonNBTList(panelNbt, b, key, (NBTTagList) nbt);
-            case Constants.NBT.TAG_BYTE_ARRAY:
-                return new ButtonNBTByteArray(panelNbt, b, key, (NBTTagByteArray) nbt);
-            case Constants.NBT.TAG_INT_ARRAY:
-                return new ButtonNBTIntArray(panelNbt, b, key, (NBTTagIntArray) nbt);
-            default:
-                return new ButtonNBTPrimitive(panelNbt, b, key, nbt);
-        }
+        return switch (nbt.getId()) {
+            case Constants.NBT.TAG_COMPOUND -> new ButtonNBTMap(panelNbt, b, key, (NBTTagCompound) nbt);
+            case Constants.NBT.TAG_LIST -> new ButtonNBTList(panelNbt, b, key, (NBTTagList) nbt);
+            case Constants.NBT.TAG_BYTE_ARRAY -> new ButtonNBTByteArray(panelNbt, b, key, (NBTTagByteArray) nbt);
+            case Constants.NBT.TAG_INT_ARRAY -> new ButtonNBTIntArray(panelNbt, b, key, (NBTTagIntArray) nbt);
+            default -> new ButtonNBTPrimitive(panelNbt, b, key, nbt);
+        };
     }
 
     public SimpleButton newTag(Panel panel, String t, Icon icon, Supplier<NBTBase> supplier) {
         return new SimpleButton(panel, t, icon, (gui, button) -> {
-            if (selected instanceof ButtonNBTMap) {
+            if (selected instanceof ButtonNBTMap nbtMap) {
                 new GuiEditConfigValue("value", new ConfigString("", Pattern.compile("^.+$")), (value, set) -> {
                     if (set && !value.getString().isEmpty()) {
-                        ((ButtonNBTCollection) selected).setTag(value.getString(), supplier.get());
+                        nbtMap.setTag(value.getString(), supplier.get());
                         selected.updateChildren(false);
                         panelNbt.refreshWidgets();
                     }
 
                     GuiEditNBT.this.openGui();
                 }).openGui();
-            } else if (selected instanceof ButtonNBTCollection) {
-                ((ButtonNBTCollection) selected).setTag("-1", supplier.get());
+            } else if (selected instanceof ButtonNBTCollection nbtCollection) {
+                nbtCollection.setTag("-1", supplier.get());
                 selected.updateChildren(false);
                 panelNbt.refreshWidgets();
             }
@@ -714,13 +698,13 @@ public class GuiEditNBT extends GuiBase {
                                     }
                                 }));
 
-                if (selected instanceof ButtonNBTPrimitive) {
+                if (selected instanceof ButtonNBTPrimitive nbtPrimitive) {
                     add(
                             new SimpleButton(
                                     this,
                                     I18n.format("selectServer.edit"),
                                     GuiIcons.FEATHER,
-                                    (widget, button) -> ((ButtonNBTPrimitive) selected).edit()));
+                                    (widget, button) -> nbtPrimitive.edit()));
                 }
 
                 if (selected.canCreateNew(Constants.NBT.TAG_COMPOUND)) {
@@ -789,8 +773,8 @@ public class GuiEditNBT extends GuiBase {
 
                 add(new SimpleButton(this, I18n.format("gui.collapse_all"), GuiIcons.REMOVE, (widget, button) -> {
                     for (Widget w : panelNbt.widgets) {
-                        if (w instanceof ButtonNBTCollection) {
-                            ((ButtonNBTCollection) w).setCollapsed(true);
+                        if (w instanceof ButtonNBTCollection nbtCollection) {
+                            nbtCollection.setCollapsed(true);
                         }
                     }
 
@@ -800,8 +784,8 @@ public class GuiEditNBT extends GuiBase {
 
                 add(new SimpleButton(this, I18n.format("gui.expand_all"), GuiIcons.ADD, (widget, button) -> {
                     for (Widget w : panelNbt.widgets) {
-                        if (w instanceof ButtonNBTCollection) {
-                            ((ButtonNBTCollection) w).setCollapsed(false);
+                        if (w instanceof ButtonNBTCollection nbtCollection) {
+                            nbtCollection.setCollapsed(false);
                         }
                     }
 

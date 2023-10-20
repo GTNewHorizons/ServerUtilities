@@ -66,7 +66,7 @@ public class ServerUtilities {
     public static final String MOD_NAME = "Server Utilities";
     public static final String VERSION = "GRADLETOKEN_VERSION";
     public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
-    public static final String KEY_CATEGORY = "key.categories.serverutilitiesmods";
+    public static final String SERVER_FOLDER = MOD_ID + "/server/";
 
     @Mod.Instance(MOD_ID)
     public static ServerUtilities INST;
@@ -153,11 +153,9 @@ public class ServerUtilities {
 
         if (Ranks.isActive()) {
             Ranks.INSTANCE.commands.clear();
+            FileUtils.deleteSafe(Ranks.INSTANCE.universe.server.getFile(SERVER_FOLDER + "all_permissions.html"));
             FileUtils.deleteSafe(
-                    Ranks.INSTANCE.universe.server.getFile("server utilities/serverutilities/all_permissions.html"));
-            FileUtils.deleteSafe(
-                    Ranks.INSTANCE.universe.server
-                            .getFile("server utilities/serverutilities/all_permissions_full_list.txt"));
+                    Ranks.INSTANCE.universe.server.getFile(SERVER_FOLDER + "all_permissions_full_list.txt"));
 
             boolean spongeLoaded = Loader.isModLoaded("spongeforge");
 

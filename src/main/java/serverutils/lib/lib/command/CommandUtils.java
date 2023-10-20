@@ -52,7 +52,7 @@ public class CommandUtils {
                 break;
             }
             case "@p": {
-                if (sender instanceof EntityPlayerMP && !ServerUtils.isFake((EntityPlayerMP) sender)) {
+                if (sender instanceof EntityPlayerMP playerMP && !ServerUtils.isFake(playerMP)) {
                     return Universe.get().getPlayer(sender);
                 }
 
@@ -113,9 +113,9 @@ public class CommandUtils {
 
         ForgePlayer p = getForgePlayer(sender, args[index]);
 
-        if (!specialPermForOther.isEmpty() && sender instanceof EntityPlayerMP
-                && !p.getId().equals(((EntityPlayerMP) sender).getUniqueID())
-                && !PermissionAPI.hasPermission((EntityPlayerMP) sender, specialPermForOther)) {
+        if (!specialPermForOther.isEmpty() && sender instanceof EntityPlayerMP playerMP
+                && !p.getId().equals(playerMP.getUniqueID())
+                && !PermissionAPI.hasPermission(playerMP, specialPermForOther)) {
             throw new CommandException("commands.generic.permission");
         }
 
@@ -143,24 +143,13 @@ public class CommandUtils {
             return OptionalInt.empty();
         }
 
-        switch (args[index].toLowerCase()) {
-            case "overworld":
-            case "0":
-                return OptionalInt.of(0);
-            case "nether":
-            case "-1":
-                return OptionalInt.of(-1);
-            case "end":
-            case "1":
-                return OptionalInt.of(1);
-            case "this":
-            case "~":
-                return OptionalInt.of(sender.getEntityWorld().provider.dimensionId);
-            case "all":
-            case "*":
-                return OptionalInt.empty();
-            default:
-                return OptionalInt.of(CommandBase.parseInt(sender, args[index]));
-        }
+        return switch (args[index].toLowerCase()) {
+            case "overworld", "0" -> OptionalInt.of(0);
+            case "nether", "-1" -> OptionalInt.of(-1);
+            case "end", "1" -> OptionalInt.of(1);
+            case "this", "~" -> OptionalInt.of(sender.getEntityWorld().provider.dimensionId);
+            case "all", "*" -> OptionalInt.empty();
+            default -> OptionalInt.of(CommandBase.parseInt(sender, args[index]));
+        };
     }
 }

@@ -38,6 +38,8 @@ import serverutils.utils.command.client.CommandPing;
 public class ServerUtilitiesClient extends ServerUtilitiesCommon {
 
     public static KeyBinding KEY_NBT, KEY_TRASH;
+    public static final String KEY_CATEGORY = "key.categories.serverutilities";
+    public static final String CLIENT_FOLDER = ServerUtilities.MOD_ID + "/client/";
 
     @Override
     public void preInit(FMLPreInitializationEvent event) {
@@ -61,12 +63,9 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
         FMLCommonHandler.instance().bus().register(ServerUtilitiesClientEventHandler.INST);
 
         ClientRegistry.registerKeyBinding(
-                KEY_NBT = new KeyBinding("key.serverutilities.nbt", Keyboard.KEY_NONE, ServerUtilities.KEY_CATEGORY));
+                KEY_NBT = new KeyBinding("key.serverutilities.nbt", Keyboard.KEY_NONE, KEY_CATEGORY));
         ClientRegistry.registerKeyBinding(
-                KEY_TRASH = new KeyBinding(
-                        "key.serverutilities.trash",
-                        Keyboard.KEY_NONE,
-                        ServerUtilities.KEY_CATEGORY));
+                KEY_TRASH = new KeyBinding("key.serverutilities.trash", Keyboard.KEY_NONE, KEY_CATEGORY));
 
     }
 

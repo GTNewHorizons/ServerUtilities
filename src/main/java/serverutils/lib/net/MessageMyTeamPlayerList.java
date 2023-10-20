@@ -22,9 +22,6 @@ import serverutils.lib.lib.io.DataOut;
 import serverutils.lib.lib.net.MessageToClient;
 import serverutils.lib.lib.net.NetworkWrapper;
 
-/**
- * @author LatvianModder
- */
 public class MessageMyTeamPlayerList extends MessageToClient {
 
     public static class Entry implements Comparable<Entry> {

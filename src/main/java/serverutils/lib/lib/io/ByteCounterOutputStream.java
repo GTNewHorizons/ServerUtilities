@@ -12,12 +12,12 @@ public class ByteCounterOutputStream extends OutputStream {
     }
 
     @Override
-    public void write(byte b[]) {
+    public void write(byte[] b) {
         size += b.length;
     }
 
     @Override
-    public void write(byte b[], int off, int len) {
+    public void write(byte[] b, int off, int len) {
         size += len;
     }
 

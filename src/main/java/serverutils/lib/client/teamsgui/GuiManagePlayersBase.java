@@ -16,7 +16,7 @@ import serverutils.lib.net.MessageMyTeamPlayerList;
 
 public class GuiManagePlayersBase extends GuiButtonListBase {
 
-    static class ButtonPlayerBase extends SimpleTextButton {
+    public static class ButtonPlayerBase extends SimpleTextButton {
 
         final MessageMyTeamPlayerList.Entry entry;
 

@@ -193,8 +193,8 @@ public class ConfigItemStack extends ConfigValue {
 
     @Override
     public void setValueFromOtherValue(ConfigValue value) {
-        if (value instanceof ConfigItemStack) {
-            setStack(((ConfigItemStack) value).getStack().copy());
+        if (value instanceof ConfigItemStack configItemStack) {
+            setStack(configItemStack.getStack().copy());
         } else {
             super.setValueFromOtherValue(value);
         }

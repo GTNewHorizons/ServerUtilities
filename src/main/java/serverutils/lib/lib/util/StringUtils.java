@@ -76,10 +76,10 @@ public class StringUtils {
     }
 
     public static String getRawID(Object o) {
-        if (o instanceof IStringSerializable) {
-            return ((IStringSerializable) o).getName();
-        } else if (o instanceof IWithID) {
-            return ((IWithID) o).getId();
+        if (o instanceof IStringSerializable serializable) {
+            return serializable.getName();
+        } else if (o instanceof IWithID id) {
+            return id.getId();
         } else if (o instanceof Enum) {
             return ((Enum) o).name();
         }
@@ -162,7 +162,7 @@ public class StringUtils {
             String s2;
             for (int i = 0; i < txt.size(); i++) {
                 s2 = txt.get(i);
-                if (s2 != null && s2.length() > 0) {
+                if (s2 != null && !s2.isEmpty()) {
                     s2 = s2.replace(s, s1);
                     txt.set(i, s2);
                 }
@@ -202,7 +202,7 @@ public class StringUtils {
     }
 
     public static String firstUppercase(String s) {
-        if (s.length() == 0) {
+        if (s.isEmpty()) {
             return s;
         }
         char c = Character.toUpperCase(s.charAt(0));
@@ -282,7 +282,7 @@ public class StringUtils {
     }
 
     public static List<String> readStringList(InputStream is) throws Exception {
-        ArrayList<String> l = new ArrayList();
+        ArrayList<String> l = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 
         String s;
@@ -471,7 +471,6 @@ public class StringUtils {
         return map;
     }
 
-    @SuppressWarnings("ConstantConditions")
     public static IChatComponent color(IChatComponent component, @Nullable EnumChatFormatting color) {
         component.getChatStyle().setColor(color);
         return component;

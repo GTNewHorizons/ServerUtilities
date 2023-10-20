@@ -10,7 +10,7 @@ import net.minecraft.server.MinecraftServer;
 
 import com.mojang.authlib.GameProfile;
 
-import cpw.mods.fml.common.FMLCommonHandler;
+import serverutils.lib.lib.util.ServerUtils;
 import serverutils.lib.lib.util.permission.context.IContext;
 
 /**
@@ -50,7 +50,7 @@ public enum DefaultPermissionHandler implements IPermissionHandler {
             return true;
         }
 
-        MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
+        MinecraftServer server = ServerUtils.getServer();
         return server != null && server.getConfigurationManager().func_152596_g(profile); // canSendCommands
     }
 

@@ -23,6 +23,7 @@ import serverutils.lib.events.SidebarButtonCreatedEvent;
 import serverutils.lib.lib.io.DataReader;
 import serverutils.lib.lib.util.JsonUtils;
 import serverutils.mod.ServerUtilitiesConfig;
+import serverutils.mod.client.ServerUtilitiesClient;
 
 public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 
@@ -39,8 +40,10 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 
         groups.clear();
 
-        JsonElement element = DataReader
-                .get(new File(Minecraft.getMinecraft().mcDataDir, "server utilities/client/sidebar_buttons.json"))
+        JsonElement element = DataReader.get(
+                new File(
+                        Minecraft.getMinecraft().mcDataDir,
+                        ServerUtilitiesClient.CLIENT_FOLDER + "sidebar_buttons.json"))
                 .safeJson();
         JsonObject sidebarButtonConfig;
 
@@ -171,7 +174,9 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
         }
 
         JsonUtils.toJsonSafe(
-                new File(Minecraft.getMinecraft().mcDataDir, "server utilities/client/sidebar_buttons.json"),
+                new File(
+                        Minecraft.getMinecraft().mcDataDir,
+                        ServerUtilitiesClient.CLIENT_FOLDER + "sidebar_buttons.json"),
                 o);
     }
 }

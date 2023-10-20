@@ -11,9 +11,6 @@ import serverutils.lib.lib.data.TeamType;
 import serverutils.lib.lib.data.Universe;
 import serverutils.mod.ServerUtilities;
 
-/**
- * @author LatvianModder
- */
 public class CmdCreateServerTeam extends CmdBase {
 
     public CmdCreateServerTeam() {

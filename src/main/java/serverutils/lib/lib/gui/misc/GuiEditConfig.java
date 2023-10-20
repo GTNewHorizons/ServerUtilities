@@ -216,8 +216,8 @@ public class GuiEditConfig extends GuiBase {
                 list.add(EnumChatFormatting.UNDERLINE + keyText);
                 IChatComponent infoText = inst.getInfo();
 
-                if (!(infoText instanceof ChatComponentTranslation) || !LanguageRegistry.instance()
-                        .getStringLocalization(((ChatComponentTranslation) infoText).getKey()).isEmpty()) {
+                if (!(infoText instanceof ChatComponentTranslation component)
+                        || !LanguageRegistry.instance().getStringLocalization(component.getKey()).isEmpty()) {
                     for (String s : infoText.getFormattedText().split("\\\n")) {
                         list.add(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + s);
                     }
@@ -257,7 +257,7 @@ public class GuiEditConfig extends GuiBase {
             @Override
             public void addWidgets() {
                 for (Widget w : configEntryButtons) {
-                    if (!(w instanceof ButtonConfigEntry) || !((ButtonConfigEntry) w).group.collapsed) {
+                    if (!(w instanceof ButtonConfigEntry entry) || !entry.group.collapsed) {
                         add(w);
                     }
                 }
@@ -310,8 +310,8 @@ public class GuiEditConfig extends GuiBase {
 
         buttonExpandAll = new SimpleButton(this, I18n.format("gui.expand_all"), GuiIcons.ADD, (widget, button) -> {
             for (Widget w : configEntryButtons) {
-                if (w instanceof ButtonConfigGroup) {
-                    ((ButtonConfigGroup) w).setCollapsed(false);
+                if (w instanceof ButtonConfigGroup configGroup) {
+                    configGroup.setCollapsed(false);
                 }
             }
 
@@ -325,8 +325,8 @@ public class GuiEditConfig extends GuiBase {
                 GuiIcons.REMOVE,
                 (widget, button) -> {
                     for (Widget w : configEntryButtons) {
-                        if (w instanceof ButtonConfigGroup) {
-                            ((ButtonConfigGroup) w).setCollapsed(true);
+                        if (w instanceof ButtonConfigGroup configGroup) {
+                            configGroup.setCollapsed(true);
                         }
                     }
 
@@ -350,8 +350,8 @@ public class GuiEditConfig extends GuiBase {
     @Override
     public boolean onInit() {
         for (Widget widget : configEntryButtons) {
-            if (widget instanceof ButtonConfigEntry) {
-                ((ButtonConfigEntry) widget).valueString = null;
+            if (widget instanceof ButtonConfigEntry entry) {
+                entry.valueString = null;
             }
         }
 

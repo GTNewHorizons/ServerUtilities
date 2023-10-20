@@ -37,8 +37,6 @@ public class ItemStackSerializer {
 
         if (item == null) {
             throw new NullPointerException("Unknown item: " + s1[0]);
-        } else if (item == null) {
-            return InvUtils.EMPTY_STACK;
         }
 
         int stackSize = 1, meta = 0;
@@ -151,7 +149,6 @@ public class ItemStackSerializer {
             nbt.setByte("Count", (byte) 1);
         }
 
-        ItemStack stack = ItemStack.loadItemStackFromNBT(nbt);
-        return stack;
+        return ItemStack.loadItemStackFromNBT(nbt);
     }
 }
