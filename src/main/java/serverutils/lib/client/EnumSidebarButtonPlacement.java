@@ -2,6 +2,10 @@ package serverutils.lib.client;
 
 import java.util.Locale;
 
+import net.minecraft.client.Minecraft;
+
+import serverutils.mod.client.ServerUtilitiesClientConfig;
+
 public enum EnumSidebarButtonPlacement {
 
     DISABLED,
@@ -10,26 +14,24 @@ public enum EnumSidebarButtonPlacement {
     AUTO;
 
     public boolean top() {
-        switch (this) {
-            case TOP_LEFT:
-                return true;
-            case AUTO:
-                return SidebarButton.NEI_NOT_LOADED.getAsBoolean();
-            default:
-                return false;
-        }
+        return switch (this) {
+            case TOP_LEFT -> true;
+            case AUTO -> SidebarButton.NEI_NOT_LOADED.getAsBoolean();
+            default -> false;
+        };
+    }
+
+    public boolean above() {
+        return this == AUTO && !Minecraft.getMinecraft().thePlayer.getActivePotionEffects().isEmpty()
+                && ServerUtilitiesClientConfig.sidebar_buttons_above_potion;
     }
 
     public static EnumSidebarButtonPlacement string2placement(String placement) {
-        switch (placement.toLowerCase(Locale.ENGLISH)) {
-            case "disabled":
-                return DISABLED;
-            case "top_left":
-                return TOP_LEFT;
-            case "inventory_side":
-                return INVENTORY_SIDE;
-            default:
-                return AUTO;
-        }
+        return switch (placement.toLowerCase(Locale.ENGLISH)) {
+            case "disabled" -> DISABLED;
+            case "top_left" -> TOP_LEFT;
+            case "inventory_side" -> INVENTORY_SIDE;
+            default -> AUTO;
+        };
     }
 }

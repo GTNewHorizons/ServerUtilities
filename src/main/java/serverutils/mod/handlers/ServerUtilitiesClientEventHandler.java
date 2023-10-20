@@ -356,16 +356,16 @@ public class ServerUtilitiesClientEventHandler {
     }
 
     public static boolean areButtonsVisible(@Nullable GuiScreen gui) {
-        return ServerUtilitiesClientConfig.sidebar_buttons != EnumSidebarButtonPlacement.DISABLED && getAllowedGui(gui)
+        return ServerUtilitiesClientConfig.sidebar_buttons != EnumSidebarButtonPlacement.DISABLED
+                && (gui instanceof InventoryEffectRenderer || isCreativePlusGui(gui))
                 && !SidebarButtonManager.INSTANCE.groups.isEmpty();
     }
 
-    private static boolean getAllowedGui(GuiScreen gui) {
+    private static boolean isCreativePlusGui(GuiScreen gui) {
         if (Loader.isModLoaded(OtherMods.NEI_GTNH)) {
-            return gui instanceof InventoryEffectRenderer || gui instanceof GuiExtendedCreativeInv;
-        } else {
-            return gui instanceof InventoryEffectRenderer;
+            return gui instanceof GuiExtendedCreativeInv;
         }
+        return false;
     }
 
     @SubscribeEvent
@@ -567,24 +567,39 @@ public class ServerUtilitiesClientEventHandler {
         public void drawButton(Minecraft mc, int mx, int my) {
             buttons.clear();
             mouseOver = null;
-            int rx, ry = 0;
+            int rx = 0, ry = 0;
             boolean addedAny;
             boolean top = ServerUtilitiesClientConfig.sidebar_buttons.top();
+            boolean above = ServerUtilitiesClientConfig.sidebar_buttons.above();
 
             for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
-                rx = 0;
-                addedAny = false;
-
-                for (SidebarButton button : group.getButtons()) {
-                    if (button.isActuallyVisible()) {
-                        buttons.add(new GuiButtonSidebar(rx, ry, button));
-                        rx++;
-                        addedAny = true;
+                if (above && !isCreativePlusGui(gui)) {
+                    // If drawn above they are drawn in a horizontal line of 7 buttons
+                    // roughly the same length as a potion label.
+                    for (SidebarButton button : group.getButtons()) {
+                        if (button.isActuallyVisible()) {
+                            buttons.add(new GuiButtonSidebar(rx, ry, button));
+                            ry++;
+                            if (ry >= 7) {
+                                ry = 0;
+                                rx--;
+                            }
+                        }
                     }
-                }
+                } else {
+                    rx = 0;
+                    addedAny = false;
+                    for (SidebarButton button : group.getButtons()) {
+                        if (button.isActuallyVisible()) {
+                            buttons.add(new GuiButtonSidebar(rx, ry, button));
+                            rx++;
+                            addedAny = true;
+                        }
+                    }
 
-                if (addedAny) {
-                    ry++;
+                    if (addedAny) {
+                        ry++;
+                    }
                 }
             }
 
@@ -604,11 +619,14 @@ public class ServerUtilitiesClientEventHandler {
                     offsetY = 6;
                 }
 
-                if (Loader.isModLoaded(OtherMods.NEI_GTNH)) {
-                    if (gui instanceof GuiExtendedCreativeInv) {
-                        offsetY = 22;
-                        offsetX = 41;
-                    }
+                if (above) {
+                    offsetX = 22;
+                    offsetY = -18;
+                }
+
+                if (isCreativePlusGui(gui)) {
+                    offsetY = 22;
+                    offsetX = 41;
                 }
 
                 for (GuiButtonSidebar button : buttons) {

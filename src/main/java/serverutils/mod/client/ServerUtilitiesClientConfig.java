@@ -37,9 +37,18 @@ public class ServerUtilitiesClientConfig {
                         Configuration.CATEGORY_GENERAL,
                         "sidebar_buttons",
                         "auto",
-                        "DISABLED: Buttons are hidden;\nTOP_LEFT: Buttons are placed on top-left corner, where NEI has it's buttons;\nINVENTORY_SIDE: Buttons are placed on the side or top of your inventory, depending on potion effects and crafting book;\nAUTO: When NEI is installed, INVENTORY_SIDE, else TOP_LEFT.")
+                        "DISABLED: Buttons are hidden;"
+                                + "\nTOP_LEFT: Buttons are placed on top-left corner, where NEI has it's buttons;"
+                                + "\nINVENTORY_SIDE: Buttons are placed on the left side of your inventory,;"
+                                + "\nAUTO: When NEI is installed, INVENTORY_SIDE, else TOP_LEFT.")
                         .setLanguageKey(CLIENT_LANG_KEY + "sidebar_buttons").setValidValues(sidebar_buttons_locations)
                         .getString());
+        sidebar_buttons_above_potion = config.get(
+                Configuration.CATEGORY_GENERAL,
+                "sidebar_buttons_above_potion",
+                false,
+                "Move buttons above potion effect label whenever an effect is active and placement is set to AUTO.")
+                .setLanguageKey(CLIENT_LANG_KEY + "sidebar_buttons_above_potion").getBoolean();
         general.show_shutdown_timer_ms = -1L;
         // general.render_badges = config.get(Configuration.CATEGORY_GENERAL, "render_badges", false, "Render
         // badges.").getBoolean();
@@ -77,6 +86,7 @@ public class ServerUtilitiesClientConfig {
     public static boolean item_ore_names;
     public static boolean item_nbt;
     public static EnumSidebarButtonPlacement sidebar_buttons;
+    public static boolean sidebar_buttons_above_potion;
     public static String[] sidebar_buttons_locations = { "DISABLED", "TOP_LEFT", "INVENTORY_SIDE", "AUTO" };
 
     public static class General {
