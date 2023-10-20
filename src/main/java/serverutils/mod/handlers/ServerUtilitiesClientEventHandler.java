@@ -356,7 +356,7 @@ public class ServerUtilitiesClientEventHandler {
     }
 
     public static boolean areButtonsVisible(@Nullable GuiScreen gui) {
-        return ServerUtilitiesClientConfig.action_buttons != EnumSidebarButtonPlacement.DISABLED && getAllowedGui(gui)
+        return ServerUtilitiesClientConfig.sidebar_buttons != EnumSidebarButtonPlacement.DISABLED && getAllowedGui(gui)
                 && !SidebarButtonManager.INSTANCE.groups.isEmpty();
     }
 
@@ -569,7 +569,7 @@ public class ServerUtilitiesClientEventHandler {
             mouseOver = null;
             int rx, ry = 0;
             boolean addedAny;
-            boolean top = ServerUtilitiesClientConfig.action_buttons.top();
+            boolean top = ServerUtilitiesClientConfig.sidebar_buttons.top();
 
             for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
                 rx = 0;

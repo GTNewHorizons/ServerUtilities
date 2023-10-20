@@ -154,7 +154,7 @@ public class SidebarButton implements Comparable<SidebarButton> {
     }
 
     public boolean isActuallyVisible() {
-        return configValue && ServerUtilitiesClientConfig.action_buttons != EnumSidebarButtonPlacement.DISABLED
+        return configValue && ServerUtilitiesClientConfig.sidebar_buttons != EnumSidebarButtonPlacement.DISABLED
                 && isVisible();
     }
 

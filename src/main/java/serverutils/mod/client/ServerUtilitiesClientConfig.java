@@ -46,13 +46,13 @@ public class ServerUtilitiesClientConfig {
                         "Replace vanilla status message with Notifications, which support colors and timers.")
                 .setLanguageKey(CLIENT_LANG_KEY + "replace_vanilla_status_messages").getBoolean();
 
-        action_buttons = EnumSidebarButtonPlacement.string2placement(
+        sidebar_buttons = EnumSidebarButtonPlacement.string2placement(
                 config.get(
                         Configuration.CATEGORY_GENERAL,
-                        "action_buttons",
+                        "sidebar_buttons",
                         "auto",
                         "DISABLED: Buttons are hidden;\nTOP_LEFT: Buttons are placed on top-left corner, where NEI has it's buttons;\nINVENTORY_SIDE: Buttons are placed on the side or top of your inventory, depending on potion effects and crafting book;\nAUTO: When NEI is installed, INVENTORY_SIDE, else TOP_LEFT.")
-                        .setLanguageKey(CLIENT_LANG_KEY + "action_buttons").getString());
+                        .setLanguageKey(CLIENT_LANG_KEY + "sidebar_buttons").setValidValues(sidebar_buttons_locations).getString());
         general.show_shutdown_timer_ms = -1L;
         // general.render_badges = config.get(Configuration.CATEGORY_GENERAL, "render_badges", false, "Render
         // badges.").getBoolean();
@@ -89,7 +89,8 @@ public class ServerUtilitiesClientConfig {
 
     public static boolean item_ore_names;
     public static boolean item_nbt;
-    public static EnumSidebarButtonPlacement action_buttons;
+    public static EnumSidebarButtonPlacement sidebar_buttons;
+    public static String[] sidebar_buttons_locations = {"DISABLED", "TOP_LEFT", "INVENTORY_SIDE", "AUTO"};
     public static boolean replace_vanilla_status_messages;
     public static boolean debug_helper;
 
