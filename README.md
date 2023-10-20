@@ -1,6 +1,6 @@
 ServerUtilities
 ===============
-ServerUtilities for server owners.  Fork and Rebrand of FTBUtilities, FTBLibrary, and LatCore 1.7.10.
+ServerUtilities for server owners.  Backport and Rebrand of the 1.12.2 version of FTBUtilities, FTBLibrary, and Aurora for 1.7.10.
 
 
 ### License
