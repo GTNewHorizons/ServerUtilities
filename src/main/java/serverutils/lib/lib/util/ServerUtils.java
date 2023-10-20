@@ -157,7 +157,7 @@ public class ServerUtils {
         return null;
     }
 
-    public static void notify(MinecraftServer server, @Nullable EntityPlayer player, IChatComponent component) {
+    public static void notifyChat(MinecraftServer server, @Nullable EntityPlayer player, IChatComponent component) {
         if (player == null) {
             for (EntityPlayer player1 : (List<EntityPlayer>) server.getConfigurationManager().playerEntityList) {
                 player1.addChatComponentMessage(component);
@@ -167,11 +167,11 @@ public class ServerUtils {
         }
     }
 
-    public static void notify(MinecraftServer server, @Nullable EntityPlayer player, Notification notification) {
+    public static void notify(MinecraftServer server, @Nullable EntityPlayer player, IChatComponent notification) {
         if (player == null) {
             new MessageNotification(notification).sendToAll();
-        } else if (player instanceof EntityPlayerMP) {
-            new MessageNotification(notification).sendTo((EntityPlayerMP) player);
+        } else if (player instanceof EntityPlayerMP playerMP) {
+            new MessageNotification(notification).sendTo(playerMP);
         } else if (player instanceof EntityClientPlayerMP) {
             ServerUtilitiesClientEventHandler.INST.onNotify(notification);
         }

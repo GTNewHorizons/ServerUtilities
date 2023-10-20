@@ -165,7 +165,7 @@ public class ThreadBackup extends Thread {
             IChatComponent c = StringUtils.color(
                     ServerUtilities.lang(null, "cmd.backup_fail", e.getClass() == null ? null : e.getClass().getName()),
                     EnumChatFormatting.RED);
-            ServerUtils.notify(ServerUtils.getServer(), null, c);
+            ServerUtils.notifyChat(ServerUtils.getServer(), null, c);
 
             e.printStackTrace();
             if (dstFile != null) FileUtils.delete(dstFile);

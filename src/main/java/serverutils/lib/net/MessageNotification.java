@@ -13,11 +13,11 @@ import serverutils.mod.handlers.ServerUtilitiesClientEventHandler;
 
 public class MessageNotification extends MessageToClient {
 
-    private Notification notification;
+    private IChatComponent notification;
 
     public MessageNotification() {}
 
-    public MessageNotification(Notification notification) {
+    public MessageNotification(IChatComponent notification) {
         this.notification = notification;
     }
 
@@ -33,10 +33,7 @@ public class MessageNotification extends MessageToClient {
 
     @Override
     public void readData(DataIn data) {
-        IChatComponent component = data.readTextComponent();
-        if (component instanceof Notification) {
-            notification = (Notification) component;
-        }
+        notification = data.readTextComponent();
     }
 
     @Override

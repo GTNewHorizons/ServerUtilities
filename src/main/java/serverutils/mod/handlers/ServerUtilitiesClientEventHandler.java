@@ -305,20 +305,29 @@ public class ServerUtilitiesClientEventHandler {
         }
     }
 
-    public void onNotify(Notification notification) {
-        ResourceLocation id = notification.getId();
-        Temp.MAP.remove(id);
-        if (currentNotification != null && currentNotification.widget.id.equals(id)) {
-            currentNotification = null;
+    public void onNotify(IChatComponent component) {
+        boolean importantNotification = component instanceof Notification noti && noti.isImportant();
+
+        if (ServerUtilitiesClientConfig.notifications.disabled() && !importantNotification) {
+            return;
         }
-        Temp.MAP.put(id, notification);
+
+        if (ServerUtilitiesClientConfig.notifications.chat() && !importantNotification) {
+            Minecraft.getMinecraft().thePlayer.addChatMessage(component);
+        } else if (component instanceof Notification notification) {
+            ResourceLocation id = notification.getId();
+            Temp.MAP.remove(id);
+            if (currentNotification != null && currentNotification.widget.id.equals(id)) {
+                currentNotification = null;
+            }
+            Temp.MAP.put(id, notification);
+        }
     }
 
     @SubscribeEvent
     public void onClientChatEvent(ClientChatReceivedEvent event) {
         IChatComponent component = event.message;
-        if (component instanceof Notification) {
-            Notification notification = (Notification) component;
+        if (component instanceof Notification notification) {
             onNotify(notification);
             event.message = null;
         }

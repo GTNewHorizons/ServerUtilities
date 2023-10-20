@@ -33,16 +33,20 @@ public class ServerUtilitiesClientConfig {
         item_nbt = config.get(Configuration.CATEGORY_GENERAL, "item_nbt", false, "Show item NBT in inventory.")
                 .setLanguageKey(CLIENT_LANG_KEY + "item_nbt").getBoolean();
         sidebar_buttons = EnumSidebarButtonPlacement.string2placement(
-                config.get(
-                        Configuration.CATEGORY_GENERAL,
-                        "sidebar_buttons",
-                        "auto",
-                        "DISABLED: Buttons are hidden;"
-                                + "\nTOP_LEFT: Buttons are placed on top-left corner, where NEI has it's buttons;"
-                                + "\nINVENTORY_SIDE: Buttons are placed on the left side of your inventory,;"
-                                + "\nAUTO: When NEI is installed, INVENTORY_SIDE, else TOP_LEFT.")
+                config.get(Configuration.CATEGORY_GENERAL, "sidebar_buttons", "auto", """
+                        DISABLED: Buttons are hidden.
+                        TOP_LEFT: Buttons are placed on top-left corner, where NEI has its buttons.
+                        INVENTORY_SIDE: Buttons are placed on the left side of your inventory.
+                        AUTO: When NEI is installed, INVENTORY_SIDE, else TOP_LEFT.""")
                         .setLanguageKey(CLIENT_LANG_KEY + "sidebar_buttons").setValidValues(sidebar_buttons_locations)
                         .getString());
+        notifications = EnumNotificationLocation.string2placement(
+                config.get(Configuration.CATEGORY_GENERAL, "notification_location", "SCREEN", """
+                        SCREEN: Receive notifications as normal above the hotbar.
+                        CHAT: Convert all non-important notifications to chat messages.
+                        DISABLED: Disable non-important notifications entirely.""")
+                        .setLanguageKey(CLIENT_LANG_KEY + "notification_location")
+                        .setValidValues(notification_locations).getString());
         sidebar_buttons_above_potion = config.get(
                 Configuration.CATEGORY_GENERAL,
                 "sidebar_buttons_above_potion",
@@ -88,6 +92,8 @@ public class ServerUtilitiesClientConfig {
     public static EnumSidebarButtonPlacement sidebar_buttons;
     public static boolean sidebar_buttons_above_potion;
     public static String[] sidebar_buttons_locations = { "DISABLED", "TOP_LEFT", "INVENTORY_SIDE", "AUTO" };
+    public static EnumNotificationLocation notifications;
+    public static String[] notification_locations = { "SCREEN", "CHAT", "DISABLED" };
 
     public static class General {
 
