@@ -25,6 +25,7 @@ import serverutils.lib.lib.client.PixelBuffer;
 import serverutils.lib.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.lib.icon.Color4I;
 import serverutils.lib.lib.math.MathUtils;
+import serverutils.mod.ServerUtilities;
 
 public class ThreadReloadChunkSelector extends Thread {
 
@@ -117,25 +118,23 @@ public class ThreadReloadChunkSelector extends Thread {
         } else if (b == Blocks.red_flower) {
             switch (state.getRight()) { // "poppy", "blueOrchid", "allium", "houstonia", "tulipRed", "tulipOrange",
                                         // "tulipWhite", "tulipPink", "oxeyeDaisy"
-                case 0: // dandelion
-                    return MapColor.yellowColor.colorValue;
-                case 1: // poppy
+                case 0: // poppy
                     return MapColor.redColor.colorValue;
-                case 2: // blue orchid
+                case 1: // blue orchid
                     return MapColor.lightBlueColor.colorValue;
-                case 3: // allium
+                case 2: // allium
                     return MapColor.magentaColor.colorValue;
-                case 4: // houstonia
+                case 3: // houstonia
                     return MapColor.silverColor.colorValue;
-                case 5: // tulipRed
+                case 4: // tulipRed
                     return MapColor.redColor.colorValue;
-                case 6: // tulipOrange
+                case 5: // tulipOrange
                     return MapColor.adobeColor.colorValue;
-                case 7: // tulipWhite
+                case 6: // tulipWhite
                     return MapColor.snowColor.colorValue;
-                case 8: // tulipPink
+                case 7: // tulipPink
                     return MapColor.pinkColor.colorValue;
-                case 9: // oxeyeDaisy
+                case 8: // oxeyeDaisy
                     return MapColor.silverColor.colorValue;
             }
         } else if (b == Blocks.planks) {
