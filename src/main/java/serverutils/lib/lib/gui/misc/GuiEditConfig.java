@@ -10,6 +10,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import cpw.mods.fml.common.registry.LanguageRegistry;
 import serverutils.lib.lib.client.GlStateManager;
 import serverutils.lib.lib.config.ConfigGroup;
 import serverutils.lib.lib.config.ConfigValueInstance;
@@ -61,7 +62,7 @@ public class GuiEditConfig extends GuiBase {
         }
     };
 
-    public class ButtonConfigGroup extends Button {
+    public static class ButtonConfigGroup extends Button {
 
         public final ConfigGroup group;
         public String title, info;
@@ -100,10 +101,7 @@ public class GuiEditConfig extends GuiBase {
             }
 
             String infoKey = group.getPath() + ".info";
-            info = true
-                    // I18n.hasKey(infoKey)
-                    ? I18n.format(infoKey)
-                    : "";
+            info = !LanguageRegistry.instance().getStringLocalization(infoKey).isEmpty() ? I18n.format(infoKey) : "";
             setCollapsed(collapsed);
         }
 
@@ -218,8 +216,8 @@ public class GuiEditConfig extends GuiBase {
                 list.add(EnumChatFormatting.UNDERLINE + keyText);
                 IChatComponent infoText = inst.getInfo();
 
-                if (!(infoText instanceof ChatComponentTranslation) || true) {
-                    // I18n.hasKey(((ChatComponentTranslation) infoText).getKey())
+                if (!(infoText instanceof ChatComponentTranslation) || !LanguageRegistry.instance()
+                        .getStringLocalization(((ChatComponentTranslation) infoText).getKey()).isEmpty()) {
                     for (String s : infoText.getFormattedText().split("\\\n")) {
                         list.add(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + s);
                     }

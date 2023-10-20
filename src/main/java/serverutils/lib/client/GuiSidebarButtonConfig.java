@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.client.resources.I18n;
 
+import cpw.mods.fml.common.registry.LanguageRegistry;
 import serverutils.lib.lib.gui.GuiHelper;
 import serverutils.lib.lib.gui.Panel;
 import serverutils.lib.lib.gui.SimpleTextButton;
@@ -18,7 +19,7 @@ public class GuiSidebarButtonConfig extends GuiButtonListBase {
     private static final Color4I COLOR_UNAVAILABLE = Color4I.rgba(0x550094FF);
     private static final Color4I COLOR_DISABLED = Color4I.rgba(0x55BC4242);
 
-    private class ButtonConfigSidebarButton extends SimpleTextButton {
+    private static class ButtonConfigSidebarButton extends SimpleTextButton {
 
         private final SidebarButton sidebarButton;
         private String tooltip = "";
@@ -26,10 +27,9 @@ public class GuiSidebarButtonConfig extends GuiButtonListBase {
         public ButtonConfigSidebarButton(Panel panel, SidebarButton s) {
             super(panel, I18n.format(s.getLangKey()), s.getIcon());
             sidebarButton = s;
-
-            // if (I18n.hasKey(s.getTooltipLangKey())) {
-            tooltip = I18n.format(s.getTooltipLangKey());
-            // }
+            if (!LanguageRegistry.instance().getStringLocalization(s.getTooltipLangKey()).isEmpty()) {
+                tooltip = I18n.format(s.getTooltipLangKey());
+            }
         }
 
         @Override
