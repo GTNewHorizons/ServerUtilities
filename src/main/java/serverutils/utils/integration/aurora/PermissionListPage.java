@@ -50,14 +50,11 @@ public class PermissionListPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        switch (AuroraConfig.general.permission_list_page) {
-            case "DISABLED":
-                return PageType.DISABLED;
-            case "REQUIRES_AUTH":
-                return PageType.REQUIRES_AUTH;
-            default:
-                return PageType.ENABLED;
-        }
+        return switch (AuroraConfig.general.permission_list_page) {
+            case "DISABLED" -> PageType.DISABLED;
+            case "REQUIRES_AUTH" -> PageType.REQUIRES_AUTH;
+            default -> PageType.ENABLED;
+        };
     }
 
     @Override
@@ -74,10 +71,6 @@ public class PermissionListPage extends HTTPWebPage {
         } else {
             return "other";
         }
-    }
-
-    private String fixHTML(String string) {
-        return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     @Override
@@ -179,8 +172,8 @@ public class PermissionListPage extends HTTPWebPage {
                 row.td().paired("code", entry.player.getId()).addClass("variants").title(variants);
             }
 
-            String playerText = fixHTML(entry.player.getStringForGUI().getUnformattedText());
-            String opText = fixHTML(entry.op.getStringForGUI().getUnformattedText());
+            String playerText = Tag.fixHTML(entry.player.getStringForGUI().getUnformattedText());
+            String opText = Tag.fixHTML(entry.op.getStringForGUI().getUnformattedText());
 
             if (playerText.equals(opText)) {
                 row.td().addClass("center-text").attr("colspan", "2").span("", classOf(entry.player))
@@ -225,7 +218,7 @@ public class PermissionListPage extends HTTPWebPage {
                         builder.append(" | ");
                     }
 
-                    fillWhitespace(builder, l.get(i), maxLength[i]);
+                    builder.append(StringUtils.fillString(l.get(i), ' ', maxLength[i]));
                 }
 
                 export2.add(builder.toString());
@@ -234,19 +227,6 @@ public class PermissionListPage extends HTTPWebPage {
             Files.write(Paths.get("server-utilities-permissions.txt"), export2);
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void fillWhitespace(StringBuilder builder, String s, int l) {
-        int sl = s.length();
-        int m = Math.max(sl, l);
-
-        for (int i = 0; i < m; i++) {
-            if (i >= sl) {
-                builder.append(' ');
-            } else {
-                builder.append(s.charAt(i));
-            }
         }
     }
 }

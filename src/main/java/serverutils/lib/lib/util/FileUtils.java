@@ -38,7 +38,7 @@ public class FileUtils {
         return file;
     }
 
-    public static void save(File file, List<String> list) throws Exception {
+    public static void save(File file, Iterable<String> list) throws Exception {
         OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(newFile(file)), StandardCharsets.UTF_8);
         BufferedWriter br = new BufferedWriter(fw);
 
@@ -59,7 +59,7 @@ public class FileUtils {
         fw.close();
     }
 
-    public static void saveSafe(final File file, final List<String> list) {
+    public static void saveSafe(final File file, final Iterable<String> list) {
         ThreadedFileIOBase.threadedIOInstance.queueIO(() -> {
             try {
                 save(file, list);

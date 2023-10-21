@@ -297,7 +297,7 @@ public class StringUtils {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < l.size(); ++i) {
-            sb.append((String) l.get(i));
+            sb.append(l.get(i));
             if (i != l.size() - 1) {
                 sb.append('\n');
             }

@@ -218,8 +218,8 @@ public class JsonUtils {
             json.add("extra", array);
         }
 
-        if (component instanceof ChatComponentText) {
-            json.addProperty("text", ((ChatComponentText) component).getChatComponentText_TextValue());
+        if (component instanceof ChatComponentText text) {
+            json.addProperty("text", text.getChatComponentText_TextValue());
 
             if (component instanceof Notification n) {
 
