@@ -14,6 +14,7 @@ serverutilities.lang.fly_off=Fly turned off for %s
 serverutilities.lang.god_on=God mode turned on for %s
 serverutilities.lang.god_off=God mode turned off for %s
 serverutilities.lang.heal=%s has been healed
+serverutilities.lang.permissions_dumped=%s permissions successfully dumped to file to: %s.
 
 serverutilities.stat.dph=Deaths Per Hour
 serverutilities.stat.last_seen=Last Seen
@@ -191,6 +192,7 @@ permission.serverutilities.warps.cooldown=/warp Cooldown Timer
 permission.serverutilities.tpa.cooldown=/tpa Cooldown Timer
 permission.serverutilities.spawn.cooldown=/spawn Cooldown Timer
 permission.serverutilities.back.cooldown=/back Cooldown Timer
+permission.serverutilities.rtp.cooldown=/rtp Cooldown Timer
 permission.serverutilities.homes.warmup=/home Warmup Timer
 permission.serverutilities.warps.warmup=/warp Warmup Timer
 permission.serverutilities.tpa.warmup=/tpa Warmup Timer

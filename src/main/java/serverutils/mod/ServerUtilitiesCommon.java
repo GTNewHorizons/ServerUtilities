@@ -132,7 +132,6 @@ public class ServerUtilitiesCommon {
 
         ForgeChunkManager
                 .setForcedChunkLoadingCallback(ServerUtilities.INST, ServerUtilitiesLoadedChunkManager.INSTANCE);
-        new CustomPermissionPrefixesRegistryEvent(CUSTOM_PERM_PREFIX_REGISTRY::add).post();
 
         KAOMOJIS.put("shrug", "\u00AF\\_(\u30C4)_/\u00AF");
         KAOMOJIS.put("tableflip", "(\u256F\u00B0\u25A1\u00B0)\u256F \uFE35 \u253B\u2501\u253B");
@@ -152,6 +151,7 @@ public class ServerUtilitiesCommon {
             MinecraftForge.EVENT_BUS.register(AuroraIntegration.INST);
             FMLCommonHandler.instance().bus().register(AuroraIntegration.INST);
         }
+        new CustomPermissionPrefixesRegistryEvent(CUSTOM_PERM_PREFIX_REGISTRY::add).post();
     }
 
     public void init(FMLInitializationEvent event) {
