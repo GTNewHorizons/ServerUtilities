@@ -251,9 +251,11 @@ public class ServerUtilitiesConfig {
         world.logging.item_clicked_in_air = config
                 .get(LOGGING, "item_clicked_in_air", true, "Logs item clicking in air.").getBoolean();
         world.logging.entity_attacked = config
-                .get(LOGGING, "entity_attacked", true, "Logs player attacks on other players/entites").getBoolean();
+                .get(LOGGING, "entity_attacked", true, "Logs player attacks on other players/entites.").getBoolean();
         world.logging.exclude_mob_entity = config
-                .get(LOGGING, "exclude_mob_entity", true, "Exclude mobs from entity attack logging").getBoolean();
+                .get(LOGGING, "exclude_mob_entity", true, "Exclude mobs from entity attack logging.").getBoolean();
+        world.logging.chat_enable = config
+                .get(LOGGING, "chat_enable", false, "Enables chat logging.").getBoolean();
         config.setCategoryComment(LOGGING, "Logs different events in logs/world.log file.");
 
         world.chunk_claiming = config.get(WORLD, "chunk_claiming", true, "Enables chunk claiming.").getBoolean();
@@ -536,6 +538,7 @@ public class ServerUtilitiesConfig {
             public boolean item_clicked_in_air;
             public boolean entity_attacked;
             public boolean exclude_mob_entity;
+            public boolean chat_enable;
 
             public boolean log(EntityPlayerMP player) {
                 return enabled && (include_creative_players || !player.capabilities.isCreativeMode)

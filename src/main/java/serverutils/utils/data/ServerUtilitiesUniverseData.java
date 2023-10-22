@@ -59,6 +59,7 @@ public class ServerUtilitiesUniverseData {
     // public static final ChatHistory GENERAL_CHAT = new ChatHistory(() ->
     // ServerUtilitiesConfig.chat.general_history_limit);
     private static final List<String> worldLog = new ArrayList<>();
+    private static final List<String> chatLog = new ArrayList<>();
 
     public static boolean isInSpawn(MinecraftServer server, ChunkDimPos pos) {
         if (pos.dim != 0 || (!server.isDedicatedServer() && !ServerUtilitiesConfig.world.spawn_area_in_sp)) {
@@ -190,6 +191,22 @@ public class ServerUtilitiesUniverseData {
         Universe.get().markDirty();
     }
 
+    public static void chatLog(String s) {
+        StringBuilder out = new StringBuilder();
+        Calendar time = Calendar.getInstance();
+        appendNum(out, time.get(Calendar.YEAR), '-');
+        appendNum(out, time.get(Calendar.MONTH) + 1, '-');
+        appendNum(out, time.get(Calendar.DAY_OF_MONTH), ' ');
+        appendNum(out, time.get(Calendar.HOUR_OF_DAY), ':');
+        appendNum(out, time.get(Calendar.MINUTE), ':');
+        appendNum(out, time.get(Calendar.SECOND), ' ');
+        out.append(':');
+        out.append(' ');
+        out.append(s);
+        chatLog.add(out.toString());
+        Universe.get().markDirty();
+    }
+
     private static void appendNum(StringBuilder sb, int num, char c) {
         if (num < 10) {
             sb.append('0');
@@ -208,9 +225,6 @@ public class ServerUtilitiesUniverseData {
 
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.setTag("Warps", WARPS.serializeNBT());
-
-        // TODO: Save chat as json
-
         event.setData(ServerUtilities.MOD_ID, nbt);
 
         if (!worldLog.isEmpty()) {
@@ -233,6 +247,28 @@ public class ServerUtilitiesUniverseData {
                 return false;
             });
         }
+
+        if (!chatLog.isEmpty()) {
+            List<String> chatLogCopy = new ArrayList<>(chatLog);
+            chatLog.clear();
+
+            ThreadedFileIOBase.threadedIOInstance.queueIO(() -> {
+                try (PrintWriter out = new PrintWriter(
+                        new BufferedWriter(
+                                new FileWriter(
+                                        FileUtils.newFile(event.getUniverse().server.getFile("logs/chat.log")),
+                                        true)))) {
+                    for (String s : chatLogCopy) {
+                        out.println(s);
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+
+                return false;
+            });
+        }
+
     }
 
     @SubscribeEvent

@@ -267,4 +267,13 @@ public class ServerUtilitiesServerEventHandler {
             }
         }
     }
+
+    @SubscribeEvent
+    public void onServerChatEventLog(ServerChatEvent event) {
+        if(ServerUtilitiesConfig.world.logging.chat_enable){
+            ServerUtilitiesUniverseData.chatLog(String.format(
+                    "From %s: %s",
+                    event.username, event.message));
+        }
+    }
 }
