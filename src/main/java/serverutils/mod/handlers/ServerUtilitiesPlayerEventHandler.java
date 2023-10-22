@@ -4,6 +4,8 @@ import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -297,10 +299,10 @@ public class ServerUtilitiesPlayerEventHandler {
             ServerUtilitiesUniverseData.worldLog(
                     String.format(
                             "%s broke %s at %s in %s",
-                            player.getDisplayName(),
+                            playerMP.getDisplayName(),
                             getStateName(event.world, event.x, event.y, event.z),
                             getPos(event.x, event.y, event.z),
-                            getDim(player)));
+                            getDim(playerMP)));
         }
     }
 
@@ -313,10 +315,10 @@ public class ServerUtilitiesPlayerEventHandler {
             ServerUtilitiesUniverseData.worldLog(
                     String.format(
                             "%s placed %s at %s in %s",
-                            player.getDisplayName(),
+                            playerMP.getDisplayName(),
                             getStateName(event.world, event.x, event.y, event.z),
                             getPos(event.x, event.y, event.z),
-                            getDim(player)));
+                            getDim(playerMP)));
         }
     }
 
@@ -332,11 +334,41 @@ public class ServerUtilitiesPlayerEventHandler {
             ServerUtilitiesUniverseData.worldLog(
                     String.format(
                             "%s clicked %s in air at %s in %s",
-                            player.getDisplayName(),
-                            event.entityPlayer.getHeldItem().getItem()
-                                    .getItemStackDisplayName(event.entityPlayer.getHeldItem()),
+                            playerMP.getDisplayName(),
+                            playerMP.getHeldItem().getDisplayName(),
                             getPos(event.x, event.y, event.z),
-                            getDim(player)));
+                            getDim(playerMP)));
+        }
+    }
+
+    @SubscribeEvent
+    public void onEntityAttackedLog(AttackEntityEvent event) {
+        EntityPlayer player = event.entityPlayer;
+        Entity target = event.target;
+
+        if (ServerUtilitiesConfig.world.logging.entity_attacked && player instanceof EntityPlayerMP playerMP
+                && ServerUtilitiesConfig.world.logging.log(playerMP)) {
+            if (target instanceof EntityPlayerMP targetPlayer) {
+                ServerUtilitiesUniverseData.worldLog(
+                        String.format(
+                                "%s attacked %s with %s at %s in %s",
+                                playerMP.getDisplayName(),
+                                targetPlayer.getDisplayName(),
+                                playerMP.getHeldItem().getDisplayName(),
+                                getPos((int) playerMP.posX, (int) playerMP.posY, (int) playerMP.posZ),
+                                getDim(playerMP)));
+            }
+            if (!ServerUtilitiesConfig.world.logging.exclude_mob_entity
+                    && target instanceof EntityCreature targetCreature) {
+                ServerUtilitiesUniverseData.worldLog(
+                        String.format(
+                                "%s attacked %s with %s at %s in %s",
+                                playerMP.getDisplayName(),
+                                targetCreature.getCommandSenderName(),
+                                playerMP.getHeldItem().getDisplayName(),
+                                getPos((int) playerMP.posX, (int) playerMP.posY, (int) playerMP.posZ),
+                                getDim(playerMP)));
+            }
         }
     }
 }
