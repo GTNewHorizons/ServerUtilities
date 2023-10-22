@@ -1,9 +1,14 @@
 package serverutils.aurora.page;
 
+import java.io.InputStream;
+
 import serverutils.aurora.tag.PairedTag;
 import serverutils.aurora.tag.Tag;
+import serverutils.lib.lib.util.StringUtils;
 
 public abstract class HTTPWebPage implements WebPage {
+
+    private static String css = "";
 
     @Override
     public String getContent() {
@@ -29,8 +34,8 @@ public abstract class HTTPWebPage implements WebPage {
         return "";
     }
 
-    public String getStylesheet() { // TODO: Change this to the local one in resources
-        return "https://latvian.dev/style.css"; // Taken from Latvian.dev since the aurora part is permanently down
+    public String getStylesheet() {
+        return "/assets/serverutilities/style.css";
     }
 
     public String getIcon() { // TODO: Change this to the local one in resources
@@ -53,10 +58,17 @@ public abstract class HTTPWebPage implements WebPage {
 
         head.unpaired("link").attr("rel", "icon").attr("href", getIcon());
 
-        String s = getStylesheet();
+        try {
+            if (css.isEmpty()) {
+                InputStream is = HTTPWebPage.class.getResourceAsStream(getStylesheet());
+                css = StringUtils.readString(is);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        if (!s.isEmpty()) {
-            head.unpaired("link").attr("rel", "stylesheet").attr("type", "text/css").attr("href", s);
+        if (!css.isEmpty()) {
+            head.unpaired("link").attr("rel", "stylesheet").attr("type", "text/css").attr("href", css);
         }
 
         head.meta("viewport", "width=device-width, initial-scale=1.0");
