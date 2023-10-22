@@ -7,23 +7,18 @@ import java.util.Arrays;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.command.server.CommandSaveAll;
-import net.minecraft.command.server.CommandSaveOff;
-import net.minecraft.command.server.CommandSaveOn;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.world.World;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.WorldServer;
 
 import serverutils.lib.lib.util.FileUtils;
 import serverutils.lib.lib.util.ServerUtils;
+import serverutils.mod.ServerUtilities;
 import serverutils.mod.ServerUtilitiesConfig;
 import serverutils.mod.ServerUtilitiesNotifications;
 
 public class Backups {
 
-    public static final Logger logger = LogManager.getLogger("ServerUtilities Backup");
     public static File backupsFolder;
     public static long nextBackup = -1L;
     public static ThreadBackup thread = null;
@@ -36,18 +31,16 @@ public class Backups {
         if (!backupsFolder.exists()) backupsFolder.mkdirs();
         thread = null;
         clearOldBackups();
-        logger.info("Backups folder - " + backupsFolder.getAbsolutePath());
+        ServerUtilities.LOGGER.info("Backups folder - " + backupsFolder.getAbsolutePath());
     }
 
-    public static boolean run(ICommandSender ics) {
+    public static boolean run(ICommandSender ics, String customName) {
         if (thread != null) return false;
         boolean auto = !(ics instanceof EntityPlayerMP);
 
         if (auto && !ServerUtilitiesConfig.backups.enable_backups) return false;
 
-        World w = ServerUtils.getServerWorld();
-        if (w == null) return false;
-
+        MinecraftServer server = ServerUtils.getServer();
         nextBackup = System.currentTimeMillis() + backupMillis();
 
         if (auto && ServerUtilitiesConfig.backups.need_online_players) {
@@ -57,19 +50,24 @@ public class Backups {
         ServerUtilitiesNotifications.backupNotification(BACKUP_START, "cmd.backup_start", ics.getCommandSenderName());
 
         try {
-            new CommandSaveOff().processCommand(ServerUtils.getServer(), new String[0]);
-            new CommandSaveAll().processCommand(ServerUtils.getServer(), new String[0]);
+            for (int i = 0; i < server.worldServers.length; ++i) {
+                if (server.worldServers[i] != null) {
+                    WorldServer worldserver = server.worldServers[i];
+                    worldserver.levelSaving = true;
+                    worldserver.saveAllChunks(true, null);
+                }
+            }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            ServerUtilities.LOGGER.info("Error while saving world: " + ex.getMessage());
         }
 
-        File wd = w.getSaveHandler().getWorldDirectory();
+        File wd = server.getEntityWorld().getSaveHandler().getWorldDirectory();
 
         if (ServerUtilitiesConfig.backups.use_separate_thread) {
-            thread = new ThreadBackup(wd);
+            thread = new ThreadBackup(wd, customName);
             thread.start();
         } else {
-            ThreadBackup.doBackup(wd);
+            ThreadBackup.doBackup(wd, customName);
         }
 
         return true;
@@ -82,12 +80,12 @@ public class Backups {
             Arrays.sort(s);
 
             int j = s.length - ServerUtilitiesConfig.backups.backups_to_keep;
-            logger.info("Deleting " + j + " old backups");
+            ServerUtilities.LOGGER.info("Deleting " + j + " old backups");
 
             for (int i = 0; i < j; i++) {
                 File f = new File(backupsFolder, s[i]);
                 if (f.isDirectory()) {
-                    logger.info("Deleted old backup: " + f.getPath());
+                    ServerUtilities.LOGGER.info("Deleted old backup: " + f.getPath());
                     FileUtils.delete(f);
                 }
             }
@@ -104,7 +102,17 @@ public class Backups {
 
     public static void postBackup() {
         try {
-            new CommandSaveOn().processCommand(ServerUtils.getServer(), new String[0]);
+            MinecraftServer server = ServerUtils.getServer();
+
+            for (int i = 0; i < server.worldServers.length; ++i) {
+                if (server.worldServers[i] != null) {
+                    WorldServer worldserver = server.worldServers[i];
+
+                    if (worldserver.levelSaving) {
+                        worldserver.levelSaving = false;
+                    }
+                }
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }

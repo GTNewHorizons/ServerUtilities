@@ -235,7 +235,7 @@ public class ServerUtilitiesServerEventHandler {
             }
 
             if (Backups.nextBackup > 0L && Backups.nextBackup <= now) {
-                Backups.run(universe.server);
+                Backups.run(universe.server, "");
             }
 
             if (Backups.thread != null && Backups.thread.isDone) {
@@ -270,10 +270,8 @@ public class ServerUtilitiesServerEventHandler {
 
     @SubscribeEvent
     public void onServerChatEventLog(ServerChatEvent event) {
-        if(ServerUtilitiesConfig.world.logging.chat_enable){
-            ServerUtilitiesUniverseData.chatLog(String.format(
-                    "From %s: %s",
-                    event.username, event.message));
+        if (ServerUtilitiesConfig.world.logging.chat_enable) {
+            ServerUtilitiesUniverseData.chatLog(String.format("From %s: %s", event.username, event.message));
         }
     }
 }

@@ -27,9 +27,13 @@ public class CommandPrintState extends CmdBase {
         Block block = sender.getEntityWorld().getBlock(ray.blockX, ray.blockY, ray.blockZ);
 
         IChatComponent component = new ChatComponentText(
-                block.getPickBlock(ray, sender.getEntityWorld(), ray.blockX, ray.blockY, ray.blockZ).getDisplayName()
-                        + " :: "
-                        + block.getUnlocalizedName());
+                block.getPickBlock(
+                        ray,
+                        sender.getEntityWorld(),
+                        ray.blockX,
+                        ray.blockY,
+                        ray.blockZ,
+                        getCommandSenderAsPlayer(sender)).getDisplayName() + " :: " + block.getUnlocalizedName());
         component.getChatStyle()
                 .setChatClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, block.getUnlocalizedName()));
         sender.addChatMessage(component);

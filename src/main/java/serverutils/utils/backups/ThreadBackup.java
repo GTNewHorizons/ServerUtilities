@@ -24,33 +24,42 @@ import serverutils.mod.ServerUtilitiesNotifications;
 
 public class ThreadBackup extends Thread {
 
-    private File src0;
+    private final File src0;
+    private final String customName;
     public boolean isDone = false;
 
-    public ThreadBackup(File w) {
+    public ThreadBackup(File w, String s) {
         src0 = w;
+        customName = s;
         setPriority(7);
     }
 
     public void run() {
         isDone = false;
-        doBackup(src0);
+        doBackup(src0, customName);
         isDone = true;
     }
 
-    public static void doBackup(File src) {
+    public static void doBackup(File src, String customName) {
+
         String time = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(Calendar.getInstance().getTime());
         File dstFile = null;
+        StringBuilder out = new StringBuilder();
+
+        if (customName.isEmpty()) {
+            out.append(time);
+        } else {
+            out.append(customName);
+        }
 
         try {
-            StringBuilder out = new StringBuilder(time);
             List<File> files = FileUtils.listTree(src);
             int allFiles = files.size();
 
-            Backups.logger.info("Backing up " + files.size() + " files...");
+            ServerUtilities.LOGGER.info("Backing up " + files.size() + " files...");
             long start = System.currentTimeMillis();
             if (ServerUtilitiesConfig.backups.compression_level > 0) {
-                out.append(File.separatorChar).append("backup.zip");
+                out.append(".zip");
                 dstFile = FileUtils.newFile(new File(Backups.backupsFolder, out.toString()));
                 ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dstFile));
                 zos.setLevel(ServerUtilitiesConfig.backups.compression_level);
@@ -59,7 +68,7 @@ public class ThreadBackup extends Thread {
 
                 byte[] buffer = new byte[4096];
 
-                Backups.logger.info("Compressing " + allFiles + " files!");
+                ServerUtilities.LOGGER.info("Compressing " + allFiles + " files!");
 
                 for (int i = 0; i < allFiles; i++) {
                     File file = files.get(i);
@@ -80,7 +89,7 @@ public class ThreadBackup extends Thread {
                         log.append(StringUtils.formatDouble00((i / (double) allFiles) * 100D));
                         log.append("%]: ");
                         log.append(ze.getName());
-                        Backups.logger.info(log.toString());
+                        ServerUtilities.LOGGER.info(log.toString());
                     }
 
                     zos.putNextEntry(ze);
@@ -94,7 +103,7 @@ public class ThreadBackup extends Thread {
 
                 zos.close();
 
-                Backups.logger.info(
+                ServerUtilities.LOGGER.info(
                         "Done compressing in " + getDoneTime(start)
                                 + " seconds ("
                                 + FileUtils.getSizeString(dstFile)
@@ -124,7 +133,7 @@ public class ThreadBackup extends Thread {
                         log.append(StringUtils.formatDouble00((i / (double) allFiles) * 100D));
                         log.append("%]: ");
                         log.append(file.getName());
-                        Backups.logger.info(log.toString());
+                        ServerUtilities.LOGGER.info(log.toString());
                     }
 
                     File dst1 = new File(dstPath + (file.getAbsolutePath().replace(srcPath, "")));
@@ -132,7 +141,7 @@ public class ThreadBackup extends Thread {
                 }
             }
 
-            Backups.logger.info("Created " + dstFile.getAbsolutePath() + " from " + src.getAbsolutePath());
+            ServerUtilities.LOGGER.info("Created " + dstFile.getAbsolutePath() + " from " + src.getAbsolutePath());
 
             Backups.clearOldBackups();
 

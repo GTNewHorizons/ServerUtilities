@@ -28,7 +28,7 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            boolean b = Backups.run(sender);
+            boolean b = Backups.run(sender, args.length == 0 ? "" : args[0]);
             if (b) {
                 sender.addChatMessage(
                         ServerUtilities.lang(null, "cmd.backup_manual_launch", sender.getCommandSenderName()));

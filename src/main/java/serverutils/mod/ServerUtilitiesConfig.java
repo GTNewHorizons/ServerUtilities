@@ -254,8 +254,7 @@ public class ServerUtilitiesConfig {
                 .get(LOGGING, "entity_attacked", true, "Logs player attacks on other players/entites.").getBoolean();
         world.logging.exclude_mob_entity = config
                 .get(LOGGING, "exclude_mob_entity", true, "Exclude mobs from entity attack logging.").getBoolean();
-        world.logging.chat_enable = config
-                .get(LOGGING, "chat_enable", false, "Enables chat logging.").getBoolean();
+        world.logging.chat_enable = config.get(LOGGING, "chat_enable", false, "Enables chat logging.").getBoolean();
         config.setCategoryComment(LOGGING, "Logs different events in logs/world.log file.");
 
         world.chunk_claiming = config.get(WORLD, "chunk_claiming", true, "Enables chunk claiming.").getBoolean();
