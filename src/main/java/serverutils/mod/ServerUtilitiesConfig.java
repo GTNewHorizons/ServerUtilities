@@ -47,18 +47,6 @@ public class ServerUtilitiesConfig {
     }
 
     public static boolean sync() {
-        general.cheats_enabled = config.get(
-                GEN_CAT,
-                "cheats_enabled",
-                false,
-                "When this is enabled, players are able to use ServerUtilities cheat commands. //Does Nothing Right Now")
-                .getBoolean();
-        general.clientless_mode = config.get(
-                GEN_CAT,
-                "clientless_mode",
-                false,
-                "When this mode is enabled, ServerUtilities assumes that server clients don't have ServerUtilities and/or other mods installed.")
-                .getBoolean();
         general.replace_reload_command = config.get(
                 GEN_CAT,
                 "replace_reload_command",
@@ -112,6 +100,12 @@ public class ServerUtilitiesConfig {
         debugging.gui_widget_bounds = config
                 .get(DEBUG_CAT, "gui_widget_bounds", false, "See GUI widget bounds when you hold B.").getBoolean();
         debugging.log_events = config.get(DEBUG_CAT, "log_events", false, "Log all events that extend EventBase.")
+                .getBoolean();
+        debugging.log_chunkloading = config.get(
+                DEBUGGING,
+                "log_chunkloading",
+                false,
+                "Print a message in console every time a chunk is forced or unforced. Recommended to be off, because spam.")
                 .getBoolean();
 
         config.setCategoryRequiresWorldRestart(AUTO_SHUTDOWN, true);
@@ -168,12 +162,13 @@ public class ServerUtilitiesConfig {
                 "add_nickname_tilde",
                 false,
                 "Adds ~ to player names that have changed nickname to prevent trolling.").getBoolean();
-        chat.replace_tab_names = config.get(
-                CHAT,
-                "replace_tab_names",
-                false,
-                "NOT IMPLEMENTED\nDisable this for some plugin compat. Not that they are supported but sometimes this is all that's needed.")
-                .getBoolean();
+        // chat.replace_tab_names = config.get(
+        // CHAT,
+        // "replace_tab_names",
+        // false,
+        // "NOT IMPLEMENTED\nDisable this for some plugin compat. Not that they are supported but sometimes this is all
+        // that's needed.")
+        // .getBoolean();
 
         commands.warp = config.get(COMMANDS, "warp", true).getBoolean();
         commands.home = config.get(COMMANDS, "home", true).getBoolean();
@@ -197,20 +192,22 @@ public class ServerUtilitiesConfig {
         commands.god = config.get(COMMANDS, "god", true).getBoolean();
         commands.rec = config.get(COMMANDS, "rec", true).getBoolean();
         commands.backup = config.get(COMMANDS, "backup", true).getBoolean();
+        commands.dump_chunkloaders = config.get(COMMANDS, "dump_chunkloaders", true).getBoolean();
+        commands.dump_permissions = config.get(COMMANDS, "dump_permissions", true).getBoolean();
 
         login.enable_motd = config.get(LOGIN, "enable_motd", false, "Enables message of the day.").getBoolean();
         login.enable_starting_items = config.get(LOGIN, "enable_starting_items", false, "Enables starting items.")
                 .getBoolean();
-        login.enable_global_badges = config
-                .get(
-                        LOGIN,
-                        "enable_global_badges",
-                        true,
-                        "Set to false to disable global badges completely, only server-wide badges will be available.")
-                .getBoolean();
-        login.enable_event_badges = config
-                .get(LOGIN, "enable_event_badges", false, "Set to false to disable event badges, e.g. Halloween.")
-                .getBoolean();
+        // login.enable_global_badges = config
+        // .get(
+        // LOGIN,
+        // "enable_global_badges",
+        // true,
+        // "Set to false to disable global badges completely, only server-wide badges will be available.")
+        // .getBoolean();
+        // login.enable_event_badges = config
+        // .get(LOGIN, "enable_event_badges", false, "Set to false to disable event badges, e.g. Halloween.")
+        // .getBoolean();
         login.motd = config.get(
                 LOGIN,
                 "motd",
@@ -331,13 +328,6 @@ public class ServerUtilitiesConfig {
         world.show_playtime = config.get(WORLD, "show_playtime", false, "Show play time in corner.").getBoolean();
         config.setCategoryRequiresWorldRestart(WORLD, true);
 
-        debugging.log_chunkloading = config.get(
-                DEBUGGING,
-                "log_chunkloading",
-                false,
-                "Print a message in console every time a chunk is forced or unforced. Recommended to be off, because spam.")
-                .getBoolean();
-
         login.motdComponents = null;
         login.startingItems = null;
         afk.notificationTimer = -1L;
@@ -362,8 +352,6 @@ public class ServerUtilitiesConfig {
 
     public static class General {
 
-        public boolean cheats_enabled;
-        public boolean clientless_mode;
         public boolean replace_reload_command;
         public EnumTristate merge_offline_mode_players;
     }
@@ -387,7 +375,7 @@ public class ServerUtilitiesConfig {
         public boolean dev_sidebar_buttons;
         public boolean gui_widget_bounds;
         public boolean log_events;
-        public boolean log_chunkloading = false;
+        public boolean log_chunkloading;
     }
 
     public static class AutoShutdown {
@@ -448,6 +436,8 @@ public class ServerUtilitiesConfig {
         public boolean god;
         public boolean rec;
         public boolean backup;
+        public boolean dump_chunkloaders;
+        public boolean dump_permissions;
     }
 
     public static class Backups {

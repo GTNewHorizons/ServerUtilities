@@ -92,8 +92,7 @@ public class ServerUtilitiesCommands {
             event.registerServerCommand(new CmdLeaderboard());
         }
 
-        if (ServerUtilitiesConfig.debugging.special_commands) {
-            // event.registerServerCommand(new CmdCycleBlockState());
+        if (ServerUtilitiesConfig.commands.dump_chunkloaders) {
             event.registerServerCommand(new CmdDumpChunkloaders());
         }
 
@@ -127,6 +126,8 @@ public class ServerUtilitiesCommands {
         if (ServerUtilitiesConfig.commands.rec) {
             event.registerServerCommand(new CmdRec());
         }
-        event.registerServerCommand(new CmdDumpPermissions());
+        if (ServerUtilitiesConfig.commands.dump_permissions) {
+            event.registerServerCommand(new CmdDumpPermissions());
+        }
     }
 }
