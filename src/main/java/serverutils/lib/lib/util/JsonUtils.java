@@ -1,8 +1,10 @@
 package serverutils.lib.lib.util;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
@@ -45,6 +47,7 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.internal.Streams;
@@ -674,6 +677,21 @@ public class JsonUtils {
         }
 
         return json;
+    }
+
+    public static JsonElement fromJson(Reader json) {
+        return (json == null) ? JsonNull.INSTANCE : new JsonParser().parse(json);
+    }
+
+    public static JsonElement fromJson(File json) {
+        try {
+            if (json == null || !json.exists()) return JsonNull.INSTANCE;
+            BufferedReader reader = new BufferedReader(new FileReader(json));
+            JsonElement e = fromJson(reader);
+            reader.close();
+            return e;
+        } catch (Exception ex) {}
+        return JsonNull.INSTANCE;
     }
 
     public static void copy(JsonObject from, JsonObject to) {

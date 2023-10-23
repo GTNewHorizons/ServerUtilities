@@ -42,13 +42,11 @@ public class ServerUtilitiesConfig {
     public static void init(FMLPreInitializationEvent event) {
         config = new Configuration(
                 new File(event.getModConfigurationDirectory() + "/../serverutilities/serverutilities.cfg"));
+        config.load();
         sync();
     }
 
     public static boolean sync() {
-
-        config.load();
-
         general.cheats_enabled = config.get(
                 GEN_CAT,
                 "cheats_enabled",

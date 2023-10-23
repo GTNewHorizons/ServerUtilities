@@ -60,6 +60,7 @@ import serverutils.lib.lib.util.misc.IScheduledTask;
 import serverutils.lib.lib.util.misc.TimeType;
 import serverutils.mod.ServerUtilities;
 import serverutils.mod.ServerUtilitiesConfig;
+import serverutils.utils.data.BackwardsCompat;
 
 public class Universe {
 
@@ -247,6 +248,7 @@ public class Universe {
     private final List<PersistentScheduledTask> persistentScheduledTaskQueue;
     public Ticks ticks;
     private boolean prevCheats = false;
+    public File dataFolder;
 
     public Universe(MinecraftServer s) {
         server = s;
@@ -288,8 +290,8 @@ public class Universe {
     }
 
     private void load() {
-        File folder = new File(getWorldDirectory(), "data/serverutilities/");
-        NBTTagCompound universeData = NBTUtils.readNBT(new File(folder, "universe.dat"));
+        dataFolder = new File(getWorldDirectory(), "serverutilities/");
+        NBTTagCompound universeData = NBTUtils.readNBT(new File(dataFolder, "universe.dat"));
 
         if (universeData == null) {
             universeData = new NBTTagCompound();
@@ -334,9 +336,9 @@ public class Universe {
         Map<String, NBTTagCompound> teamNBT = new HashMap<>();
 
         try {
-            File[] files = new File(folder, "players").listFiles();
+            File[] files = new File(dataFolder, "players").listFiles();
 
-            if (files != null && files.length > 0) {
+            if (files != null) {
                 for (File file : files) {
                     if (file.isFile() && file.getName().endsWith(".dat")
                             && file.getName().indexOf('.') == file.getName().lastIndexOf('.')) {
@@ -366,9 +368,9 @@ public class Universe {
         }
 
         try {
-            File[] files = new File(folder, "teams").listFiles();
+            File[] files = new File(dataFolder, "teams").listFiles();
 
-            if (files != null && files.length > 0) {
+            if (files != null) {
                 for (File file : files) {
                     if (file.isFile() && file.getName().endsWith(".dat")
                             && file.getName().indexOf('.') == file.getName().lastIndexOf('.')) {
@@ -451,6 +453,9 @@ public class Universe {
         fakePlayerTeam.owner = fakePlayer;
 
         new UniverseLoadedEvent.Post(this, data).post();
+
+        BackwardsCompat.load();
+
         new UniverseLoadedEvent.Finished(this).post();
 
         ServerUtilitiesLibAPI.reloadServer(this, server, EnumReloadType.CREATED, ServerReloadEvent.ALL);
@@ -486,7 +491,7 @@ public class Universe {
             universeData.setTag("PersistentScheduledTasks", taskTag);
             universeData.setTag("FakePlayer", fakePlayer.serializeNBT());
             universeData.setTag("FakeTeam", fakePlayerTeam.serializeNBT());
-            NBTUtils.writeNBTSafe(new File(getWorldDirectory(), "data/serverutilities/universe.dat"), universeData);
+            NBTUtils.writeNBTSafe(new File(getWorldDirectory(), "serverutilities/universe.dat"), universeData);
             needsSaving = false;
         }
 
@@ -734,7 +739,7 @@ public class Universe {
     }
 
     public void removeTeam(ForgeTeam team) {
-        File folder = new File(getWorldDirectory(), "data/serverutilities/teams/");
+        File folder = new File(dataFolder, "teams/");
         new ForgeTeamDeletedEvent(team, folder).post();
         teamMap.remove(team.getUID());
         teams.remove(team.getId());

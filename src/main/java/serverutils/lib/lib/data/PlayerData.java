@@ -17,8 +17,8 @@ public abstract class PlayerData implements NBTDataStorage.Data {
     public final boolean equals(Object o) {
         if (o == this) {
             return true;
-        } else if (o instanceof PlayerData) {
-            return player.equalsPlayer(((PlayerData) o).player) && getId().equals(((PlayerData) o).getId());
+        } else if (o instanceof PlayerData playerData) {
+            return player.equalsPlayer(playerData.player) && getId().equals(playerData.getId());
         }
 
         return false;
