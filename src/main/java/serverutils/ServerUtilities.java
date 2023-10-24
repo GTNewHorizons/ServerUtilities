@@ -11,7 +11,6 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommandManager;
-import net.minecraft.launchwrapper.LaunchClassLoader;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -65,16 +64,6 @@ public class ServerUtilities {
 
     @Mod.Instance(MOD_ID)
     public static ServerUtilities INST;
-
-    static {
-        // Caution, hacky code! This fixes JavaFX not working outside DevEnv, but also excludes it from Forge
-        // classloader and prevents core mods from touching it. Fixed by modmuss50.
-        ClassLoader classLoader = ServerUtilities.class.getClassLoader();
-
-        if (classLoader instanceof LaunchClassLoader) {
-            ((LaunchClassLoader) classLoader).addClassLoaderExclusion("javafx.");
-        }
-    }
 
     @SidedProxy(
             serverSide = "serverutils.ServerUtilitiesCommon",
