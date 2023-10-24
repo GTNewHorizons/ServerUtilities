@@ -153,18 +153,15 @@ public class ServerUtilities {
 
         if (Ranks.isActive()) {
             Ranks.INSTANCE.commands.clear();
-            FileUtils.deleteSafe(Ranks.INSTANCE.universe.server.getFile(SERVER_FOLDER + "all_permissions.html"));
-            FileUtils.deleteSafe(
-                    Ranks.INSTANCE.universe.server.getFile(SERVER_FOLDER + "all_permissions_full_list.txt"));
 
-            boolean spongeLoaded = Loader.isModLoaded("spongeforge");
+            boolean crucibleLoaded = Loader.isModLoaded("Crucible");
 
-            if (spongeLoaded) {
+            if (crucibleLoaded) {
                 LOGGER.warn(
-                        "Sponge detected, command overriding has been disabled. If there are any issues with Server Utilities ranks or permissions, please test them without Sponge!");
+                        "Crucible detected, command overriding has been disabled. If there are any issues with Server Utilities ranks or permissions, please test them without Crucible!");
             }
 
-            if (!ServerUtilitiesConfig.ranks.override_commands || spongeLoaded) {
+            if (!ServerUtilitiesConfig.ranks.override_commands || crucibleLoaded) {
                 return;
             }
 
