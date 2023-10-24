@@ -7,7 +7,7 @@
       "description": "Server Utilities",
       "version": "${modVersion}",
       "mcversion": "${minecraftVersion}",
-      "url": "https://feed-the-beast.com",
+      "url": "https://github.com/GTNewHorizons/ServerUtilities",
       "updateUrl": "",
       "authorList": [
         "LatvianModder",

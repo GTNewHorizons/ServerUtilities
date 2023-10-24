@@ -4,7 +4,7 @@ import java.io.InputStream;
 
 import serverutils.aurora.tag.PairedTag;
 import serverutils.aurora.tag.Tag;
-import serverutils.lib.lib.util.StringUtils;
+import serverutils.lib.util.StringUtils;
 
 public abstract class HTTPWebPage implements WebPage {
 

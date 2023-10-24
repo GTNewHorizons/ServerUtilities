@@ -31,10 +31,20 @@ public class AuroraMinecraftHandler {
                                         "World Info API",
                                         "world_info.json",
                                         "https://i.imgur.com/OVxZy1w.png")));
+        event.add(
+                new HomePageEntry("Server Utilities", "server-utilities", "https://i.imgur.com/SDV8WV5.png").add(
+                        new HomePageEntry("Ranks", "ranks", "https://i.imgur.com/3o2sHns.png").add(
+                                new HomePageEntry("Permission List", "permissions", "https://i.imgur.com/m8KTq4s.png"))
+                                .add(
+                                        new HomePageEntry(
+                                                "Command List",
+                                                "commands",
+                                                "https://i.imgur.com/aIuCGYZ.png"))));
     }
 
     @SubscribeEvent
     public void onPageEvent(AuroraPageEvent event) {
+
         if (event.checkPath("modlist", "*")) {
             HashSet<String> set = new HashSet<>(Arrays.asList(AuroraConfig.general.modlist_excluded_mods));
 
@@ -53,6 +63,12 @@ public class AuroraMinecraftHandler {
             event.returnPage(new PlayerListJson(event.getAuroraServer().getServer()));
         } else if (event.checkPath("minecraft", "world_info.json")) {
             event.returnPage(new WorldInfoJson(event.getAuroraServer().getServer()));
+        } else if (event.checkPath("server-utilities", "ranks", "permissions")) {
+            event.returnPage(new PermissionListPage());
+        } else if (event.checkPath("server-utilities", "ranks", "commands")) {
+            event.returnPage(new CommandListPage(event.getAuroraServer().getServer()));
+        } else if (event.checkPath("server-utilities", "ranks")) {
+            event.returnPage(new RankPage());
         }
     }
 }
