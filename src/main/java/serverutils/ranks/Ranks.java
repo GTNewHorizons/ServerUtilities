@@ -99,6 +99,10 @@ public class Ranks {
             pRank.setPermission(Rank.NODE_POWER, 1);
             pRank.setPermission(ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS, 100);
             pRank.setPermission(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS, 50);
+            pRank.setPermission(ServerUtilitiesPermissions.HOMES_MAX, 1);
+            pRank.setPermission(ServerUtilitiesPermissions.HOMES_WARMUP, 5);
+            pRank.setPermission(ServerUtilitiesPermissions.HOMES_COOLDOWN, 5);
+            pRank.setPermission(ServerUtilitiesPermissions.HOMES_MAX, 1);
             pRank.setPermission("example.permission", true);
             pRank.setPermission("example.other_permission", false);
             pRank.setPermission("example.permission_with_value", 0);
@@ -109,6 +113,10 @@ public class Ranks {
             vRank.setPermission(ServerUtilitiesPermissions.CHAT_NAME_FORMAT, "<&bVIP {name}&r>");
             vRank.setPermission(ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS, 500);
             vRank.setPermission(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS, 100);
+            vRank.setPermission(ServerUtilitiesPermissions.HOMES_MAX, 25);
+            vRank.setPermission(ServerUtilitiesPermissions.HOMES_WARMUP, 0);
+            vRank.setPermission(ServerUtilitiesPermissions.HOMES_COOLDOWN, 1);
+            vRank.setPermission(ServerUtilitiesPermissions.HOMES_CROSS_DIM, true);
             vRank.setPermission("example.other_permission", true);
             vRank.setPermission("example.permission_with_value", 15);
 
@@ -120,6 +128,10 @@ public class Ranks {
             aRank.setPermission(ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS, 5000);
             aRank.setPermission(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS, 1000);
             aRank.setPermission(ServerUtilitiesPermissions.CLAIMS_BYPASS_LIMITS, true);
+            aRank.setPermission(ServerUtilitiesPermissions.HOMES_MAX, 100);
+            aRank.setPermission(ServerUtilitiesPermissions.HOMES_WARMUP, 0);
+            aRank.setPermission(ServerUtilitiesPermissions.HOMES_COOLDOWN, 0);
+            aRank.setPermission(ServerUtilitiesPermissions.HOMES_CROSS_DIM, true);
             aRank.setPermission("example.permission_with_value", 100);
 
             PlayerRank fpRank = new PlayerRank(
