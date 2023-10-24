@@ -249,7 +249,7 @@ public class CmdEditNBT extends CmdTreeBase {
             addInfo(list, new ChatComponentText("Name"), new ChatComponentText(player.getGameProfile().getName()));
             addInfo(list, new ChatComponentText("Display Name"), new ChatComponentText(player.getDisplayName()));
             addInfo(list, new ChatComponentText("UUID"), new ChatComponentText(player.getUniqueID().toString()));
-            addInfo(list, new ChatComponentText("ServerUtilities Team"), new ChatComponentText(p.team.getId()));
+            addInfo(list, new ChatComponentText("Team"), new ChatComponentText(p.team.getId()));
             info.setTag("text", list);
             info.setString(
                     "title",
