@@ -157,7 +157,7 @@ public class ServerUtilities {
             }
 
             ServerCommandManager manager = (ServerCommandManager) Ranks.INSTANCE.universe.server.getCommandManager();
-            List<ICommand> commands = new ArrayList<>(manager.getCommands().values());
+            List<ICommand> commands = new ArrayList<>(ATHelper.getCommandSet(manager));
             ATHelper.getCommandSet(manager).clear();
             manager.getCommands().clear();
 
