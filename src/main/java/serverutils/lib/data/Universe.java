@@ -143,31 +143,31 @@ public class Universe {
 
     @SubscribeEvent
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (loaded() && event.player instanceof EntityPlayerMP && !ServerUtils.isFake((EntityPlayerMP) event.player)) {
-            LOGGED_IN_PLAYERS.add(event.player.getUniqueID());
-            INSTANCE.onPlayerLoggedIn((EntityPlayerMP) event.player);
+        if (loaded() && event.player instanceof EntityPlayerMP playerMP && !ServerUtils.isFake(playerMP)) {
+            LOGGED_IN_PLAYERS.add(playerMP.getUniqueID());
+            INSTANCE.onPlayerLoggedIn(playerMP);
         }
     }
 
     @SubscribeEvent
     public void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        if (loaded() && event.player instanceof EntityPlayerMP
-                && LOGGED_IN_PLAYERS.remove(event.player.getUniqueID())) {
-            ForgePlayer p = INSTANCE.getPlayer(event.player.getGameProfile());
+        if (loaded() && event.player instanceof EntityPlayerMP playerMP
+                && LOGGED_IN_PLAYERS.remove(playerMP.getUniqueID())) {
+            ForgePlayer p = INSTANCE.getPlayer(playerMP.getGameProfile());
 
             if (p != null) {
-                p.onLoggedOut((EntityPlayerMP) event.player);
+                p.onLoggedOut(playerMP);
             }
         }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
     public void onPlayerClone(net.minecraftforge.event.entity.player.PlayerEvent.Clone event) {
-        if (event.entity instanceof EntityPlayerMP) {
-            ForgePlayer p = INSTANCE.getPlayer(event.entityPlayer.getGameProfile());
+        if (event.entity instanceof EntityPlayerMP playerMP) {
+            ForgePlayer p = INSTANCE.getPlayer(playerMP.getGameProfile());
 
             if (p != null) {
-                p.tempPlayer = (EntityPlayerMP) event.entity;
+                p.tempPlayer = playerMP;
             }
 
             INSTANCE.clearCache();
@@ -178,7 +178,7 @@ public class Universe {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public void onTickEvent(TickEvent.WorldTickEvent event) {
         if (!loaded()) {
             return;
@@ -229,7 +229,6 @@ public class Universe {
 
     // Event handler end //
 
-    @Nonnull
     public final MinecraftServer server;
     public WorldServer world;
     public final Map<UUID, ForgePlayer> players;

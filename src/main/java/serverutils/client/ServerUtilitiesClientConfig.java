@@ -4,12 +4,17 @@ import java.io.File;
 
 import net.minecraftforge.common.config.Configuration;
 
+import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import serverutils.ServerUtilities;
 import serverutils.lib.math.Ticks;
 
 public class ServerUtilitiesClientConfig {
 
     public static Configuration config;
+
+    public static ServerUtilitiesClientConfig INST = new ServerUtilitiesClientConfig();
 
     public static final String CLIENT_LANG_KEY = "serverutilities_client.";
 
@@ -99,7 +104,7 @@ public class ServerUtilitiesClientConfig {
 
     public static class General {
 
-        public boolean render_badges = false;
+        // public boolean render_badges = false;
         // public boolean journeymap_overlay;
         public boolean show_shutdown_timer;
         public String shutdown_timer_start;
@@ -115,5 +120,12 @@ public class ServerUtilitiesClientConfig {
 
         public int button_daytime;
         public int button_nighttime;
+    }
+
+    @SubscribeEvent
+    public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
+        if (event.modID.equals(ServerUtilities.MOD_ID)) {
+            ServerUtilitiesClientConfig.sync();
+        }
     }
 }

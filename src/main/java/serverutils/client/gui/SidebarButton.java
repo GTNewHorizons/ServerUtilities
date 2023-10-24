@@ -30,7 +30,7 @@ import serverutils.lib.util.SidedUtils;
 
 public class SidebarButton implements Comparable<SidebarButton> {
 
-    static final BooleanSupplier NEI_NOT_LOADED = () -> !(Loader.isModLoaded(OtherMods.NEI)
+    public static final BooleanSupplier NEI_NOT_LOADED = () -> !(Loader.isModLoaded(OtherMods.NEI)
             || (Loader.isModLoaded(OtherMods.NEI_GTNH)));
 
     public final ResourceLocation id;
@@ -41,7 +41,7 @@ public class SidebarButton implements Comparable<SidebarButton> {
     private boolean configValue = true;
     private final List<String> clickEvents = new ArrayList<>();
     private final List<String> shiftClickEvents = new ArrayList<>();
-    private boolean loadingScreen;
+    private final boolean loadingScreen;
     private ChainedBooleanSupplier visible = ChainedBooleanSupplier.TRUE;
     private Supplier<String> customTextHandler = null;
     private Consumer<List<String>> tooltipHandler = null;

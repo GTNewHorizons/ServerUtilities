@@ -59,8 +59,11 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
                             + " Dev :: "
                             + Minecraft.getMinecraft().getSession().getUsername());
         }
+
+        MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientConfig.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientEventHandler.INST);
         FMLCommonHandler.instance().bus().register(ServerUtilitiesClientEventHandler.INST);
+        FMLCommonHandler.instance().bus().register(ServerUtilitiesClientConfig.INST);
 
         ClientRegistry.registerKeyBinding(
                 KEY_NBT = new KeyBinding("key.serverutilities.nbt", Keyboard.KEY_NONE, KEY_CATEGORY));
@@ -80,11 +83,7 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
         ClientCommandHandler.instance.registerCommand(new CommandSimulateButton());
         ClientCommandHandler.instance.registerCommand(new CommandPrintItem());
         ClientCommandHandler.instance.registerCommand(new CommandPrintState());
-        // ClientCommandHandler.instance.registerCommand(new CommandListAchievements());
         ClientCommandHandler.instance.registerCommand(new CommandPing());
-
-        // Minecraft.getMinecraft().getRenderManager().getSkinMap().get("default").addLayer(LayerBadge.INSTANCE);
-        // Minecraft.getMinecraft().getRenderManager().getSkinMap().get("slim").addLayer(LayerBadge.INSTANCE);
     }
 
     @Override

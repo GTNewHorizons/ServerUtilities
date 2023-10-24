@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
 
@@ -26,7 +27,7 @@ import serverutils.lib.util.misc.MouseButton;
 
 public class GuiClientConfig extends GuiButtonListBase {
 
-    private List<IConfigElement> configElement = new ConfigElement<>(
+    private final List<IConfigElement> configElement = new ConfigElement<>(
             ServerUtilitiesClientConfig.config.getCategory(Configuration.CATEGORY_GENERAL)).getChildElements();
 
     private class GuiCustomConfig extends GuiConfig {
@@ -36,7 +37,6 @@ public class GuiClientConfig extends GuiButtonListBase {
                     Minecraft.getMinecraft().currentScreen,
                     configElement,
                     ServerUtilities.MOD_ID,
-                    "serverutilities_client",
                     false,
                     false,
                     title,
@@ -82,7 +82,7 @@ public class GuiClientConfig extends GuiButtonListBase {
         panel.add(
                 new SimpleTextButton(
                         panel,
-                        ServerUtilities.MOD_NAME,
+                        new ChatComponentTranslation("serverutilities_client").getUnformattedText(),
                         Icon.getIcon("serverutilities:textures/logo_small.png")) {
 
                     @Override

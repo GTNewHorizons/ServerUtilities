@@ -18,7 +18,6 @@ import net.minecraftforge.common.MinecraftForge;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
@@ -32,7 +31,6 @@ import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.NetworkCheckHandler;
 import cpw.mods.fml.relauncher.Side;
 import serverutils.aurora.Aurora;
@@ -40,14 +38,13 @@ import serverutils.aurora.AuroraConfig;
 import serverutils.command.CmdAddFakePlayer;
 import serverutils.command.CmdMySettings;
 import serverutils.command.CmdReload;
+import serverutils.command.ServerUtilitiesCommands;
 import serverutils.command.team.CmdTeam;
 import serverutils.lib.ATHelper;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.CommonUtils;
 import serverutils.lib.util.SidedUtils;
-import serverutils.client.ServerUtilitiesClientConfig;
-import serverutils.command.ServerUtilitiesCommands;
 import serverutils.ranks.CommandOverride;
 import serverutils.ranks.Rank;
 import serverutils.ranks.Ranks;
@@ -81,7 +78,7 @@ public class ServerUtilities {
 
     @SidedProxy(
             serverSide = "serverutils.ServerUtilitiesCommon",
-            clientSide = "serverutils.mod.client.ServerUtilitiesClient")
+            clientSide = "serverutils.client.ServerUtilitiesClient")
     public static ServerUtilitiesCommon PROXY;
 
     public static IChatComponent lang(@Nullable ICommandSender sender, String key, Object... args) {
@@ -100,8 +97,6 @@ public class ServerUtilities {
     public void onPreInit(FMLPreInitializationEvent event) {
         Locale.setDefault(Locale.US);
         PROXY.preInit(event);
-        MinecraftForge.EVENT_BUS.register(this);
-        FMLCommonHandler.instance().bus().register(INST);
     }
 
     @Mod.EventHandler
@@ -200,17 +195,5 @@ public class ServerUtilities {
     public boolean checkModLists(Map<String, String> map, Side side) {
         SidedUtils.checkModLists(side, map);
         return true;
-    }
-
-    @SubscribeEvent
-    public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-        if (event.modID.equals(ServerUtilities.MOD_ID)) {
-            ServerUtilitiesConfig.sync();
-            AuroraConfig.sync();
-        }
-
-        if (event.configID.equals("serverutilities_client")) {
-            ServerUtilitiesClientConfig.sync();
-        }
     }
 }
