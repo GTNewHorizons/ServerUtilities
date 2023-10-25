@@ -1,7 +1,5 @@
 package serverutils.command;
 
-import static serverutils.lib.command.CmdBase.Level.OP;
-
 import net.minecraft.command.ICommandSender;
 
 import serverutils.ServerUtilities;
@@ -23,7 +21,7 @@ public class CmdBackup extends CmdTreeBase {
     public static class CmdBackupStart extends CmdBase {
 
         public CmdBackupStart(String s) {
-            super(s, OP);
+            super(s, Level.OP_OR_SP);
         }
 
         @Override
@@ -42,7 +40,7 @@ public class CmdBackup extends CmdTreeBase {
     public static class CmdBackupStop extends CmdBase {
 
         public CmdBackupStop(String s) {
-            super(s, OP);
+            super(s, Level.OP_OR_SP);
         }
 
         @Override
@@ -60,7 +58,7 @@ public class CmdBackup extends CmdTreeBase {
     public static class CmdBackupGetSize extends CmdBase {
 
         public CmdBackupGetSize(String s) {
-            super(s, OP);
+            super(s, Level.OP_OR_SP);
         }
 
         @Override

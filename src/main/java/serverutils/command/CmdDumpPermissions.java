@@ -33,7 +33,7 @@ import serverutils.ranks.Ranks;
 public class CmdDumpPermissions extends CmdBase {
 
     public CmdDumpPermissions() {
-        super("dump_permissions", Level.OP);
+        super("dump_permissions", Level.OP_OR_SP);
     }
 
     private final String[] emptyRow = { "", "", "", "", "", "" };

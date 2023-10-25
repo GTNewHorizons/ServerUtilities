@@ -74,17 +74,18 @@ public class Backups {
     }
 
     public static void clearOldBackups() {
-        String[] s = backupsFolder.list();
+        String[] backups = backupsFolder.list();
 
-        if (s.length > ServerUtilitiesConfig.backups.backups_to_keep) {
-            Arrays.sort(s);
+        if (backups != null && backups.length > ServerUtilitiesConfig.backups.backups_to_keep) {
+            Arrays.sort(backups);
 
-            int j = s.length - ServerUtilitiesConfig.backups.backups_to_keep;
-            ServerUtilities.LOGGER.info("Deleting " + j + " old backups");
+            int toDelete = backups.length - ServerUtilitiesConfig.backups.backups_to_keep;
+            ServerUtilities.LOGGER.info("Deleting " + toDelete + " old backups");
 
-            for (int i = 0; i < j; i++) {
-                File f = new File(backupsFolder, s[i]);
-                if (f.isDirectory()) {
+            for (int i = 0; i < toDelete; i++) {
+                File f = new File(backupsFolder, backups[1]);
+                // Don't automatically delete backups with custom name
+                if (f.getName().indexOf("-") == 4) {
                     ServerUtilities.LOGGER.info("Deleted old backup: " + f.getPath());
                     FileUtils.delete(f);
                 }
