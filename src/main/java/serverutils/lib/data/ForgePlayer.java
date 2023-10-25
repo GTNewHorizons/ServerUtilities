@@ -420,7 +420,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
     }
 
     public File getDataFile(String ext) {
-        File dir = new File(team.universe.getWorldDirectory(), "serverutilities/players/");
+        File dir = new File(team.universe.dataFolder, "players/");
 
         if (ext.isEmpty()) {
             return new File(dir, getName().toLowerCase() + ".dat");

@@ -604,7 +604,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
     }
 
     public File getDataFile(String ext) {
-        File dir = new File(universe.getWorldDirectory(), "serverutilities/teams/");
+        File dir = new File(universe.dataFolder, "teams/");
 
         if (ext.isEmpty()) {
             return new File(dir, getId() + ".dat");

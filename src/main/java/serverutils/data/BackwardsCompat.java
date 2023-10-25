@@ -12,12 +12,15 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraftforge.common.config.ConfigCategory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
+import serverutils.ServerUtilitiesPermissions;
 import serverutils.lib.EnumTeamColor;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
@@ -27,10 +30,14 @@ import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.JsonUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.ranks.Rank;
 
 public class BackwardsCompat {
 
     public static final File LATMOD = new File(Universe.get().getWorldDirectory(), "LatMod");
+
+    public static JsonObject LATCONFIG = JsonUtils.fromJson(Universe.get().server.getFile("local/ftbu/config.json"))
+            .getAsJsonObject();
 
     public static boolean shouldLoadLatmod() {
         return LATMOD.exists() && !Universe.get().dataFolder.exists();
@@ -42,15 +49,16 @@ public class BackwardsCompat {
         loadPlayers();
         loadChunks();
         loadWarps();
+        loadConfig();
     }
 
     public static void loadPlayers() {
-        NBTTagCompound tagPlayers = BackwardsCompat.readMap(new File(BackwardsCompat.LATMOD, "LMPlayers.dat"));
+        NBTTagCompound tagPlayers = readMap(new File(LATMOD, "LMPlayers.dat"));
         ServerUtilities.LOGGER.info("Loading players from LatMod");
 
         if (tagPlayers != null && tagPlayers.hasKey("Players")) {
             NBTTagCompound pTag = tagPlayers.getCompoundTag("Players");
-            Map<String, NBTTagCompound> map = BackwardsCompat.toMapWithType(pTag);
+            Map<String, NBTTagCompound> map = toMapWithType(pTag);
             for (Map.Entry<String, NBTTagCompound> e : map.entrySet()) {
                 NBTTagCompound tag1 = e.getValue();
                 UUID uuid = StringUtils.fromString(tag1.getString("UUID"));
@@ -63,7 +71,7 @@ public class BackwardsCompat {
                     // Ignores home limit
                     ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(player);
                     NBTTagCompound homes = tag1.getCompoundTag("Homes");
-                    for (String s1 : BackwardsCompat.getMapKeys(homes)) {
+                    for (String s1 : getMapKeys(homes)) {
                         data.homes.set(s1, BlockDimPos.fromIntArray(homes.getIntArray(s1)));
                     }
                     data.player.markDirty();
@@ -76,6 +84,8 @@ public class BackwardsCompat {
         // Loads the chunks from the ClaimedChunks.json file
         // Ignores claim/chunk load limit
         JsonObject group = JsonUtils.fromJson(new File(LATMOD, "ClaimedChunks.json")).getAsJsonObject();
+        if (group == null) return;
+
         for (Map.Entry<String, JsonElement> e : group.entrySet()) {
             int dim = Integer.parseInt(e.getKey());
             Universe universe = Universe.get();
@@ -142,6 +152,58 @@ public class BackwardsCompat {
                                 o.get("z").getAsInt(),
                                 o.get("dim").getAsInt()));
             }
+        }
+    }
+
+    public static void loadConfig() {
+        if (LATCONFIG == null) return;
+
+        JsonObject latBackup = LATCONFIG.get("backups").getAsJsonObject();
+        ConfigCategory backupConfig = ServerUtilitiesConfig.config.getCategory("backups");
+        backupConfig.get("enable_backups").set(latBackup.get("enabled").getAsBoolean());
+        backupConfig.get("backup_timer").set(latBackup.get("backup_timer").getAsDouble());
+        backupConfig.get("backups_to_keep").set(latBackup.get("backups_to_keep").getAsInt());
+        backupConfig.get("backup_folder_path").set(latBackup.get("folder").getAsString());
+        backupConfig.get("use_separate_thread").set(latBackup.get("use_separate_thread").getAsBoolean());
+        backupConfig.get("need_online_players").set(latBackup.get("need_online_players").getAsBoolean());
+        backupConfig.get("compression_level").set(latBackup.get("compression_level").getAsInt());
+        backupConfig.get("display_file_size").set(latBackup.get("display_file_size").getAsBoolean());
+
+        JsonObject latGeneral = LATCONFIG.get("general").getAsJsonObject();
+        ConfigCategory worldConfig = ServerUtilitiesConfig.config.getCategory("world");
+        worldConfig.get("safe_spawn").set(latGeneral.get("safe_spawn").getAsBoolean());
+        worldConfig.get("spawn_area_in_sp").set(latGeneral.get("spawn_area_in_sp").getAsBoolean());
+        worldConfig.get("chunk_loading")
+                .set(LATCONFIG.get("chunkloading").getAsJsonObject().get("enabled").getAsBoolean());
+
+        ServerUtilitiesConfig.sync();
+    }
+
+    public static void loadRanks(Rank player, Rank admin) {
+        if (LATCONFIG == null) return;
+
+        JsonObject permissionsPlayer = LATCONFIG.get("permissions_player").getAsJsonObject();
+        player.setPermission(ServerUtilitiesPermissions.HOMES_MAX, permissionsPlayer.get("max_homes").getAsInt());
+        player.setPermission(
+                ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS,
+                permissionsPlayer.get("max_claims").getAsInt());
+        player.setPermission(
+                ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS,
+                permissionsPlayer.get("max_loaded_chunks").getAsInt());
+        if (permissionsPlayer.get("cross_dim_homes").getAsBoolean()) {
+            player.setPermission(ServerUtilitiesPermissions.HOMES_CROSS_DIM, true);
+        }
+
+        JsonObject permissionsAdmin = LATCONFIG.get("permissions_admin").getAsJsonObject();
+        admin.setPermission(ServerUtilitiesPermissions.HOMES_MAX, permissionsAdmin.get("max_homes").getAsInt());
+        admin.setPermission(
+                ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS,
+                permissionsAdmin.get("max_claims").getAsInt());
+        admin.setPermission(
+                ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS,
+                permissionsAdmin.get("max_loaded_chunks").getAsInt());
+        if (permissionsAdmin.get("cross_dim_homes").getAsBoolean()) {
+            admin.setPermission(ServerUtilitiesPermissions.HOMES_CROSS_DIM, true);
         }
     }
 

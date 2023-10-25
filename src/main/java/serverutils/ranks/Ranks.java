@@ -29,6 +29,7 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
+import serverutils.data.BackwardsCompat;
 import serverutils.data.NodeEntry;
 import serverutils.lib.config.ConfigNull;
 import serverutils.lib.config.ConfigValue;
@@ -133,6 +134,8 @@ public class Ranks {
             aRank.setPermission(ServerUtilitiesPermissions.HOMES_COOLDOWN, 0);
             aRank.setPermission(ServerUtilitiesPermissions.HOMES_CROSS_DIM, true);
             aRank.setPermission("example.permission_with_value", 100);
+
+            BackwardsCompat.loadRanks(pRank, aRank);
 
             PlayerRank fpRank = new PlayerRank(
                     this,

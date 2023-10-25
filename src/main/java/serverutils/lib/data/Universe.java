@@ -489,7 +489,7 @@ public class Universe {
             universeData.setTag("PersistentScheduledTasks", taskTag);
             universeData.setTag("FakePlayer", fakePlayer.serializeNBT());
             universeData.setTag("FakeTeam", fakePlayerTeam.serializeNBT());
-            NBTUtils.writeNBTSafe(new File(getWorldDirectory(), "serverutilities/universe.dat"), universeData);
+            NBTUtils.writeNBTSafe(new File(dataFolder, "universe.dat"), universeData);
             needsSaving = false;
         }
 
