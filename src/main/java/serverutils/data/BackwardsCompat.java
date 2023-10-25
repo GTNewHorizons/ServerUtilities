@@ -34,8 +34,13 @@ import serverutils.ranks.Rank;
 
 public class BackwardsCompat {
 
-    public static JsonObject LATCONFIG = JsonUtils.fromJson(Universe.get().server.getFile("local/ftbu/config.json"))
-            .getAsJsonObject();
+    public static JsonObject LATCONFIG;
+    static {
+        File ftbuFile = Universe.get().server.getFile("local/ftbu/config.json");
+        if (ftbuFile.exists()) {
+            LATCONFIG = JsonUtils.fromJson(ftbuFile).getAsJsonObject();
+        }
+    }
 
     // Only runs on first load
     public static void load() {
