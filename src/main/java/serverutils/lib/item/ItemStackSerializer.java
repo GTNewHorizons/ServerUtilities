@@ -14,6 +14,7 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.oredict.OreDictionary;
 
 import cpw.mods.fml.common.registry.GameData;
+import cpw.mods.fml.common.registry.GameRegistry;
 import serverutils.lib.util.InvUtils;
 
 public class ItemStackSerializer {
@@ -29,7 +30,9 @@ public class ItemStackSerializer {
                 nbt.setByte("Count", (byte) 1);
             }
 
-            return ItemStack.loadItemStackFromNBT(nbt);
+            int id = nbt.getShort("id");
+
+            return id == 0 ? parseItemWithName(nbt) : ItemStack.loadItemStackFromNBT(nbt);
         }
 
         String[] s1 = input.split(" ", 4);
@@ -64,6 +67,14 @@ public class ItemStackSerializer {
         } catch (Exception ex) {
             return InvUtils.EMPTY_STACK;
         }
+    }
+
+    public static ItemStack parseItemWithName(NBTTagCompound nbt) {
+        String id = nbt.getString("id");
+        int dmg = nbt.getShort("Damage");
+        int count = nbt.getShort("Count");
+        String tag = nbt.getTag("tag").toString();
+        return GameRegistry.makeItemStack(id, dmg, count, tag);
     }
 
     public static String toString(ItemStack stack) {

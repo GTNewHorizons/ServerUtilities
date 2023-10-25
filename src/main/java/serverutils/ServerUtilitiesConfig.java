@@ -216,7 +216,8 @@ public class ServerUtilitiesConfig {
         login.starting_items = config.get(
                 LOGIN,
                 "starting_items",
-                new String[] { "{id:272,Count:1,Damage:1,tag:{display:{Name:\"Epic Stone Sword\"}}}" },
+                new String[] {
+                        "{id:\"minecraft:stone_sword\",Count:1,Damage:1,tag:{display:{Name:\"Epic Stone Sword\"}}}" },
                 "Items to give player when they first join the server.\nFormat: '{id:\"ID\",Count:X,Damage:X,tag:{}}', Use /print_item to get NBT of item in your hand.")
                 .getStringList();
 
