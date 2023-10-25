@@ -247,6 +247,7 @@ public class Universe {
     public Ticks ticks;
     private boolean prevCheats = false;
     public File dataFolder;
+    public final File LATMOD = new File(Universe.get().getWorldDirectory(), "LatMod");
 
     public Universe(MinecraftServer s) {
         server = s;
@@ -452,7 +453,9 @@ public class Universe {
 
         new UniverseLoadedEvent.Post(this, data).post();
 
-        BackwardsCompat.load();
+        if (shouldLoadLatmod()) {
+            BackwardsCompat.load();
+        }
 
         new UniverseLoadedEvent.Finished(this).post();
 
@@ -752,5 +755,9 @@ public class Universe {
         }
 
         return id;
+    }
+
+    public boolean shouldLoadLatmod() {
+        return LATMOD.exists() && !get().dataFolder.exists();
     }
 }

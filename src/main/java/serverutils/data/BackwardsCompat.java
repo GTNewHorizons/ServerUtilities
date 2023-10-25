@@ -34,18 +34,11 @@ import serverutils.ranks.Rank;
 
 public class BackwardsCompat {
 
-    public static final File LATMOD = new File(Universe.get().getWorldDirectory(), "LatMod");
-
     public static JsonObject LATCONFIG = JsonUtils.fromJson(Universe.get().server.getFile("local/ftbu/config.json"))
             .getAsJsonObject();
 
-    public static boolean shouldLoadLatmod() {
-        return LATMOD.exists() && !Universe.get().dataFolder.exists();
-    }
-
     // Only runs on first load
     public static void load() {
-        if (!shouldLoadLatmod()) return;
         loadPlayers();
         loadChunks();
         loadWarps();
@@ -53,7 +46,7 @@ public class BackwardsCompat {
     }
 
     public static void loadPlayers() {
-        NBTTagCompound tagPlayers = readMap(new File(LATMOD, "LMPlayers.dat"));
+        NBTTagCompound tagPlayers = readMap(new File(Universe.get().LATMOD, "LMPlayers.dat"));
         ServerUtilities.LOGGER.info("Loading players from LatMod");
 
         if (tagPlayers != null && tagPlayers.hasKey("Players")) {
@@ -83,7 +76,7 @@ public class BackwardsCompat {
     public static void loadChunks() {
         // Loads the chunks from the ClaimedChunks.json file
         // Ignores claim/chunk load limit
-        JsonObject group = JsonUtils.fromJson(new File(LATMOD, "ClaimedChunks.json")).getAsJsonObject();
+        JsonObject group = JsonUtils.fromJson(new File(Universe.get().LATMOD, "ClaimedChunks.json")).getAsJsonObject();
         if (group == null) return;
 
         for (Map.Entry<String, JsonElement> e : group.entrySet()) {
@@ -134,8 +127,8 @@ public class BackwardsCompat {
     }
 
     public static void loadWarps() {
-        JsonObject warps = JsonUtils.fromJson(new File(LATMOD, "LMWorld.json")).getAsJsonObject().get("warps")
-                .getAsJsonObject();
+        JsonObject warps = JsonUtils.fromJson(new File(Universe.get().LATMOD, "LMWorld.json")).getAsJsonObject()
+                .get("warps").getAsJsonObject();
         ServerUtilities.LOGGER.info("Loading warps from LatMod");
 
         if (warps != null) for (Map.Entry<String, JsonElement> e : warps.entrySet()) {
