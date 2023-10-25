@@ -19,8 +19,10 @@ import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLInterModComms;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import serverutils.aurora.AuroraConfig;
 import serverutils.aurora.mc.AuroraMinecraftHandler;
@@ -236,7 +238,11 @@ public class ServerUtilitiesCommon {
         CHAT_FORMATTING_SUBSTITUTES.put("team", player -> player.team.getTitle());
     }
 
-    public void postInit() {}
+    public void postInit(FMLPostInitializationEvent event) {
+        if ((Loader.isModLoaded("FTBU") || Loader.isModLoaded("FTBL")) && event.getSide().isServer()) {
+            throw new RuntimeException("FTBU/FTBL Detected, please remove them and start again.");
+        }
+    }
 
     public void imc(FMLInterModComms.IMCMessage message) {}
 

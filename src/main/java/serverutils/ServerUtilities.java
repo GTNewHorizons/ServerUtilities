@@ -95,7 +95,7 @@ public class ServerUtilities {
 
     @Mod.EventHandler
     public void onPostInit(FMLPostInitializationEvent event) {
-        PROXY.postInit();
+        PROXY.postInit(event);
     }
 
     @Mod.EventHandler

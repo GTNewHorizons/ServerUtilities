@@ -16,6 +16,7 @@ import org.lwjgl.opengl.Display;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesCommon;
@@ -30,6 +31,7 @@ import serverutils.command.client.CommandPrintState;
 import serverutils.command.client.CommandSimulateButton;
 import serverutils.handlers.ServerUtilitiesClientEventHandler;
 import serverutils.lib.client.ClientUtils;
+import serverutils.lib.client.IncompatibleModException;
 import serverutils.lib.client.ParticleColoredDust;
 import serverutils.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.icon.PlayerHeadIcon;
@@ -73,8 +75,8 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
     }
 
     @Override
-    public void postInit() {
-        super.postInit();
+    public void postInit(FMLPostInitializationEvent event) {
+        super.postInit(event);
 
         for (Map.Entry<String, String> entry : ServerUtilitiesCommon.KAOMOJIS.entrySet()) {
             ClientCommandHandler.instance.registerCommand(new CommandKaomoji(entry.getKey(), entry.getValue()));
@@ -84,6 +86,10 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
         ClientCommandHandler.instance.registerCommand(new CommandPrintItem());
         ClientCommandHandler.instance.registerCommand(new CommandPrintState());
         ClientCommandHandler.instance.registerCommand(new CommandPing());
+
+        if (Loader.isModLoaded("FTBU") || Loader.isModLoaded("FTBL")) {
+            throw new IncompatibleModException();
+        }
     }
 
     @Override
