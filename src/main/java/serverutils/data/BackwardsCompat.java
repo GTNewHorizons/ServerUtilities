@@ -46,7 +46,7 @@ public class BackwardsCompat {
     }
 
     public static void loadPlayers() {
-        NBTTagCompound tagPlayers = readMap(new File(Universe.get().LATMOD, "LMPlayers.dat"));
+        NBTTagCompound tagPlayers = readMap(new File(Universe.get().latModFolder, "LMPlayers.dat"));
         ServerUtilities.LOGGER.info("Loading players from LatMod");
 
         if (tagPlayers != null && tagPlayers.hasKey("Players")) {
@@ -76,7 +76,8 @@ public class BackwardsCompat {
     public static void loadChunks() {
         // Loads the chunks from the ClaimedChunks.json file
         // Ignores claim/chunk load limit
-        JsonObject group = JsonUtils.fromJson(new File(Universe.get().LATMOD, "ClaimedChunks.json")).getAsJsonObject();
+        JsonObject group = JsonUtils.fromJson(new File(Universe.get().latModFolder, "ClaimedChunks.json"))
+                .getAsJsonObject();
         if (group == null) return;
 
         for (Map.Entry<String, JsonElement> e : group.entrySet()) {
@@ -127,7 +128,7 @@ public class BackwardsCompat {
     }
 
     public static void loadWarps() {
-        JsonObject warps = JsonUtils.fromJson(new File(Universe.get().LATMOD, "LMWorld.json")).getAsJsonObject()
+        JsonObject warps = JsonUtils.fromJson(new File(Universe.get().latModFolder, "LMWorld.json")).getAsJsonObject()
                 .get("warps").getAsJsonObject();
         ServerUtilities.LOGGER.info("Loading warps from LatMod");
 

@@ -247,7 +247,7 @@ public class Universe {
     public Ticks ticks;
     private boolean prevCheats = false;
     public File dataFolder;
-    public final File LATMOD = new File(Universe.get().getWorldDirectory(), "LatMod");
+    public File latModFolder;
 
     public Universe(MinecraftServer s) {
         server = s;
@@ -290,6 +290,7 @@ public class Universe {
 
     private void load() {
         dataFolder = new File(getWorldDirectory(), "serverutilities/");
+        latModFolder = new File(getWorldDirectory(), "LatMod");
         NBTTagCompound universeData = NBTUtils.readNBT(new File(dataFolder, "universe.dat"));
 
         if (universeData == null) {
@@ -758,6 +759,6 @@ public class Universe {
     }
 
     public boolean shouldLoadLatmod() {
-        return LATMOD.exists() && !get().dataFolder.exists();
+        return latModFolder.exists() && !get().dataFolder.exists();
     }
 }
