@@ -1,2 +1,2 @@
 @javax.annotation.ParametersAreNonnullByDefault
-package serverutils.client.teamsgui;
+package serverutils.client.gui.teams;

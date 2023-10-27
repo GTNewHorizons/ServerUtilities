@@ -5,8 +5,8 @@ import java.util.Collection;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.client.teamsgui.GuiSelectTeam;
-import serverutils.client.teamsgui.PublicTeamData;
+import serverutils.client.gui.teams.GuiSelectTeam;
+import serverutils.client.gui.teams.PublicTeamData;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;

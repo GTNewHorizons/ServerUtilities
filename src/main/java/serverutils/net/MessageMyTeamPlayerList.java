@@ -9,11 +9,11 @@ import net.minecraft.util.ResourceLocation;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.client.teamsgui.GuiManageAllies;
-import serverutils.client.teamsgui.GuiManageEnemies;
-import serverutils.client.teamsgui.GuiManageMembers;
-import serverutils.client.teamsgui.GuiManageModerators;
-import serverutils.client.teamsgui.GuiTransferOwnership;
+import serverutils.client.gui.teams.GuiManageAllies;
+import serverutils.client.gui.teams.GuiManageEnemies;
+import serverutils.client.gui.teams.GuiManageMembers;
+import serverutils.client.gui.teams.GuiManageModerators;
+import serverutils.client.gui.teams.GuiTransferOwnership;
 import serverutils.lib.EnumTeamStatus;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ServerUtilitiesTeamGuiActions;

@@ -1,4 +1,4 @@
-package serverutils.client.teamsgui;
+package serverutils.client.gui.teams;
 
 import net.minecraft.util.IChatComponent;
 

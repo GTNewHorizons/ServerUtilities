@@ -1,4 +1,4 @@
-package serverutils.client.teamsgui;
+package serverutils.client.gui.teams;
 
 import java.util.ArrayList;
 import java.util.Collection;

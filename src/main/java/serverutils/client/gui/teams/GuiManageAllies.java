@@ -1,4 +1,4 @@
-package serverutils.client.teamsgui;
+package serverutils.client.gui.teams;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,7 +16,7 @@ import serverutils.lib.util.misc.MouseButton;
 import serverutils.net.MessageMyTeamAction;
 import serverutils.net.MessageMyTeamPlayerList;
 
-public class GuiManageEnemies extends GuiManagePlayersBase {
+public class GuiManageAllies extends GuiManagePlayersBase {
 
     private static class ButtonPlayer extends ButtonPlayerBase {
 
@@ -26,7 +26,8 @@ public class GuiManageEnemies extends GuiManagePlayersBase {
 
         @Override
         Color4I getPlayerColor() {
-            return entry.status == EnumTeamStatus.ENEMY ? Color4I.getChatFormattingColor(EnumChatFormatting.RED)
+            return entry.status.isEqualOrGreaterThan(EnumTeamStatus.ALLY)
+                    ? Color4I.getChatFormattingColor(EnumChatFormatting.DARK_AQUA)
                     : getDefaultPlayerColor();
         }
 
@@ -34,8 +35,8 @@ public class GuiManageEnemies extends GuiManagePlayersBase {
         public void addMouseOverText(List<String> list) {
             list.add(
                     I18n.format(
-                            (entry.status == EnumTeamStatus.ENEMY ? EnumTeamStatus.ENEMY : EnumTeamStatus.NONE)
-                                    .getLangKey()));
+                            (entry.status.isEqualOrGreaterThan(EnumTeamStatus.ALLY) ? EnumTeamStatus.ALLY
+                                    : EnumTeamStatus.MEMBER).getLangKey()));
         }
 
         @Override
@@ -44,20 +45,20 @@ public class GuiManageEnemies extends GuiManagePlayersBase {
             NBTTagCompound data = new NBTTagCompound();
             data.setString("player", entry.name);
 
-            if (entry.status == EnumTeamStatus.ENEMY) {
+            if (entry.status.isEqualOrGreaterThan(EnumTeamStatus.ALLY)) {
                 data.setBoolean("add", false);
                 entry.status = EnumTeamStatus.NONE;
             } else {
                 data.setBoolean("add", true);
-                entry.status = EnumTeamStatus.ENEMY;
+                entry.status = EnumTeamStatus.ALLY;
             }
 
-            new MessageMyTeamAction(ServerUtilitiesTeamGuiActions.ENEMIES.getId(), data).sendToServer();
+            new MessageMyTeamAction(ServerUtilitiesTeamGuiActions.ALLIES.getId(), data).sendToServer();
             updateIcon();
         }
     }
 
-    public GuiManageEnemies(Collection<MessageMyTeamPlayerList.Entry> m) {
-        super(I18n.format("team_action.serverutilities.enemies"), m, ButtonPlayer::new);
+    public GuiManageAllies(Collection<MessageMyTeamPlayerList.Entry> m) {
+        super(I18n.format("team_action.serverutilities.allies"), m, ButtonPlayer::new);
     }
 }
