@@ -124,6 +124,13 @@ public class CachedVertexData {
         pos(x, y, 0D).tex(minU, minV);
     }
 
+    public void rect(int x, int y, int w, int h, int z) {
+        pos(x, y + h, z).tex(minU, maxV);
+        pos(x + w, y + h, z).tex(maxU, maxV);
+        pos(x + w, y, z).tex(maxU, minV);
+        pos(x, y, z).tex(minU, minV);
+    }
+
     public void cubeFace(EnumFacing facing, double minX, double minY, double minZ, double maxX, double maxY,
             double maxZ) {
         float normalX = MathUtils.NORMALS_X[facing.order_a];

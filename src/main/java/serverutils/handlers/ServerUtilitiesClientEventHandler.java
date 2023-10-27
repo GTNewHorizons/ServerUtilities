@@ -2,7 +2,6 @@ package serverutils.handlers;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -45,7 +44,6 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.client.EnumSidebarButtonPlacement;
 import serverutils.client.ServerUtilitiesClient;
 import serverutils.client.ServerUtilitiesClientConfig;
-import serverutils.client.gui.ClientClaimedChunks;
 import serverutils.client.gui.GuiClaimedChunks;
 import serverutils.client.gui.GuiClientConfig;
 import serverutils.client.gui.SidebarButton;
@@ -53,12 +51,10 @@ import serverutils.client.gui.SidebarButtonGroup;
 import serverutils.client.gui.SidebarButtonManager;
 import serverutils.events.chunks.UpdateClientDataEvent;
 import serverutils.events.client.CustomClickEvent;
-import serverutils.lib.EnumTeamColor;
 import serverutils.lib.OtherMods;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.gui.Widget;
-import serverutils.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.icon.Color4I;
 import serverutils.lib.icon.Icon;
 import serverutils.lib.icon.IconRenderer;
@@ -68,7 +64,6 @@ import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.net.MessageAdminPanelGui;
-import serverutils.net.MessageClaimedChunksUpdate;
 import serverutils.net.MessageEditNBTRequest;
 import serverutils.net.MessageLeaderboardList;
 import serverutils.net.MessageMyTeamGui;
@@ -129,87 +124,7 @@ public class ServerUtilitiesClientEventHandler {
 
     @SubscribeEvent
     public void onChunkDataUpdate(UpdateClientDataEvent event) {
-        MessageClaimedChunksUpdate m = event.getMessage();
-        GuiClaimedChunks.claimedChunks = m.claimedChunks;
-        GuiClaimedChunks.loadedChunks = m.loadedChunks;
-        GuiClaimedChunks.maxClaimedChunks = m.maxClaimedChunks;
-        GuiClaimedChunks.maxLoadedChunks = m.maxLoadedChunks;
-        Arrays.fill(GuiClaimedChunks.chunkData, null);
-
-        for (ClientClaimedChunks.Team team : m.teams.values()) {
-            for (Map.Entry<Integer, ClientClaimedChunks.ChunkData> entry : team.chunks.int2ObjectEntrySet()) {
-                int x = entry.getKey() % ChunkSelectorMap.TILES_GUI;
-                int z = entry.getKey() / ChunkSelectorMap.TILES_GUI;
-                GuiClaimedChunks.chunkData[x + z * ChunkSelectorMap.TILES_GUI] = entry.getValue();
-            }
-        }
-
-        GuiClaimedChunks.AREA.reset();
-        EnumTeamColor prevCol = null;
-        ClientClaimedChunks.ChunkData data;
-
-        for (int i = 0; i < GuiClaimedChunks.chunkData.length; i++) {
-            data = GuiClaimedChunks.chunkData[i];
-
-            if (data == null) {
-                continue;
-            }
-
-            if (prevCol != data.team.color) {
-                prevCol = data.team.color;
-                GuiClaimedChunks.AREA.color.set(data.team.color.getColor(), 150);
-            }
-
-            GuiClaimedChunks.AREA.rect(
-                    (i % ChunkSelectorMap.TILES_GUI) * GuiClaimedChunks.TILE_SIZE,
-                    (i / ChunkSelectorMap.TILES_GUI) * GuiClaimedChunks.TILE_SIZE,
-                    GuiClaimedChunks.TILE_SIZE,
-                    GuiClaimedChunks.TILE_SIZE);
-        }
-
-        boolean borderU, borderD, borderL, borderR;
-
-        for (int i = 0; i < GuiClaimedChunks.chunkData.length; i++) {
-            data = GuiClaimedChunks.chunkData[i];
-
-            if (data == null) {
-                continue;
-            }
-
-            int x = i % ChunkSelectorMap.TILES_GUI;
-            int dx = x * GuiClaimedChunks.TILE_SIZE;
-            int y = i / ChunkSelectorMap.TILES_GUI;
-            int dy = y * GuiClaimedChunks.TILE_SIZE;
-
-            borderU = y > 0 && GuiClaimedChunks.hasBorder(data, GuiClaimedChunks.getAt(x, y - 1));
-            borderD = y < (ChunkSelectorMap.TILES_GUI - 1)
-                    && GuiClaimedChunks.hasBorder(data, GuiClaimedChunks.getAt(x, y + 1));
-            borderL = x > 0 && GuiClaimedChunks.hasBorder(data, GuiClaimedChunks.getAt(x - 1, y));
-            borderR = x < (ChunkSelectorMap.TILES_GUI - 1)
-                    && GuiClaimedChunks.hasBorder(data, GuiClaimedChunks.getAt(x + 1, y));
-
-            if (data.isLoaded()) {
-                GuiClaimedChunks.AREA.color.set(255, 80, 80, 230);
-            } else {
-                GuiClaimedChunks.AREA.color.set(80, 80, 80, 230);
-            }
-
-            if (borderU) {
-                GuiClaimedChunks.AREA.rect(dx, dy, GuiClaimedChunks.TILE_SIZE, 1);
-            }
-
-            if (borderD) {
-                GuiClaimedChunks.AREA.rect(dx, dy + GuiClaimedChunks.TILE_SIZE - 1, GuiClaimedChunks.TILE_SIZE, 1);
-            }
-
-            if (borderL) {
-                GuiClaimedChunks.AREA.rect(dx, dy, 1, GuiClaimedChunks.TILE_SIZE);
-            }
-
-            if (borderR) {
-                GuiClaimedChunks.AREA.rect(dx + GuiClaimedChunks.TILE_SIZE - 1, dy, 1, GuiClaimedChunks.TILE_SIZE);
-            }
-        }
+        GuiClaimedChunks.onChunkDataUpdate(event);
     }
 
     @SubscribeEvent

@@ -13,9 +13,7 @@ import serverutils.lib.math.Ticks;
 public class ServerUtilitiesClientConfig {
 
     public static Configuration config;
-
     public static ServerUtilitiesClientConfig INST = new ServerUtilitiesClientConfig();
-
     public static final String CLIENT_LANG_KEY = "serverutilities_client.";
 
     public static void init(FMLPreInitializationEvent event) {
@@ -60,6 +58,13 @@ public class ServerUtilitiesClientConfig {
                 false,
                 "Move buttons above potion effect label whenever an effect is active and placement is set to AUTO.")
                 .setLanguageKey(CLIENT_LANG_KEY + "sidebar_buttons_above_potion").getBoolean();
+        show_dotted_lines = config
+                .get(
+                        Configuration.CATEGORY_GENERAL,
+                        "show_dotted_lines",
+                        true,
+                        "Draw dotted lines on loaded chunks to improve noticeability.")
+                .setLanguageKey(CLIENT_LANG_KEY + "show_dotted_lines").getBoolean();
         general.show_shutdown_timer_ms = -1L;
         // general.render_badges = config.get(Configuration.CATEGORY_GENERAL, "render_badges", false, "Render
         // badges.").getBoolean();
@@ -101,6 +106,7 @@ public class ServerUtilitiesClientConfig {
     public static String[] sidebar_buttons_locations = { "DISABLED", "TOP_LEFT", "INVENTORY_SIDE", "AUTO" };
     public static EnumNotificationLocation notifications;
     public static String[] notification_locations = { "SCREEN", "CHAT", "DISABLED" };
+    public static boolean show_dotted_lines;
 
     public static class General {
 

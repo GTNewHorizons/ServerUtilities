@@ -169,11 +169,10 @@ serverutilities_client.button_nighttime=Button Nighttime
 serverutilities_client.item_ore_names=Display Item OreDictionary Names
 serverutilities_client.item_ore_names.item_tooltip=Ore Dictionary Names:
 serverutilities_client.item_nbt=Display Item NBT
-serverutilities_client.replace_vanilla_status_messages=Replace vanilla status messages
-serverutilities_client.debug_helper=Debug Helper
 serverutilities_client.sidebar_buttons=Sidebar Button Location
 serverutilities_client.sidebar_buttons_above_potion=Draw Buttons Above Potion Label
 serverutilities_client.notification_location=Notification Location
+serverutilities_client.show_dotted_lines=Show Dotted Line On Loaded Chunks
 
 # Rank Config
 permission.serverutilities.badge=Badge
