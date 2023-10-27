@@ -55,7 +55,7 @@ public class MessageClaimedChunksUpdate extends MessageToClient {
             }
         }
 
-        maxClaimedChunks = teamData.getMaxClaimChunks();
+        maxClaimedChunks = getMaxClaimedChunks(teamData, p);
         maxLoadedChunks = teamData.getMaxChunkloaderChunks();
         teams = new HashMap<>();
 
@@ -97,6 +97,14 @@ public class MessageClaimedChunksUpdate extends MessageToClient {
                 }
             }
         }
+    }
+
+    private int getMaxClaimedChunks(ServerUtilitiesTeamData teamData, ForgePlayer player) {
+        if (teamData.getMaxClaimChunks() < 0) {
+            return teamData.getMaxClaimChunks();
+        }
+        return player.hasPermission(ServerUtilitiesPermissions.CLAIMS_BYPASS_LIMITS) ? Integer.MAX_VALUE
+                : teamData.getMaxClaimChunks();
     }
 
     @Override
