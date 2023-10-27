@@ -76,6 +76,7 @@ public class BackwardsCompat {
                 }
             }
         }
+        ServerUtilities.LOGGER.info("Finished loading players from LatMod");
     }
 
     public static void loadChunks() {
@@ -130,6 +131,7 @@ public class BackwardsCompat {
                 }
             }
         }
+        ServerUtilities.LOGGER.info("Finished loading claimed chunks from LatMod");
     }
 
     public static void loadWarps() {
@@ -152,10 +154,12 @@ public class BackwardsCompat {
                                 o.get("dim").getAsInt()));
             }
         }
+        ServerUtilities.LOGGER.info("Finished loading warps from LatMod");
     }
 
     public static void loadConfig() {
         if (LATCONFIG == null) return;
+        ServerUtilities.LOGGER.info("Loading config from LatMod");
 
         JsonObject latBackup = LATCONFIG.get("backups").getAsJsonObject();
         ConfigCategory backupConfig = ServerUtilitiesConfig.config.getCategory("backups");
@@ -176,6 +180,7 @@ public class BackwardsCompat {
                 .set(LATCONFIG.get("chunkloading").getAsJsonObject().get("enabled").getAsBoolean());
 
         ServerUtilitiesConfig.sync();
+        ServerUtilities.LOGGER.info("Finished loading warps from LatMod");
     }
 
     public static void loadRanks(Rank player, Rank admin) {

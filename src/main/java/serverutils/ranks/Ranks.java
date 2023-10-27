@@ -135,7 +135,9 @@ public class Ranks {
             aRank.setPermission(ServerUtilitiesPermissions.HOMES_CROSS_DIM, true);
             aRank.setPermission("example.permission_with_value", 100);
 
-            BackwardsCompat.loadRanks(pRank, aRank);
+            if (universe.shouldLoadLatmod()) {
+                BackwardsCompat.loadRanks(pRank, aRank);
+            }
 
             PlayerRank fpRank = new PlayerRank(
                     this,
