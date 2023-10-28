@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 import javax.annotation.Nullable;
 
@@ -18,14 +19,10 @@ import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
 import serverutils.lib.ATHelper;
-import serverutils.lib.item.IItemHandler;
-import serverutils.lib.item.IItemHandlerModifiable;
-import serverutils.lib.item.ItemHandlerHelper;
 
 public class InvUtils {
 
@@ -88,59 +85,15 @@ public class InvUtils {
         }
     }
 
-    public static void dropAllItems(World world, double x, double y, double z, @Nullable IItemHandler itemHandler) {
-        if (!world.isRemote && itemHandler != null && itemHandler.getSlots() > 0) {
-            for (int i = 0; i < itemHandler.getSlots(); i++) {
-                ItemStack item = itemHandler.getStackInSlot(i);
+    public static void dropAllItems(World world, double x, double y, double z, @Nullable IInventory inventory) {
+        if (!world.isRemote && inventory != null && inventory.getSizeInventory() > 0) {
+            for (int i = 0; i < inventory.getSizeInventory(); i++) {
+                ItemStack item = inventory.getStackInSlot(i);
 
                 if (item != null) {
                     dropItem(world, x, y, z, item, 10);
                 }
             }
-        }
-    }
-
-    public static void transferItems(@Nullable IItemHandler from, @Nullable IItemHandler to, int amount,
-            Predicate<ItemStack> filter) {
-        if (amount <= 0 || from == null || to == null) {
-            return;
-        }
-
-        for (int i = 0; i < from.getSlots(); i++) {
-            ItemStack extracted = from.extractItem(i, amount, true);
-
-            if (extracted != null && filter.test(extracted)) {
-                ItemStack inserted = ItemHandlerHelper.insertItem(to, extracted, false);
-                int s = extracted.stackSize - inserted.stackSize;
-
-                if (s > 0) {
-                    from.extractItem(i, s, false);
-                    amount -= s;
-
-                    if (amount <= 0) {
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    public static void writeItemHandler(NBTTagCompound nbt, String key, IItemHandlerModifiable itemHandler) {
-        NBTTagList list = new NBTTagList();
-
-        int slots = itemHandler.getSlots();
-        for (int i = 0; i < slots; i++) {
-            ItemStack stack = itemHandler.getStackInSlot(i);
-
-            if (stack != null) {
-                NBTTagCompound nbt1 = stack.writeToNBT(new NBTTagCompound());
-                nbt1.setInteger("Slot", i);
-                list.appendTag(nbt1);
-            }
-        }
-
-        if (list.tagCount() != 0) {
-            nbt.setTag(key, list);
         }
     }
 
@@ -169,6 +122,79 @@ public class InvUtils {
         }
 
         return Collections.emptySet();
+    }
+
+    public static int[] getPlayerSlots(EntityPlayer player) {
+        return IntStream.range(0, player.inventory.mainInventory.length).toArray();
+    }
+
+    public static ItemStack singleCopy(ItemStack is) {
+        if (is.stackSize <= 0) return null;
+        ItemStack is1 = is.copy();
+        is1.stackSize = 1;
+        return is1;
+    }
+
+    public static boolean addSingleItemToInv(ItemStack is, IInventory inv, int[] slots, boolean doAdd) {
+        ItemStack single = singleCopy(is);
+        if (single == null) return false;
+
+        for (int slot : slots) {
+            ItemStack is1 = inv.getStackInSlot(slot);
+            if (is1 != null && is1.stackSize > 0 && stacksAreEqual(is, is1)) {
+                if (is1.stackSize + 1 <= is1.getMaxStackSize()) {
+                    if (doAdd) {
+                        is1.stackSize++;
+                        inv.setInventorySlotContents(slot, is1);
+                        inv.markDirty();
+                    }
+
+                    return true;
+                }
+            }
+        }
+        for (int slot2 : slots) {
+            ItemStack is1 = inv.getStackInSlot(slot2);
+            if (is1 == null || is1.stackSize == 0) {
+                if (doAdd) {
+                    inv.setInventorySlotContents(slot2, single);
+                    inv.markDirty();
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static void giveItem(EntityPlayer player, ItemStack item) {
+        if (player.inventory == null || item.stackSize <= 0) return;
+        ItemStack is = item.copy();
+        boolean changed = false;
+
+        int size = is.stackSize;
+        for (int i = 0; i < size; i++) {
+            if (addSingleItemToInv(is, player.inventory, getPlayerSlots(player), true)) {
+                is.stackSize--;
+                changed = true;
+            }
+        }
+
+        if (changed) {
+            player.inventory.markDirty();
+            if (player.openContainer != null) player.openContainer.detectAndSendChanges();
+        }
+
+        if (is.stackSize > 0) dropItem(player, is);
+    }
+
+    public static void giveItemFromIterable(EntityPlayer player, Iterable<ItemStack> items) {
+        for (ItemStack item : items) {
+            if (item != null) {
+                giveItem(player, item);
+            }
+        }
     }
 
     public static void forceUpdate(Container container) {
