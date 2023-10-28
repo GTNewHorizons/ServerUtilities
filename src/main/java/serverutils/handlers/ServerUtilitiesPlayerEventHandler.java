@@ -62,12 +62,7 @@ public class ServerUtilitiesPlayerEventHandler {
 
         if (ServerUtils.isFirstLogin(player, "serverutilities_starting_items")) {
             if (ServerUtilitiesConfig.login.enable_starting_items) {
-                InvUtils.dropAllItems(
-                        player.getEntityWorld(),
-                        player.posX,
-                        player.posY,
-                        player.posZ,
-                        ServerUtilitiesConfig.login.getStartingItems());
+                InvUtils.giveItemFromIterable(player, ServerUtilitiesConfig.login.getStartingItems());
             }
         }
 

@@ -72,9 +72,18 @@ public class ItemStackSerializer {
     public static ItemStack parseItemWithName(NBTTagCompound nbt) {
         String id = nbt.getString("id");
         int dmg = nbt.getShort("Damage");
-        int count = nbt.getShort("Count");
-        String tag = nbt.getTag("tag").toString();
-        return GameRegistry.makeItemStack(id, dmg, count, tag);
+        int count = nbt.getByte("Count");
+        String tag = "";
+        if (nbt.hasKey("tag")) {
+            tag = nbt.getTag("tag").toString();
+        }
+
+        ItemStack stack = GameRegistry.makeItemStack(id, dmg, count, tag);
+
+        if (stack != null) {
+            stack.stackSize = count;
+        }
+        return stack;
     }
 
     public static String toString(ItemStack stack) {
