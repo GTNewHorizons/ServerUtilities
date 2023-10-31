@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -40,9 +40,7 @@ public class CmdDumpPermissions extends CmdBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        File permFile = new File(
-                Minecraft.getMinecraft().mcDataDir,
-                ServerUtilities.SERVER_FOLDER + "all_permissions.txt");
+        File permFile = MinecraftServer.getServer().getFile(ServerUtilities.SERVER_FOLDER + "all_permissions.txt");
         List<NodeEntry> permNodes = new ArrayList<>(ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY);
         FileUtils.delete(permFile);
 
