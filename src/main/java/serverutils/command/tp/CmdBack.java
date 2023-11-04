@@ -12,6 +12,7 @@ import serverutils.data.TeleportType;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
+import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
 
 public class CmdBack extends CmdBase {
@@ -31,6 +32,11 @@ public class CmdBack extends CmdBase {
 
         if (lastTeleportLog == null) {
             throw ServerUtilities.error(sender, "serverutilities.lang.warps.no_dp");
+        }
+
+        BlockDimPos noPosFound = new BlockDimPos(0, 0, 0, 0);
+        if (lastTeleportLog.getBlockDimPos().equalsPos(noPosFound)) {
+            throw ServerUtilities.error(sender, "serverutilities.lang.warps.no_pos_found");
         }
 
         data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.BACK);

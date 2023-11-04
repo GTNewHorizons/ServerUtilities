@@ -14,8 +14,8 @@ import serverutils.lib.util.permission.PermissionAPI;
 
 public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
 
-    private TeleportLog[] logs;
-    private IPermissionHandler permissionHandler;
+    private final TeleportLog[] logs;
+    private final IPermissionHandler permissionHandler;
 
     public TeleportTracker() {
         this(PermissionAPI.getPermissionHandler());
@@ -63,6 +63,7 @@ public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
     public NBTTagCompound serializeNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
         for (int i = 0; i < logs.length; i++) {
+            if (logs[i] == null) continue;
             nbt.setTag(String.valueOf(i), logs[i].serializeNBT());
         }
         return nbt;

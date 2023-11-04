@@ -164,7 +164,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
     private BlockDimPos lastSafePos;
     private final long[] lastTeleport;
     public final BlockDimPosStorage homes;
-    private TeleportTracker teleportTracker;
+    private final TeleportTracker teleportTracker;
 
     public ServerUtilitiesPlayerData(ForgePlayer player) {
         super(player);
@@ -186,7 +186,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         nbt.setBoolean("DisableGlobalBadges", disableGlobalBadge);
         nbt.setBoolean("EnablePVP", enablePVP);
         nbt.setTag("Homes", homes.serializeNBT());
-
+        nbt.setTag("TeleportTracker", teleportTracker.serializeNBT());
         nbt.setString("Nickname", nickname);
         nbt.setString("AFK", EnumMessageLocation.NAME_MAP.getName(afkMesageLocation));
         return nbt;
@@ -198,8 +198,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         disableGlobalBadge = nbt.getBoolean("DisableGlobalBadges");
         enablePVP = !nbt.hasKey("EnablePVP") || nbt.getBoolean("EnablePVP");
         homes.deserializeNBT(nbt.getCompoundTag("Homes"));
-        teleportTracker = new TeleportTracker();
-        teleportTracker.deserializeNBT(nbt.getCompoundTag("teleportTracker"));
+        teleportTracker.deserializeNBT(nbt.getCompoundTag("TeleportTracker"));
         setLastDeath(BlockDimPos.fromIntArray(nbt.getIntArray("LastDeath")), 0);
         nickname = nbt.getString("Nickname");
         afkMesageLocation = EnumMessageLocation.NAME_MAP.get(nbt.getString("AFK"));
