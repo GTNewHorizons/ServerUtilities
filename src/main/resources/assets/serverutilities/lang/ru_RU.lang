@@ -1,0 +1,545 @@
+# Config
+serverutilities.auto_shutdown=Автовыключение
+serverutilities.auto_shutdown.enabled_singleplayer=Включено в одиночной игре
+serverutilities.auto_shutdown.times=Время выключения
+
+serverutilities.afk=AFK
+serverutilities.afk_kicked=Вы будете изгнаны после: %s
+serverutilities.afk.enabled_singleplayer=Включено в одиночной игре
+serverutilities.afk.notification_timer=Таймер уведомления
+serverutilities.afk.log_afk=Журнал AFK
+
+serverutilities.server_info=Информация о сервере
+serverutilities.server_info.difficulty=Сложность
+serverutilities.server_info.admin_quick_access=Быстрый доступ администратора
+
+serverutilities.chat=Чат
+serverutilities.chat.general_history_limit=Общий лимит истории чата
+serverutilities.chat.team_history_limit=Командный лимит истории чата
+serverutilities.chat.admin_history_limit=Админ лимит истории чата
+
+serverutilities.commands=Команды
+
+serverutilities.login=Вход
+serverutilities.login.enable_motd=Включить MOTD
+serverutilities.login.enable_starting_items=Включить стартовые предметы
+serverutilities.login.enable_global_badges=Включить глобальные значки
+serverutilities.login.enable_event_badges=Включить значки событий
+serverutilities.login.motd=MOTD
+serverutilities.login.starting_items=Стартовые предметы
+
+serverutilities.world=Мир
+serverutilities.world.blocked_claiming_dimensions=Заблокированные на занятость измерения
+serverutilities.world.chunk_claiming=Занятость чанка
+serverutilities.world.chunk_loading=Загрузка чанка
+serverutilities.world.safe_spawn=Безопасный спавн
+serverutilities.world.spawn_area_in_sp=Область спавна в одиночной игре
+serverutilities.world.spawn_radius=Радиус спавна
+serverutilities.world.spawn_dimension=Измерение спавна
+serverutilities.world.unload_erroring_chunks=Выгружать ошибочные чанки
+serverutilities.world.rtp_min_distance=Мин. /rtp дистанция
+serverutilities.world.rtp_max_distance=Макс. /rtp дистанция
+
+serverutilities.world.logging=Логирование
+serverutilities.world.logging.include_creative_players=Включить творческих игроков
+serverutilities.world.logging.include_fake_players=Включить фейк игроков
+serverutilities.world.logging.block_placed=Размещение блока
+serverutilities.world.logging.block_broken=Разрушение блока
+serverutilities.world.logging.item_clicked_in_air=Предмет нажатого в воздухе
+
+serverutilities.ranks=Ранги
+serverutilities.ranks.enabled=Включено
+serverutilities.ranks.override_chat=Переопределить чат
+serverutilities.ranks.crash_client_side_permissions=Разрешения крашей на стороне клиента
+serverutilities.ranks.load_from_config_folder=Загрузить из конфигурационной папки
+serverutilities.ranks.print_command_errors=Печатать командные ошибки
+
+serverutilities.ranks.tags.default_player_rank=По умолчанию ранк игрока
+serverutilities.ranks.tags.default_op_rank=По умолчанию ранк OP
+
+serverutilities.debugging.log_chunkloading=Журнал загрузки чанков
+
+ftbutilities_client.general.render_badges=Показать значки
+ftbutilities_client.general.journeymap_overlay=Включить интеграцию с Journeymap
+ftbutilities_client.general.scan_items_whitelist=/scan_items белый список
+ftbutilities_client.general.scan_items_blacklist=/scan_items черный список
+ftbutilities_client.general.show_shutdown_timer=Показать таймер отключения
+ftbutilities_client.general.shutdown_timer_start=Запуск таймера отключения
+
+# Rank Config
+permission.serverutilities.badge=Значок
+permission.serverutilities.badge.tooltip=Значок (иконка на сундуке). Должна быть ссылка
+permission.serverutilities.homes.max=Макс. домов
+permission.serverutilities.claims.max_chunks=Макс. занятых чанков
+permission.serverutilities.claims.max_chunks.tooltip=Макс. количество чанков, которые игрок может занять\n0 - Отключено
+permission.serverutilities.claims.blocked_dimensions=Заблокированные занятость в измерении
+permission.serverutilities.claims.blocked_dimensions.tooltip=Измерения, в которых не разрешается заявка на чанк
+permission.serverutilities.chunkloader.max_chunks=Макс. загружаемые чанки
+permission.serverutilities.chunkloader.max_chunks.tooltip=Макс. количество чанков, которые игрок может загрузить\n0 - Отключено
+permission.serverutilities.chunkloader.offline_timer=Таймер не в сети загрузчика чанков
+permission.serverutilities.chunkloader.offline_timer.tooltip=Макс. количество часов, которое игрок может быть не в сети до тех пор, пока он не выгрузит чанки\n0 - Отключено, мгновенно выгружается, когда он отключается\n-1 - Чанк всегда загружен
+permission.serverutilities.homes.cooldown=/home Cooldown Timer
+permission.serverutilities.warps.cooldown=/warp Cooldown Timer
+permission.serverutilities.tpa.cooldown=/tpa Cooldown Timer
+permission.serverutilities.spawn.cooldown=/spawn Cooldown Timer
+permission.serverutilities.back.cooldown=/back Cooldown Timer
+permission.serverutilities.homes.warmup=/home Warmup Timer
+permission.serverutilities.warps.warmup=/warp Warmup Timer
+permission.serverutilities.tpa.warmup=/tpa Warmup Timer
+permission.serverutilities.spawn.warmup=/spawn Warmup Timer
+permission.serverutilities.back.warmup=/back Warmup Timer
+permission.serverutilities.afk.timer=Таймер AFK
+permission.serverutilities.afk.timer.is_afk=%s сейчас AFK
+permission.serverutilities.afk.timer.isnt_afk=%s больше не AFK
+permission.serverutilities.chat.prefix.left.color=Цвет префикса чата
+permission.serverutilities.chat.prefix.base.color=Цвет префикса чата
+permission.serverutilities.chat.prefix.right.color=Цвет префикса чата
+permission.serverutilities.chat.name.color=Цвет имени чата
+permission.serverutilities.chat.suffix.left.color=Цвет суффикса чата [слева]
+permission.serverutilities.chat.suffix.base.color=Цвет суффикса чата [основа]
+permission.serverutilities.chat.suffix.right.color=Цвет суффикса чата [справа]
+permission.serverutilities.chat.text.color=Цвет текста чата
+permission.serverutilities.chat.prefix.left.text=Текст префикса чата
+permission.serverutilities.chat.prefix.base.text=Текст префикса чата
+permission.serverutilities.chat.prefix.right.text=Текст префикса чата
+permission.serverutilities.chat.suffix.left.text=Текст суффикса чата [слева]
+permission.serverutilities.chat.suffix.base.text=Текст суффикса чата [основа]
+permission.serverutilities.chat.suffix.right.text=Текст суффикса чата [справа]
+
+# Player Settings
+player_config.serverutilities.chat_links=Чат-ссылки
+player_config.serverutilities.disable_global_badge=Отключить глобальный значок
+player_config.serverutilities.render_badge=Рендерить мой значок
+player_config.serverutilities.enable_pvp=Включить PVP
+player_config.serverutilities.nickname=Никнейм
+player_config.serverutilities.afk=Положение уведомления AFK
+
+# Team Settings
+team_config.serverutilities.blocks_edit=Необходимый уровень для редактирования блока
+team_config.serverutilities.blocks_interact=Необходимый уровень для взаимодействия блоков
+team_config.serverutilities.attack_entities=Необходимый уровень для атакующих существ
+team_config.serverutilities.use_items=Необходимый уровень для использования предметов
+team_config.serverutilities.explosions=Включить взрывы в занятых чанках
+team_config.serverutilities.fake_players=Разрешить фейк игрокам взаимодействовать с блоками
+
+# Action Buttons
+sidebar_button.serverutilities.chats=Чаты
+sidebar_button.serverutilities.chats.general=Общий чат
+sidebar_button.serverutilities.chats.admin=Админ чат
+sidebar_button.serverutilities.chats.team=Командный чат
+sidebar_button.serverutilities.leaderboards=Таблица лидеров
+sidebar_button.serverutilities.toggle.gamemode=Переключение режима игры
+sidebar_button.serverutilities.toggle.gamemode.tooltip=Переключение между выживанием и творческим режимами
+sidebar_button.serverutilities.toggle.rain=Переключить дождь
+sidebar_button.serverutilities.toggle.rain.tooltip=Переключает погоду между ясной и дождливой
+sidebar_button.serverutilities.toggle.day=Установить время на день
+sidebar_button.serverutilities.toggle.day.tooltip=Устанавливает дневное время
+sidebar_button.serverutilities.toggle.night=Установить время на ночь
+sidebar_button.serverutilities.toggle.night.tooltip=Устанавливает ночное время
+sidebar_button.serverutilities.heal=Исцеление
+sidebar_button.serverutilities.heal.tooltip=Исцеляет игрока до максимального здоровья и насыщения, и тушит, если игрок находится в огне
+sidebar_button.serverutilities.server_info=Информация о сервере
+sidebar_button.serverutilities.claimed_chunks=Занятые чанки
+sidebar_button.serverutilities.trash_can=Мусорная корзина
+sidebar_button.serverutilities.trash_can.tooltip=Открывает корзину. Предметы из него исчезают после закрытия интерфейса, но остаются там, пока он открыт
+sidebar_button.serverutilities.mail=Почта
+
+admin_panel.serverutilities.file_browser=Браузер файлов
+admin_panel.serverutilities.crash_reports=Просмотр отчетов о сбоях
+admin_panel.serverutilities.config=Редактировать конфигурацию
+admin_panel.serverutilities.ranks=Редактировать ранги
+admin_panel.serverutilities.ranks.player_ranks=Ранги игроков
+admin_panel.serverutilities.ranks.select_rank=Выбрать ранг
+admin_panel.serverutilities.ranks.edit.id=ID
+admin_panel.serverutilities.ranks.edit.parent=Родитель
+admin_panel.serverutilities.ranks.edit.chat_formatting=Форматирование чата
+admin_panel.serverutilities.ranks.edit.permissions=Разрешения
+admin_panel.serverutilities.claimed_chunks=Посмотреть все занятые чанки
+admin_panel.serverutilities.loaded_chunks=Посмотреть все загруженные чанки
+admin_panel.serverutilities.whitelist=Редактировать белый список
+admin_panel.serverutilities.ops=Редактировать OP
+admin_panel.serverutilities.edit_world=Редактировать мир
+
+# Keys
+key.serverutilities.warp=Графический интерфейс Варп
+key.serverutilities.nbt=Редактировать NBT
+
+# Misc
+gamerules=Правила игры
+serverutilities.lang.timer.shutdown=Сервер выключится в %s
+serverutilities.lang.killed_entities=Убил %d существ с типом '%s'
+serverutilities.lang.kickme=Вы сами себя изгнали!
+serverutilities.lang.upload_crash=Загрузить отчет о сбоях
+serverutilities.lang.uploaded_crash=Отчет о сбоях загружен! %s
+serverutilities.lang.nickname_changed=Никнейм изменен на '%s'
+serverutilities.lang.nickname_reset=Сброс никнейма
+
+serverutilities.stat.dph=Смертей за час
+serverutilities.stat.last_seen=Последнее посещение
+
+# Chunks
+serverutilities.lang.chunks.cant_modify_chunk=Не удается изменить этот чанк!
+serverutilities.lang.chunks.unclaimed_all=Отзаявлены все чанки
+serverutilities.lang.chunks.chunk_claimed=Чанк заявлен
+serverutilities.lang.chunks.chunk_unclaimed=Чанк отзаявлен
+serverutilities.lang.chunks.chunk_loaded=Чанк загружен
+serverutilities.lang.chunks.chunk_unloaded=Чанк выгружен
+serverutilities.lang.chunks.unloaded_all=Выгружены все чанки
+
+serverutilities.lang.chunks.unclaim_all=Освободить все чанки
+serverutilities.lang.chunks.unclaim_all_dim=Освободить все чанки в %s
+serverutilities.lang.chunks.unclaim_all_q=Освободить все чанки?
+serverutilities.lang.chunks.unclaim_all_dim_q=Освободить все чанки в %s?
+serverutilities.lang.chunks.claims_invalid_dim=Не удается освободить чанки в этом измерении
+serverutilities.lang.chunks.claimed_count=Занятые чанки: %d / %s
+serverutilities.lang.chunks.loaded_count=Загруженные чанки: %d / %s
+serverutilities.lang.chunks.claimed_area=Занятая область
+serverutilities.lang.chunks.wilderness=Дикая местность
+
+# Chunk Types
+serverutilities.lang.chunks.upgrade.loaded=Чанк загружен
+serverutilities.lang.chunks.upgrade.no_explosions=Взрывы отключены
+serverutilities.lang.chunks.upgrade.no_pvp=Союзническое PVP отключено
+
+# Warps
+serverutilities.lang.warps.set=Варп '%s' установлен!
+serverutilities.lang.warps.del=Варп '%s' удален!
+serverutilities.lang.warps.not_set=Неизвестный варп: '%s'!
+serverutilities.lang.warps.cooldown=Вы можете использовать варп только в %s!
+вftbutilities.lang.warps.tp=Телепортирован в '%s'!
+serverutilities.lang.warps.no_dp=Вы можете вернуться только один раз!
+
+# Homes
+serverutilities.lang.homes.set=Дом '%s' установлен!
+serverutilities.lang.homes.del=Дом '%s' удален!
+serverutilities.lang.homes.not_set=Неизвестный дом: '%s'!
+serverutilities.lang.homes.cooldown=Вы можете использовать дом только в %s!
+serverutilities.lang.homes.cross_dim=Вы не можете телепортироваться в другое измерение!
+serverutilities.lang.homes.limit=Вы не можете установить больше домашних мест!
+
+# TPA
+serverutilities.lang.tpa.from_to=%s -> %s
+serverutilities.lang.tpa.request_received=%s требует TPA! %s, чтобы принять.
+serverutilities.lang.tpa.request_sent=Запрос отправлен!
+serverutilities.lang.tpa.no_request=%s не запрашивает TPA!
+serverutilities.lang.tpa.cant_request=Не могу запросить TPA!
+serverutilities.lang.tpa.request_expired=TPA запрос истек!
+serverutilities.lang.tpa.request_accepted=TPA запрос принят!
+
+# Commands
+commands.shutdown.usage=/shutdown
+commands.inv.usage=/inv
+commands.inv.view.usage=/inv view <player>
+commands.inv.save.usage=/inv save <player> <id>
+commands.inv.load.usage=/inv load <player> <id>
+commands.inv.list.usage=/inv list
+commands.warp.usage=/warp <warp>
+commands.setwarp.usage=/setwarp <warp> <player>|{<x> <y> <z> [dim]}
+commands.delwarp.usage=/delwarp <warp>
+commands.home.usage=/home [list|list_all|home] [player]
+commands.sethome.usage=/sethome [home]
+commands.delhome.usage=/delhome [home]
+commands.server_info.usage=/server_info
+commands.loaded_chunks_list.usage=/loaded_chunks_list
+commands.tpl.usage=/tpl (<x> <y> <z>) | ([who] <player>)
+commands.trash_can.usage=/trash_can
+commands.back.usage=/back
+commands.spawn.usage=/spawn
+commands.chunks.usage=/chunks
+commands.chunks.claim.usage=/chunks claim
+commands.chunks.unclaim.usage=/chunks unclaim
+commands.chunks.load.usage=/chunks load
+commands.chunks.unload.usage=/chunks unload [player]
+commands.chunks.unclaim_all.usage=/chunks unclaim_all [dimension] [player]
+commands.chunks.unload_all.usage=/chunks unload_all [dimension] [player]
+commands.chunks.unclaim_everything.usage=/chunks unclaim_everything [dimension]
+commands.chunks.unload_everything.usage=/chunks unload_everything [dimension]
+commands.kickme.usage=/kickme
+commands.ranks.usage=/ranks
+commands.ranks.not_found=Ранг '%s' не найден!
+commands.ranks.add.usage=/ranks add <id> [parent]
+commands.ranks.add.id_invalid=Недопустимый ID ранга: '%s'. Он должен быть буквенно-цифровым и строчным.
+commands.ranks.add.id_exists=Ранг '%s' уже существует!
+commands.ranks.add.added=Ранг %s добавлен!
+commands.ranks.get.usage=/ranks get [player]
+commands.ranks.set.usage=/ranks set <player> <rank|none>
+commands.ranks.set.set=Установить ранг для %s в %s
+commands.ranks.get_permission.usage=/ranks get_permission <player> <permission>
+commands.ranks.get_permission.text=%s для %s %s
+commands.ranks.set_permission.usage=/ranks set_permission <rank> <permission> <true|false|value|none>
+commands.ranks.set_permission.set=%s ляд %s установлен в %s
+commands.ranks.delete.usage=/ranks delete <rank>
+commands.ranks.delete.deleted=Ранг %s удален
+commands.upload_crash_report.usage=/upload_crash_report <file>
+commands.heal.usage=/heal [player]
+commands.killall.usage=/killall [type] [dimension]
+commands.nbtedit.usage=/nbtedit
+commands.nbtedit.too_large=Размер NBT слишком большой!
+commands.nbtedit.tile.usage=/nbtedit tile <x> <y> <z>
+commands.nbtedit.entity.usage=/nbtedit entity <id>
+commands.nbtedit.player.usage=/nbtedit player <player>
+commands.nbtedit.item.usage=/nbtedit item
+commands.tpa.usage=/tpa <player>
+commands.tpaccept.usage=/tpaccept <player>
+commands.tpdeny.usage=/tpdeny <player>
+commands.nick.usage=/nick <name...>
+commands.fly.usage=/fly
+commands.cycle_block_state.usage=/cycle_block_state
+commands.leaderboards.usage=/leaderboards [id]
+commands.mute.usage=/mute <player>
+commands.mute.muted=Вы приглушены!
+commands.unmute.usage=/unmute <player>
+
+# Client Commands
+commands.shrug.usage=/shrug [text...]
+commands.scan_items.usage=/scan_items
+commands.print_item.usage=/print_item
+
+# LIB
+# Gui
+## Buttons
+gui.accept=Принять
+gui.add=Добавить
+gui.added=Добавлено
+gui.remove=Удалить
+gui.removed=Удалено
+gui.close=Закрыть
+gui.open=Открыть
+gui.saved=Сохранено
+gui.loaded=Загружено
+gui.info=Инфо
+gui.collapse_all=Свернуть все
+gui.expand_all=Развернуть все
+gui.download=Скачать
+gui.downloaded=Загружено
+gui.update=Обновление
+gui.updated=Обновлено
+gui.active=Активный
+gui.inactive=Неактивный
+gui.settings=Настройки
+gui.rename=Переименовать
+gui.search_box=Поиск...
+
+## Labels
+gui.other=Другой
+gui.server_forced=Сервер принудительно: %s
+gui.online=В сети
+gui.offline=Не в сети
+gui.whitelist=Белый список
+gui.blacklist=Черный список
+gui.color=Цвет
+gui.downloading=Скачивание...
+gui.infinite=Бесконечный
+
+## Sides
+facing.north=Север
+facing.south=Юг
+facing.west=Запад
+facing.east=Восток
+
+relative_facing.bottom=Снизу
+relative_facing.top=Сверху
+relative_facing.back=Сзади
+relative_facing.front=Спереди
+relative_facing.left=Слева
+relative_facing.right=Справа
+
+# FTBLib Lang
+serverutilities=FTBLib
+wip=Работа в процессе!
+deprecated=Этот метод устарел, используйте %s
+example=Пример:
+click_here=[Нажмите здесь]
+feature_disabled=Эта функция отключена!
+feature_disabled_server=Эта функция отключена на сервере!
+error=Ошибка: %s
+owner=Владелец: %s
+delete_item=Вы хотите удалить '%s'?
+server_forced=Переопределение сервера на '%s'
+commands=Команды
+my_permissions=Мои разрешения
+all_permissions=все разрешения
+key.categories.ftbmods=FTB Mods
+stand_still=Пожалуйста, остановитесь на %d секунд.
+stand_still_failed=Вы переместились! Телепорт отменен.
+teleporting=Телепортация...
+cooldown=Кулдаун
+cant_use_now=Не могу использовать это прямо сейчас!
+cant_use_now_cooldown=Не могу использовать это прямо сейчас! Кулдаун: %s
+action_bar=Action Bar
+nothing_changed=Ничего не изменилось!
+player_must_be_online=Игрок должен быть в сети!
+
+serverutilities.lang.reload_server_button=Перезагрузить сервер
+serverutilities.lang.reload_server=FTBLib: Сервер перезагружен в %s
+serverutilities.lang.reload_client=Вы можете нажать %s, чтобы перезагрузить клиент.
+serverutilities.lang.reload_failed=Эти ID не удалось перезагрузить:
+
+serverutilities.lang.config_command.invalid_key=Не удается найти значение конфигурации '%s'!
+serverutilities.lang.config_command.set='%s' установить в %s
+
+serverutilities.lang.add_fake_player.invalid_uuid=Неверный UUID!
+serverutilities.lang.add_fake_player.player_exists=Игрок уже существует!
+serverutilities.lang.add_fake_player.added=Фейк игрок %s добавлен!
+
+serverutilities.select_fluid.gui=Выбрать жидкость
+serverutilities.select_fluid.none=Ничто
+serverutilities.select_item.list_mode=Режим списка: %s
+serverutilities.select_item.list_mode.all=Все предметы
+serverutilities.select_item.list_mode.inv=Инвентарь
+serverutilities.select_item.count=Установить размер
+serverutilities.select_item.meta=Установить метаданные
+serverutilities.select_item.nbt=Редактировать NBT
+serverutilities.select_item.caps=Редактирование возможностей
+serverutilities.select_item.display_name=Установить отображаемое имя
+serverutilities.select_team.gui=Выбрать команду
+
+# Config
+serverutilities.general.clientless_mode=Безклиентский режим
+serverutilities.general.replace_reload_command=Заменить команду /reload
+serverutilities.general.merge_offline_mode_players=Объединение игроков в автономном режиме
+
+serverutilities.teams=Teams
+serverutilities.teams.autocreate_sp=Автосоздание в одиночной игре
+serverutilities.teams.autocreate_mp=Автосоздание в мультиплеере
+
+serverutilities.debugging=Отладка
+serverutilities.debugging.special_commands=Специальные команды
+serverutilities.debugging.print_more_info=Печатать больше информации
+serverutilities.debugging.print_more_errors=Печатать дополнительные ошибки
+serverutilities.debugging.log_network=Журнал сетевых операций ввода-вывода
+serverutilities.debugging.log_teleport=Журнал телепортации
+serverutilities.debugging.log_config_editing=Журнал редактирование конфигурации
+serverutilities.debugging.dev_sidebar_buttons=Кнопки боковой панели только для разработчика
+serverutilities.debugging.gui_widget_bounds=Границы графического интерфейса пользователя
+serverutilities.debugging.log_events=Журнал событий
+
+# Client Config
+serverutilities_client.item_ore_names=Показать названия предметы словаря руды
+serverutilities_client.item_ore_names.item_tooltip=Названия словаря руды:
+serverutilities_client.item_nbt=Показать предмет NBT
+serverutilities_client.replace_vanilla_status_messages=Заменить ванильные статус сообщения
+serverutilities_client.debug_helper=Помощник отладки
+
+# Player Settings
+player_config=Настройки моего сервера
+player_config.serverutilities.hide_team_notification=Скрыть командное уведомление при входе
+
+# Team Settings
+team_config.serverutilities.display=Отображение
+team_config.serverutilities.display.color=Цвет
+team_config.serverutilities.display.fake_player_status=Статус фейк игрока
+team_config.serverutilities.display.title=Название
+team_config.serverutilities.display.title.tooltip=Отображается, когда вы входите в занятый чанк
+team_config.serverutilities.display.desc=Описание
+team_config.serverutilities.display.desc.tooltip=Отображается под названием
+team_config.serverutilities.free_to_join=Свободно присоединиться
+team_config.serverutilities.free_to_join.tooltip=Любой желающий может присоединиться без приглашения
+
+# Teams
+serverutilities.lang.team.created=Команда '%s' создана
+serverutilities.lang.team.id_already_exists=ID уже зарегистрирован!
+serverutilities.lang.team.id_invalid=ID может содержать только строчные буквы a-z, _ и |!
+serverutilities.lang.team.deleted=Команда '%s' удалена
+serverutilities.lang.team.member_left=%s покинул вашу команду!
+serverutilities.lang.team.member_joined=%s присоединился к вашей команде!
+serverutilities.lang.team.transferred_ownership=Новый владелец сейчас %s
+serverutilities.lang.team.invited=Приглашен %s в '%s'
+serverutilities.lang.team.invited_you=Вы были приглашены в '%s' от %s
+serverutilities.lang.team.cancel_invite=Отменить приглашение
+serverutilities.lang.team.error.not_found=Команда '%s' не найдена!
+serverutilities.lang.team.error.no_team=Вы должны быть в команде, чтобы сделать это!
+serverutilities.lang.team.error.must_leave=Вы должны покинуть свою команду, чтобы сделать это!
+serverutilities.lang.team.error.not_owner=Вы не являетесь владельцем этой команды!
+serverutilities.lang.team.error.not_member=%s не является членом этой команды!
+serverutilities.lang.team.error.must_transfer_ownership=Вы должны передать право собственности!
+serverutilities.lang.team.error.already_invited=%s уже приглашен!
+serverutilities.lang.team.error.failed_to_join=Не могу присоединиться к этой команде!
+serverutilities.lang.team.permission.set=Разрешение '%s' для %s установлены на %s
+serverutilities.lang.team.permission.owner=Невозможно изменить права владельца!
+serverutilities.lang.team.notification=Вы еще не присоединились или не создали команду! %s, чтобы открыть командный интерфейс или %s, чтобы скрыть это сообщение.
+serverutilities.lang.team.notification.hide=Скрыть это сообщение
+serverutilities.lang.team.chat_message=[Команда %s] %s
+
+team_action.serverutilities.select_team=Выбрать команду для присоединения
+team_action.serverutilities.create_team=Создать новую команду
+team_action.serverutilities.members=Члены
+team_action.serverutilities.allies=Союзники
+team_action.serverutilities.moderators=Модераторы
+team_action.serverutilities.enemies=Враги
+team_action.serverutilities.leave=Выйти из команды
+team_action.serverutilities.transfer_ownership=Передача прав владельца
+
+serverutilities.lang.team.gui.join_team=Нажмите, чтобы присоединиться '%s'
+serverutilities.lang.team.gui.request_invite=Нажмите, чтобы запросить приглашение '%s'
+serverutilities.lang.team.gui.members.invite=Нажмите, чтобы пригласить в свою команду
+serverutilities.lang.team.gui.members.requesting_invite=Этот игрок запрашивает приглашение
+serverutilities.lang.team.gui.members.deny_request=ПКМ, чтобы отклонить запрос
+serverutilities.lang.team.gui.members.cancel_invite=ПКМ, чтобы отменить приглашение
+serverutilities.lang.team.gui.members.kick=ПКМ, чтобы выгнать члена
+
+serverutilities.lang.team_status.enemy=Враг
+serverutilities.lang.team_status.none=Никто
+serverutilities.lang.team_status.requesting_invite=Запрос приглашения
+serverutilities.lang.team_status.invited=Приглашенный
+serverutilities.lang.team_status.ally=Союзник
+serverutilities.lang.team_status.member=Член
+serverutilities.lang.team_status.mod=Модератор
+serverutilities.lang.team_status.owner=Владелец
+
+# Sidebar Buttons
+sidebar_button=Кнопки боковой панели
+sidebar_button.serverutilities.my_team=Моя команда
+sidebar_button.serverutilities.my_team.tooltip=Открывает графический интерфейс, в котором можно управлять командой
+sidebar_button.serverutilities.settings=Настройки клиента
+sidebar_button.serverutilities.settings.tooltip=Редактировать настройки только на стороне клиента
+sidebar_button.serverutilities.notifications=Уведомления
+sidebar_button.serverutilities.admin_panel=Панель администратора
+
+# Privacy Level
+privacy=Конфиденциальность
+privacy.public=Общественный
+privacy.private=Частный
+privacy.team=Команда
+
+# Redstone Mode
+redstone_mode=Режим красного камня
+redstone_mode.disabled=Отключено
+redstone_mode.active_high=Активен, когда высокий
+redstone_mode.active_low=Активен, когда низкий
+redstone_mode.pulse=Пульс
+
+# IO Mode
+io_mode=Режим вход-выход
+io_mode.io=Вход-выход
+io_mode.in=Только вход
+io_mode.out=Только выход
+io_mode.none=Отключено
+
+# Click Actions
+click_action.cmd=Команда
+click_action.show_cmd=Показать команду
+click_action.url=Открыть ссылку
+click_action.file=Открыть файл
+click_action.gui=Открыть графический интерфейс
+
+# Commands
+commands.reload.usage=/reload [*|domain:*|domain:id]
+commands.my_settings.usage=/my_settings <config id> [value]
+commands.team.usage=/team
+commands.team.settings.usage=/team settings <config id> [value]
+commands.team.create.usage=/team create <id> [color]
+commands.team.leave.usage=/team leave
+commands.team.transfer_ownership.usage=/team transfer_ownership <player>
+commands.team.kick.usage=/team kick <player>
+commands.team.join.usage=/team join <team>
+commands.team.status.usage=/team status <player> [set_status]
+commands.team.status.set=Status for %s set to %s
+commands.team.status.cant_set=Status can't be set!
+commands.team.msg.usage=/team msg <message...>
+commands.team.delete.usage=/team delete <team>
+commands.team.request_invite.usage=/team request_invite <team>
+commands.add_fake_player.usage=/add_fake_player <uuid> <name>
+
+# Client Commands
+commands.client_config.usage=/client_config

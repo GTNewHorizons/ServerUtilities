@@ -1,0 +1,135 @@
+body {
+	/*! width: 700px; */
+	margin: auto;
+background-color: #2c3e50;
+	font-family: sans-serif;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+div.logo {
+	height: 190px;
+	background-image: url(logo.gif);
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 150px;
+	width: 190px;
+}
+a:link {
+background-color: transparent;
+}
+div.links div {
+	border-radius: 10px;
+	margin-top: 4px;
+	margin-bottom: 4px;
+	background-repeat: no-repeat;
+	background-position: left;
+	background-size: 80px 80px;
+	background-position-x: 4px;
+	background-color: #34495e;
+	transition: border-color 0.35s;
+	min-height: 170px;
+	padding: 10px 10px;
+	display: flex;
+	flex-direction: column;
+	background-position-x: 10px;
+}
+.links {
+    display: inline-flex;
+    flex-direction: row;
+    width: 92vw;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+div.links a:link {
+	border-radius: 0;
+	padding: 0;
+    width: 400px;
+    margin:16px 50px;
+}
+
+div.links a:link:hover {
+	background-color: transparent;
+}
+
+div.links div:hover {
+	border-color: #2c3e50;
+	background-color: #4E6378;
+}
+
+div.links p {
+	padding-left: 100px;
+	font-size: 36px;
+	margin-top: 21px;
+	margin-bottom: 10px;
+}
+
+div.links p.hasdesc {
+	font-size: 28px;
+	margin-top: 10px;
+}
+
+div.links p.desc {
+	color: white;
+	font-size: 20px;
+	margin-top: 5px;
+}
+h1 {
+	color: #EAB38F;
+}
+h2, h3, h4, h5, h6 {
+	color: #E8C4AE;
+}
+a, p {
+	margin: 0;
+}
+* {
+    color: #bdc3c7;
+}
+li {
+	margin-bottom: 0.125em;
+}
+a:link {
+	text-decoration: none;
+	border-radius: 0.125em;
+}
+a:link:hover {
+	background-color: rgba(229, 212, 201, 0.3);
+}
+a:visited {
+	text-decoration: none;
+}
+table, th, td {
+	border: 1px solid #E5D4C9;
+	border-collapse: collapse;
+}
+td, th {
+	padding: 0.25em;
+	text-align: center;
+}
+pre {
+	background-color: rgba(229, 212, 201, 0.1);
+	font-family: "Courier New", monospace;
+	white-space: pre;
+	margin: 0.25em 0;
+	padding: 0.5em;
+	border-radius: 0.5em;
+	display: inline-block;
+}
+code {
+	background-color: rgba(229, 212, 201, 0.1);
+	padding: 0.0625em 0.0625em;
+	border-radius: 0.25em;
+}
+pre:hover, code:hover {
+	background-color: rgba(229, 212, 201, 0.2);
+	cursor: text;
+}
+input {
+	border: 0.125em solid #E8C4AE;
+	background-color: transparent;
+}

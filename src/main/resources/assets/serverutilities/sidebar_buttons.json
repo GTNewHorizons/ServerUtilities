@@ -1,0 +1,93 @@
+{
+	"my_team": {
+		"group": "serverutilities:info",
+		"icon": "serverutilities:textures/gui/teams.png",
+		"x": 0,
+		"click": "custom:serverutilities:my_team_gui",
+		"required_server_mods": ["serverutilities"],
+		"loading_screen": true
+	},
+	"settings": {
+		"group": "serverutilities:info",
+		"icon": "serverutilities:textures/icons/settings.png",
+		"x": 100,
+		"click": "custom:serverutilities:client_config_gui"
+	},
+	"admin_panel": {
+		"group": "serverutilities:info",
+		"icon": "serverutilities:textures/icons/settings_red.png",
+		"x": 110,
+		"click": "custom:serverutilities:admin_panel_gui",
+		"requires_op": true,
+		"required_server_mods": ["serverutilities"],
+		"loading_screen": true
+	},
+	"leaderboards": {
+		"group": "serverutilities:util",
+		"icon": "minecraft:textures/items/sign.png",
+		"x": 170,
+		"click": "custom:serverutilities:leaderboards_gui",
+		"required_server_mods": ["serverutilities"],
+		"loading_screen": true
+	},
+	"claimed_chunks": {
+		"group": "serverutilities:util",
+		"icon": "serverutilities:textures/icons/map.png",
+		"x": 0,
+		"click": "serverutilities:claims_gui",
+		"required_server_mods": ["serverutilities"],
+		"loading_screen": true
+	},
+	"trash_can": {
+		"group": "serverutilities:util",
+		"icon": "serverutilities:textures/icons/bin.png",
+		"x": 150,
+		"click": "command:/trash_can",
+		"required_server_mods": ["serverutilities"],
+		"loading_screen": true
+	},
+	"heal": {
+		"group": "serverutilities:cheat",
+		"icon": "serverutilities:textures/icons/heart.png",
+		"x": 140,
+		"click": "command:/heal",
+		"required_server_mods": ["serverutilities"],
+		"hide_with_nei": true,
+		"requires_op": true
+	},
+	"toggle.gamemode": {
+		"group": "serverutilities:cheat",
+		"icon": ["serverutilities:textures/icons/blue_button.png", "serverutilities:textures/icons/toggle_gamemode.png"],
+		"x": 100,
+		"click": "serverutilities:toggle_gamemode",
+		"hide_with_nei": true,
+		"requires_op": true
+	},
+	"toggle.rain": {
+		"group": "serverutilities:cheat",
+		"icon": ["serverutilities:textures/icons/blue_button.png", "serverutilities:textures/icons/toggle_rain.png"],
+		"x": 110,
+		"click": "command:/toggledownfall",
+		"config": true,
+		"hide_with_nei": true,
+		"requires_op": true
+	},
+	"toggle.day": {
+		"group": "serverutilities:cheat",
+		"icon": ["serverutilities:textures/icons/blue_button.png", "serverutilities:textures/icons/toggle_day.png"],
+		"x": 120,
+		"click": "serverutilities:daytime",
+		"required_server_mods": ["serverutilities"],
+		"hide_with_nei": true,
+		"requires_op": true
+	},
+	"toggle.night": {
+		"group": "serverutilities:cheat",
+		"icon": ["serverutilities:textures/icons/blue_button.png", "serverutilities:textures/icons/toggle_night.png"],
+		"x": 130,
+		"click": "serverutilities:nighttime",
+		"required_server_mods": ["serverutilities"],
+		"hide_with_nei": true,
+		"requires_op": true
+	}
+}

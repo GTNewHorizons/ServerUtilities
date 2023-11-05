@@ -1,0 +1,10 @@
+{
+	"groups": {
+		"serverutils_client_configs": "serverutils.lib.client.ServerUtilitiesLibResourceType.SERVERUTILS_CONFIG",
+		"sidebar_buttons": "serverutils.lib.client.ServerUtilitiesLibResourceType.SERVERUTILS_SIDEBAR_BUTTONS"
+	},
+	"listeners": {
+		"serverutils_client_configs": "serverutils.lib.client.ServerUtilitiesLibClientConfigManager",
+		"sidebar_buttons": "serverutils.lib.client.SidebarButtonManager"
+	}
+}
