@@ -51,6 +51,7 @@ import serverutils.client.gui.SidebarButtonGroup;
 import serverutils.client.gui.SidebarButtonManager;
 import serverutils.events.chunks.UpdateClientDataEvent;
 import serverutils.events.client.CustomClickEvent;
+import serverutils.integration.vp.VPIntegration;
 import serverutils.lib.OtherMods;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.GlStateManager;
@@ -102,6 +103,9 @@ public class ServerUtilitiesClientEventHandler {
     public void onClientDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         BADGE_CACHE.clear();
         shutdownTime = 0L;
+        if (Loader.isModLoaded(OtherMods.VP)) {
+            VPIntegration.CLAIMS.clear();
+        }
     }
 
     @SubscribeEvent

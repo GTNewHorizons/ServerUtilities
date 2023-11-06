@@ -116,6 +116,9 @@ public class ServerUtilitiesPermissions {
     public static final String AFK_TIMER = "serverutilities.afk.timer";
     public static final String HEAL_OTHER = "serverutilities.other_player.heal";
 
+    public static final String CLAIMS_JOURNEYMAP = "serverutilities.journeymap.team";
+    public static final String CLAIMS_JOURNEYMAP_OTHER = "serverutilities.journeymap.other";
+
     @SubscribeEvent
     public void registerRankConfigHandler(RegisterRankConfigHandlerEvent event) {
         if (ServerUtilitiesConfig.ranks.enabled) {
@@ -128,7 +131,7 @@ public class ServerUtilitiesPermissions {
         PermissionAPI.registerNode(
                 CHAT_FORMATTING,
                 DefaultPermissionLevel.ALL,
-                "Allows to use **bold**, *italic* and ~~striketrough~~ in chat");
+                "Allows to use **bold**, *italic* and ~~strikethrough~~ in chat");
         PermissionAPI.registerNode(CHAT_NICKNAME_SET, DefaultPermissionLevel.OP, "Allow to change nickname");
         PermissionAPI.registerNode(
                 CHAT_NICKNAME_COLORS,
@@ -214,6 +217,14 @@ public class ServerUtilitiesPermissions {
         PermissionAPI
                 .registerNode(RTP_BACK, DefaultPermissionLevel.OP, "Allow player back to last time where /rtp is used");
         PermissionAPI.registerNode(RESPAWN_BACK, DefaultPermissionLevel.ALL, "Allow player back to last death point");
+        PermissionAPI.registerNode(
+                CLAIMS_JOURNEYMAP,
+                DefaultPermissionLevel.ALL,
+                "Allow player to see own teams claims on JourneyMap overlay");
+        PermissionAPI.registerNode(
+                CLAIMS_JOURNEYMAP_OTHER,
+                DefaultPermissionLevel.ALL,
+                "Allow player to see other teams claims on JourneyMap overlay");
 
         for (Block block : GameData.getBlockRegistry().typeSafeIterable()) {
             String name = formatId(block);

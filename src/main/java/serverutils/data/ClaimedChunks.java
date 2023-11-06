@@ -18,10 +18,12 @@ import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import cpw.mods.fml.common.Loader;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.events.chunks.ChunkModifiedEvent;
+import serverutils.lib.OtherMods;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
@@ -29,6 +31,7 @@ import serverutils.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageClaimedChunksUpdate;
+import serverutils.net.MessageJourneyMapRemove;
 
 public class ClaimedChunks {
 
@@ -149,6 +152,9 @@ public class ClaimedChunks {
         if (prevChunk != null) {
             prevChunk.setInvalid();
             markDirty();
+        }
+        if (Loader.isModLoaded(OtherMods.VP)) {
+            new MessageJourneyMapRemove(pos).sendToAll();
         }
     }
 
