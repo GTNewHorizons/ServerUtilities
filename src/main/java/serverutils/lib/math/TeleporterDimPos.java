@@ -4,14 +4,16 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
-import serverutils.lib.util.ITeleporter;
 import serverutils.lib.util.ServerUtils;
+import serverutils.lib.util.misc.EmptyTeleporter;
 
-public class TeleporterDimPos implements ITeleporter {
+public class TeleporterDimPos {
 
     public final double posX, posY, posZ;
     public final int dim;
@@ -39,14 +41,12 @@ public class TeleporterDimPos implements ITeleporter {
         return new BlockDimPos(posX, posY, posZ, dim);
     }
 
-    @Override
     public void placeEntity(World world, Entity entity, float yaw) {
         entity.motionX = entity.motionY = entity.motionZ = 0D;
         entity.fallDistance = 0F;
 
-        if (entity instanceof EntityPlayerMP && ((EntityPlayerMP) entity).playerNetServerHandler != null) {
-            ((EntityPlayerMP) entity).playerNetServerHandler
-                    .setPlayerLocation(posX, posY, posZ, yaw, entity.rotationPitch);
+        if (entity instanceof EntityPlayerMP playerMP && playerMP.playerNetServerHandler != null) {
+            playerMP.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, entity.rotationPitch);
         } else {
             entity.setLocationAndAngles(posX, posY, posZ, yaw, entity.rotationPitch);
         }
@@ -72,7 +72,16 @@ public class TeleporterDimPos implements ITeleporter {
         }
 
         if (dim != entity.dimension) {
-            entity.travelToDimension(dim);
+            MinecraftServer server = ServerUtils.getServer();
+            WorldServer currentDim = server.worldServerForDimension(entity.dimension);
+            WorldServer newDim = server.worldServerForDimension(dim);
+            if (entity instanceof EntityPlayerMP playerMP) {
+                server.getConfigurationManager()
+                        .transferPlayerToDimension(playerMP, dim, new EmptyTeleporter(newDim, this));
+            } else {
+                server.getConfigurationManager()
+                        .transferEntityToWorld(entity, dim, currentDim, newDim, new EmptyTeleporter(newDim, this));
+            }
             return entity;
         }
 
