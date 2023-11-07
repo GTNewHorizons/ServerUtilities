@@ -1,7 +1,6 @@
 package serverutils.net;
 
-import cpw.mods.fml.common.Loader;
-import serverutils.lib.OtherMods;
+import serverutils.ServerUtilitiesCommon;
 import serverutils.lib.net.NetworkWrapper;
 
 public class ServerUtilitiesNetHandler {
@@ -29,7 +28,7 @@ public class ServerUtilitiesNetHandler {
         CLAIMS.register(new MessageClaimedChunksRequest());
         CLAIMS.register(new MessageClaimedChunksUpdate());
         CLAIMS.register(new MessageClaimedChunksModify());
-        if (Loader.isModLoaded(OtherMods.VP)) {
+        if (ServerUtilitiesCommon.isVPLoaded) {
             CLAIMS.register(new MessageJourneyMapUpdate());
             CLAIMS.register(new MessageJourneyMapRequest());
             CLAIMS.register(new MessageJourneyMapRemove());

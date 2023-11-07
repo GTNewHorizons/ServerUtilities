@@ -31,7 +31,6 @@ import serverutils.command.client.CommandPrintState;
 import serverutils.command.client.CommandSimulateButton;
 import serverutils.handlers.ServerUtilitiesClientEventHandler;
 import serverutils.integration.vp.VPIntegration;
-import serverutils.lib.OtherMods;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.IncompatibleModException;
 import serverutils.lib.client.ParticleColoredDust;
@@ -89,7 +88,7 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
         ClientCommandHandler.instance.registerCommand(new CommandPrintState());
         ClientCommandHandler.instance.registerCommand(new CommandPing());
 
-        if (Loader.isModLoaded(OtherMods.VP) && ServerUtilitiesClientConfig.general.journeymap_overlay) {
+        if (isVPLoaded && ServerUtilitiesClientConfig.general.journeymap_overlay) {
             VPIntegration.init();
         }
 

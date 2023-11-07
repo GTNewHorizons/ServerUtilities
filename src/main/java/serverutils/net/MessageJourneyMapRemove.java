@@ -1,11 +1,9 @@
 package serverutils.net;
 
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.integration.vp.VPIntegration;
-import serverutils.lib.OtherMods;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.math.ChunkDimPos;
@@ -40,7 +38,7 @@ public class MessageJourneyMapRemove extends MessageToClient {
     @Override
     @SideOnly(Side.CLIENT)
     public void onMessage() {
-        if (Loader.isModLoaded(OtherMods.VP) && ServerUtilitiesClientConfig.general.journeymap_overlay) {
+        if (ServerUtilitiesClientConfig.general.journeymap_overlay) {
             VPIntegration.CLAIMS.remove(chunkPos);
         }
     }

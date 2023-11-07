@@ -18,12 +18,11 @@ import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import cpw.mods.fml.common.Loader;
+import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.events.chunks.ChunkModifiedEvent;
-import serverutils.lib.OtherMods;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
@@ -153,7 +152,7 @@ public class ClaimedChunks {
             prevChunk.setInvalid();
             markDirty();
         }
-        if (Loader.isModLoaded(OtherMods.VP)) {
+        if (ServerUtilitiesCommon.isVPLoaded) {
             for (EntityPlayerMP player : (List<EntityPlayerMP>) instance.universe.server
                     .getConfigurationManager().playerEntityList) {
                 if (PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP)) {

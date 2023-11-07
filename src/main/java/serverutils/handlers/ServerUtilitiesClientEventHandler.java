@@ -40,6 +40,7 @@ import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent;
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.client.EnumSidebarButtonPlacement;
 import serverutils.client.ServerUtilitiesClient;
@@ -103,7 +104,7 @@ public class ServerUtilitiesClientEventHandler {
     public void onClientDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         BADGE_CACHE.clear();
         shutdownTime = 0L;
-        if (Loader.isModLoaded(OtherMods.VP)) {
+        if (ServerUtilitiesCommon.isVPLoaded) {
             VPIntegration.CLAIMS.clear();
         }
     }
