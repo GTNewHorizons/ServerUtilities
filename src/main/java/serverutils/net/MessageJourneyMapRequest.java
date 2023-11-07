@@ -2,10 +2,12 @@ package serverutils.net;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import serverutils.ServerUtilitiesPermissions;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToServer;
 import serverutils.lib.net.NetworkWrapper;
+import serverutils.lib.util.permission.PermissionAPI;
 
 public class MessageJourneyMapRequest extends MessageToServer {
 
@@ -43,6 +45,8 @@ public class MessageJourneyMapRequest extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
-        new MessageJourneyMapUpdate(minX, maxX, minZ, maxZ, player).sendTo(player);
+        if (PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP)) {
+            new MessageJourneyMapUpdate(minX, maxX, minZ, maxZ, player).sendTo(player);
+        }
     }
 }

@@ -116,7 +116,7 @@ public class ServerUtilitiesPermissions {
     public static final String AFK_TIMER = "serverutilities.afk.timer";
     public static final String HEAL_OTHER = "serverutilities.other_player.heal";
 
-    public static final String CLAIMS_JOURNEYMAP = "serverutilities.journeymap.team";
+    public static final String CLAIMS_JOURNEYMAP = "serverutilities.journeymap.enable";
     public static final String CLAIMS_JOURNEYMAP_OTHER = "serverutilities.journeymap.other";
 
     @SubscribeEvent

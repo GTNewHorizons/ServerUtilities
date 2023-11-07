@@ -14,14 +14,12 @@ import serverutils.lib.net.NetworkWrapper;
 
 public class MessageJourneyMapRemove extends MessageToClient {
 
-    private int chunkX, chunkZ, dim;
+    private ChunkDimPos chunkPos;
 
     public MessageJourneyMapRemove() {}
 
     public MessageJourneyMapRemove(ChunkDimPos pos) {
-        this.chunkX = pos.posX;
-        this.chunkZ = pos.posZ;
-        this.dim = pos.dim;
+        this.chunkPos = pos;
     }
 
     @Override
@@ -31,23 +29,19 @@ public class MessageJourneyMapRemove extends MessageToClient {
 
     @Override
     public void writeData(DataOut data) {
-        data.writeVarInt(chunkX);
-        data.writeVarInt(chunkZ);
-        data.writeVarInt(dim);
+        data.writeChunkDimPos(chunkPos);
     }
 
     @Override
     public void readData(DataIn data) {
-        chunkX = data.readVarInt();
-        chunkZ = data.readVarInt();
-        dim = data.readVarInt();
+        chunkPos = data.readChunkDimPos();
     }
 
     @Override
     @SideOnly(Side.CLIENT)
     public void onMessage() {
         if (Loader.isModLoaded(OtherMods.VP) && ServerUtilitiesClientConfig.general.journeymap_overlay) {
-            VPIntegration.CLAIMS.remove(new ChunkDimPos(chunkX, chunkZ, dim));
+            VPIntegration.CLAIMS.remove(chunkPos);
         }
     }
 }
