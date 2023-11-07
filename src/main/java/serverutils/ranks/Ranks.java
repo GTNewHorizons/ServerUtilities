@@ -237,33 +237,6 @@ public class Ranks {
             }
         }
 
-        File oldPlayerRanksFile = universe.server.getFile(ServerUtilities.SERVER_FOLDER + "player_ranks.txt");
-
-        if (oldPlayerRanksFile.exists()) {
-            for (String s : DataReader.get(oldPlayerRanksFile).safeStringList()) {
-                if (s.isEmpty() || s.startsWith("//")) {
-                    continue;
-                }
-
-                String[] s1 = s.split(":", 2);
-
-                if (s1.length == 2) {
-                    ForgePlayer player = universe.getPlayer(s1[0].trim());
-
-                    if (player != null) {
-                        Rank rank = getRank(s1[1].trim());
-
-                        if (rank != null && !rank.isPlayer()) {
-                            getPlayerRank(player.getProfile()).addParent(rank);
-                        }
-                    }
-                }
-            }
-
-            oldPlayerRanksFile.delete();
-            save = true;
-        }
-
         File badgeFile = universe.server.getFile(ServerUtilities.SERVER_FOLDER + "server_badges.txt");
 
         if (badgeFile.exists()) {
