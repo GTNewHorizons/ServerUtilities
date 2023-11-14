@@ -8,4 +8,5 @@ public interface OtherMods {
     String FORESTRY = "forestry";
     String TINKERS_CONSTRUCT = "tconstruct";
     String JOURNEYMAP = "journeymap";
+    String VP = "visualprospecting";
 }

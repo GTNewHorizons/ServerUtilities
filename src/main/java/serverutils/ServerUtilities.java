@@ -53,7 +53,7 @@ import serverutils.ranks.Ranks;
         name = ServerUtilities.MOD_NAME,
         version = ServerUtilities.VERSION,
         acceptableRemoteVersions = "*",
-        dependencies = "")
+        dependencies = "after:visualprospecting;")
 public class ServerUtilities {
 
     public static final String MOD_ID = "serverutilities";

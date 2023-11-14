@@ -45,6 +45,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import serverutils.lib.icon.Icon;
 import serverutils.lib.math.BlockDimPos;
+import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.CommonUtils;
 import serverutils.lib.util.InvUtils;
 import serverutils.lib.util.JsonUtils;
@@ -68,6 +69,7 @@ public class DataIn {
     public static final Deserializer<IChatComponent> TEXT_COMPONENT = DataIn::readTextComponent;
     public static final Deserializer<ResourceLocation> RESOURCE_LOCATION = DataIn::readResourceLocation;
     public static final Deserializer<ItemStack> ITEM_STACK = DataIn::readItemStack;
+    public static final Deserializer<ChunkDimPos> CHUNK_DIM_POS = DataIn::readChunkDimPos;
 
     public static final DataIn.Deserializer<ChunkCoordIntPair> CHUNK_POS = data -> {
         int x = data.readVarInt();
@@ -284,6 +286,13 @@ public class DataIn {
         int y = readVarInt();
         int z = readVarInt();
         return new BlockDimPos(x, y, z, d);
+    }
+
+    public ChunkDimPos readChunkDimPos() {
+        int x = readVarInt();
+        int z = readVarInt();
+        int d = readVarInt();
+        return new ChunkDimPos(x, z, d);
     }
 
     public UUID readUUID() {

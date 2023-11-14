@@ -18,6 +18,7 @@ import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 
+import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
@@ -29,6 +30,7 @@ import serverutils.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageClaimedChunksUpdate;
+import serverutils.net.MessageJourneyMapRemove;
 
 public class ClaimedChunks {
 
@@ -149,6 +151,14 @@ public class ClaimedChunks {
         if (prevChunk != null) {
             prevChunk.setInvalid();
             markDirty();
+        }
+        if (ServerUtilitiesCommon.isVPLoaded) {
+            for (EntityPlayerMP player : (List<EntityPlayerMP>) instance.universe.server
+                    .getConfigurationManager().playerEntityList) {
+                if (PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP)) {
+                    new MessageJourneyMapRemove(pos).sendTo(player);
+                }
+            }
         }
     }
 

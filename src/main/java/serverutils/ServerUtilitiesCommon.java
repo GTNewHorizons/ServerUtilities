@@ -41,6 +41,7 @@ import serverutils.handlers.ServerUtilitiesRegistryEventHandler;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.handlers.ServerUtilitiesWorldEventHandler;
 import serverutils.lib.EnumReloadType;
+import serverutils.lib.OtherMods;
 import serverutils.lib.config.ConfigBoolean;
 import serverutils.lib.config.ConfigColor;
 import serverutils.lib.config.ConfigDouble;
@@ -90,6 +91,7 @@ public class ServerUtilitiesCommon {
     public static final Map<ResourceLocation, TeamAction> TEAM_GUI_ACTIONS = new HashMap<>();
     public static final Map<ResourceLocation, AdminPanelAction> ADMIN_PANEL_ACTIONS = new HashMap<>();
     private static final Map<String, Function<ForgePlayer, IChatComponent>> CHAT_FORMATTING_SUBSTITUTES = new HashMap<>();
+    public static boolean isVPLoaded;
 
     public static Function<String, IChatComponent> chatFormattingSubstituteFunction(ForgePlayer player) {
         return s -> {
@@ -113,6 +115,8 @@ public class ServerUtilitiesCommon {
         if ((Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
             ServerUtilities.LOGGER.info("Loading ServerUtilities in development environment");
         }
+
+        isVPLoaded = Loader.isModLoaded(OtherMods.VP);
 
         ServerUtilitiesConfig.init(event);
         AuroraConfig.init(event);

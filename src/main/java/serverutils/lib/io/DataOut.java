@@ -42,6 +42,7 @@ import io.netty.buffer.ByteBufOutputStream;
 import io.netty.handler.codec.EncoderException;
 import serverutils.lib.icon.Icon;
 import serverutils.lib.math.BlockDimPos;
+import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.JsonUtils;
 
 public class DataOut {
@@ -62,7 +63,7 @@ public class DataOut {
     public static final Serializer<IChatComponent> TEXT_COMPONENT = DataOut::writeTextComponent;
     public static final Serializer<ResourceLocation> RESOURCE_LOCATION = DataOut::writeResourceLocation;
     public static final Serializer<ItemStack> ITEM_STACK = DataOut::writeItemStack;
-
+    public static final DataOut.Serializer<ChunkDimPos> CHUNK_DIM_POS = DataOut::writeChunkDimPos;
     public static final DataOut.Serializer<ChunkCoordIntPair> CHUNK_POS = (data, pos) -> {
         data.writeVarInt(pos.chunkXPos);
         data.writeVarInt(pos.chunkZPos);
@@ -125,6 +126,12 @@ public class DataOut {
         writeVarInt(pos.posX);
         writeVarInt(pos.posY);
         writeVarInt(pos.posZ);
+    }
+
+    public void writeChunkDimPos(ChunkDimPos pos) {
+        writeVarInt(pos.posX);
+        writeVarInt(pos.posZ);
+        writeVarInt(pos.dim);
     }
 
     public void writeUUID(UUID id) {
