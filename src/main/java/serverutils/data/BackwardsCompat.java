@@ -142,11 +142,11 @@ public class BackwardsCompat {
         if (warps != null) for (Map.Entry<String, JsonElement> e : warps.entrySet()) {
             if (e.getValue().isJsonArray()) {
                 int[] val = fromIntArray(e.getValue());
-                ServerUtilitiesUniverseData.WARPS.set(e.getKey(), BlockDimPos.fromIntArray(val));
+                ServerUtilitiesUniverseData.WARPS.set(e.getKey().toLowerCase(), BlockDimPos.fromIntArray(val));
             } else {
                 JsonObject o = e.getValue().getAsJsonObject();
                 ServerUtilitiesUniverseData.WARPS.set(
-                        e.getKey(),
+                        e.getKey().toLowerCase(),
                         new BlockDimPos(
                                 o.get("x").getAsInt(),
                                 o.get("y").getAsInt(),
