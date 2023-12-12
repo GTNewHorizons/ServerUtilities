@@ -134,7 +134,8 @@ public class ServerUtilities {
             Ranks.INSTANCE.commands.clear();
 
             boolean bukkitLoaded = CommonUtils.getClassExists("thermos.ThermosRemapper")
-                    || CommonUtils.getClassExists("org.ultramine.server.UltraminePlugin");
+                    || CommonUtils.getClassExists("org.ultramine.server.UltraminePlugin")
+                    || CommonUtils.getClassExists("org.bukkit.World");
 
             if (bukkitLoaded) {
                 LOGGER.warn(
