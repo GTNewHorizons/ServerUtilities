@@ -38,4 +38,13 @@ public class CommonUtils {
         String pkg = clazz.getName().substring(0, clazz.getName().lastIndexOf('.'));
         return packageOwners.containsKey(pkg) ? packageOwners.get(pkg).get(0) : null;
     }
+
+    public static boolean getClassExists(String className) {
+        try {
+            Class.forName(className, false, CommonUtils.class.getClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 }
