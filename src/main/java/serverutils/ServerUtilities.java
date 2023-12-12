@@ -18,7 +18,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.SidedProxy;
@@ -134,14 +133,15 @@ public class ServerUtilities {
         if (Ranks.isActive()) {
             Ranks.INSTANCE.commands.clear();
 
-            boolean crucibleLoaded = Loader.isModLoaded("Crucible");
+            boolean bukkitLoaded = CommonUtils.getClassExists("thermos.ThermosRemapper")
+                    || CommonUtils.getClassExists("org.ultramine.server.UltraminePlugin");
 
-            if (crucibleLoaded) {
+            if (bukkitLoaded) {
                 LOGGER.warn(
-                        "Crucible detected, command overriding has been disabled. If there are any issues with Server Utilities ranks or permissions, please test them without Crucible!");
+                        "Thermos/Ultramine detected, command overriding has been disabled. If there are any issues with Server Utilities ranks or permissions, please test them without those mods!");
             }
 
-            if (!ServerUtilitiesConfig.ranks.override_commands || crucibleLoaded) {
+            if (!ServerUtilitiesConfig.ranks.override_commands || bukkitLoaded) {
                 return;
             }
 
