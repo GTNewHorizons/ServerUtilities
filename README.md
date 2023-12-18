@@ -4,10 +4,7 @@ ServerUtilities for server owners and daring single players. Backport and Rebran
 
 Fully backwards compatible with homes, chunks, and warps. These will be loaded from FTBU on first load.
 
-Utilizes a permission system to handle whether a player can use certain commands and do certain things. 
-A full list of permissions along with their description can be dumped using the command /dump_permissions, 
-the file will be placed at .minecraft/serverutilities/server/.
-They can also be viewed using the Aurora webapi.
+Utilizes a permission system to handle whether a player can use certain commands and do certain things. A full list of permissions along with their description can be dumped using the command `/dump_permissions`, the file will be placed at ``.minecraft/serverutilities/server/``. They can also be viewed using the Aurora webapi.
 
 ## Quick Install
 
@@ -15,11 +12,11 @@ Download the latest JAR from ![releases](https://github.com/GTNewHorizons/Server
 
 Once loaded, you will find new UI options in your inventory screen:
 
-![image](claimed_chunks.png)
+![ServerUtilities GUI](claimed_chunks.png)
 
 For single player, loading chunks is the most important, and you can click that icon and then shift-click (and drag) to designate chunks to load. Right click to unload and unclaim.
 
-The ServerUtilities configuration files are found in `.minecraft/serverutilities` and it will migrate from FTBU for you. The most likely thing you want to change is found in `.minecraft/serverutilties/server/rants.txt` where you can control how many chunks can be loaded. `.minecraft/serverutilities/serverutlities.cfg` is where you can disable backups if you have another backup solution.
+The ServerUtilities configuration files are found in `.minecraft/serverutilities` and it will migrate from FTBU for you. The most likely thing you want to change is found in `.minecraft/serverutilties/server/ranks.txt` where you can control how many chunks can be loaded. `.minecraft/serverutilities/serverutlities.cfg` is where you can disable backups if you have another backup solution.
 
 For server admins, there is much more that ServerUtilities can do, refer to the FTBU documentation for now.
 
