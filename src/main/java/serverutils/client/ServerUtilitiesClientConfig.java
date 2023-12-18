@@ -8,6 +8,7 @@ import cpw.mods.fml.client.event.ConfigChangedEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.math.Ticks;
 
 public class ServerUtilitiesClientConfig {
@@ -133,6 +134,7 @@ public class ServerUtilitiesClientConfig {
     public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
         if (event.modID.equals(ServerUtilities.MOD_ID)) {
             ServerUtilitiesClientConfig.sync();
+            ServerUtilitiesConfig.sync();
         }
     }
 }
