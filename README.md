@@ -8,7 +8,7 @@ Utilizes a permission system to handle whether a player can use certain commands
 
 ## Quick Install
 
-Download the latest JAR from ![releases](https://github.com/GTNewHorizons/ServerUtilities/releases) - you want the one named ServerUtilities-number.jar, not the `dev` or `sources`. Place it in the `/mods` folder on your server AND client (if single player, on client only).
+Download the latest JAR from [releases](https://github.com/GTNewHorizons/ServerUtilities/releases) - you want the one named ServerUtilities-number.jar, not the `dev` or `sources`. Place it in the `/mods` folder on your server AND client (if single player, on client only).
 
 Once loaded, you will find new UI options in your inventory screen:
 
