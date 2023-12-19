@@ -6,7 +6,10 @@ import java.util.Collections;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.ChunkCoordIntPair;
 
+import org.lwjgl.input.Keyboard;
+
 import com.sinthoras.visualprospecting.Utils;
+import com.sinthoras.visualprospecting.VP;
 import com.sinthoras.visualprospecting.integration.model.locations.IWaypointAndLocationProvider;
 import com.sinthoras.visualprospecting.integration.model.waypoints.Waypoint;
 
@@ -54,6 +57,14 @@ public class VPClaimsLocation implements IWaypointAndLocationProvider {
         return color.getEnumChatFormatting() + teamName;
     }
 
+    public EnumTeamColor getTeamColor() {
+        return color;
+    }
+
+    public boolean getOwnTeam() {
+        return member;
+    }
+
     public boolean isLoaded() {
         return loaded;
     }
@@ -72,8 +83,14 @@ public class VPClaimsLocation implements IWaypointAndLocationProvider {
         }
     }
 
-    public EnumTeamColor getTeamColor() {
-        return color;
+    public String toggleLoadHint() {
+        return EnumChatFormatting.DARK_GRAY + "Double click to load/unload.";
+    }
+
+    public String unclaimHint() {
+        return EnumChatFormatting.DARK_GRAY + "Press "
+                + Keyboard.getKeyName(VP.keyAction.getKeyCode())
+                + " to unclaim.";
     }
 
     public void toggleLoaded() {

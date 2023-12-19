@@ -61,6 +61,10 @@ public class VPDrawStep implements ClickableDrawStep {
         if (!location.loadedHint().isEmpty()) {
             tooltip.add(location.loadedHint());
         }
+        if (location.getOwnTeam()) {
+            tooltip.add(location.toggleLoadHint());
+            tooltip.add(location.unclaimHint());
+        }
         return tooltip;
     }
 
