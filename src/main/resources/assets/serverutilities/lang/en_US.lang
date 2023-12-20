@@ -620,3 +620,8 @@ click_action.gui=Open Gui
 # Aurora
 aurora=Server Utilities Aurora
 aurora.port=Port
+
+# JourneyMap
+serverutilities.jm.own_team=Your Team
+serverutilities.jm.load_hint=Double click to load/unload
+serverutilities.jm.unclaim_hint=Press %s to unclaim

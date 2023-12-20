@@ -3,6 +3,7 @@ package serverutils.integration.vp;
 import java.util.Collection;
 import java.util.Collections;
 
+import net.minecraft.client.resources.I18n;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.ChunkCoordIntPair;
 
@@ -70,27 +71,26 @@ public class VPClaimsLocation implements IWaypointAndLocationProvider {
     }
 
     public String loadedHint() {
-        return isLoaded() ? EnumChatFormatting.GREEN + "Loaded" : "";
+        return isLoaded() ? EnumChatFormatting.GREEN + I18n.format("serverutilities.lang.chunks.chunk_loaded") : "";
     }
 
     public String teamHint() {
         if (member) {
-            return EnumChatFormatting.DARK_AQUA + "Your Team";
+            return EnumChatFormatting.DARK_AQUA + I18n.format("serverutilities.jm.own_team");
         } else if (ally) {
-            return EnumChatFormatting.YELLOW + "Ally";
+            return EnumChatFormatting.YELLOW + I18n.format("serverutilities.lang.team_status.ally");
         } else {
             return "";
         }
     }
 
     public String toggleLoadHint() {
-        return EnumChatFormatting.DARK_GRAY + "Double click to load/unload.";
+        return EnumChatFormatting.DARK_GRAY + I18n.format("serverutilities.jm.load_hint");
     }
 
     public String unclaimHint() {
-        return EnumChatFormatting.DARK_GRAY + "Press "
-                + Keyboard.getKeyName(VP.keyAction.getKeyCode())
-                + " to unclaim.";
+        return EnumChatFormatting.DARK_GRAY
+                + I18n.format("serverutilities.jm.unclaim_hint", Keyboard.getKeyName(VP.keyAction.getKeyCode()));
     }
 
     public void toggleLoaded() {
