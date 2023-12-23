@@ -9,6 +9,7 @@ import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumChatFormatting;
@@ -285,6 +286,11 @@ public class ServerUtilitiesPlayerEventHandler {
         return String.format("[%d, %d, %d]", x, y, z);
     }
 
+    private static String getHeldItemName(EntityPlayer player) {
+        ItemStack stack = player.getHeldItem();
+        return stack == null ? "Empty Hand" : stack.getDisplayName();
+    }
+
     @SubscribeEvent
     public void onBlockBreakLog(BlockEvent.BreakEvent event) {
         EntityPlayer player = event.getPlayer();
@@ -330,7 +336,7 @@ public class ServerUtilitiesPlayerEventHandler {
                     String.format(
                             "%s clicked %s in air at %s in %s",
                             playerMP.getDisplayName(),
-                            playerMP.getHeldItem().getDisplayName(),
+                            getHeldItemName(playerMP),
                             getPos(event.x, event.y, event.z),
                             getDim(playerMP)));
         }
@@ -349,7 +355,7 @@ public class ServerUtilitiesPlayerEventHandler {
                                 "%s attacked %s with %s at %s in %s",
                                 playerMP.getDisplayName(),
                                 targetPlayer.getDisplayName(),
-                                playerMP.getHeldItem().getDisplayName(),
+                                getHeldItemName(playerMP),
                                 getPos((int) playerMP.posX, (int) playerMP.posY, (int) playerMP.posZ),
                                 getDim(playerMP)));
             }
@@ -360,7 +366,7 @@ public class ServerUtilitiesPlayerEventHandler {
                                 "%s attacked %s with %s at %s in %s",
                                 playerMP.getDisplayName(),
                                 targetCreature.getCommandSenderName(),
-                                playerMP.getHeldItem().getDisplayName(),
+                                getHeldItemName(playerMP),
                                 getPos((int) playerMP.posX, (int) playerMP.posY, (int) playerMP.posZ),
                                 getDim(playerMP)));
             }
