@@ -32,7 +32,9 @@ import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
+import crazypants.enderio.machine.farm.FakeFarmPlayer;
 import serverutils.handlers.ServerUtilitiesClientEventHandler;
+import serverutils.lib.OtherMods;
 import serverutils.net.MessageNotification;
 
 public class ServerUtils {
@@ -78,7 +80,12 @@ public class ServerUtils {
     }
 
     public static boolean isFake(EntityPlayerMP player) {
-        return player.playerNetServerHandler == null || player instanceof FakePlayer;
+        return player.playerNetServerHandler == null || player instanceof FakePlayer || isFakeFarmPlayer(player);
+    }
+
+    private static boolean isFakeFarmPlayer(EntityPlayerMP player) {
+        if (!OtherMods.isEnderIOLoaded()) return false;
+        return player instanceof FakeFarmPlayer;
     }
 
     public static boolean isOP(@Nullable MinecraftServer server, @Nullable GameProfile profile) {
