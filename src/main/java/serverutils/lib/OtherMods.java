@@ -1,12 +1,28 @@
 package serverutils.lib;
 
-public interface OtherMods {
+import cpw.mods.fml.common.Loader;
 
-    String BAUBLES = "Baubles";
-    String NEI = "nei";
-    String NEI_GTNH = "NotEnoughItems";
-    String FORESTRY = "forestry";
-    String TINKERS_CONSTRUCT = "tconstruct";
-    String JOURNEYMAP = "journeymap";
-    String VP = "visualprospecting";
+public class OtherMods {
+
+    private static boolean isNEILoaded;
+    private static boolean isVPLoaded;
+    private static boolean isEnderIOLoaded;
+
+    public static void init() {
+        isNEILoaded = Loader.isModLoaded("NotEnoughItems");
+        isVPLoaded = Loader.isModLoaded("visualprospecting");
+        isEnderIOLoaded = Loader.isModLoaded("EnderIO");
+    }
+
+    public static boolean isNEILoaded() {
+        return isNEILoaded;
+    }
+
+    public static boolean isVPLoaded() {
+        return isVPLoaded;
+    }
+
+    public static boolean isEnderIOLoaded() {
+        return isEnderIOLoaded;
+    }
 }
