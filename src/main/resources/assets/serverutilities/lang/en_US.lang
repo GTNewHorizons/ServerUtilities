@@ -230,7 +230,8 @@ player_config.serverutilities.afk=AFK Notification Position
 # Team Settings
 team_config.serverutilities.display=Display
 team_config.serverutilities.display.color=Color
-team_config.serverutilities.display.fake_player_status=Fake Player Status
+team_config.serverutilities.display.fake_player_status=Fake Player Level
+team_config.serverutilities.display.fake_player_status.tooltip=Determines the level of membership a fake player will operate under (Miners, pumps, harvesters etc.)
 team_config.serverutilities.display.title=Title
 team_config.serverutilities.display.title.tooltip=Displays when you enter a claimed chunk
 team_config.serverutilities.display.desc=Description
