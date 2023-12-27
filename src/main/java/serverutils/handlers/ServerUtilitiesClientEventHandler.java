@@ -33,14 +33,12 @@ import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import org.lwjgl.opengl.GL11;
 
 import codechicken.nei.GuiExtendedCreativeInv;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent;
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.client.EnumSidebarButtonPlacement;
 import serverutils.client.ServerUtilitiesClient;
@@ -104,7 +102,7 @@ public class ServerUtilitiesClientEventHandler {
     public void onClientDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         BADGE_CACHE.clear();
         shutdownTime = 0L;
-        if (ServerUtilitiesCommon.isVPLoaded) {
+        if (OtherMods.isVPLoaded()) {
             VPIntegration.CLAIMS.clear();
         }
     }
@@ -285,7 +283,7 @@ public class ServerUtilitiesClientEventHandler {
     }
 
     private static boolean isCreativePlusGui(GuiScreen gui) {
-        if (Loader.isModLoaded(OtherMods.NEI_GTNH)) {
+        if (OtherMods.isNEILoaded()) {
             return gui instanceof GuiExtendedCreativeInv;
         }
         return false;

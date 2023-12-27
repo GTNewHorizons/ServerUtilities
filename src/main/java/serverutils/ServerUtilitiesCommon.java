@@ -91,7 +91,6 @@ public class ServerUtilitiesCommon {
     public static final Map<ResourceLocation, TeamAction> TEAM_GUI_ACTIONS = new HashMap<>();
     public static final Map<ResourceLocation, AdminPanelAction> ADMIN_PANEL_ACTIONS = new HashMap<>();
     private static final Map<String, Function<ForgePlayer, IChatComponent>> CHAT_FORMATTING_SUBSTITUTES = new HashMap<>();
-    public static boolean isVPLoaded;
 
     public static Function<String, IChatComponent> chatFormattingSubstituteFunction(ForgePlayer player) {
         return s -> {
@@ -116,8 +115,7 @@ public class ServerUtilitiesCommon {
             ServerUtilities.LOGGER.info("Loading ServerUtilities in development environment");
         }
 
-        isVPLoaded = Loader.isModLoaded(OtherMods.VP);
-
+        OtherMods.init();
         ServerUtilitiesConfig.init(event);
         AuroraConfig.init(event);
 

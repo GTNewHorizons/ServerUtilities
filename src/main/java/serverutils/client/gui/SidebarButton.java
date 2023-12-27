@@ -15,7 +15,6 @@ import net.minecraft.util.ResourceLocation;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import cpw.mods.fml.common.Loader;
 import serverutils.client.EnumSidebarButtonPlacement;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.lib.OtherMods;
@@ -30,8 +29,7 @@ import serverutils.lib.util.SidedUtils;
 
 public class SidebarButton implements Comparable<SidebarButton> {
 
-    public static final BooleanSupplier NEI_NOT_LOADED = () -> !(Loader.isModLoaded(OtherMods.NEI)
-            || (Loader.isModLoaded(OtherMods.NEI_GTNH)));
+    public static final BooleanSupplier NEI_NOT_LOADED = () -> !OtherMods.isNEILoaded();
 
     public final ResourceLocation id;
     public final SidebarButtonGroup group;
