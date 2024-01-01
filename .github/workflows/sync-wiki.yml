@@ -2,19 +2,18 @@ on:
     push:
         branches:
             - master
-    pull_request:
-        branches:
-            - master
 name: Wiki Sync
 jobs:
     update-wiki:
         runs-on: ubuntu-latest
         steps:
-          - uses: actions/checkout@master
+          - uses: actions/checkout@v4
           - name: Sync Wiki
-            uses: joeizzard/action-wiki-sync@master
+            uses: GTNewHorizons/ghaction-wiki-sync@master
             with:
-                username: ${{ github.event.pusher.name }}
+                username: "GitHub-GTNH-Actions"
                 access_token: ${{ secrets.GITHUB_TOKEN }}
-                commit_username: ${{ github.event.pusher.name }}
-                commit_email: ${{ github.event.pusher.email }}
+                ignore_safe_warnings: true
+                commit_username: "GitHub GTNH Actions"
+                commit_email: "<>"
+                commit_message: "automatic wiki sync: ${{ github.event.commits[0].message }}"
