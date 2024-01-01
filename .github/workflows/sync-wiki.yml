@@ -1,0 +1,20 @@
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+        branches:
+            - master
+name: Wiki Sync
+jobs:
+    update-wiki:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@master
+          - name: Sync Wiki
+            uses: joeizzard/action-wiki-sync@master
+            with:
+                username: ${{ github.event.pusher.name }}
+                access_token: ${{ secrets.GITHUB_TOKEN }}
+                commit_username: ${{ github.event.pusher.name }}
+                commit_email: ${{ github.event.pusher.email }}
