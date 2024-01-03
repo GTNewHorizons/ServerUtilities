@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 
 import serverutils.ServerUtilities;
 import serverutils.data.ServerUtilitiesUniverseData;
@@ -35,7 +36,8 @@ public class CmdSetWarp extends CmdBase {
         args[0] = args[0].toLowerCase();
 
         if (args.length == 2) {
-            pos = new BlockDimPos(sender);
+            EntityPlayerMP targetPlayer = CommandUtils.getForgePlayer(sender, args[1]).getCommandPlayer(sender);
+            pos = new BlockDimPos(targetPlayer);
         } else if (args.length >= 4) {
             int x = parseInt(sender, args[1]);
             int y = parseInt(sender, args[2]);
