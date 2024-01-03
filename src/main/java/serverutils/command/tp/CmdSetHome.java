@@ -35,11 +35,6 @@ public class CmdSetHome extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
-
-        // if (player.isSpectator()) {
-        // throw ServerUtilities.error(sender, "serverutilities.lang.homes.spectator");
-        // }
-
         ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
 
         if (args.length == 0) {
