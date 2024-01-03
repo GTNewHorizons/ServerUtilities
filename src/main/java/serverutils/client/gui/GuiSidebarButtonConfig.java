@@ -70,6 +70,7 @@ public class GuiSidebarButtonConfig extends GuiButtonListBase {
     public void addButtons(Panel panel) {
         for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
             for (SidebarButton button : group.getButtons()) {
+                if (!button.isVisible()) continue;
                 panel.add(new ButtonConfigSidebarButton(panel, button));
             }
         }
