@@ -51,7 +51,7 @@ public class CmdTplast extends CmdBase {
         BlockDimPos p;
 
         if (to.isOnline()) {
-            p = new BlockDimPos(sender);
+            p = new BlockDimPos(to.getCommandPlayer(sender));
         } else {
             NBTTagCompound nbt = to.getPlayerNBT();
             NBTTagList posList = nbt.getTagList("Pos", Constants.NBT.TAG_DOUBLE);
