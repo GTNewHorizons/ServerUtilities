@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -38,6 +39,10 @@ public final class BlockDimPos {
 
     public BlockDimPos(ICommandSender sender) {
         this(sender.getPlayerCoordinates(), sender.getEntityWorld().provider.dimensionId);
+    }
+
+    public BlockDimPos(EntityPlayer player) {
+        this(player.getPlayerCoordinates(), player.getEntityWorld().provider.dimensionId);
     }
 
     public int[] toIntArray() {
