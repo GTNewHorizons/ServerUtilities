@@ -53,12 +53,20 @@ public class ServerUtilitiesClientConfig {
                         DISABLED: Disable non-important notifications entirely.""")
                         .setLanguageKey(CLIENT_LANG_KEY + "notification_location")
                         .setValidValues(notification_locations).getString());
-        sidebar_buttons_above_potion = config.get(
-                Configuration.CATEGORY_GENERAL,
-                "sidebar_buttons_above_potion",
-                false,
-                "Move buttons above potion effect label whenever an effect is active and placement is set to AUTO.")
+        sidebar_buttons_above_potion = config
+                .get(
+                        Configuration.CATEGORY_GENERAL,
+                        "sidebar_buttons_above_potion",
+                        false,
+                        "Move buttons above potion effect label whenever an effect is active.")
                 .setLanguageKey(CLIENT_LANG_KEY + "sidebar_buttons_above_potion").getBoolean();
+        sidebar_buttons_vertical = config
+                .get(
+                        Configuration.CATEGORY_GENERAL,
+                        "sidebar_buttons_vertical",
+                        false,
+                        "Draw sidebar buttons in a vertical line.")
+                .setLanguageKey(CLIENT_LANG_KEY + "sidebar_buttons_vertical").getBoolean();
         show_dotted_lines = config
                 .get(
                         Configuration.CATEGORY_GENERAL,
@@ -105,6 +113,7 @@ public class ServerUtilitiesClientConfig {
     public static boolean item_nbt;
     public static EnumSidebarButtonPlacement sidebar_buttons;
     public static boolean sidebar_buttons_above_potion;
+    public static boolean sidebar_buttons_vertical;
     public static String[] sidebar_buttons_locations = { "DISABLED", "TOP_LEFT", "INVENTORY_SIDE", "AUTO" };
     public static EnumNotificationLocation notifications;
     public static String[] notification_locations = { "SCREEN", "CHAT", "DISABLED" };

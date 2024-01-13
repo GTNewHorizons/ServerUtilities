@@ -173,6 +173,7 @@ serverutilities_client.item_ore_names.item_tooltip=Ore Dictionary Names:
 serverutilities_client.item_nbt=Display Item NBT
 serverutilities_client.sidebar_buttons=Sidebar Button Location
 serverutilities_client.sidebar_buttons_above_potion=Draw Buttons Above Potion Label
+serverutilities_client.sidebar_buttons_vertical=Draw Buttons Vertically
 serverutilities_client.notification_location=Notification Location
 serverutilities_client.show_dotted_lines=Show Dotted Line On Loaded Chunks
 
