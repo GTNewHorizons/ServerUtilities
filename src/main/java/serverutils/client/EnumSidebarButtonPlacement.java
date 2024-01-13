@@ -22,8 +22,13 @@ public enum EnumSidebarButtonPlacement {
     }
 
     public boolean above() {
-        return this == AUTO && !Minecraft.getMinecraft().thePlayer.getActivePotionEffects().isEmpty()
+        return (this == AUTO || this == INVENTORY_SIDE)
+                && !Minecraft.getMinecraft().thePlayer.getActivePotionEffects().isEmpty()
                 && ServerUtilitiesClientConfig.sidebar_buttons_above_potion;
+    }
+
+    public boolean vertical() {
+        return (this == AUTO || this == INVENTORY_SIDE) && ServerUtilitiesClientConfig.sidebar_buttons_vertical;
     }
 
     public static EnumSidebarButtonPlacement string2placement(String placement) {

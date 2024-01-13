@@ -492,6 +492,7 @@ public class ServerUtilitiesClientEventHandler {
             boolean addedAny;
             boolean top = ServerUtilitiesClientConfig.sidebar_buttons.top();
             boolean above = ServerUtilitiesClientConfig.sidebar_buttons.above();
+            boolean vertical = ServerUtilitiesClientConfig.sidebar_buttons.vertical();
 
             for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
                 if (above && !isCreativePlusGui(gui)) {
@@ -504,6 +505,17 @@ public class ServerUtilitiesClientEventHandler {
                             if (ry >= 7) {
                                 ry = 0;
                                 rx--;
+                            }
+                        }
+                    }
+                } else if (vertical) {
+                    for (SidebarButton button : group.getButtons()) {
+                        if (button.isActuallyVisible()) {
+                            buttons.add(new GuiButtonSidebar(rx, ry, button));
+                            rx++;
+                            if (rx >= 9) {
+                                rx = 0;
+                                ry++;
                             }
                         }
                     }
