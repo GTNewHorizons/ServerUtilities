@@ -6,7 +6,7 @@ dependencies {
     compileOnly("com.github.GTNewHorizons:VisualProspecting:1.2.4:dev")
     compileOnly("com.github.GTNewHorizons:EnderIO:2.6.3:dev")
 
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.6.5:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.7.0:dev")
 //    runtimeOnlyNonPublishable("com.github.GTNewHorizons:VisualProspecting:1.2.4:dev")
 
     shadowCompile("it.unimi.dsi:fastutil:8.5.12")
