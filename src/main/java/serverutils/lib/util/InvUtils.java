@@ -16,7 +16,6 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ICrafting;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -199,7 +198,7 @@ public class InvUtils {
 
     public static void forceUpdate(Container container) {
         for (int i = 0; i < container.inventorySlots.size(); ++i) {
-            ItemStack itemstack = ((Slot) container.inventorySlots.get(i)).getStack();
+            ItemStack itemstack = container.inventorySlots.get(i).getStack();
             ItemStack itemstack1 = itemstack == null ? InvUtils.EMPTY_STACK : itemstack.copy();
             container.inventoryItemStacks.set(i, itemstack1);
 

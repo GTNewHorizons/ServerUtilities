@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -72,7 +71,7 @@ public class NBTUtils {
 
     public static void copyTags(@Nullable NBTTagCompound from, @Nullable NBTTagCompound to) {
         if (from != null && to != null && !from.hasNoTags()) {
-            for (String key : (Set<String>) from.func_150296_c()) {
+            for (String key : from.func_150296_c()) {
                 to.setTag(key, from.getTag(key));
             }
         }
@@ -86,7 +85,7 @@ public class NBTUtils {
 
         NBTTagCompound nbt1 = null;
 
-        for (String key : (Set<String>) nbt.func_150296_c()) {
+        for (String key : nbt.func_150296_c()) {
             NBTBase nbt2 = nbt.getTag(key);
 
             if (nbt2 instanceof NBTTagCompound) {
@@ -156,7 +155,7 @@ public class NBTUtils {
 
                 boolean first = true;
 
-                for (String key : (Set<String>) map.func_150296_c()) {
+                for (String key : map.func_150296_c()) {
                     if (first) {
                         first = false;
                     } else {

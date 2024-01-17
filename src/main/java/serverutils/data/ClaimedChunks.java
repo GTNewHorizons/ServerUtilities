@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -122,8 +121,7 @@ public class ClaimedChunks {
                 }
             }
 
-            for (EntityPlayerMP player : (List<EntityPlayerMP>) universe.server
-                    .getConfigurationManager().playerEntityList) {
+            for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
                 ChunkDimPos playerPos = new ChunkDimPos(player);
                 int startX = playerPos.posX - ChunkSelectorMap.TILES_GUI2;
                 int startZ = playerPos.posZ - ChunkSelectorMap.TILES_GUI2;
@@ -153,8 +151,7 @@ public class ClaimedChunks {
             markDirty();
         }
         if (OtherMods.isVPLoaded()) {
-            for (EntityPlayerMP player : (List<EntityPlayerMP>) instance.universe.server
-                    .getConfigurationManager().playerEntityList) {
+            for (EntityPlayerMP player : instance.universe.server.getConfigurationManager().playerEntityList) {
                 if (PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP)) {
                     new MessageJourneyMapRemove(pos).sendTo(player);
                 }

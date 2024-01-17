@@ -106,7 +106,7 @@ public class CachedVertexData {
             }
 
             if (hasColor) {
-                tessellator.setColorRGBA(r, g, b, a);;
+                tessellator.setColorRGBA(r, g, b, a);
             }
 
             if (hasNormal) {

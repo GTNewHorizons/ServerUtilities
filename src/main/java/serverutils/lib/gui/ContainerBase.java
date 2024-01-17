@@ -59,7 +59,7 @@ public abstract class ContainerBase extends Container {
         }
 
         ItemStack stack = InvUtils.EMPTY_STACK;
-        Slot slot = (Slot) inventorySlots.get(index);
+        Slot slot = inventorySlots.get(index);
 
         if (slot != null && slot.getHasStack()) {
             ItemStack stack1 = slot.getStack();

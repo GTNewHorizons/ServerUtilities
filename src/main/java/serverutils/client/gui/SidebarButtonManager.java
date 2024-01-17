@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 
 import net.minecraft.client.Minecraft;
@@ -33,7 +32,6 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
     public final List<SidebarButtonGroup> groups = new ArrayList<>();
 
     @Override
-    @SuppressWarnings("unchecked")
     public void onResourceManagerReload(IResourceManager manager, Predicate<IResourceType> resourcePredicate) {
         if (!resourcePredicate.test(ServerUtilitiesResourceType.SERVERUTILS_CONFIG)) {
             return;
@@ -56,9 +54,9 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 
         Map<ResourceLocation, SidebarButtonGroup> groupMap = new HashMap<>();
 
-        for (String domain : (Set<String>) manager.getResourceDomains()) {
+        for (String domain : manager.getResourceDomains()) {
             try {
-                for (IResource resource : (List<IResource>) manager
+                for (IResource resource : manager
                         .getAllResources(new ResourceLocation(domain, "sidebar_button_groups.json"))) {
                     JsonElement json = DataReader.get(resource).json();
 
@@ -85,9 +83,9 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
             }
         }
 
-        for (String domain : (Set<String>) manager.getResourceDomains()) {
+        for (String domain : manager.getResourceDomains()) {
             try {
-                for (IResource resource : (List<IResource>) manager
+                for (IResource resource : manager
                         .getAllResources(new ResourceLocation(domain, "sidebar_buttons.json"))) {
                     JsonElement json = DataReader.get(resource).json();
 

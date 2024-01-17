@@ -112,7 +112,7 @@ public class GuiContainerWrapper extends GuiContainer implements IGuiWrapper {
         if (drawSlots) {
             GuiHelper.setupDrawing();
 
-            for (Slot slot : (List<Slot>) inventorySlots.inventorySlots) {
+            for (Slot slot : inventorySlots.inventorySlots) {
                 theme.drawContainerSlot(guiLeft + slot.xDisplayPosition, guiTop + slot.yDisplayPosition, 16, 16);
             }
         }

@@ -2,7 +2,6 @@ package serverutils.events;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -23,7 +22,6 @@ public class ServerReloadEvent extends UniverseEvent {
     private boolean clientReloadRequired;
     private final Collection<EntityPlayerMP> onlinePlayers;
 
-    @SuppressWarnings("unchecked")
     public ServerReloadEvent(Universe u, ICommandSender c, EnumReloadType t, ResourceLocation id,
             Collection<ResourceLocation> f) {
         super(u);
@@ -32,8 +30,7 @@ public class ServerReloadEvent extends UniverseEvent {
         reloadId = id;
         failed = f;
         clientReloadRequired = false;
-        onlinePlayers = u.server.getConfigurationManager() != null
-                ? (List<EntityPlayerMP>) u.server.getConfigurationManager().playerEntityList
+        onlinePlayers = u.server.getConfigurationManager() != null ? u.server.getConfigurationManager().playerEntityList
                 : Collections.emptyList();
     }
 

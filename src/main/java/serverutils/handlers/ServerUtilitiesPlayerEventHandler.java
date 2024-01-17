@@ -1,7 +1,5 @@
 package serverutils.handlers;
 
-import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -82,8 +80,7 @@ public class ServerUtilitiesPlayerEventHandler {
         if (ServerUtilitiesConfig.chat.replace_tab_names) {
             new MessageUpdateTabName(player).sendToAll();
 
-            for (EntityPlayerMP player1 : (List<EntityPlayerMP>) player.mcServer
-                    .getConfigurationManager().playerEntityList) {
+            for (EntityPlayerMP player1 : player.mcServer.getConfigurationManager().playerEntityList) {
                 if (player1 != player) {
                     new MessageUpdateTabName(player1).sendTo(player);
                 }

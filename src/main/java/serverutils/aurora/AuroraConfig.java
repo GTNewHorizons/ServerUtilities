@@ -36,7 +36,7 @@ public class AuroraConfig {
                         "world_info_json",
                         "ENABLED",
                         "Enable the world info page, Default: ENABLED, Valid values: ENABLED, REQUIRES_AUTH, DISABLED")
-                .getString();;
+                .getString();
         general.player_list_table = config.get(
                 PAGES_CAT,
                 "player_list_table",

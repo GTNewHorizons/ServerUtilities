@@ -1,7 +1,6 @@
 package serverutils.lib.data;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -58,8 +57,7 @@ public class ServerUtilitiesAPI {
 
         event.post();
 
-        for (EntityPlayerMP player : (List<EntityPlayerMP>) universe.server
-                .getConfigurationManager().playerEntityList) {
+        for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
             ForgePlayer p = universe.getPlayer(player);
             new MessageSyncData(false, player, p).sendTo(player);
         }
@@ -67,8 +65,7 @@ public class ServerUtilitiesAPI {
         String millis = (System.currentTimeMillis() - ms) + "ms";
 
         if (type == EnumReloadType.RELOAD_COMMAND) {
-            for (EntityPlayerMP player : (List<EntityPlayerMP>) universe.server
-                    .getConfigurationManager().playerEntityList) {
+            for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
                 Notification notification = Notification.of(ServerUtilitiesNotifications.RELOAD_SERVER);
                 notification.addLine(ServerUtilities.lang(player, "serverutilities.lang.reload_server", millis));
 

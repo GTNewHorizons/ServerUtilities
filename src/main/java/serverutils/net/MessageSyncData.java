@@ -2,7 +2,6 @@ package serverutils.net;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import net.minecraft.client.Minecraft;
@@ -82,7 +81,7 @@ public class MessageSyncData extends MessageToClient {
     public void onMessage() {
         SidedUtils.UNIVERSE_UUID_CLIENT = universeId;
 
-        for (String key : (Set<String>) syncData.func_150296_c()) {
+        for (String key : syncData.func_150296_c()) {
             ISyncData nbt = ServerUtilitiesCommon.SYNCED_DATA.get(key);
 
             if (nbt != null) {

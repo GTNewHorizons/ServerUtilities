@@ -1,7 +1,5 @@
 package serverutils.lib.util.text_components;
 
-import java.util.List;
-
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentStyle;
 import net.minecraft.util.IChatComponent;
@@ -24,7 +22,7 @@ public class ChatComponentScore extends ChatComponentStyle {
         score.setValue(this.value);
         score.setChatStyle(this.getChatStyle().createShallowCopy());
 
-        for (IChatComponent component : (List<IChatComponent>) this.getSiblings()) {
+        for (IChatComponent component : this.getSiblings()) {
             score.appendSibling(component.createCopy());
         }
         return score;

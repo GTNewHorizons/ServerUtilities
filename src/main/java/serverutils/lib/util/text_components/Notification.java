@@ -1,7 +1,5 @@
 package serverutils.lib.util.text_components;
 
-import java.util.List;
-
 import javax.annotation.Nullable;
 
 import net.minecraft.command.ICommandSender;
@@ -50,7 +48,7 @@ public class Notification extends ChatComponentText {
 
         setChatStyle(n.getChatStyle().createShallowCopy());
 
-        for (IChatComponent line : (List<IChatComponent>) n.getSiblings()) {
+        for (IChatComponent line : n.getSiblings()) {
             getSiblings().add(line.createCopy());
         }
 

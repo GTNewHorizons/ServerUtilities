@@ -45,7 +45,7 @@ public enum DimensionType { // TODO: DELETE??
     public WorldProvider createDimension() {
         try {
             Constructor<? extends WorldProvider> constructor = this.clazz.getConstructor();
-            return (WorldProvider) constructor.newInstance();
+            return constructor.newInstance();
         } catch (NoSuchMethodException var2) {
             throw new Error("Could not create new dimension", var2);
         } catch (InvocationTargetException var3) {
@@ -83,7 +83,7 @@ public enum DimensionType { // TODO: DELETE??
     public static DimensionType register(String name, String suffix, int id, Class<? extends WorldProvider> provider,
             boolean keepLoaded) {
         String enum_name = name.replace(" ", "_").toLowerCase();
-        DimensionType ret = (DimensionType) EnumHelper
+        DimensionType ret = EnumHelper
                 .addEnum(DimensionType.class, enum_name, ENUM_ARGS, new Object[] { id, name, suffix, provider });
         return ret.setLoadSpawn(keepLoaded);
     }

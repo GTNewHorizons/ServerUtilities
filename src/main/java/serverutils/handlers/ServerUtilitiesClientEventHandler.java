@@ -382,7 +382,7 @@ public class ServerUtilitiesClientEventHandler {
             }
 
             Minecraft mc = Minecraft.getMinecraft();
-            for (String s : (List<String>) font.listFormattedStringToWidth(
+            for (String s : font.listFormattedStringToWidth(
                     s0,
                     new ScaledResolution(mc, mc.displayWidth, mc.displayHeight).getScaledWidth())) {
                 for (String line : s.split("\n")) {
