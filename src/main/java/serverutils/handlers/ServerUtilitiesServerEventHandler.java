@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.ChatComponentText;
@@ -260,9 +261,11 @@ public class ServerUtilitiesServerEventHandler {
             }
 
             if (ServerUtilitiesConfig.world.show_playtime && event.world.getTotalWorldTime() % 20L == 7L) {
-                for (EntityPlayerMP player : (List<EntityPlayerMP>) event.world.playerEntities) {
-                    new MessageUpdatePlayTime(player.func_147099_x().writeStat(StatList.minutesPlayedStat))
-                            .sendTo(player);
+                for (EntityPlayer player : event.world.playerEntities) {
+                    if (player instanceof EntityPlayerMP playerMP) {
+                        new MessageUpdatePlayTime(playerMP.func_147099_x().writeStat(StatList.minutesPlayedStat))
+                                .sendTo(playerMP);
+                    }
                 }
             }
         }
