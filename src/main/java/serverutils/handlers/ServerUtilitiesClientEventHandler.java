@@ -61,6 +61,7 @@ import serverutils.lib.icon.IconRenderer;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.InvUtils;
 import serverutils.lib.util.NBTUtils;
+import serverutils.lib.util.SidedUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.net.MessageAdminPanelGui;
@@ -102,9 +103,15 @@ public class ServerUtilitiesClientEventHandler {
     public void onClientDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         BADGE_CACHE.clear();
         shutdownTime = 0L;
+        SidedUtils.SERVER_MODS.clear();
         if (OtherMods.isVPLoaded()) {
             VPIntegration.CLAIMS.clear();
         }
+    }
+
+    @SubscribeEvent
+    public void onClientConnected(FMLNetworkEvent.ClientConnectedToServerEvent event) {
+        SidedUtils.SERVER_MODS.putAll(SidedUtils.SERVER_MODS_0);
     }
 
     @SubscribeEvent
