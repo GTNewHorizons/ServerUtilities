@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -71,7 +70,7 @@ public final class BlockDimPosStorage implements INBTSerializable<NBTTagCompound
         map.clear();
         names.clear();
 
-        for (String name : (Set<String>) nbt.func_150296_c()) {
+        for (String name : nbt.func_150296_c()) {
             BlockDimPos pos = BlockDimPos.fromIntArray(nbt.getIntArray(name));
 
             if (pos != null) {

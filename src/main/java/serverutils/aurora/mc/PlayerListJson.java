@@ -1,7 +1,5 @@
 package serverutils.aurora.mc;
 
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 
@@ -37,7 +35,7 @@ public class PlayerListJson extends JsonWebPage {
 
         JsonArray players = new JsonArray();
 
-        for (EntityPlayerMP player : (List<EntityPlayerMP>) server.getConfigurationManager().playerEntityList) {
+        for (EntityPlayerMP player : server.getConfigurationManager().playerEntityList) {
             JsonObject o = new JsonObject();
             o.addProperty("name", player.getDisplayName());
             o.addProperty("uuid", player.getUniqueID().toString());

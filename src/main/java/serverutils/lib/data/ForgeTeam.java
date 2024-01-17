@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -158,7 +157,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
         if (nbt.hasKey("Players")) {
             NBTTagCompound nbt1 = nbt.getCompoundTag("Players");
 
-            for (String s : (Set<String>) nbt1.func_150296_c()) {
+            for (String s : nbt1.func_150296_c()) {
                 ForgePlayer player = universe.getPlayer(s);
 
                 if (player != null) {

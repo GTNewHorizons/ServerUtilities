@@ -1,6 +1,5 @@
 package serverutils.handlers;
 
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -161,8 +160,7 @@ public class ServerUtilitiesServerEventHandler {
             EntityPlayerMP playerToKickForAfk = null; // Do one at time, easier
             boolean afkEnabled = ServerUtilitiesConfig.afk.isEnabled(universe.server);
 
-            for (EntityPlayerMP player : (List<EntityPlayerMP>) universe.server
-                    .getConfigurationManager().playerEntityList) {
+            for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
                 if (ServerUtils.isFake(player)) {
                     continue;
                 }
@@ -185,8 +183,7 @@ public class ServerUtilitiesServerEventHandler {
                     boolean isAFK = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
 
                     if (prevIsAfk != isAFK) {
-                        for (EntityPlayerMP player1 : (List<EntityPlayerMP>) universe.server
-                                .getConfigurationManager().playerEntityList) {
+                        for (EntityPlayerMP player1 : universe.server.getConfigurationManager().playerEntityList) {
                             EnumMessageLocation location = ServerUtilitiesPlayerData.get(universe.getPlayer(player1))
                                     .getAFKMessageLocation();
 

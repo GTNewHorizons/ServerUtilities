@@ -121,7 +121,7 @@ public class GuiWrapper extends GuiScreen implements IGuiWrapper {
             if (object instanceof WrappedIngredient && ((WrappedIngredient) object).tooltip) {
                 Object ingredient = WrappedIngredient.unwrap(object);
 
-                if (ingredient instanceof ItemStack && ((ItemStack) ingredient) != null) {
+                if (ingredient instanceof ItemStack) {
                     renderToolTip((ItemStack) ingredient, mouseX, mouseY);
                 }
             }
