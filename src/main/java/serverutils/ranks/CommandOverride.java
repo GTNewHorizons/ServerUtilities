@@ -52,12 +52,12 @@ public class CommandOverride extends CommandBase {
 
     @Override
     public String getCommandName() {
-        return mirrored.getCommandName();
+        return mirrored.getCommandName() == null ? "" : mirrored.getCommandName();
     }
 
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        return mirrored.getCommandUsage(sender);
+        return mirrored.getCommandUsage(sender) == null ? "" : mirrored.getCommandUsage(sender);
     }
 
     @Override
