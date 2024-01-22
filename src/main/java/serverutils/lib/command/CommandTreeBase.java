@@ -31,7 +31,7 @@ public abstract class CommandTreeBase extends CommandBase {
         if (command.getCommandAliases() == null) {
             return;
         }
-        for (String alias : (List<String>) command.getCommandAliases()) {
+        for (String alias : command.getCommandAliases()) {
             commandAliasMap.put(alias, command);
         }
     }

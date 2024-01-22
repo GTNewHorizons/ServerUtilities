@@ -58,7 +58,7 @@ public class ServerUtilities {
 
     public static final String MOD_ID = "serverutilities";
     public static final String MOD_NAME = "Server Utilities";
-    public static final String VERSION = "GRADLETOKEN_VERSION";
+    public static final String VERSION = Tags.GRADLETOKEN_VERSION;
     public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
     public static final String SERVER_FOLDER = MOD_ID + "/server/";
 

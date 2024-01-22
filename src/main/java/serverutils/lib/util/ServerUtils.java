@@ -2,7 +2,6 @@ package serverutils.lib.util;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -73,7 +72,6 @@ public class ServerUtils {
         if (sender instanceof EntityPlayerMP) {
             NetHandlerPlayServer connection = ((EntityPlayerMP) sender).playerNetServerHandler;
             return connection != null && connection.netManager.channel().attr(NetworkRegistry.MOD_CONTAINER) == null;
-            // return connection != null; //&& !connection.netManager.channel().attr(NetworkRegistry.FML_MARKER).get();
         }
 
         return false;
@@ -111,7 +109,7 @@ public class ServerUtils {
     public static Collection<ICommand> getAllCommands(MinecraftServer server, ICommandSender sender) {
         Collection<ICommand> commands = new HashSet<>();
 
-        for (ICommand c : (Collection<ICommand>) server.getCommandManager().getCommands().values()) {
+        for (ICommand c : server.getCommandManager().getCommands().values()) {
             if (c.canCommandSenderUseCommand(sender)) {
                 commands.add(c);
             }
@@ -147,7 +145,7 @@ public class ServerUtils {
 
     @Nullable
     public static Entity getEntityByUUID(World world, UUID uuid) {
-        for (Entity e : (List<Entity>) world.loadedEntityList) {
+        for (Entity e : world.loadedEntityList) {
             if (e.getUniqueID().equals(uuid)) {
                 return e;
             }
@@ -158,7 +156,7 @@ public class ServerUtils {
 
     public static void notifyChat(MinecraftServer server, @Nullable EntityPlayer player, IChatComponent component) {
         if (player == null) {
-            for (EntityPlayer player1 : (List<EntityPlayer>) server.getConfigurationManager().playerEntityList) {
+            for (EntityPlayer player1 : server.getConfigurationManager().playerEntityList) {
                 player1.addChatComponentMessage(component);
             }
         } else {

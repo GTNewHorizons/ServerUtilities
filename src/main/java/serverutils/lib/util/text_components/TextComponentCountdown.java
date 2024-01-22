@@ -1,7 +1,5 @@
 package serverutils.lib.util.text_components;
 
-import java.util.List;
-
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 
@@ -37,7 +35,7 @@ public class TextComponentCountdown extends ChatComponentText {
         TextComponentCountdown component = new TextComponentCountdown(countdown);
         component.setChatStyle(getChatStyle().createShallowCopy());
 
-        for (IChatComponent IChatComponent : (List<IChatComponent>) getSiblings()) {
+        for (IChatComponent IChatComponent : getSiblings()) {
             component.appendSibling(IChatComponent.createCopy());
         }
 

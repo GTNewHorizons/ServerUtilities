@@ -30,7 +30,7 @@ public class CmdLeaderboard extends CmdBase {
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 1) {
-            return getListOfStringsFromIterableMatchingLastWord(args, ServerUtilitiesCommon.LEADERBOARDS.keySet());
+            return matchFromIterable(args, ServerUtilitiesCommon.LEADERBOARDS.keySet());
         }
 
         return super.addTabCompletionOptions(sender, args);

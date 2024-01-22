@@ -1,9 +1,9 @@
 package serverutils.handlers;
 
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.ChatComponentText;
@@ -160,8 +160,7 @@ public class ServerUtilitiesServerEventHandler {
             EntityPlayerMP playerToKickForAfk = null; // Do one at time, easier
             boolean afkEnabled = ServerUtilitiesConfig.afk.isEnabled(universe.server);
 
-            for (EntityPlayerMP player : (List<EntityPlayerMP>) universe.server
-                    .getConfigurationManager().playerEntityList) {
+            for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
                 if (ServerUtils.isFake(player)) {
                     continue;
                 }
@@ -184,8 +183,7 @@ public class ServerUtilitiesServerEventHandler {
                     boolean isAFK = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
 
                     if (prevIsAfk != isAFK) {
-                        for (EntityPlayerMP player1 : (List<EntityPlayerMP>) universe.server
-                                .getConfigurationManager().playerEntityList) {
+                        for (EntityPlayerMP player1 : universe.server.getConfigurationManager().playerEntityList) {
                             EnumMessageLocation location = ServerUtilitiesPlayerData.get(universe.getPlayer(player1))
                                     .getAFKMessageLocation();
 
@@ -260,9 +258,11 @@ public class ServerUtilitiesServerEventHandler {
             }
 
             if (ServerUtilitiesConfig.world.show_playtime && event.world.getTotalWorldTime() % 20L == 7L) {
-                for (EntityPlayerMP player : (List<EntityPlayerMP>) event.world.playerEntities) {
-                    new MessageUpdatePlayTime(player.func_147099_x().writeStat(StatList.minutesPlayedStat))
-                            .sendTo(player);
+                for (EntityPlayer player : event.world.playerEntities) {
+                    if (player instanceof EntityPlayerMP playerMP) {
+                        new MessageUpdatePlayTime(playerMP.func_147099_x().writeStat(StatList.minutesPlayedStat))
+                                .sendTo(playerMP);
+                    }
                 }
             }
         }

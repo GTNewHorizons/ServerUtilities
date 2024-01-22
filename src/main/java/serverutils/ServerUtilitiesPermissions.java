@@ -244,8 +244,6 @@ public class ServerUtilitiesPermissions {
             }
         }
 
-        // CLAIMS_ITEM_BLACKLIST.add(Items.END_CRYSTAL);
-
         for (Block block : GameData.getBlockRegistry().typeSafeIterable()) {
             String name = formatId(block);
             PermissionAPI.registerNode(

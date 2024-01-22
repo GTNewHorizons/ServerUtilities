@@ -11,9 +11,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -214,7 +212,7 @@ public class JsonUtils {
         if (!component.getSiblings().isEmpty()) {
             JsonArray array = new JsonArray();
 
-            for (IChatComponent IChatComponent : (List<IChatComponent>) component.getSiblings()) {
+            for (IChatComponent IChatComponent : component.getSiblings()) {
                 array.add(serializeTextComponent(IChatComponent));
             }
 
@@ -577,7 +575,7 @@ public class JsonUtils {
                 JsonObject json = new JsonObject();
 
                 if (!tagCompound.hasNoTags()) {
-                    for (String s : (Set<String>) tagCompound.func_150296_c()) {
+                    for (String s : tagCompound.func_150296_c()) {
                         json.add(s, toJson(tagCompound.getTag(s)));
                     }
                 }

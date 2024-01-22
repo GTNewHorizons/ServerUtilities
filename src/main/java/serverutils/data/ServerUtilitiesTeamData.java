@@ -3,7 +3,6 @@ package serverutils.data;
 import java.io.File;
 import java.util.Map;
 import java.util.OptionalInt;
-import java.util.Set;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -101,7 +100,7 @@ public class ServerUtilitiesTeamData extends TeamData {
 
         NBTTagCompound claimedChunksTag = nbt.getCompoundTag("ClaimedChunks");
 
-        for (String dim : (Set<String>) claimedChunksTag.func_150296_c()) {
+        for (String dim : claimedChunksTag.func_150296_c()) {
             NBTTagList list = claimedChunksTag.getTagList(dim, Constants.NBT.TAG_COMPOUND);
             int dimInt = Integer.parseInt(dim);
 
@@ -170,7 +169,7 @@ public class ServerUtilitiesTeamData extends TeamData {
             team.markDirty();
             NBTTagCompound claimedChunksTag = nbt.getCompoundTag("ClaimedChunks");
 
-            for (String dim : (Set<String>) claimedChunksTag.func_150296_c()) {
+            for (String dim : claimedChunksTag.func_150296_c()) {
                 NBTTagList list = claimedChunksTag.getTagList(dim, Constants.NBT.TAG_COMPOUND);
                 int dimInt = Integer.parseInt(dim);
 

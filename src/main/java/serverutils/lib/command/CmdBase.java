@@ -80,7 +80,6 @@ public abstract class CmdBase extends CommandBase implements ICommandWithParent 
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 0) {
             return Collections.emptyList();
@@ -101,7 +100,6 @@ public abstract class CmdBase extends CommandBase implements ICommandWithParent 
         parent = c;
     }
 
-    @SuppressWarnings("unchecked")
     public static List<String> matchFromIterable(String[] args, Iterable<?> possibilities) {
         return getListOfStringsFromIterableMatchingLastWord(args, Iterables.transform(possibilities, Object::toString));
     }

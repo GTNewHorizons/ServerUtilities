@@ -155,8 +155,7 @@ public class ServerUtilitiesUniverseData {
                     event.getUniverse().scheduleTask(TimeType.MILLIS, shutdownTime - t.millis(), universe -> {
                         String timeString = t.toTimeString();
 
-                        for (EntityPlayerMP player : (List<EntityPlayerMP>) universe.server
-                                .getConfigurationManager().playerEntityList) {
+                        for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
                             Notification.of(
                                     RESTART_TIMER_ID,
                                     StringUtils.color(

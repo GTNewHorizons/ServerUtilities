@@ -1,7 +1,5 @@
 package serverutils.aurora.mc;
 
-import java.util.List;
-
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 
@@ -51,7 +49,7 @@ public class PlayerListTable extends HTTPWebPage {
     public void body(Tag body) {
         Tag playerTable = body.table().addClass("player_table");
 
-        for (EntityPlayerMP player : (List<EntityPlayerMP>) server.getConfigurationManager().playerEntityList) {
+        for (EntityPlayerMP player : server.getConfigurationManager().playerEntityList) {
             String id = player.getUniqueID().toString().replace("-", "");
             Tag row = playerTable.tr();
             row.td().img("https://crafatar.com/avatars/" + id + "?size=16");
