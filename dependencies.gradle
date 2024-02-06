@@ -2,7 +2,7 @@
 
 dependencies {
 
-    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.5.4-GTNH:dev")
+    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.5.17-GTNH:dev")
     compileOnly("com.github.GTNewHorizons:VisualProspecting:1.2.6:dev")
     compileOnly("com.github.GTNewHorizons:EnderIO:2.6.4:dev")
 
