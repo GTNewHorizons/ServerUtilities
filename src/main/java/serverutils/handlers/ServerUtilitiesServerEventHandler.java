@@ -233,7 +233,7 @@ public class ServerUtilitiesServerEventHandler {
             }
 
             if (Backups.nextBackup > 0L && Backups.nextBackup <= now) {
-                Backups.run(universe.server, "");
+                Backups.run(null, "");
             }
 
             if (Backups.thread != null && Backups.thread.isDone) {

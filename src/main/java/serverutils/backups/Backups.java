@@ -7,7 +7,6 @@ import java.util.Arrays;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 
@@ -36,7 +35,7 @@ public class Backups {
 
     public static boolean run(ICommandSender ics, String customName) {
         if (thread != null) return false;
-        boolean auto = !(ics instanceof EntityPlayerMP);
+        boolean auto = ics == null;
 
         if (auto && !ServerUtilitiesConfig.backups.enable_backups) return false;
 
@@ -47,7 +46,7 @@ public class Backups {
             if (!hasOnlinePlayers() && !hadPlayer) return true;
             hadPlayer = false;
         }
-        ServerUtilitiesNotifications.backupNotification(BACKUP_START, "cmd.backup_start", ics.getCommandSenderName());
+        ServerUtilitiesNotifications.backupNotification(BACKUP_START, "cmd.backup_start");
 
         try {
             for (int i = 0; i < server.worldServers.length; ++i) {
