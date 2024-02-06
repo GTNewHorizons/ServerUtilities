@@ -24,7 +24,7 @@
 	},
 	"leaderboards": {
 		"group": "serverutilities:util",
-		"icon": "minecraft:textures/items/sign.png",
+		"icon": "serverutilities:textures/icons/trophy.png",
 		"x": 170,
 		"click": "custom:serverutilities:leaderboards_gui",
 		"required_server_mods": ["serverutilities"],
