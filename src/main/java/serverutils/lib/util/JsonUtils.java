@@ -235,6 +235,10 @@ public class JsonUtils {
                 if (n.isImportant()) {
                     json.addProperty("important", true);
                 }
+
+                if (n.isVanilla()) {
+                    json.addProperty("vanilla", true);
+                }
             }
         } else if (component instanceof ChatComponentTranslation translation) {
             json.addProperty("translate", translation.getKey());
@@ -296,7 +300,7 @@ public class JsonUtils {
             if (json.has("text") || json.has("notification")) {
                 String s = json.has("text") ? StringUtils.fixTabs(json.get("text").getAsString(), 2) : "";
 
-                if (json.has("notification") || json.has("timer") || json.has("important")) {
+                if (json.has("notification") || json.has("timer") || json.has("important") || json.has("vanilla")) {
                     Notification n = Notification.of(
                             json.has("notification") ? new ResourceLocation(json.get("notification").getAsString())
                                     : Notification.VANILLA_STATUS,
@@ -315,6 +319,10 @@ public class JsonUtils {
 
                     if (json.has("important")) {
                         n.setImportant(net.minecraft.util.JsonUtils.getJsonObjectBooleanFieldValue(json, "important"));
+                    }
+
+                    if (json.has("vanilla")) {
+                        n.setVanilla(net.minecraft.util.JsonUtils.getJsonObjectBooleanFieldValue(json, "vanilla"));
                     }
                 } else if (json.has("countdown")) {
                     component = new TextComponentCountdown(s, json.get("countdown").getAsLong());

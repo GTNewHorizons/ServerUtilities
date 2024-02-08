@@ -235,6 +235,12 @@ public class ServerUtilitiesClientEventHandler {
             Minecraft.getMinecraft().thePlayer.addChatMessage(component);
         } else if (component instanceof Notification notification) {
             ResourceLocation id = notification.getId();
+
+            if (notification.isVanilla()) {
+                Minecraft.getMinecraft().ingameGUI.func_110326_a(component.getFormattedText(), false);
+                return;
+            }
+
             Temp.MAP.remove(id);
             if (currentNotification != null && currentNotification.widget.id.equals(id)) {
                 currentNotification = null;

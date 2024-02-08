@@ -1,5 +1,7 @@
 package serverutils.data;
 
+import static serverutils.ServerUtilitiesNotifications.TELEPORT_WARMUP;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.function.Function;
@@ -8,7 +10,6 @@ import javax.annotation.Nullable;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.nbt.NBTTagCompound;
@@ -33,6 +34,7 @@ import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.misc.IScheduledTask;
 import serverutils.lib.util.misc.TimeType;
+import serverutils.lib.util.text_components.Notification;
 import serverutils.lib.util.text_components.TextComponentParser;
 
 public class ServerUtilitiesPlayerData extends PlayerData {
@@ -68,10 +70,11 @@ public class ServerUtilitiesPlayerData extends PlayerData {
             int seconds = (int) RankConfigAPI.get(player, warmup).getTimer().seconds();
 
             if (seconds > 0) {
-                player.addChatMessage(
-                        StringUtils.color(
-                                ServerUtilities.lang(player, "stand_still", seconds).appendText(" [" + seconds + "]"),
-                                EnumChatFormatting.GOLD));
+                IChatComponent component = StringUtils.color(
+                        ServerUtilities.lang(player, "stand_still", seconds).appendText(" [" + seconds + "]"),
+                        EnumChatFormatting.GOLD);
+                Notification.of(TELEPORT_WARMUP, component).setVanilla(true).send(player.mcServer, player);
+
                 universe.scheduleTask(
                         TimeType.MILLIS,
                         System.currentTimeMillis() + 1000L,
@@ -93,22 +96,22 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         private final IScheduledTask extraTask;
         private final TeleportType teleportType;
 
-        private TeleportTask(TeleportType teleportType, EntityPlayerMP p, Timer t, int ss, int s,
-                Function<EntityPlayerMP, TeleporterDimPos> to, @Nullable IScheduledTask e) {
+        private TeleportTask(TeleportType teleportType, EntityPlayerMP player, Timer ticks, int secStart, int secLeft,
+                Function<EntityPlayerMP, TeleporterDimPos> to, @Nullable IScheduledTask task) {
             this.teleportType = teleportType;
-            this.player = p;
-            this.timer = t;
-            this.startPos = new BlockDimPos((Entity) player);
+            this.player = player;
+            this.timer = ticks;
+            this.startPos = new BlockDimPos(player);
             this.startHP = player.getHealth();
             this.pos = to;
-            this.startSeconds = ss;
-            this.secondsLeft = s;
-            this.extraTask = e;
+            this.startSeconds = secStart;
+            this.secondsLeft = secLeft;
+            this.extraTask = task;
         }
 
         @Override
         public void execute(Universe universe) {
-            if (!startPos.equalsPos(new BlockDimPos((Entity) player)) || startHP > player.getHealth()) {
+            if (!startPos.equalsPos(new BlockDimPos(player)) || startHP > player.getHealth()) {
                 player.addChatMessage(
                         StringUtils.color(ServerUtilities.lang(player, "stand_still_failed"), EnumChatFormatting.RED));
             } else if (secondsLeft <= 1) {
@@ -116,7 +119,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
 
                 if (teleporter != null) {
                     ServerUtilitiesPlayerData data = get(universe.getPlayer(player));
-                    data.setLastTeleport(teleportType, new BlockDimPos((Entity) player));
+                    data.setLastTeleport(teleportType, new BlockDimPos(player));
                     teleporter.teleport(player);
 
                     if (player.ridingEntity != null) {
@@ -138,11 +141,13 @@ public class ServerUtilitiesPlayerData extends PlayerData {
                         TimeType.MILLIS,
                         System.currentTimeMillis() + 1000L,
                         new TeleportTask(teleportType, player, timer, startSeconds, secondsLeft - 1, pos, extraTask));
-                player.addChatMessage(
-                        StringUtils.color(
-                                ServerUtilities.lang(player, "stand_still", startSeconds)
-                                        .appendText(" [" + (secondsLeft - 1) + "]"),
-                                EnumChatFormatting.GOLD));
+
+                IChatComponent component = StringUtils.color(
+                        ServerUtilities.lang(player, "stand_still", startSeconds)
+                                .appendText(" [" + (secondsLeft - 1) + "]"),
+                        EnumChatFormatting.GOLD);
+
+                Notification.of(TELEPORT_WARMUP, component).setVanilla(true).send(player.mcServer, player);
             }
         }
     }
