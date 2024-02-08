@@ -27,6 +27,9 @@ public class ServerUtilitiesNotifications {
             "cant_claim_chunk");
     public static final ResourceLocation UNCLAIMED_ALL = new ResourceLocation(ServerUtilities.MOD_ID, "unclaimed_all");
     public static final ResourceLocation TELEPORT = new ResourceLocation(ServerUtilities.MOD_ID, "teleport");
+    public static final ResourceLocation TELEPORT_WARMUP = new ResourceLocation(
+            ServerUtilities.MOD_ID,
+            "teleport_warmup");
     public static final ResourceLocation RELOAD_SERVER = new ResourceLocation(ServerUtilities.MOD_ID, "reload_server");
     public static final ResourceLocation BACKUP_START = new ResourceLocation(ServerUtilities.MOD_ID, "backup_start");
     public static final ResourceLocation BACKUP_END1 = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end1");

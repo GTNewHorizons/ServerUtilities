@@ -35,12 +35,14 @@ public class Notification extends ChatComponentText {
     private final ResourceLocation id;
     private Ticks timer;
     private boolean important;
+    private boolean vanilla;
 
     private Notification(ResourceLocation i, String text) {
         super(text);
         id = i;
         timer = Ticks.SECOND.x(3);
         important = false;
+        vanilla = false;
     }
 
     public Notification(Notification n) {
@@ -54,6 +56,7 @@ public class Notification extends ChatComponentText {
 
         setTimer(n.getTimer());
         setImportant(n.isImportant());
+        setVanilla(n.isVanilla());
     }
 
     public Notification addLine(IChatComponent line) {
@@ -116,8 +119,17 @@ public class Notification extends ChatComponentText {
         return important;
     }
 
+    public boolean isVanilla() {
+        return vanilla;
+    }
+
     public Notification setImportant(boolean v) {
         important = v;
+        return this;
+    }
+
+    public Notification setVanilla(boolean v) {
+        vanilla = v;
         return this;
     }
 
