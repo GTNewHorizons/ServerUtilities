@@ -9,6 +9,8 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.ServerUtilities;
@@ -35,6 +37,7 @@ public class MessageSyncData extends MessageToClient {
     private UUID universeId;
     private NBTTagCompound syncData;
     private Map<String, String> gamerules;
+    private Map<String, String> modList = new HashMap<>();
 
     public MessageSyncData() {}
 
@@ -47,6 +50,10 @@ public class MessageSyncData extends MessageToClient {
 
         for (Map.Entry<String, ISyncData> entry : ServerUtilitiesCommon.SYNCED_DATA.entrySet()) {
             syncData.setTag(entry.getKey(), entry.getValue().writeSyncData(player, forgePlayer));
+        }
+
+        for (ModContainer container : Loader.instance().getActiveModList()) {
+            modList.put(container.getModId(), container.getVersion());
         }
 
         gamerules = new HashMap<>();
@@ -66,6 +73,7 @@ public class MessageSyncData extends MessageToClient {
         data.writeUUID(universeId);
         data.writeNBT(syncData);
         data.writeMap(gamerules, DataOut.STRING, DataOut.STRING);
+        data.writeMap(modList, DataOut.STRING, DataOut.STRING);
     }
 
     @Override
@@ -74,6 +82,7 @@ public class MessageSyncData extends MessageToClient {
         universeId = data.readUUID();
         syncData = data.readNBT();
         gamerules = data.readMap(DataIn.STRING, DataIn.STRING);
+        modList = data.readMap(DataIn.STRING, DataIn.STRING);
     }
 
     @Override
@@ -98,6 +107,7 @@ public class MessageSyncData extends MessageToClient {
                     .info("Synced data from universe " + StringUtils.fromUUID(SidedUtils.UNIVERSE_UUID_CLIENT));
         }
 
+        SidedUtils.SERVER_MODS.putAll(modList);
         ClientUtils.is_op = Bits.getFlag(flags, OP);
     }
 }
