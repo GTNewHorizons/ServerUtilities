@@ -51,7 +51,6 @@ import serverutils.ranks.Ranks;
         modid = ServerUtilities.MOD_ID,
         name = ServerUtilities.MOD_NAME,
         version = ServerUtilities.VERSION,
-        acceptableRemoteVersions = "*",
         dependencies = "after:visualprospecting;",
         guiFactory = "serverutils.client.gui.GuiFactory")
 public class ServerUtilities {
@@ -184,7 +183,6 @@ public class ServerUtilities {
 
     @NetworkCheckHandler
     public boolean checkModLists(Map<String, String> map, Side side) {
-        SidedUtils.checkModLists(side, map);
-        return true;
+        return side != Side.CLIENT || map.containsKey(MOD_ID) && map.get(MOD_ID).equals(VERSION);
     }
 }

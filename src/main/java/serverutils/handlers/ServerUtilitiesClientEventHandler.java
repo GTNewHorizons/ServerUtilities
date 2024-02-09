@@ -110,11 +110,6 @@ public class ServerUtilitiesClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onClientConnected(FMLNetworkEvent.ClientConnectedToServerEvent event) {
-        SidedUtils.SERVER_MODS.putAll(SidedUtils.SERVER_MODS_0);
-    }
-
-    @SubscribeEvent
     public void onClientWorldTick(TickEvent.ClientTickEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
 
