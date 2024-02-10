@@ -13,6 +13,7 @@ import serverutils.net.MessageJourneyMapUpdate;
 public class VPIntegration {
 
     public static final Object2ObjectMap<ChunkDimPos, ClientClaimedChunks.ChunkData> CLAIMS = new Object2ObjectOpenHashMap<>();
+    public static ClientClaimedChunks.ChunkData OWNTEAM = null;
 
     public static void init() {
         VisualProspecting_API.LogicalClient.registerCustomButtonManager(VPButtonManager.INSTANCE);
@@ -24,7 +25,22 @@ public class VPIntegration {
     public static void updateMap(MessageJourneyMapUpdate message) {
         for (ClientClaimedChunks.Team team : message.teams.values()) {
             CLAIMS.putAll(team.chunkPos);
+            if (OWNTEAM == null && team.isMember) {
+                for (ClientClaimedChunks.ChunkData chunkData : team.chunkPos.values()) {
+                    if (!chunkData.isLoaded()) {
+                        OWNTEAM = chunkData;
+                        break;
+                    }
+                }
+            }
         }
+        VPLayerManager.INSTANCE.forceRefresh();
+    }
+
+    public static void addToOwnTeam(ChunkDimPos pos) {
+        if (OWNTEAM == null) return;
+
+        CLAIMS.put(pos, OWNTEAM);
         VPLayerManager.INSTANCE.forceRefresh();
     }
 }

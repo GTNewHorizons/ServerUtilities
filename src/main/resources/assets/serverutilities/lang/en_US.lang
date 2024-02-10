@@ -625,5 +625,6 @@ aurora.port=Port
 
 # JourneyMap
 serverutilities.jm.own_team=Your Team
-serverutilities.jm.load_hint=Double click to load/unload
+serverutilities.jm.claim=Double click an empty chunk to claim.
+serverutilities.jm.load_hint=Double click a claimed chunk to load/unload
 serverutilities.jm.unclaim_hint=Press %s to unclaim

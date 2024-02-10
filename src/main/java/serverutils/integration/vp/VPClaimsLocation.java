@@ -84,6 +84,10 @@ public class VPClaimsLocation implements IWaypointAndLocationProvider {
         }
     }
 
+    public String claimHint() {
+        return EnumChatFormatting.DARK_GRAY + I18n.format("serverutilities.jm.claim");
+    }
+
     public String toggleLoadHint() {
         return EnumChatFormatting.DARK_GRAY + I18n.format("serverutilities.jm.load_hint");
     }
