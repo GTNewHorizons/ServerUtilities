@@ -62,7 +62,7 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
             with = NULL_CHUNK_DATA;
         }
 
-        return (data.flags != with.flags || data.team != with.team) && !with.isLoaded();
+        return (data.getFlags() != with.getFlags() || data.team != with.team) && !with.isLoaded();
     }
 
     @Override

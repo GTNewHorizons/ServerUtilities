@@ -65,7 +65,7 @@ public class ClientClaimedChunks {
         public static final int LOADED = 1;
 
         public final Team team;
-        public final int flags;
+        private int flags;
 
         public ChunkData(Team t, int f) {
             team = t;
@@ -88,6 +88,19 @@ public class ClientClaimedChunks {
 
         public boolean isLoaded() {
             return Bits.getFlag(flags, LOADED);
+        }
+
+        public ChunkData setLoaded(boolean value) {
+            flags = Bits.setFlag(flags, LOADED, value);
+            return this;
+        }
+
+        public ChunkData copy() {
+            return new ChunkData(team, flags);
+        }
+
+        public int getFlags() {
+            return flags;
         }
     }
 }

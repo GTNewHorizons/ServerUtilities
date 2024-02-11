@@ -26,12 +26,7 @@ public class VPIntegration {
         for (ClientClaimedChunks.Team team : message.teams.values()) {
             CLAIMS.putAll(team.chunkPos);
             if (OWNTEAM == null && team.isMember) {
-                for (ClientClaimedChunks.ChunkData chunkData : team.chunkPos.values()) {
-                    if (!chunkData.isLoaded()) {
-                        OWNTEAM = chunkData;
-                        break;
-                    }
-                }
+                OWNTEAM = team.chunkPos.values().iterator().next().copy().setLoaded(false);
             }
         }
         VPLayerManager.INSTANCE.forceRefresh();
