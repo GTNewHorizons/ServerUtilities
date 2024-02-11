@@ -45,7 +45,12 @@ public class VPLayerManager extends WaypointProviderManager {
         Collection<ChunkCoordIntPair> chunk = Collections.singleton(new ChunkCoordIntPair(chunkX, chunkZ));
         ChunkDimPos chunkDimPos = new ChunkDimPos(chunkX, chunkZ, mc.thePlayer.dimension);
         new MessageClaimedChunksModify(chunkX, chunkZ, selectionMode, chunk).sendToServer();
-        VPIntegration.addToOwnTeam(chunkDimPos);
+
+        if(VPIntegration.OWNTEAM == null){
+            new MessageJourneyMapRequest(blockX, blockX, blockZ, blockZ).sendToServer();
+        }else{
+            VPIntegration.addToOwnTeam(chunkDimPos);
+        }
         return true;
     }
 
