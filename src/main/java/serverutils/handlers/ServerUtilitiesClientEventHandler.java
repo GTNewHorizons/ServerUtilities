@@ -65,6 +65,7 @@ import serverutils.lib.util.SidedUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.net.MessageAdminPanelGui;
+import serverutils.net.MessageClaimedChunksUpdate;
 import serverutils.net.MessageEditNBTRequest;
 import serverutils.net.MessageLeaderboardList;
 import serverutils.net.MessageMyTeamGui;
@@ -129,7 +130,11 @@ public class ServerUtilitiesClientEventHandler {
 
     @SubscribeEvent
     public void onChunkDataUpdate(UpdateClientDataEvent event) {
-        GuiClaimedChunks.onChunkDataUpdate(event);
+        MessageClaimedChunksUpdate message = event.getMessage();
+        GuiClaimedChunks.onChunkDataUpdate(message);
+        if (OtherMods.isVPLoaded()) {
+            VPIntegration.onChunkDataUpdate(message);
+        }
     }
 
     @SubscribeEvent

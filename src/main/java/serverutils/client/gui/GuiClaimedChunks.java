@@ -16,7 +16,6 @@ import net.minecraft.world.ChunkCoordIntPair;
 import org.lwjgl.opengl.GL11;
 
 import serverutils.client.ServerUtilitiesClientConfig;
-import serverutils.events.chunks.UpdateClientDataEvent;
 import serverutils.lib.EnumTeamColor;
 import serverutils.lib.client.CachedVertexData;
 import serverutils.lib.client.ClientUtils;
@@ -71,8 +70,7 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
         ChunkSelectorMap.getMap().resetMap(startX, startZ);
     }
 
-    public static void onChunkDataUpdate(UpdateClientDataEvent event) {
-        MessageClaimedChunksUpdate m = event.getMessage();
+    public static void onChunkDataUpdate(MessageClaimedChunksUpdate m) {
         claimedChunks = m.claimedChunks;
         loadedChunks = m.loadedChunks;
         maxClaimedChunks = m.maxClaimedChunks;
