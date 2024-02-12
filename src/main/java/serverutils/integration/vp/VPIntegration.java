@@ -8,12 +8,14 @@ import serverutils.client.gui.ClientClaimedChunks;
 import serverutils.integration.vp.journeymap.VPClaimsRenderer;
 import serverutils.integration.vp.journeymap.VPLayerButton;
 import serverutils.lib.math.ChunkDimPos;
+import serverutils.net.MessageClaimedChunksUpdate;
 import serverutils.net.MessageJourneyMapUpdate;
 
 public class VPIntegration {
 
     public static final Object2ObjectMap<ChunkDimPos, ClientClaimedChunks.ChunkData> CLAIMS = new Object2ObjectOpenHashMap<>();
     public static ClientClaimedChunks.ChunkData OWNTEAM = null;
+    public static int maxClaimedChunks, currentClaimedChunks;
 
     public static void init() {
         VisualProspecting_API.LogicalClient.registerCustomButtonManager(VPButtonManager.INSTANCE);
@@ -34,8 +36,14 @@ public class VPIntegration {
 
     public static void addToOwnTeam(ChunkDimPos pos) {
         if (OWNTEAM == null) return;
+        if (currentClaimedChunks >= maxClaimedChunks) return;
 
         CLAIMS.put(pos, OWNTEAM);
         VPLayerManager.INSTANCE.forceRefresh();
+    }
+
+    public static void onChunkDataUpdate(MessageClaimedChunksUpdate message) {
+        maxClaimedChunks = message.maxClaimedChunks;
+        currentClaimedChunks = message.claimedChunks;
     }
 }

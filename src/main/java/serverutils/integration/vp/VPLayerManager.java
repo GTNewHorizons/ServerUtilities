@@ -46,9 +46,9 @@ public class VPLayerManager extends WaypointProviderManager {
         ChunkDimPos chunkDimPos = new ChunkDimPos(chunkX, chunkZ, mc.thePlayer.dimension);
         new MessageClaimedChunksModify(chunkX, chunkZ, selectionMode, chunk).sendToServer();
 
-        if(VPIntegration.OWNTEAM == null){
+        if (VPIntegration.OWNTEAM == null) {
             new MessageJourneyMapRequest(blockX, blockX, blockZ, blockZ).sendToServer();
-        }else{
+        } else {
             VPIntegration.addToOwnTeam(chunkDimPos);
         }
         return true;
