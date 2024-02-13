@@ -442,6 +442,7 @@ serverutilities.lang.warps.no_dp=You can only go back once!
 serverutilities.lang.warps.no_pos_found=No position to go back to!
 
 # Homes
+serverutilities.lang.homes.homes=---------- Homes ----------
 serverutilities.lang.homes.set=Home '%s' set!
 serverutilities.lang.homes.del=Home '%s' deleted!
 serverutilities.lang.homes.not_set=Unknown Home: '%s'!
