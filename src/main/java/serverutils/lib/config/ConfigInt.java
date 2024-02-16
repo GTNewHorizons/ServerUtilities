@@ -138,10 +138,10 @@ public class ConfigInt extends ConfigValue implements IntSupplier {
     public boolean setValueFromString(@Nullable ICommandSender sender, String string, boolean simulate) {
         try {
             int val;
-            if(string.startsWith("#") || string.length() >= 10) {
-               val = Long.decode(string).intValue();
-            }else{
-               val = Integer.parseInt(string);
+            if (string.startsWith("#") || string.length() >= 10) {
+                val = Long.decode(string).intValue();
+            } else {
+                val = Integer.parseInt(string);
             }
 
             if (!simulate) {
