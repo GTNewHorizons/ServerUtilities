@@ -90,6 +90,10 @@ public class SidebarButton implements Comparable<SidebarButton> {
             addVisibilityCondition(NEI_NOT_LOADED);
         }
 
+        if (json.has("hide_if_server_disabled") && json.get("hide_if_server_disabled").getAsBoolean()) {
+            addVisibilityCondition(() -> SidedUtils.isButtonEnabledOnServer(id));
+        }
+
         if (json.has("required_server_mods")) {
             LinkedHashSet<String> requiredServerMods = new LinkedHashSet<>();
 

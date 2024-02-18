@@ -5,7 +5,8 @@
 		"x": 0,
 		"click": "custom:serverutilities:my_team_gui",
 		"required_server_mods": ["serverutilities"],
-		"loading_screen": true
+		"loading_screen": true,
+		"hide_if_server_disabled": true
 	},
 	"settings": {
 		"group": "serverutilities:info",
@@ -36,7 +37,8 @@
 		"x": 0,
 		"click": "serverutilities:claims_gui",
 		"required_server_mods": ["serverutilities"],
-		"loading_screen": true
+		"loading_screen": true,
+		"hide_if_server_disabled": true
 	},
 	"trash_can": {
 		"group": "serverutilities:util",
@@ -44,7 +46,8 @@
 		"x": 150,
 		"click": "command:/trash_can",
 		"required_server_mods": ["serverutilities"],
-		"loading_screen": true
+		"loading_screen": true,
+		"hide_if_server_disabled": true
 	},
 	"heal": {
 		"group": "serverutilities:cheat",

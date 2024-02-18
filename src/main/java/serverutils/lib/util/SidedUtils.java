@@ -12,11 +12,13 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.ResourceLocation;
 
 public class SidedUtils {
 
     public static Map<String, String> SERVER_MODS = new HashMap<>();
     public static UUID UNIVERSE_UUID_CLIENT = null;
+    public static boolean trashCan = false, teams = false, chunkClaiming = false;
 
     public static IChatComponent lang(@Nullable ICommandSender sender, String mod, String key, Object... args) {
         if (ServerUtils.isVanillaClient(sender)) {
@@ -45,5 +47,14 @@ public class SidedUtils {
         }
 
         return true;
+    }
+
+    public static boolean isButtonEnabledOnServer(ResourceLocation buttonId) {
+        return switch (buttonId.toString()) {
+            case "serverutilities:trash_can" -> trashCan;
+            case "serverutilities:my_team" -> teams;
+            case "serverutilities:claimed_chunks" -> chunkClaiming;
+            default -> true;
+        };
     }
 }
