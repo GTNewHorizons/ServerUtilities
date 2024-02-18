@@ -32,6 +32,9 @@ public class MessageSyncData extends MessageToClient {
 
     private static final int LOGIN = 1;
     private static final int OP = 2;
+    private static final int TRASH_CAN = 4;
+    private static final int CHUNK_CLAIM = 8;
+    private static final int TEAMS = 16;
 
     private int flags;
     private UUID universeId;
@@ -43,8 +46,14 @@ public class MessageSyncData extends MessageToClient {
 
     public MessageSyncData(boolean login, EntityPlayerMP player, ForgePlayer forgePlayer) {
         boolean op = MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile());
+        boolean trash = ServerUtilitiesConfig.commands.trash_can;
+        boolean claiming = ServerUtilitiesConfig.world.chunk_claiming;
+        boolean teams = ServerUtilitiesConfig.teams.disable_teams;
         flags = Bits.setFlag(0, LOGIN, login);
         flags = Bits.setFlag(flags, OP, op);
+        flags = Bits.setFlag(flags, TRASH_CAN, trash);
+        flags = Bits.setFlag(flags, CHUNK_CLAIM, claiming);
+        flags = Bits.setFlag(flags, TEAMS, !teams);
         universeId = forgePlayer.team.universe.getUUID();
         syncData = new NBTTagCompound();
 
@@ -106,8 +115,11 @@ public class MessageSyncData extends MessageToClient {
             ServerUtilities.LOGGER
                     .info("Synced data from universe " + StringUtils.fromUUID(SidedUtils.UNIVERSE_UUID_CLIENT));
         }
+        ClientUtils.is_op = Bits.getFlag(flags, OP);
 
         SidedUtils.SERVER_MODS.putAll(modList);
-        ClientUtils.is_op = Bits.getFlag(flags, OP);
+        SidedUtils.trashCan = Bits.getFlag(flags, TRASH_CAN);
+        SidedUtils.chunkClaiming = Bits.getFlag(flags, CHUNK_CLAIM);
+        SidedUtils.teams = Bits.getFlag(flags, TEAMS);
     }
 }
