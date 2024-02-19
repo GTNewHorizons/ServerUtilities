@@ -217,6 +217,11 @@ permission.serverutilities.chat.prefix.right.text=Chat Prefix Text
 permission.serverutilities.chat.suffix.left.text=Chat Suffix Text [Left]
 permission.serverutilities.chat.suffix.base.text=Chat Suffix Text [Base]
 permission.serverutilities.chat.suffix.right.text=Chat Suffix Text [Right]
+permission.default_op_rank=Default rank for players with OP or singleplayer with cheat enabled.
+permission.default_player_rank=Default rank for players
+permission.parent=Rank whose permissions will be inherited
+permission.power=Deprecated, see priority.
+permission.priority=Determines which ranks permissions will be prioritized if a player has multiple ranks. Higher = prioritized first.
 
 # Player Settings
 player_config=My Server Settings
