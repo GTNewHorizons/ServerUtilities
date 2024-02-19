@@ -28,8 +28,11 @@ public class Rank extends FinalIDObject implements Comparable<Rank> {
     public static final String NODE_PARENT = "parent";
     public static final String NODE_DEFAULT_PLAYER = "default_player_rank";
     public static final String NODE_DEFAULT_OP = "default_op_rank";
-    public static final String NODE_POWER = "power";
+    public static final String NODE_PRIORITY = "priority";
     public static final String NODE_COMMAND = "command";
+
+    @Deprecated
+    public static final String NODE_POWER = "power";
 
     public static class Entry implements Comparable<Entry> {
 
@@ -53,7 +56,7 @@ public class Rank extends FinalIDObject implements Comparable<Rank> {
     }
 
     public final Ranks ranks;
-    private int power;
+    private int priority;
     protected IChatComponent displayName;
     protected Set<Rank> parents;
     public final Map<String, Entry> permissions;
@@ -66,21 +69,21 @@ public class Rank extends FinalIDObject implements Comparable<Rank> {
         ranks = r;
         permissions = new LinkedHashMap<>();
         comment = "";
-        power = -1;
+        priority = -1;
     }
 
-    public int getPower() {
-        if (power == -1) {
+    public int getPriority() {
+        if (priority == -1) {
             String s = getLocalPermission(NODE_POWER);
+            String s1 = getLocalPermission(NODE_PRIORITY);
+            int pow = s.isEmpty() ? 0 : Integer.parseInt(s);
+            int pri = s1.isEmpty() ? 0 : Integer.parseInt(s1);
+            int actualPriority = Math.max(pri, pow);
 
-            if (s.isEmpty()) {
-                power = 0;
-            } else {
-                power = MathHelper.clamp_int(Integer.parseInt(s), 0, Integer.MAX_VALUE - 1);
-            }
+            priority = MathHelper.clamp_int(actualPriority, 0, Integer.MAX_VALUE - 1);
         }
 
-        return power;
+        return priority;
     }
 
     public boolean isPlayer() {
@@ -89,7 +92,7 @@ public class Rank extends FinalIDObject implements Comparable<Rank> {
 
     public void clearCache() {
         parents = null;
-        power = -1;
+        priority = -1;
     }
 
     public IChatComponent getDisplayName() {
@@ -148,7 +151,7 @@ public class Rank extends FinalIDObject implements Comparable<Rank> {
     }
 
     public boolean clearParents() {
-        power = -1;
+        priority = -1;
         parents = null;
         return setPermission(NODE_PARENT, "") != null;
     }
@@ -263,7 +266,7 @@ public class Rank extends FinalIDObject implements Comparable<Rank> {
 
     @Override
     public int compareTo(Rank o) {
-        return Integer.compare(o.getPower(), getPower());
+        return Integer.compare(o.getPriority(), getPriority());
     }
 
     public boolean isDefaultPlayerRank() {

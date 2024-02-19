@@ -77,8 +77,6 @@ public class ServerUtilitiesPermissions {
 
     // Chunkloader //
     public static final String CHUNKLOADER_MAX_CHUNKS = "serverutilities.chunkloader.max_chunks";
-    // public static final String CHUNKLOADER_OFFLINE_TIMER = ServerUtilities.MOD_ID +
-    // ".chunkloader.offline_timer";
     public static final String CHUNKLOADER_LOAD_OFFLINE = "serverutilities.chunkloader.load_offline";
 
     // Chat //
@@ -279,6 +277,7 @@ public class ServerUtilitiesPermissions {
         event.register(Rank.NODE_DEFAULT_PLAYER, new ConfigBoolean(false), new ConfigBoolean(false));
         event.register(Rank.NODE_DEFAULT_OP, new ConfigBoolean(false), new ConfigBoolean(false));
         event.register(Rank.NODE_POWER, new ConfigInt(0, 0, Integer.MAX_VALUE - 1), new ConfigInt(0));
+        event.register(Rank.NODE_PRIORITY, new ConfigInt(0, 0, Integer.MAX_VALUE - 1), new ConfigInt(0));
 
         event.register(CHAT_NAME_FORMAT, new ConfigString("<{name}>"), new ConfigString("<&2{name}&r>"));
         event.register(CHAT_TEXT_COLOR, new ConfigEnum<>(TextComponentParser.TEXT_FORMATTING_COLORS_NAME_MAP));
@@ -298,8 +297,6 @@ public class ServerUtilitiesPermissions {
         event.register(RTP_WARMUP, new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
         event.register(CLAIMS_MAX_CHUNKS, new ConfigInt(100, 0, 30000), new ConfigInt(1000));
         event.register(CHUNKLOADER_MAX_CHUNKS, new ConfigInt(50, 0, 30000), new ConfigInt(64));
-        // event.register(CHUNKLOADER_OFFLINE_TIMER, new ConfigDouble(-1D).setMin(-1D),
-        // new ConfigDouble(-1D));
         event.register(AFK_TIMER, new ConfigTimer(Ticks.NO_TICKS));
     }
 

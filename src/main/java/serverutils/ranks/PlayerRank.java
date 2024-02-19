@@ -36,7 +36,7 @@ public class PlayerRank extends Rank {
     }
 
     @Override
-    public int getPower() {
+    public int getPriority() {
         return Integer.MAX_VALUE;
     }
 

@@ -97,7 +97,7 @@ public class Ranks {
             Rank pRank = new Rank(this, "player");
             pRank.add();
             pRank.setPermission(Rank.NODE_DEFAULT_PLAYER, true);
-            pRank.setPermission(Rank.NODE_POWER, 1);
+            pRank.setPermission(Rank.NODE_PRIORITY, 1);
             pRank.setPermission(ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS, 100);
             pRank.setPermission(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS, 50);
             pRank.setPermission(ServerUtilitiesPermissions.HOMES_MAX, 1);
@@ -110,7 +110,7 @@ public class Ranks {
 
             Rank vRank = new Rank(this, "vip");
             vRank.add();
-            vRank.setPermission(Rank.NODE_POWER, 20);
+            vRank.setPermission(Rank.NODE_PRIORITY, 20);
             vRank.setPermission(ServerUtilitiesPermissions.CHAT_NAME_FORMAT, "<&bVIP {name}&r>");
             vRank.setPermission(ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS, 500);
             vRank.setPermission(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS, 100);
@@ -124,7 +124,7 @@ public class Ranks {
             Rank aRank = new Rank(this, "admin");
             aRank.add();
             aRank.setPermission(Rank.NODE_DEFAULT_OP, true);
-            aRank.setPermission(Rank.NODE_POWER, 100);
+            aRank.setPermission(Rank.NODE_PRIORITY, 100);
             aRank.setPermission(ServerUtilitiesPermissions.CHAT_NAME_FORMAT, "<&2{name}&r>");
             aRank.setPermission(ServerUtilitiesPermissions.CLAIMS_MAX_CHUNKS, 5000);
             aRank.setPermission(ServerUtilitiesPermissions.CHUNKLOADER_MAX_CHUNKS, 1000);
@@ -189,7 +189,7 @@ public class Ranks {
                 if (!currentRank.isPlayer()) {
                     if (isValidName(currentRank.getId())) {
                         currentRank.add();
-                        currentRank.setPermission(Rank.NODE_POWER, String.valueOf(ranks.size()));
+                        currentRank.setPermission(Rank.NODE_PRIORITY, String.valueOf(ranks.size()));
                     } else {
                         currentRank = null;
                         continue;
@@ -303,7 +303,7 @@ public class Ranks {
                 if (!currentRank.isPlayer()) {
                     if (isValidName(currentRank.getId())) {
                         currentRank.add();
-                        currentRank.setPermission(Rank.NODE_POWER, String.valueOf(ranks.size()));
+                        currentRank.setPermission(Rank.NODE_PRIORITY, String.valueOf(ranks.size()));
                     } else {
                         currentRank = null;
                         continue;
@@ -345,7 +345,7 @@ public class Ranks {
         }
 
         for (Rank rank : playerRanks.values()) {
-            if (rank.setPermission(Rank.NODE_POWER, "") != null) {
+            if (rank.setPermission(Rank.NODE_PRIORITY, "") != null) {
                 save = true;
             }
         }
@@ -458,11 +458,11 @@ public class Ranks {
                 }
             }
 
-            int power = Integer.MAX_VALUE;
+            int priority = Integer.MAX_VALUE;
 
             for (Rank rank : ranks.values()) {
-                if (rank.getPower() <= power) {
-                    power = rank.getPower();
+                if (rank.getPriority() <= priority) {
+                    priority = rank.getPriority();
                     defaultPlayerRank = Optional.of(rank);
                 }
             }
@@ -485,11 +485,11 @@ public class Ranks {
                 }
             }
 
-            int power = 0;
+            int priority = 0;
 
             for (Rank rank : ranks.values()) {
-                if (rank.getPower() >= power) {
-                    power = rank.getPower();
+                if (rank.getPriority() >= priority) {
+                    priority = rank.getPriority();
                     defaultOPRank = Optional.of(rank);
                 }
             }
