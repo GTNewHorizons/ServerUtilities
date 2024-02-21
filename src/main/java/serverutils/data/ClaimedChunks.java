@@ -226,7 +226,7 @@ public class ClaimedChunks {
     }
 
     public static boolean blockBlockEditing(EntityPlayer player, int x, int y, int z, int meta) {
-        if (!isActive() || player.worldObj == null || !(player instanceof EntityPlayerMP)) {
+        if (!isActive() || player.worldObj == null || !(player instanceof EntityPlayerMP) || !ServerUtilitiesConfig.teams.grief_protection) {
             return false;
         }
 
@@ -238,15 +238,13 @@ public class ClaimedChunks {
 
         ClaimedChunk chunk = instance.getChunk(new ChunkDimPos(x, y, z, player.dimension));
 
-        return chunk != null
-                && !PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_BLOCK_EDIT_PREFIX)
-                && !ServerUtilitiesPermissions.hasBlockEditingPermission(player, block)
+        return chunk != null && !ServerUtilitiesPermissions.hasBlockEditingPermission(player, block)
                 && !chunk.getTeam()
                         .hasStatus(instance.universe.getPlayer(player), chunk.getData().getEditBlocksStatus());
     }
 
     public static boolean blockBlockInteractions(EntityPlayer player, int x, int y, int z, int meta) {
-        if (!isActive() || player.worldObj == null || !(player instanceof EntityPlayerMP)) {
+        if (!isActive() || player.worldObj == null || !(player instanceof EntityPlayerMP) || !ServerUtilitiesConfig.teams.interaction_protection) {
             return false;
         }
 
@@ -257,9 +255,7 @@ public class ClaimedChunks {
         Block block = player.worldObj.getBlock(x, y, z);
 
         ClaimedChunk chunk = instance.getChunk(new ChunkDimPos(x, y, z, player.dimension));
-        return chunk != null
-                && !PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_BLOCK_INTERACT_PREFIX)
-                && !ServerUtilitiesPermissions.hasBlockInteractionPermission(player, block)
+        return chunk != null && !ServerUtilitiesPermissions.hasBlockInteractionPermission(player, block)
                 && !chunk.getTeam()
                         .hasStatus(instance.universe.getPlayer(player), chunk.getData().getInteractWithBlocksStatus());
     }
