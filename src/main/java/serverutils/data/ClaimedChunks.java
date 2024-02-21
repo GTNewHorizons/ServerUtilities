@@ -226,7 +226,9 @@ public class ClaimedChunks {
     }
 
     public static boolean blockBlockEditing(EntityPlayer player, int x, int y, int z, int meta) {
-        if (!isActive() || player.worldObj == null || !(player instanceof EntityPlayerMP) || !ServerUtilitiesConfig.teams.grief_protection) {
+        if (!isActive() || player.worldObj == null
+                || !(player instanceof EntityPlayerMP)
+                || !ServerUtilitiesConfig.teams.grief_protection) {
             return false;
         }
 
@@ -244,7 +246,9 @@ public class ClaimedChunks {
     }
 
     public static boolean blockBlockInteractions(EntityPlayer player, int x, int y, int z, int meta) {
-        if (!isActive() || player.worldObj == null || !(player instanceof EntityPlayerMP) || !ServerUtilitiesConfig.teams.interaction_protection) {
+        if (!isActive() || player.worldObj == null
+                || !(player instanceof EntityPlayerMP)
+                || !ServerUtilitiesConfig.teams.interaction_protection) {
             return false;
         }
 

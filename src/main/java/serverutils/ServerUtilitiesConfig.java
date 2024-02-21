@@ -84,9 +84,11 @@ public class ServerUtilitiesConfig {
         teams.grief_protection = config
                 .get(TEAM_CAT, "grief_protection", true, "Don't allow other players to break blocks in claimed chunks")
                 .getBoolean();
-        teams.interaction_protection = config
-                .get(TEAM_CAT, "interaction_protection", true, "Don't allow other players to interact with blocks in claimed chunks")
-                .getBoolean();
+        teams.interaction_protection = config.get(
+                TEAM_CAT,
+                "interaction_protection",
+                true,
+                "Don't allow other players to interact with blocks in claimed chunks").getBoolean();
 
         config.setCategoryComment(DEBUG_CAT, "Don't set any values to true, unless you are debugging the mod.");
         debugging.special_commands = config.get(DEBUG_CAT, "special_commands", false, "Enables special debug commands.")
