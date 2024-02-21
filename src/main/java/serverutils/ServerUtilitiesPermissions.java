@@ -170,6 +170,14 @@ public class ServerUtilitiesPermissions {
                 DefaultPermissionLevel.OP,
                 "Allow to attack animals in claimed chunks");
         PermissionAPI.registerNode(
+                CLAIMS_BLOCK_EDIT_PREFIX,
+                DefaultPermissionLevel.OP,
+                "Permission for blocks that players can break and place within claimed chunks. No block specified = all blocks.");
+        PermissionAPI.registerNode(
+                CLAIMS_BLOCK_INTERACT_PREFIX,
+                DefaultPermissionLevel.OP,
+                "Permission for blocks that players can right-click within claimed chunks. No block specified = all blocks.");
+        PermissionAPI.registerNode(
                 CHUNKLOADER_LOAD_OFFLINE,
                 DefaultPermissionLevel.ALL,
                 "Keep loaded chunks working when player goes offline");
@@ -306,14 +314,6 @@ public class ServerUtilitiesPermissions {
                 Rank.NODE_COMMAND,
                 DefaultPermissionLevel.OP,
                 "Permission for commands, if ServerUtilities command overriding is enabled. If not, this String will be inactive");
-        event.register(
-                CLAIMS_BLOCK_EDIT_PREFIX,
-                DefaultPermissionLevel.OP,
-                "Permission for blocks that players can break and place within claimed chunks");
-        event.register(
-                CLAIMS_BLOCK_INTERACT_PREFIX,
-                DefaultPermissionLevel.OP,
-                "Permission for blocks that players can right-click within claimed chunks");
         event.register(
                 CLAIMS_ITEM_PREFIX,
                 DefaultPermissionLevel.ALL,
