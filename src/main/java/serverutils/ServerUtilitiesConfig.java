@@ -81,6 +81,15 @@ public class ServerUtilitiesConfig {
                 .get(TEAM_CAT, "hide_team_notification", false, "Disable no team notification entirely.")
                 .setLanguageKey("player_config.serverutilities.hide_team_notification").getBoolean();
 
+        teams.grief_protection = config
+                .get(TEAM_CAT, "grief_protection", true, "Don't allow other players to break blocks in claimed chunks")
+                .getBoolean();
+        teams.interaction_protection = config.get(
+                TEAM_CAT,
+                "interaction_protection",
+                true,
+                "Don't allow other players to interact with blocks in claimed chunks").getBoolean();
+
         config.setCategoryComment(DEBUG_CAT, "Don't set any values to true, unless you are debugging the mod.");
         debugging.special_commands = config.get(DEBUG_CAT, "special_commands", false, "Enables special debug commands.")
                 .getBoolean();
@@ -363,6 +372,8 @@ public class ServerUtilitiesConfig {
         public boolean autocreate_mp;
         public boolean autocreate_sp;
         public boolean hide_team_notification;
+        public boolean grief_protection;
+        public boolean interaction_protection;
     }
 
     public static class Debugging {
