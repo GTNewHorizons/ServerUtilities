@@ -82,12 +82,9 @@ public class Backups {
             ServerUtilities.LOGGER.info("Deleting " + toDelete + " old backups");
 
             for (int i = 0; i < toDelete; i++) {
-                File f = new File(backupsFolder, backups[1]);
-                // Don't automatically delete backups with custom name
-                if (f.getName().indexOf("-") == 4) {
-                    ServerUtilities.LOGGER.info("Deleted old backup: " + f.getPath());
-                    FileUtils.delete(f);
-                }
+                File f = new File(backupsFolder, backups[i]);
+                ServerUtilities.LOGGER.info("Deleted old backup: " + f.getPath());
+                FileUtils.delete(f);
             }
         }
     }
