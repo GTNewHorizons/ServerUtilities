@@ -267,7 +267,8 @@ public class ClaimedChunks {
     public static boolean blockItemUse(EntityPlayer player, int x, int y, int z) {
         if (!isActive() || player.worldObj == null
                 || !(player instanceof EntityPlayerMP)
-                || player.getHeldItem() == null) {
+                || player.getHeldItem() == null
+                || !ServerUtilitiesConfig.teams.grief_protection) {
             return false;
         }
 
