@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.network.play.server.S1FPacketSetExperience;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -78,11 +79,21 @@ public class TeleporterDimPos {
             if (entity instanceof EntityPlayerMP playerMP) {
                 server.getConfigurationManager()
                         .transferPlayerToDimension(playerMP, dim, new EmptyTeleporter(newDim, this));
+                playerMP.playerNetServerHandler.sendPacket(
+                        new S1FPacketSetExperience(
+                                playerMP.experience,
+                                playerMP.experienceTotal,
+                                playerMP.experienceLevel));
+                playerMP.sendPlayerAbilities();
+
+                if (currentDim.provider.dimensionId == 1 && playerMP.isEntityAlive()) {
+                    newDim.spawnEntityInWorld(playerMP);
+                    newDim.updateEntityWithOptionalForce(playerMP, false);
+                }
             } else {
                 server.getConfigurationManager()
                         .transferEntityToWorld(entity, dim, currentDim, newDim, new EmptyTeleporter(newDim, this));
             }
-            return entity;
         }
 
         placeEntity(entity.worldObj, entity, entity.rotationYaw);

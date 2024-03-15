@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.nbt.NBTTagCompound;
@@ -116,15 +117,16 @@ public class ServerUtilitiesPlayerData extends PlayerData {
                         StringUtils.color(ServerUtilities.lang(player, "stand_still_failed"), EnumChatFormatting.RED));
             } else if (secondsLeft <= 1) {
                 TeleporterDimPos teleporter = pos.apply(player);
-
                 if (teleporter != null) {
+                    Entity mount = player.ridingEntity;
+                    player.mountEntity(null);
+                    if (mount != null) {
+                        teleporter.teleport(mount);
+                    }
+
                     ServerUtilitiesPlayerData data = get(universe.getPlayer(player));
                     data.setLastTeleport(teleportType, new BlockDimPos(player));
                     teleporter.teleport(player);
-
-                    if (player.ridingEntity != null) {
-                        teleporter.teleport(player.ridingEntity);
-                    }
 
                     data.lastTeleport[timer.ordinal()] = System.currentTimeMillis();
 
