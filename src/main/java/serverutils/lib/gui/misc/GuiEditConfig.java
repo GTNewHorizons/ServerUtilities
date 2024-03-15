@@ -5,12 +5,11 @@ import java.util.Comparator;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.StatCollector;
 
-import cpw.mods.fml.common.registry.LanguageRegistry;
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.ConfigValueInstance;
@@ -97,11 +96,11 @@ public class GuiEditConfig extends GuiBase {
 
                 title = builder.toString();
             } else {
-                title = I18n.format("stat.generalButton");
+                title = StatCollector.translateToLocal("stat.generalButton");
             }
 
             String infoKey = group.getPath() + ".info";
-            info = !LanguageRegistry.instance().getStringLocalization(infoKey).isEmpty() ? I18n.format(infoKey) : "";
+            info = StatCollector.canTranslate(infoKey) ? StatCollector.translateToLocal(infoKey) : "";
             setCollapsed(collapsed);
         }
 
@@ -222,7 +221,7 @@ public class GuiEditConfig extends GuiBase {
                 }
 
                 if (!(infoText instanceof ChatComponentTranslation component)
-                        || !LanguageRegistry.instance().getStringLocalization(component.getKey()).isEmpty()) {
+                        || StatCollector.canTranslate(component.getKey())) {
                     for (String s : infoText.getFormattedText().split("\\\n")) {
                         list.add(color.toString() + EnumChatFormatting.ITALIC + s);
                     }
@@ -305,30 +304,42 @@ public class GuiEditConfig extends GuiBase {
 
         scroll = new PanelScrollBar(this, configPanel);
 
-        buttonAccept = new SimpleButton(this, I18n.format("gui.close"), GuiIcons.ACCEPT, (widget, button) -> {
-            shouldClose = 1;
-            widget.getGui().closeGui();
-        });
+        buttonAccept = new SimpleButton(
+                this,
+                StatCollector.translateToLocal("gui.close"),
+                GuiIcons.ACCEPT,
+                (widget, button) -> {
+                    shouldClose = 1;
+                    widget.getGui().closeGui();
+                });
 
-        buttonCancel = new SimpleButton(this, I18n.format("gui.cancel"), GuiIcons.CANCEL, (widget, button) -> {
-            shouldClose = 2;
-            widget.getGui().closeGui();
-        });
+        buttonCancel = new SimpleButton(
+                this,
+                StatCollector.translateToLocal("gui.cancel"),
+                GuiIcons.CANCEL,
+                (widget, button) -> {
+                    shouldClose = 2;
+                    widget.getGui().closeGui();
+                });
 
-        buttonExpandAll = new SimpleButton(this, I18n.format("gui.expand_all"), GuiIcons.ADD, (widget, button) -> {
-            for (Widget w : configEntryButtons) {
-                if (w instanceof ButtonConfigGroup configGroup) {
-                    configGroup.setCollapsed(false);
-                }
-            }
+        buttonExpandAll = new SimpleButton(
+                this,
+                StatCollector.translateToLocal("gui.expand_all"),
+                GuiIcons.ADD,
+                (widget, button) -> {
+                    for (Widget w : configEntryButtons) {
+                        if (w instanceof ButtonConfigGroup configGroup) {
+                            configGroup.setCollapsed(false);
+                        }
+                    }
 
-            scroll.setValue(0);
-            widget.getGui().refreshWidgets();
-        });
+                    scroll.setValue(0);
+                    widget.getGui().refreshWidgets();
+                });
 
         buttonCollapseAll = new SimpleButton(
                 this,
-                I18n.format("gui.collapse_all"),
+                StatCollector.translateToLocal("gui.collapse_all"),
                 GuiIcons.REMOVE,
                 (widget, button) -> {
                     for (Widget w : configEntryButtons) {
