@@ -25,7 +25,7 @@ public enum EnumTristate implements IStringSerializable {
     }
 
     public static EnumTristate string2tristate(String tristate) {
-        return switch (tristate) {
+        return switch (tristate.toLowerCase()) {
             case "true" -> TRUE;
             case "false" -> FALSE;
             default -> DEFAULT;

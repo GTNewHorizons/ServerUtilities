@@ -39,7 +39,7 @@ public class ServerUtilitiesConfig {
     public static final String DEBUGGING = "debugging";
     public static final String BACKUPS = "backups";
 
-    public static final String[] TRISTATE_VALUES = { "SCREEN", "CHAT", "DISABLED" };
+    public static final String[] TRISTATE_VALUES = { "TRUE", "FALSE", "DEFAULT" };
 
     public static void init(FMLPreInitializationEvent event) {
         config = new Configuration(
@@ -289,15 +289,13 @@ public class ServerUtilitiesConfig {
                 Allowed values:
                 DEFAULT = Players can choose their own PVP status.
                 TRUE = PVP on for everyone.
-                FALSE = PVP disabled for everyone.
-                """).setValidValues(TRISTATE_VALUES).getString());
+                FALSE = PVP disabled for everyone.""").setValidValues(TRISTATE_VALUES).getString());
         world.enable_explosions = EnumTristate
                 .string2tristate(config.get(WORLD, "enable_explosions", EnumTristate.DEFAULT.getName(), """
                         Allowed values:
                         DEFAULT = Teams can decide their explosion setting
                         TRUE = Explosions on for everyone.
-                        FALSE = Explosions disabled for everyone.
-                        """).setValidValues(TRISTATE_VALUES).getString());
+                        FALSE = Explosions disabled for everyone.""").setValidValues(TRISTATE_VALUES).getString());
         world.spawn_radius = config.get(
                 WORLD,
                 "spawn_radius",
