@@ -19,22 +19,16 @@ public class EmptyTeleporter extends Teleporter {
     public void removeStalePortalLocations(long p_85189_1_) {}
 
     @Override
-    public void placeInPortal(Entity p_77185_1_, double p_77185_2_, double p_77185_4_, double p_77185_6_,
-            float p_77185_8_) {
-        p_77185_1_.motionX = p_77185_1_.motionY = p_77185_1_.motionZ = 0.0D;
-        p_77185_1_.fallDistance = 0F;
-        p_77185_1_.setLocationAndAngles(
-                destination.posX,
-                destination.posY,
-                destination.posZ,
-                p_77185_1_.rotationYaw,
-                0.0F);
+    public void placeInPortal(Entity entity, double posX, double posY, double posZ, float yaw) {
+        placeInExistingPortal(entity, posX, posY, posZ, yaw);
     }
 
     @Override
-    public boolean placeInExistingPortal(Entity p_77184_1_, double p_77184_2_, double p_77184_4_, double p_77184_6_,
-            float p_77184_8_) {
-        return false;
+    public boolean placeInExistingPortal(Entity entity, double posX, double posY, double posZ, float yaw) {
+        entity.motionX = entity.motionY = entity.motionZ = 0.0D;
+        entity.fallDistance = 0F;
+        entity.setLocationAndAngles(destination.posX, destination.posY, destination.posZ, entity.rotationYaw, 0.0F);
+        return true;
     }
 
     @Override

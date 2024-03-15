@@ -617,6 +617,7 @@ public class ServerUtilitiesClientEventHandler {
             FontRenderer font = mc.fontRenderer;
 
             GlStateManager.enableBlend();
+            GlStateManager.enableDepth();
             GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             GlStateManager.color(1F, 1F, 1F, 1F);
 
@@ -658,7 +659,6 @@ public class ServerUtilitiesClientEventHandler {
                 }
 
                 GlStateManager.pushMatrix();
-                GlStateManager.enableDepth();
                 GlStateManager.translate(0, 0, 500);
                 GlStateManager.enableBlend();
                 GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -668,11 +668,11 @@ public class ServerUtilitiesClientEventHandler {
                     font.drawString(list.get(i), mx1, my1 + i * 10, 0xFFFFFFFF);
                 }
                 GlStateManager.color(1F, 1F, 1F, 1F);
-                GlStateManager.disableDepth();
                 GlStateManager.popMatrix();
             }
 
             GlStateManager.color(1F, 1F, 1F, 1F);
+            GlStateManager.disableDepth();
             GlStateManager.popMatrix();
             zLevel = 0F;
 
