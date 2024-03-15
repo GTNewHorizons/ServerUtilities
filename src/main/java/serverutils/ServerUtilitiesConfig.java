@@ -39,6 +39,8 @@ public class ServerUtilitiesConfig {
     public static final String DEBUGGING = "debugging";
     public static final String BACKUPS = "backups";
 
+    public static final String[] TRISTATE_VALUES = { "SCREEN", "CHAT", "DISABLED" };
+
     public static void init(FMLPreInitializationEvent event) {
         config = new Configuration(
                 new File(event.getModConfigurationDirectory() + "/../serverutilities/serverutilities.cfg"));
@@ -283,18 +285,19 @@ public class ServerUtilitiesConfig {
                 "blocked_claiming_dimensions",
                 new int[] {},
                 "Dimensions where chunk claiming isn't allowed.").getIntList();
-        world.enable_pvp = EnumTristate.string2tristate(
-                config.get(
-                        WORLD,
-                        "enable_pvp",
-                        EnumTristate.TRUE.getName(),
-                        "If set to DEFAULT, then players can decide their PVP status.").getString());
-        world.enable_explosions = EnumTristate.string2tristate(
-                config.get(
-                        WORLD,
-                        "enable_explosions",
-                        EnumTristate.DEFAULT.getName(),
-                        "If set to DEFAULT, then teams can decide their Explosion setting.").getString());
+        world.enable_pvp = EnumTristate.string2tristate(config.get(WORLD, "enable_pvp", EnumTristate.TRUE.getName(), """
+                Allowed values:
+                DEFAULT = Players can choose their own PVP status.
+                TRUE = PVP on for everyone.
+                FALSE = PVP disabled for everyone.
+                """).setValidValues(TRISTATE_VALUES).getString());
+        world.enable_explosions = EnumTristate
+                .string2tristate(config.get(WORLD, "enable_explosions", EnumTristate.DEFAULT.getName(), """
+                        Allowed values:
+                        DEFAULT = Teams can decide their explosion setting
+                        TRUE = Explosions on for everyone.
+                        FALSE = Explosions disabled for everyone.
+                        """).setValidValues(TRISTATE_VALUES).getString());
         world.spawn_radius = config.get(
                 WORLD,
                 "spawn_radius",
