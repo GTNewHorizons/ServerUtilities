@@ -215,11 +215,16 @@ public class GuiEditConfig extends GuiBase {
             if (getMouseY() > 18) {
                 list.add(EnumChatFormatting.UNDERLINE + keyText);
                 IChatComponent infoText = inst.getInfo();
+                EnumChatFormatting color = EnumChatFormatting.GRAY;
+
+                if (!inst.getCanEdit()) {
+                    color = EnumChatFormatting.RED;
+                }
 
                 if (!(infoText instanceof ChatComponentTranslation component)
                         || !LanguageRegistry.instance().getStringLocalization(component.getKey()).isEmpty()) {
                     for (String s : infoText.getFormattedText().split("\\\n")) {
-                        list.add(EnumChatFormatting.GRAY.toString() + EnumChatFormatting.ITALIC + s);
+                        list.add(color.toString() + EnumChatFormatting.ITALIC + s);
                     }
                 }
 
@@ -282,6 +287,8 @@ public class GuiEditConfig extends GuiBase {
             ButtonConfigGroup group = null;
 
             for (ConfigValueInstance instance : list) {
+                if (instance.getExcluded()) continue;
+
                 if (group == null || !group.group.equals(instance.getGroup())) {
                     group = new ButtonConfigGroup(configPanel, instance.getGroup());
                     configEntryButtons.add(group);

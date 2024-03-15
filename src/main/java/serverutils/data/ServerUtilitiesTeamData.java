@@ -14,6 +14,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.events.team.ForgeTeamConfigEvent;
 import serverutils.events.team.ForgeTeamDeletedEvent;
@@ -191,15 +192,18 @@ public class ServerUtilitiesTeamData extends TeamData {
         ConfigGroup group = main.getGroup(ServerUtilities.MOD_ID);
         group.setDisplayName(new ChatComponentText(ServerUtilities.MOD_NAME));
 
-        group.addBool("explosions", () -> explosions, v -> explosions = v, false);
-        group.addEnum("blocks_edit", () -> editBlocks, v -> editBlocks = v, EnumTeamStatus.NAME_MAP_PERMS);
+        group.addBool("explosions", () -> explosions, v -> explosions = v, false)
+                .setCanEdit(ServerUtilitiesConfig.world.enable_explosions.isDefault());
+        group.addEnum("blocks_edit", () -> editBlocks, v -> editBlocks = v, EnumTeamStatus.NAME_MAP_PERMS)
+                .setCanEdit(ServerUtilitiesConfig.teams.grief_protection);
         group.addEnum(
                 "blocks_interact",
                 () -> interactWithBlocks,
                 v -> interactWithBlocks = v,
-                EnumTeamStatus.NAME_MAP_PERMS);
+                EnumTeamStatus.NAME_MAP_PERMS).setCanEdit(ServerUtilitiesConfig.teams.interaction_protection);;
         group.addEnum("attack_entities", () -> attackEntities, v -> attackEntities = v, EnumTeamStatus.NAME_MAP_PERMS);
-        group.addEnum("use_items", () -> useItems, v -> useItems = v, EnumTeamStatus.NAME_MAP_PERMS);
+        group.addEnum("use_items", () -> useItems, v -> useItems = v, EnumTeamStatus.NAME_MAP_PERMS)
+                .setCanEdit(ServerUtilitiesConfig.teams.grief_protection);
     }
 
     public EnumTeamStatus getEditBlocksStatus() {

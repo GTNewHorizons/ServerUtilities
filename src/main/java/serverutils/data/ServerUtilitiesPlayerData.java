@@ -217,15 +217,13 @@ public class ServerUtilitiesPlayerData extends PlayerData {
 
         config.addBool("render_badge", () -> renderBadge, v -> renderBadge = v, true);
         config.addBool("disable_global_badge", () -> disableGlobalBadge, v -> disableGlobalBadge = v, false);
-        config.addBool("enable_pvp", () -> enablePVP, v -> enablePVP = v, true);
-
-        if (ServerUtilitiesConfig.commands.nick && player.hasPermission(ServerUtilitiesPermissions.CHAT_NICKNAME_SET)) {
-            config.addString("nickname", () -> nickname, v -> nickname = v, "");
-        }
-
-        if (ServerUtilitiesConfig.afk.isEnabled(player.team.universe.server)) {
-            config.addEnum("afk", () -> afkMesageLocation, v -> afkMesageLocation = v, EnumMessageLocation.NAME_MAP);
-        }
+        config.addBool("enable_pvp", () -> enablePVP, v -> enablePVP = v, true)
+                .setCanEdit(ServerUtilitiesConfig.world.enable_pvp.isDefault());
+        config.addString("nickname", () -> nickname, v -> nickname = v, "").setCanEdit(
+                ServerUtilitiesConfig.commands.nick
+                        && player.hasPermission(ServerUtilitiesPermissions.CHAT_NICKNAME_SET));
+        config.addEnum("afk", () -> afkMesageLocation, v -> afkMesageLocation = v, EnumMessageLocation.NAME_MAP)
+                .setExcluded(!ServerUtilitiesConfig.afk.isEnabled(player.team.universe.server));
     }
 
     public boolean renderBadge() {
