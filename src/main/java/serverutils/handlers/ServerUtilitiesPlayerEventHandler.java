@@ -12,6 +12,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
@@ -39,12 +40,12 @@ import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.math.ChunkDimPos;
+import serverutils.lib.math.MathUtils;
 import serverutils.lib.util.InvUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageSyncData;
-import serverutils.net.MessageUpdateTabName;
 
 public class ServerUtilitiesPlayerEventHandler {
 
@@ -77,15 +78,15 @@ public class ServerUtilitiesPlayerEventHandler {
 
         Backups.hadPlayer = true;
 
-        if (ServerUtilitiesConfig.chat.replace_tab_names) {
-            new MessageUpdateTabName(player).sendToAll();
-
-            for (EntityPlayerMP player1 : player.mcServer.getConfigurationManager().playerEntityList) {
-                if (player1 != player) {
-                    new MessageUpdateTabName(player1).sendTo(player);
-                }
-            }
-        }
+        // if (ServerUtilitiesConfig.chat.replace_tab_names) {
+        // new MessageUpdateTabName(player).sendToAll();
+        //
+        // for (EntityPlayerMP player1 : player.mcServer.getConfigurationManager().playerEntityList) {
+        // if (player1 != player) {
+        // new MessageUpdateTabName(player1).sendTo(player);
+        // }
+        // }
+        // }
     }
 
     @SubscribeEvent
@@ -141,12 +142,11 @@ public class ServerUtilitiesPlayerEventHandler {
     public void onEntityDamage(LivingAttackEvent event) {
         if (ServerUtilitiesConfig.world.disable_player_suffocation_damage && event.entity instanceof EntityPlayer
                 && (event.source == DamageSource.inWall)) {
-            // event.ammount = 0;
             event.setCanceled(true);
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGH)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onEntityAttacked(AttackEntityEvent event) {
         if (!ClaimedChunks.canAttackEntity(event.entityPlayer, event.target)) {
             InvUtils.forceUpdate(event.entityPlayer);
@@ -154,72 +154,48 @@ public class ServerUtilitiesPlayerEventHandler {
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onRightClickBlock(PlayerInteractEvent event) {
-        if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
-            return;
-        }
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onPlayerInteraction(PlayerInteractEvent event) {
+        EntityPlayer player = event.entityPlayer;
+        boolean cancelled = false;
 
-        if (ServerUtilitiesConfig.world.isItemRightClickDisabled(event.entityPlayer.getHeldItem())) {
-            event.setCanceled(true);
-
+        if (ServerUtilitiesConfig.world.isItemRightClickDisabled(player.getHeldItem())) {
+            cancelled = true;
             if (!event.world.isRemote) {
-                event.entityPlayer.addChatComponentMessage(
+                player.addChatComponentMessage(
                         new ChatComponentText(EnumChatFormatting.DARK_PURPLE + "Item is disabled!"));
             }
-
-            return;
         }
 
-        if (ClaimedChunks.blockBlockInteractions(event.entityPlayer, event.x, event.y, event.z, 0)) {
-            InvUtils.forceUpdate(event.entityPlayer);
+        MovingObjectPosition lookPos = MathUtils.rayTrace(player, true);
+        if (!cancelled && lookPos != null) {
+            cancelled = switch (event.action) {
+                case RIGHT_CLICK_AIR -> ClaimedChunks
+                        .blockItemUse(player, lookPos.blockX, lookPos.blockY, lookPos.blockZ);
+                case RIGHT_CLICK_BLOCK -> ClaimedChunks
+                        .blockBlockInteractions(player, lookPos.blockX, lookPos.blockY, lookPos.blockZ, 0);
+                case LEFT_CLICK_BLOCK -> ClaimedChunks
+                        .blockBlockEditing(player, lookPos.blockX, lookPos.blockY, lookPos.blockZ, 0);
+            };
+        }
+
+        if (cancelled) {
             event.setCanceled(true);
+            InvUtils.forceUpdate(player);
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onRightClickItem(PlayerInteractEvent event) {
-        if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
-            return;
-        }
-        if (ServerUtilitiesConfig.world.isItemRightClickDisabled(event.entityPlayer.getHeldItem())) {
-            event.setCanceled(true);
-
-            if (!event.world.isRemote) {
-                event.entityPlayer.addChatComponentMessage(
-                        new ChatComponentText(EnumChatFormatting.DARK_PURPLE + "Item is disabled!"));
-            }
-
-            return;
-        }
-
-        if (ClaimedChunks.blockItemUse(event.entityPlayer, event.x, event.y, event.z)) {
-            InvUtils.forceUpdate(event.entityPlayer);
-            event.setCanceled(true);
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGH)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onBlockBreak(BlockEvent.BreakEvent event) {
         if (ClaimedChunks.blockBlockEditing(event.getPlayer(), event.x, event.y, event.z, 0)) {
             event.setCanceled(true);
         }
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGH)
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onBlockPlace(BlockEvent.PlaceEvent event) {
         if (ClaimedChunks.blockBlockEditing(event.player, event.x, event.y, event.z, 0)) {
             InvUtils.forceUpdate(event.player);
-            event.setCanceled(true);
-        }
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onBlockLeftClick(PlayerInteractEvent event) {
-        if (event.action != PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) {
-            return;
-        }
-        if (ClaimedChunks.blockBlockEditing(event.entityPlayer, event.x, event.y, event.z, 0)) {
             event.setCanceled(true);
         }
     }
@@ -290,14 +266,13 @@ public class ServerUtilitiesPlayerEventHandler {
 
     @SubscribeEvent
     public void onBlockBreakLog(BlockEvent.BreakEvent event) {
-        EntityPlayer player = event.getPlayer();
+        if (!(event.getPlayer() instanceof EntityPlayerMP playerMP)) return;
 
-        if (ServerUtilitiesConfig.world.logging.block_broken && player instanceof EntityPlayerMP playerMP
-                && ServerUtilitiesConfig.world.logging.log(playerMP)) {
+        if (ServerUtilitiesConfig.world.logging.block_broken && ServerUtilitiesConfig.world.logging.log(playerMP)) {
             ServerUtilitiesUniverseData.worldLog(
                     String.format(
                             "%s broke %s at %s in %s",
-                            playerMP.getDisplayName(),
+                            playerMP.getCommandSenderName(),
                             getStateName(event.world, event.x, event.y, event.z),
                             getPos(event.x, event.y, event.z),
                             getDim(playerMP)));
@@ -306,14 +281,13 @@ public class ServerUtilitiesPlayerEventHandler {
 
     @SubscribeEvent
     public void onBlockPlaceLog(BlockEvent.PlaceEvent event) {
-        EntityPlayer player = event.player;
+        if (!(event.player instanceof EntityPlayerMP playerMP)) return;
 
-        if (ServerUtilitiesConfig.world.logging.block_placed && player instanceof EntityPlayerMP playerMP
-                && ServerUtilitiesConfig.world.logging.log(playerMP)) {
+        if (ServerUtilitiesConfig.world.logging.block_placed && ServerUtilitiesConfig.world.logging.log(playerMP)) {
             ServerUtilitiesUniverseData.worldLog(
                     String.format(
                             "%s placed %s at %s in %s",
-                            playerMP.getDisplayName(),
+                            playerMP.getCommandSenderName(),
                             getStateName(event.world, event.x, event.y, event.z),
                             getPos(event.x, event.y, event.z),
                             getDim(playerMP)));
@@ -322,17 +296,15 @@ public class ServerUtilitiesPlayerEventHandler {
 
     @SubscribeEvent
     public void onRightClickItemLog(PlayerInteractEvent event) {
-        if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
-            return;
-        }
-        EntityPlayer player = event.entityPlayer;
+        if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_AIR) return;
+        if (!(event.entityPlayer instanceof EntityPlayerMP playerMP)) return;
 
-        if (ServerUtilitiesConfig.world.logging.item_clicked_in_air && player instanceof EntityPlayerMP playerMP
+        if (ServerUtilitiesConfig.world.logging.item_clicked_in_air
                 && ServerUtilitiesConfig.world.logging.log(playerMP)) {
             ServerUtilitiesUniverseData.worldLog(
                     String.format(
                             "%s clicked %s in air at %s in %s",
-                            playerMP.getDisplayName(),
+                            playerMP.getCommandSenderName(),
                             getHeldItemName(playerMP),
                             getPos(event.x, event.y, event.z),
                             getDim(playerMP)));
@@ -341,16 +313,15 @@ public class ServerUtilitiesPlayerEventHandler {
 
     @SubscribeEvent
     public void onEntityAttackedLog(AttackEntityEvent event) {
-        EntityPlayer player = event.entityPlayer;
-        Entity target = event.target;
+        if (!(event.entityPlayer instanceof EntityPlayerMP playerMP)) return;
 
-        if (ServerUtilitiesConfig.world.logging.entity_attacked && player instanceof EntityPlayerMP playerMP
-                && ServerUtilitiesConfig.world.logging.log(playerMP)) {
+        Entity target = event.target;
+        if (ServerUtilitiesConfig.world.logging.entity_attacked && ServerUtilitiesConfig.world.logging.log(playerMP)) {
             if (target instanceof EntityPlayerMP targetPlayer) {
                 ServerUtilitiesUniverseData.worldLog(
                         String.format(
                                 "%s attacked %s with %s at %s in %s",
-                                playerMP.getDisplayName(),
+                                playerMP.getCommandSenderName(),
                                 targetPlayer.getDisplayName(),
                                 getHeldItemName(playerMP),
                                 getPos((int) playerMP.posX, (int) playerMP.posY, (int) playerMP.posZ),
