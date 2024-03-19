@@ -77,16 +77,6 @@ public class ServerUtilitiesPlayerEventHandler {
         }
 
         Backups.hadPlayer = true;
-
-        // if (ServerUtilitiesConfig.chat.replace_tab_names) {
-        // new MessageUpdateTabName(player).sendToAll();
-        //
-        // for (EntityPlayerMP player1 : player.mcServer.getConfigurationManager().playerEntityList) {
-        // if (player1 != player) {
-        // new MessageUpdateTabName(player1).sendTo(player);
-        // }
-        // }
-        // }
     }
 
     @SubscribeEvent
