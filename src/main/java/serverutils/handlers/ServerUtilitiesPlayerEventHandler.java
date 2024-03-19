@@ -314,26 +314,16 @@ public class ServerUtilitiesPlayerEventHandler {
     @SubscribeEvent
     public void onEntityAttackedLog(AttackEntityEvent event) {
         if (!(event.entityPlayer instanceof EntityPlayerMP playerMP)) return;
-
         Entity target = event.target;
         if (ServerUtilitiesConfig.world.logging.entity_attacked && ServerUtilitiesConfig.world.logging.log(playerMP)) {
-            if (target instanceof EntityPlayerMP targetPlayer) {
+            boolean print = ServerUtilitiesConfig.world.logging.exclude_mob_entity
+                    || !(event.target instanceof EntityCreature);
+            if (print) {
                 ServerUtilitiesUniverseData.worldLog(
                         String.format(
                                 "%s attacked %s with %s at %s in %s",
                                 playerMP.getCommandSenderName(),
-                                targetPlayer.getDisplayName(),
-                                getHeldItemName(playerMP),
-                                getPos((int) playerMP.posX, (int) playerMP.posY, (int) playerMP.posZ),
-                                getDim(playerMP)));
-            }
-            if (!ServerUtilitiesConfig.world.logging.exclude_mob_entity
-                    && target instanceof EntityCreature targetCreature) {
-                ServerUtilitiesUniverseData.worldLog(
-                        String.format(
-                                "%s attacked %s with %s at %s in %s",
-                                playerMP.getDisplayName(),
-                                targetCreature.getCommandSenderName(),
+                                target.getCommandSenderName(),
                                 getHeldItemName(playerMP),
                                 getPos((int) playerMP.posX, (int) playerMP.posY, (int) playerMP.posZ),
                                 getDim(playerMP)));
