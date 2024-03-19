@@ -25,6 +25,7 @@ import net.minecraftforge.event.world.BlockEvent;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
+import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
@@ -316,8 +317,7 @@ public class ServerUtilitiesPlayerEventHandler {
         if (!(event.entityPlayer instanceof EntityPlayerMP playerMP)) return;
         Entity target = event.target;
         if (ServerUtilitiesConfig.world.logging.entity_attacked && ServerUtilitiesConfig.world.logging.log(playerMP)) {
-            boolean print = ServerUtilitiesConfig.world.logging.exclude_mob_entity
-                    || !(event.target instanceof EntityCreature);
+            boolean print = !ServerUtilitiesConfig.world.logging.exclude_mob_entity || !(target instanceof EntityCreature);
             if (print) {
                 ServerUtilitiesUniverseData.worldLog(
                         String.format(
