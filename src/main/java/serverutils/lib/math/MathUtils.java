@@ -205,8 +205,7 @@ public class MathUtils {
     public static MovingObjectPosition rayTrace(EntityPlayer player, boolean useLiquids) {
         double playerReach = player.worldObj.isRemote
                 ? Minecraft.getMinecraft().playerController.getBlockReachDistance()
-                : (player instanceof EntityPlayerMP
-                        ? ((EntityPlayerMP) player).theItemInWorldManager.getBlockReachDistance()
+                : (player instanceof EntityPlayerMP playerMP ? playerMP.theItemInWorldManager.getBlockReachDistance()
                         : 5.0D);
         return rayTrace(player, playerReach, useLiquids);
     }
