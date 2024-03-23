@@ -44,6 +44,7 @@ public class ClaimedChunks {
     private final Map<ChunkDimPos, ClaimedChunk> map = new HashMap<>();
     public long nextChunkloaderUpdate;
     private boolean isDirty = true;
+    private static boolean forceSave = false;
 
     public ClaimedChunks(Universe u) {
         universe = u;
@@ -64,6 +65,7 @@ public class ClaimedChunks {
         map.clear();
         nextChunkloaderUpdate = 0L;
         isDirty = true;
+        forceSave = false;
     }
 
     public void processQueue() {
@@ -399,5 +401,13 @@ public class ClaimedChunks {
         new ChunkModifiedEvent.Unloaded(chunk, player).post();
         chunk.setLoaded(false);
         return true;
+    }
+
+    public void forceSave() {
+        forceSave = true;
+    }
+
+    public static boolean isForcedToSave() {
+        return instance != null && forceSave;
     }
 }

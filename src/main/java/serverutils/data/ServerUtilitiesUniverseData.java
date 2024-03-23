@@ -272,7 +272,7 @@ public class ServerUtilitiesUniverseData {
 
     @SubscribeEvent
     public void onUniverseClosed(UniverseClosedEvent event) {
-        if (ClaimedChunks.isActive()) {
+        if (ClaimedChunks.instance != null) {
             ClaimedChunks.instance.clear();
             ClaimedChunks.instance = null;
         }
