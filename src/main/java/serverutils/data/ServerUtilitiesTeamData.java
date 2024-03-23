@@ -37,7 +37,7 @@ public class ServerUtilitiesTeamData extends TeamData {
 
     @SubscribeEvent
     public void onTeamSaved(ForgeTeamSavedEvent event) {
-        if (!ClaimedChunks.isActive()) {
+        if (!ClaimedChunks.isActive() && !ClaimedChunks.isForcedToSave()) {
             return;
         }
 
@@ -45,7 +45,8 @@ public class ServerUtilitiesTeamData extends TeamData {
 
         Int2ObjectMap<NBTTagList> claimedChunks = new Int2ObjectOpenHashMap<>();
 
-        for (ClaimedChunk chunk : ClaimedChunks.instance.getTeamChunks(event.getTeam(), OptionalInt.empty())) {
+        for (ClaimedChunk chunk : ClaimedChunks.instance
+                .getTeamChunks(event.getTeam(), OptionalInt.empty(), ClaimedChunks.isForcedToSave())) {
             ChunkDimPos pos = chunk.getPos();
 
             NBTTagList list = claimedChunks.get(pos.dim);

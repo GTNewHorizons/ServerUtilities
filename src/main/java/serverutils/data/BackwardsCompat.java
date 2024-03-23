@@ -82,15 +82,15 @@ public class BackwardsCompat {
     public static void loadChunks() {
         // Loads the chunks from the ClaimedChunks.json file
         // Ignores claim/chunk load limit
-        JsonObject group = JsonUtils.fromJson(new File(Universe.get().latModFolder, "ClaimedChunks.json"))
-                .getAsJsonObject();
+        Universe universe = Universe.get();
+        JsonObject group = JsonUtils.fromJson(new File(universe.latModFolder, "ClaimedChunks.json")).getAsJsonObject();
         if (group == null) return;
-
+        ServerUtilities.LOGGER.info("Loading claimed chunks from LatMod");
+        if (!ClaimedChunks.isActive()) {
+            ClaimedChunks.instance = new ClaimedChunks(universe);
+        }
         for (Map.Entry<String, JsonElement> e : group.entrySet()) {
             int dim = Integer.parseInt(e.getKey());
-            Universe universe = Universe.get();
-            ServerUtilities.LOGGER.info("Loading claimed chunks from LatMod");
-
             for (Map.Entry<String, JsonElement> e1 : e.getValue().getAsJsonObject().entrySet()) {
                 try {
                     ForgePlayer p = Universe.get().getPlayer(StringUtils.fromString(e1.getKey()));
@@ -132,6 +132,7 @@ public class BackwardsCompat {
             }
         }
         ServerUtilities.LOGGER.info("Finished loading claimed chunks from LatMod");
+        ClaimedChunks.instance.forceSave();
     }
 
     public static void loadWarps() {
