@@ -1,6 +1,5 @@
 package serverutils.handlers;
 
-import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,16 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.gui.inventory.GuiContainerCreative;
-import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.StatList;
@@ -30,9 +24,6 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 
-import org.lwjgl.opengl.GL11;
-
-import codechicken.nei.GuiExtendedCreativeInv;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
@@ -40,14 +31,11 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
-import serverutils.client.EnumSidebarButtonPlacement;
 import serverutils.client.ServerUtilitiesClient;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.client.gui.GuiClaimedChunks;
 import serverutils.client.gui.GuiClientConfig;
-import serverutils.client.gui.SidebarButton;
-import serverutils.client.gui.SidebarButtonGroup;
-import serverutils.client.gui.SidebarButtonManager;
+import serverutils.client.gui.GuiSidebar;
 import serverutils.events.chunks.UpdateClientDataEvent;
 import serverutils.events.client.CustomClickEvent;
 import serverutils.integration.vp.VPIntegration;
@@ -55,7 +43,6 @@ import serverutils.lib.OtherMods;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.gui.Widget;
-import serverutils.lib.icon.Color4I;
 import serverutils.lib.icon.Icon;
 import serverutils.lib.icon.IconRenderer;
 import serverutils.lib.math.Ticks;
@@ -75,7 +62,6 @@ public class ServerUtilitiesClientEventHandler {
 
     public static final ServerUtilitiesClientEventHandler INST = new ServerUtilitiesClientEventHandler();
     private static Temp currentNotification;
-    public static Rectangle lastDrawnArea = new Rectangle();
     public static boolean shouldRenderIcons = false;
     private static final Map<UUID, Icon> BADGE_CACHE = new HashMap<>();
     public static long shutdownTime = 0L;
@@ -284,22 +270,9 @@ public class ServerUtilitiesClientEventHandler {
 
     @SubscribeEvent
     public void onGuiInit(final GuiScreenEvent.InitGuiEvent.Post event) {
-        if (areButtonsVisible(event.gui)) {
-            event.buttonList.add(new GuiButtonSidebarGroup((GuiContainer) event.gui));
+        if (ClientUtils.areButtonsVisible(event.gui)) {
+            event.buttonList.add(new GuiSidebar((GuiContainer) event.gui));
         }
-    }
-
-    public static boolean areButtonsVisible(@Nullable GuiScreen gui) {
-        return ServerUtilitiesClientConfig.sidebar_buttons != EnumSidebarButtonPlacement.DISABLED
-                && (gui instanceof InventoryEffectRenderer || isCreativePlusGui(gui))
-                && !SidebarButtonManager.INSTANCE.groups.isEmpty();
-    }
-
-    private static boolean isCreativePlusGui(GuiScreen gui) {
-        if (OtherMods.isNEILoaded()) {
-            return gui instanceof GuiExtendedCreativeInv;
-        }
-        return false;
     }
 
     @SubscribeEvent
@@ -358,9 +331,6 @@ public class ServerUtilitiesClientEventHandler {
             GlStateManager.enableTexture2D();
         }
     }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onFrameStart(TickEvent.RenderTickEvent e) {}
 
     public static class NotificationWidget {
 
@@ -469,225 +439,6 @@ public class ServerUtilitiesClientEventHandler {
 
         private boolean isImportant() {
             return widget.notification instanceof Notification && ((Notification) widget.notification).isImportant();
-        }
-    }
-
-    private static class GuiButtonSidebar {
-
-        public final int buttonX, buttonY;
-        public final SidebarButton button;
-        public int x, y;
-
-        public GuiButtonSidebar(int x, int y, SidebarButton b) {
-            buttonX = x;
-            buttonY = y;
-            button = b;
-        }
-    }
-
-    private static class GuiButtonSidebarGroup extends GuiButton {
-
-        private final GuiContainer gui;
-        public final List<GuiButtonSidebar> buttons;
-        private GuiButtonSidebar mouseOver;
-
-        public GuiButtonSidebarGroup(GuiContainer g) {
-            super(495829, 0, 0, 0, 0, "");
-            gui = g;
-            buttons = new ArrayList<>();
-        }
-
-        @Override
-        public void drawButton(Minecraft mc, int mx, int my) {
-            buttons.clear();
-            mouseOver = null;
-            int rx = 0, ry = 0;
-            boolean addedAny;
-            boolean top = ServerUtilitiesClientConfig.sidebar_buttons.top();
-            boolean above = ServerUtilitiesClientConfig.sidebar_buttons.above();
-            boolean vertical = ServerUtilitiesClientConfig.sidebar_buttons.vertical();
-
-            for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
-                if (above && !isCreativePlusGui(gui)) {
-                    // If drawn above they are drawn in a horizontal line of 7 buttons
-                    // roughly the same length as a potion label.
-                    for (SidebarButton button : group.getButtons()) {
-                        if (button.isActuallyVisible()) {
-                            buttons.add(new GuiButtonSidebar(rx, ry, button));
-                            ry++;
-                            if (ry >= 7) {
-                                ry = 0;
-                                rx--;
-                            }
-                        }
-                    }
-                } else if (vertical) {
-                    for (SidebarButton button : group.getButtons()) {
-                        if (button.isActuallyVisible()) {
-                            buttons.add(new GuiButtonSidebar(rx, ry, button));
-                            rx++;
-                            if (rx >= 9) {
-                                rx = 0;
-                                ry++;
-                            }
-                        }
-                    }
-                } else {
-                    rx = 0;
-                    addedAny = false;
-                    for (SidebarButton button : group.getButtons()) {
-                        if (button.isActuallyVisible()) {
-                            buttons.add(new GuiButtonSidebar(rx, ry, button));
-                            rx++;
-                            addedAny = true;
-                        }
-                    }
-
-                    if (addedAny) {
-                        ry++;
-                    }
-                }
-            }
-
-            int guiLeft = gui.guiLeft;
-            int guiTop = gui.guiTop;
-
-            if (top) {
-                for (GuiButtonSidebar button : buttons) {
-                    button.x = 1 + button.buttonX * 17;
-                    button.y = 1 + button.buttonY * 17;
-                }
-            } else {
-                int offsetX = 18;
-                int offsetY = 8;
-
-                if (gui instanceof GuiContainerCreative) {
-                    offsetY = 6;
-                }
-
-                if (above) {
-                    offsetX = 22;
-                    offsetY = -18;
-                }
-
-                if (isCreativePlusGui(gui)) {
-                    offsetY = 22;
-                    offsetX = 41;
-                }
-
-                for (GuiButtonSidebar button : buttons) {
-                    button.x = guiLeft - offsetX - button.buttonY * 17;
-                    button.y = guiTop + offsetY + button.buttonX * 17;
-                }
-            }
-
-            int x = Integer.MAX_VALUE;
-            int y = Integer.MAX_VALUE;
-            int maxX = Integer.MIN_VALUE;
-            int maxY = Integer.MIN_VALUE;
-
-            for (GuiButtonSidebar b : buttons) {
-                if (b.x >= 0 && b.y >= 0) {
-                    x = Math.min(x, b.x);
-                    y = Math.min(y, b.y);
-                    maxX = Math.max(maxX, b.x + 16);
-                    maxY = Math.max(maxY, b.y + 16);
-                }
-
-                if (mx >= b.x && my >= b.y && mx < b.x + 16 && my < b.y + 16) {
-                    mouseOver = b;
-                }
-            }
-
-            x -= 2;
-            y -= 2;
-            maxX += 2;
-            maxY += 2;
-
-            width = maxX - x;
-            height = maxY - y;
-            zLevel = 0F;
-
-            xPosition = x;
-            yPosition = y;
-
-            GlStateManager.pushMatrix();
-            GlStateManager.translate(0, 0, 500);
-
-            FontRenderer font = mc.fontRenderer;
-
-            GlStateManager.enableBlend();
-            GlStateManager.enableDepth();
-            GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GlStateManager.color(1F, 1F, 1F, 1F);
-
-            for (GuiButtonSidebar b : buttons) {
-                b.button.getIcon().draw(b.x, b.y, 16, 16);
-
-                if (b == mouseOver) {
-                    Color4I.WHITE.withAlpha(33).draw(b.x, b.y, 16, 16);
-                }
-
-                if (b.button.getCustomTextHandler() != null) {
-                    String text = b.button.getCustomTextHandler().get();
-
-                    if (!text.isEmpty()) {
-                        int nw = font.getStringWidth(text);
-                        int width = 16;
-                        Color4I.LIGHT_RED.draw(b.x + width - nw, b.y - 1, nw + 1, 9);
-                        font.drawString(text, b.x + width - nw + 1, b.y, 0xFFFFFFFF);
-                        GlStateManager.color(1F, 1F, 1F, 1F);
-                    }
-                }
-            }
-
-            if (mouseOver != null) {
-                int mx1 = mx + 10;
-                int my1 = Math.max(3, my - 9);
-
-                List<String> list = new ArrayList<>();
-                list.add(I18n.format(mouseOver.button.getLangKey()));
-
-                if (mouseOver.button.getTooltipHandler() != null) {
-                    mouseOver.button.getTooltipHandler().accept(list);
-                }
-
-                int tw = 0;
-
-                for (String s : list) {
-                    tw = Math.max(tw, font.getStringWidth(s));
-                }
-
-                GlStateManager.pushMatrix();
-                GlStateManager.translate(0, 0, 500);
-                GlStateManager.enableBlend();
-                GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                Color4I.DARK_GRAY.draw(mx1 - 3, my1 - 2, tw + 6, 2 + list.size() * 10);
-
-                for (int i = 0; i < list.size(); i++) {
-                    font.drawString(list.get(i), mx1, my1 + i * 10, 0xFFFFFFFF);
-                }
-                GlStateManager.color(1F, 1F, 1F, 1F);
-                GlStateManager.popMatrix();
-            }
-
-            GlStateManager.color(1F, 1F, 1F, 1F);
-            GlStateManager.disableDepth();
-            GlStateManager.popMatrix();
-            zLevel = 0F;
-
-            lastDrawnArea = new Rectangle(xPosition, yPosition, width, height);
-        }
-
-        @Override
-        public boolean mousePressed(Minecraft mc, int mx, int my) {
-            if (super.mousePressed(mc, mx, my)) {
-                if (mouseOver != null) {
-                    mouseOver.button.onClicked(GuiScreen.isShiftKeyDown());
-                }
-                return true;
-            }
-            return false;
         }
     }
 }
