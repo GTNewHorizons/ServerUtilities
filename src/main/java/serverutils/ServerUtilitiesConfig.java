@@ -173,13 +173,6 @@ public class ServerUtilitiesConfig {
                 "add_nickname_tilde",
                 false,
                 "Adds ~ to player names that have changed nickname to prevent trolling.").getBoolean();
-        // chat.replace_tab_names = config.get(
-        // CHAT,
-        // "replace_tab_names",
-        // false,
-        // "NOT IMPLEMENTED\nDisable this for some plugin compat. Not that they are supported but sometimes this is all
-        // that's needed.")
-        // .getBoolean();
 
         commands.warp = config.get(COMMANDS, "warp", true).getBoolean();
         commands.home = config.get(COMMANDS, "home", true).getBoolean();
@@ -209,16 +202,6 @@ public class ServerUtilitiesConfig {
         login.enable_motd = config.get(LOGIN, "enable_motd", false, "Enables message of the day.").getBoolean();
         login.enable_starting_items = config.get(LOGIN, "enable_starting_items", false, "Enables starting items.")
                 .getBoolean();
-        // login.enable_global_badges = config
-        // .get(
-        // LOGIN,
-        // "enable_global_badges",
-        // true,
-        // "Set to false to disable global badges completely, only server-wide badges will be available.")
-        // .getBoolean();
-        // login.enable_event_badges = config
-        // .get(LOGIN, "enable_event_badges", false, "Set to false to disable event badges, e.g. Halloween.")
-        // .getBoolean();
         login.motd = config.get(
                 LOGIN,
                 "motd",

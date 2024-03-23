@@ -75,8 +75,6 @@ public class ServerUtilitiesClientConfig {
                         "Draw dotted lines on loaded chunks to improve noticeability.")
                 .setLanguageKey(CLIENT_LANG_KEY + "show_dotted_lines").getBoolean();
         general.show_shutdown_timer_ms = -1L;
-        // general.render_badges = config.get(Configuration.CATEGORY_GENERAL, "render_badges", false, "Render
-        // badges.").getBoolean();
         general.journeymap_overlay = config.get(
                 Configuration.CATEGORY_GENERAL,
                 "journeymap_overlay",
@@ -121,7 +119,6 @@ public class ServerUtilitiesClientConfig {
 
     public static class General {
 
-        // public boolean render_badges = false;
         public boolean journeymap_overlay;
         public boolean show_shutdown_timer;
         public String shutdown_timer_start;
