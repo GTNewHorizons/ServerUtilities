@@ -9,9 +9,15 @@ import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.particle.EntityFX;
+import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraftforge.client.ClientCommandHandler;
 
+import codechicken.nei.GuiExtendedCreativeInv;
+import serverutils.client.EnumSidebarLocation;
+import serverutils.client.ServerUtilitiesClientConfig;
+import serverutils.client.gui.SidebarButtonManager;
+import serverutils.lib.OtherMods;
 import serverutils.lib.gui.GuiBase;
 import serverutils.lib.gui.IGuiWrapper;
 import serverutils.lib.icon.PlayerHeadIcon;
@@ -92,5 +98,18 @@ public class ClientUtils {
 
     public static boolean isClientOpped() {
         return is_op;
+    }
+
+    public static boolean areButtonsVisible(@Nullable GuiScreen gui) {
+        return ServerUtilitiesClientConfig.sidebar_buttons != EnumSidebarLocation.DISABLED
+                && (gui instanceof InventoryEffectRenderer || isCreativePlusGui(gui))
+                && !SidebarButtonManager.INSTANCE.groups.isEmpty();
+    }
+
+    public static boolean isCreativePlusGui(GuiScreen gui) {
+        if (OtherMods.isNEILoaded()) {
+            return gui instanceof GuiExtendedCreativeInv;
+        }
+        return false;
     }
 }
