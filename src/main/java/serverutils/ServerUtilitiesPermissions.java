@@ -289,12 +289,30 @@ public class ServerUtilitiesPermissions {
         event.register(SPAWN_COOLDOWN, new ConfigTimer(Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
         event.register(BACK_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(3)), new ConfigTimer(Ticks.NO_TICKS));
         event.register(RTP_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(10)), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(HOMES_WARMUP, new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(WARPS_WARMUP, new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(TPA_WARMUP, new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(SPAWN_WARMUP, new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(BACK_WARMUP, new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(RTP_WARMUP, new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
+        event.register(
+                HOMES_WARMUP,
+                new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
+                new ConfigTimer(Ticks.NO_TICKS));
+        event.register(
+                WARPS_WARMUP,
+                new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
+                new ConfigTimer(Ticks.NO_TICKS));
+        event.register(
+                TPA_WARMUP,
+                new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
+                new ConfigTimer(Ticks.NO_TICKS));
+        event.register(
+                SPAWN_WARMUP,
+                new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
+                new ConfigTimer(Ticks.NO_TICKS));
+        event.register(
+                BACK_WARMUP,
+                new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
+                new ConfigTimer(Ticks.NO_TICKS));
+        event.register(
+                RTP_WARMUP,
+                new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
+                new ConfigTimer(Ticks.NO_TICKS));
         event.register(CLAIMS_MAX_CHUNKS, new ConfigInt(100, 0, 30000), new ConfigInt(1000));
         event.register(CHUNKLOADER_MAX_CHUNKS, new ConfigInt(50, 0, 30000), new ConfigInt(64));
         event.register(AFK_TIMER, new ConfigTimer(Ticks.NO_TICKS));
