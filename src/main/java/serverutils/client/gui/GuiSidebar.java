@@ -197,7 +197,6 @@ public class GuiSidebar extends GuiButton {
         int max = placement.getMaxInRow();
 
         for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
-            if (placement == EnumPlacement.GROUPED) rx = 0;
             boolean addedAny = false;
             for (SidebarButton button : group.getButtons()) {
                 if (!button.isActuallyVisible()) continue;
@@ -221,7 +220,10 @@ public class GuiSidebar extends GuiButton {
                     }
                 }
             }
-            if (addedAny) ry++;
+            if (addedAny) {
+                rx = 0;
+                ry++;
+            }
         }
     }
 
