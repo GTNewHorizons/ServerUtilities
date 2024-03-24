@@ -11,9 +11,12 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.util.MathHelper;
 
 import org.lwjgl.opengl.GL11;
 
+import serverutils.client.EnumPlacement;
+import serverutils.client.EnumSidebarLocation;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.GlStateManager;
@@ -22,98 +25,33 @@ import serverutils.lib.icon.Color4I;
 public class GuiSidebar extends GuiButton {
 
     public static Rectangle lastDrawnArea = new Rectangle();
+    public static int dragOffsetX = 0, dragOffsetY = 0;
     private final GuiContainer gui;
     public final List<GuiButtonSidebar> buttons;
+    private int dragStartX, dragStartY;
     private GuiButtonSidebar mouseOver;
+    private boolean isDragging;
+    private final EnumSidebarLocation location;
+    private EnumPlacement placement;
 
     public GuiSidebar(GuiContainer g) {
         super(495829, 0, 0, 0, 0, "");
         gui = g;
         buttons = new ArrayList<>();
+        location = ServerUtilitiesClientConfig.sidebar_buttons;
+        placement = ServerUtilitiesClientConfig.sidebar_placement;
     }
 
     @Override
     public void drawButton(Minecraft mc, int mx, int my) {
-        buttons.clear();
         mouseOver = null;
-        int rx = 0, ry = 0;
-        boolean addedAny;
-        boolean top = ServerUtilitiesClientConfig.sidebar_buttons.top();
-        boolean above = ServerUtilitiesClientConfig.sidebar_buttons.above();
-        boolean vertical = ServerUtilitiesClientConfig.sidebar_buttons.vertical();
-
-        for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
-            if (above && !ClientUtils.isCreativePlusGui(gui)) {
-                // If drawn above they are drawn in a horizontal line of 7 buttons
-                // roughly the same length as a potion label.
-                for (SidebarButton button : group.getButtons()) {
-                    if (button.isActuallyVisible()) {
-                        buttons.add(new GuiButtonSidebar(rx, ry, button));
-                        ry++;
-                        if (ry >= 7) {
-                            ry = 0;
-                            rx--;
-                        }
-                    }
-                }
-            } else if (vertical) {
-                for (SidebarButton button : group.getButtons()) {
-                    if (button.isActuallyVisible()) {
-                        buttons.add(new GuiButtonSidebar(rx, ry, button));
-                        rx++;
-                        if (rx >= 9) {
-                            rx = 0;
-                            ry++;
-                        }
-                    }
-                }
-            } else {
-                rx = 0;
-                addedAny = false;
-                for (SidebarButton button : group.getButtons()) {
-                    if (button.isActuallyVisible()) {
-                        buttons.add(new GuiButtonSidebar(rx, ry, button));
-                        rx++;
-                        addedAny = true;
-                    }
-                }
-
-                if (addedAny) {
-                    ry++;
-                }
-            }
+        if (ServerUtilitiesClientConfig.sidebar_buttons != location) {
+            clearButtons();
         }
 
-        int guiLeft = gui.guiLeft;
-        int guiTop = gui.guiTop;
-
-        if (top) {
-            for (GuiButtonSidebar button : buttons) {
-                button.x = 1 + button.buttonX * 17;
-                button.y = 1 + button.buttonY * 17;
-            }
-        } else {
-            int offsetX = 18;
-            int offsetY = 8;
-
-            if (gui instanceof GuiContainerCreative) {
-                offsetY = 6;
-            }
-
-            if (above) {
-                offsetX = 22;
-                offsetY = -18;
-            }
-
-            if (ClientUtils.isCreativePlusGui(gui)) {
-                offsetY = 22;
-                offsetX = 41;
-            }
-
-            for (GuiButtonSidebar button : buttons) {
-                button.x = guiLeft - offsetX - button.buttonY * 17;
-                button.y = guiTop + offsetY + button.buttonX * 17;
-            }
+        this.setButtonLocations(mc, mx, my);
+        if (buttons.isEmpty()) {
+            addButtonsToSidebar();
         }
 
         int x = Integer.MAX_VALUE;
@@ -193,17 +131,11 @@ public class GuiSidebar extends GuiButton {
                 tw = Math.max(tw, font.getStringWidth(s));
             }
 
-            GlStateManager.pushMatrix();
-            GlStateManager.translate(0, 0, 500);
-            GlStateManager.enableBlend();
-            GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
             Color4I.DARK_GRAY.draw(mx1 - 3, my1 - 2, tw + 6, 2 + list.size() * 10);
 
             for (int i = 0; i < list.size(); i++) {
                 font.drawString(list.get(i), mx1, my1 + i * 10, 0xFFFFFFFF);
             }
-            GlStateManager.color(1F, 1F, 1F, 1F);
-            GlStateManager.popMatrix();
         }
 
         GlStateManager.color(1F, 1F, 1F, 1F);
@@ -218,11 +150,122 @@ public class GuiSidebar extends GuiButton {
     public boolean mousePressed(Minecraft mc, int mx, int my) {
         if (super.mousePressed(mc, mx, my)) {
             if (mouseOver != null) {
-                mouseOver.button.onClicked(GuiScreen.isShiftKeyDown());
+                if (GuiScreen.isCtrlKeyDown() && !location.isLocked()) {
+                    this.isDragging = true;
+                    this.dragStartX = mx;
+                    this.dragStartY = my;
+                } else {
+                    mouseOver.button.onClicked(GuiScreen.isShiftKeyDown());
+                }
             }
             return true;
         }
         return false;
+    }
+
+    public void mouseDragged(Minecraft mc, int mx, int my) {
+        if (isDragging) {
+            int newDragOffsetX = mx - dragStartX;
+            int newDragOffsetY = my - dragStartY;
+
+            for (GuiButtonSidebar button : buttons) {
+                int newX = button.x + newDragOffsetX;
+                int newY = button.y + newDragOffsetY;
+
+                if (newX < 0 || newX + 16 > mc.currentScreen.width || newY < 0 || newY + 16 > mc.currentScreen.height) {
+                    return;
+                }
+            }
+
+            dragOffsetX += newDragOffsetX;
+            dragOffsetY += newDragOffsetY;
+            dragStartX = mx;
+            dragStartY = my;
+        }
+    }
+
+    @Override
+    public void mouseReleased(int mx, int my) {
+        if (isDragging) {
+            this.isDragging = false;
+            SidebarButtonManager.INSTANCE.saveConfig();
+        }
+    }
+
+    private void addButtonsToSidebar() {
+        int rx = 0, ry = 0;
+        int max = placement.getMaxInRow();
+
+        for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
+            if (placement == EnumPlacement.GROUPED) rx = 0;
+            boolean addedAny = false;
+            for (SidebarButton button : group.getButtons()) {
+                if (!button.isActuallyVisible()) continue;
+                buttons.add(new GuiButtonSidebar(rx, ry, button));
+                switch (placement) {
+                    case HORIZONTAL -> ry++;
+                    case VERTICAL -> rx++;
+                    case GROUPED -> {
+                        rx++;
+                        addedAny = true;
+                    }
+                };
+
+                if (placement != EnumPlacement.GROUPED) {
+                    if (ry >= max) {
+                        ry = 0;
+                        rx--;
+                    } else if (rx >= max) {
+                        rx = 0;
+                        ry++;
+                    }
+                }
+            }
+            if (addedAny) ry++;
+        }
+    }
+
+    private void setButtonLocations(Minecraft mc, int mx, int my) {
+        int offsetX = 18;
+        int offsetY = 8;
+
+        if (gui instanceof GuiContainerCreative) {
+            offsetY = 6;
+        }
+
+        if (location.above()) {
+            placement = ClientUtils.isCreativePlusGui(gui) ? placement : EnumPlacement.HORIZONTAL;
+            offsetX = 22;
+            offsetY = -18;
+        }
+
+        if (ClientUtils.isCreativePlusGui(gui)) {
+            offsetY = 22;
+            offsetX = 41;
+        }
+
+        this.mouseDragged(mc, mx, my);
+        int actualOffsetX = location.isLocked() ? offsetX : offsetX - dragOffsetX;
+        int actualOffsetY = location.isLocked() ? offsetY : -offsetY - dragOffsetY;
+        int maxOffsetX = mc.currentScreen.width - 16;
+        int maxOffsetY = mc.currentScreen.height - 16;
+
+        for (GuiButtonSidebar button : buttons) {
+            if (location == EnumSidebarLocation.TOP_LEFT) {
+                button.x = 1 + button.buttonX * 17;
+                button.y = 1 + button.buttonY * 17;
+            } else if (location.isLocked()) {
+                button.x = gui.guiLeft - offsetX - button.buttonY * 17;
+                button.y = gui.guiTop + offsetY + button.buttonX * 17;
+            } else {
+                button.x = MathHelper.clamp_int((gui.guiLeft - button.buttonY * 17) - actualOffsetX, 0, maxOffsetX);
+                button.y = MathHelper.clamp_int((gui.guiTop + button.buttonX * 17) - actualOffsetY, 0, maxOffsetY);
+            }
+        }
+    }
+
+    public void clearButtons() {
+        buttons.clear();
     }
 
     public static class GuiButtonSidebar {

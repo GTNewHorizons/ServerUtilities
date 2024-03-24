@@ -30,6 +30,8 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
     INSTANCE;
 
     public final List<SidebarButtonGroup> groups = new ArrayList<>();
+    private static final String SIDEBAR_BUTTONS_FILE = "sidebar_buttons.json";
+    private static final String POSITION = "position";
 
     @Override
     public void onResourceManagerReload(IResourceManager manager, Predicate<IResourceType> resourcePredicate) {
@@ -42,12 +44,19 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
         JsonElement element = DataReader.get(
                 new File(
                         Minecraft.getMinecraft().mcDataDir,
-                        ServerUtilitiesClient.CLIENT_FOLDER + "sidebar_buttons.json"))
+                        ServerUtilitiesClient.CLIENT_FOLDER + SIDEBAR_BUTTONS_FILE))
                 .safeJson();
         JsonObject sidebarButtonConfig;
 
         if (element.isJsonObject()) {
             sidebarButtonConfig = element.getAsJsonObject();
+            if (sidebarButtonConfig.has(POSITION)) {
+                JsonObject o = sidebarButtonConfig.get(POSITION).getAsJsonObject();
+                if (o.has("posX") && o.has("posY")) {
+                    GuiSidebar.dragOffsetX = o.get("posX").getAsInt();
+                    GuiSidebar.dragOffsetY = o.get("posY").getAsInt();
+                }
+            }
         } else {
             sidebarButtonConfig = new JsonObject();
         }
@@ -85,8 +94,7 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
 
         for (String domain : manager.getResourceDomains()) {
             try {
-                for (IResource resource : manager
-                        .getAllResources(new ResourceLocation(domain, "sidebar_buttons.json"))) {
+                for (IResource resource : manager.getAllResources(new ResourceLocation(domain, SIDEBAR_BUTTONS_FILE))) {
                     JsonElement json = DataReader.get(resource).json();
 
                     if (json.isJsonObject()) {
@@ -171,11 +179,20 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
                 o1.addProperty(button.id.getResourcePath(), button.getConfig());
             }
         }
+        JsonObject o2 = o.getAsJsonObject(POSITION);
+
+        if (o2 == null) {
+            o2 = new JsonObject();
+            o.add(POSITION, o2);
+        }
+
+        o2.addProperty("posX", String.valueOf(GuiSidebar.dragOffsetX));
+        o2.addProperty("posY", String.valueOf(GuiSidebar.dragOffsetY));
 
         JsonUtils.toJsonSafe(
                 new File(
                         Minecraft.getMinecraft().mcDataDir,
-                        ServerUtilitiesClient.CLIENT_FOLDER + "sidebar_buttons.json"),
+                        ServerUtilitiesClient.CLIENT_FOLDER + SIDEBAR_BUTTONS_FILE),
                 o);
     }
 }

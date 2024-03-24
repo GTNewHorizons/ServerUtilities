@@ -15,7 +15,7 @@ import net.minecraft.util.ResourceLocation;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import serverutils.client.EnumSidebarButtonPlacement;
+import serverutils.client.EnumSidebarLocation;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.lib.OtherMods;
 import serverutils.lib.client.ClientUtils;
@@ -157,7 +157,7 @@ public class SidebarButton implements Comparable<SidebarButton> {
     }
 
     public boolean isActuallyVisible() {
-        return configValue && ServerUtilitiesClientConfig.sidebar_buttons != EnumSidebarButtonPlacement.DISABLED
+        return configValue && ServerUtilitiesClientConfig.sidebar_buttons != EnumSidebarLocation.DISABLED
                 && isVisible();
     }
 
