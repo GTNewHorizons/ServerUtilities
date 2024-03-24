@@ -16,7 +16,7 @@ public enum EnumNotificationLocation {
         return this == DISABLED;
     }
 
-    public static EnumNotificationLocation string2placement(String placement) {
+    public static EnumNotificationLocation stringToEnum(String placement) {
         return switch (placement.toLowerCase(Locale.ENGLISH)) {
             case "disabled" -> DISABLED;
             case "chat" -> CHAT;

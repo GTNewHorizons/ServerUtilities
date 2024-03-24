@@ -38,35 +38,34 @@ public class ServerUtilitiesClientConfig {
                 .setLanguageKey(CLIENT_LANG_KEY + "item_ore_names").getBoolean();
         item_nbt = config.get(Configuration.CATEGORY_GENERAL, "item_nbt", false, "Show item NBT in inventory.")
                 .setLanguageKey(CLIENT_LANG_KEY + "item_nbt").getBoolean();
-        sidebar_buttons = EnumSidebarButtonPlacement.string2placement(
+        sidebar_buttons = EnumSidebarLocation.stringToEnum(
                 config.get(Configuration.CATEGORY_GENERAL, "sidebar_buttons", "auto", """
                         DISABLED: Buttons are hidden.
                         TOP_LEFT: Buttons are placed on top-left corner, where NEI has its buttons.
                         INVENTORY_SIDE: Buttons are placed on the left side of your inventory.
-                        AUTO: When NEI is installed, INVENTORY_SIDE, else TOP_LEFT.""")
+                        UNLOCKED: Buttons are able to be dragged around by holding CTRL""")
                         .setLanguageKey(CLIENT_LANG_KEY + "sidebar_buttons").setValidValues(sidebar_buttons_locations)
                         .getString());
-        notifications = EnumNotificationLocation.string2placement(
+        notifications = EnumNotificationLocation.stringToEnum(
                 config.get(Configuration.CATEGORY_GENERAL, "notification_location", "SCREEN", """
                         SCREEN: Receive notifications as normal above the hotbar.
                         CHAT: Convert all non-important notifications to chat messages.
                         DISABLED: Disable non-important notifications entirely.""")
                         .setLanguageKey(CLIENT_LANG_KEY + "notification_location")
                         .setValidValues(notification_locations).getString());
-        sidebar_buttons_above_potion = config
-                .get(
-                        Configuration.CATEGORY_GENERAL,
-                        "sidebar_buttons_above_potion",
-                        false,
-                        "Move buttons above potion effect label whenever an effect is active.")
+        sidebar_buttons_above_potion = config.get(
+                Configuration.CATEGORY_GENERAL,
+                "sidebar_buttons_above_potion",
+                false,
+                "Move buttons above potion effect label when sidebar is locked to INVENTORY_SIDE and player has potion effects.")
                 .setLanguageKey(CLIENT_LANG_KEY + "sidebar_buttons_above_potion").getBoolean();
-        sidebar_buttons_vertical = config
-                .get(
-                        Configuration.CATEGORY_GENERAL,
-                        "sidebar_buttons_vertical",
-                        false,
-                        "Draw sidebar buttons in a vertical line.")
-                .setLanguageKey(CLIENT_LANG_KEY + "sidebar_buttons_vertical").getBoolean();
+        sidebar_placement = EnumPlacement.stringToEnum(
+                config.get(Configuration.CATEGORY_GENERAL, "sidebar_placement", "GROUPED", """
+                        GROUPED: Buttons are grouped together.
+                        VERTICAL: Buttons are placed in a vertical line.
+                        HORIZONTAL: Buttons are placed in a horizontal line.""")
+                        .setLanguageKey(CLIENT_LANG_KEY + "sidebar_placement").setValidValues(valid_sidebar_placement)
+                        .getString());
         show_dotted_lines = config
                 .get(
                         Configuration.CATEGORY_GENERAL,
@@ -109,10 +108,11 @@ public class ServerUtilitiesClientConfig {
 
     public static boolean item_ore_names;
     public static boolean item_nbt;
-    public static EnumSidebarButtonPlacement sidebar_buttons;
+    public static EnumSidebarLocation sidebar_buttons;
     public static boolean sidebar_buttons_above_potion;
-    public static boolean sidebar_buttons_vertical;
-    public static String[] sidebar_buttons_locations = { "DISABLED", "TOP_LEFT", "INVENTORY_SIDE", "AUTO" };
+    public static String[] sidebar_buttons_locations = { "UNLOCKED", "INVENTORY_SIDE", "TOP_LEFT", "DISABLED" };
+    public static EnumPlacement sidebar_placement;
+    public static String[] valid_sidebar_placement = { "GROUPED", "VERTICAL", "HORIZONTAL" };
     public static EnumNotificationLocation notifications;
     public static String[] notification_locations = { "SCREEN", "CHAT", "DISABLED" };
     public static boolean show_dotted_lines;
