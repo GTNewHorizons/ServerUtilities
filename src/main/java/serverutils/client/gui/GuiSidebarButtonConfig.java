@@ -3,9 +3,13 @@ package serverutils.client.gui;
 import java.util.List;
 
 import net.minecraft.client.resources.I18n;
+import net.minecraft.util.StatCollector;
 
 import cpw.mods.fml.common.registry.LanguageRegistry;
+import serverutils.client.EnumSidebarLocation;
+import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.lib.gui.GuiHelper;
+import serverutils.lib.gui.GuiIcons;
 import serverutils.lib.gui.Panel;
 import serverutils.lib.gui.SimpleTextButton;
 import serverutils.lib.gui.Theme;
@@ -62,18 +66,47 @@ public class GuiSidebarButtonConfig extends GuiButtonListBase {
         }
     }
 
+    private static class ButtonResetSidebar extends SimpleTextButton {
+
+        public ButtonResetSidebar(Panel panel) {
+            super(panel, StatCollector.translateToLocal("serverutilities.sidebar_button.reset"), GuiIcons.REFRESH);
+        }
+
+        @Override
+        public void addMouseOverText(List<String> list) {
+            list.add(StatCollector.translateToLocal("serverutilities.sidebar_button.reset.tooltip"));
+        }
+
+        @Override
+        public void drawBackground(Theme theme, int x, int y, int w, int h) {
+            super.drawBackground(theme, x, y, w, h);
+            COLOR_ENABLED.draw(x, y, w, h);
+        }
+
+        @Override
+        public void onClicked(MouseButton button) {
+            GuiHelper.playClickSound();
+            GuiSidebar.dragOffsetX = 0;
+            GuiSidebar.dragOffsetY = 0;
+        }
+    }
+
     public GuiSidebarButtonConfig() {
         setTitle(I18n.format("sidebar_button"));
     }
 
     @Override
     public void addButtons(Panel panel) {
+        if (ServerUtilitiesClientConfig.sidebar_buttons == EnumSidebarLocation.UNLOCKED) {
+            panel.add(new ButtonResetSidebar(panel));
+        }
         for (SidebarButtonGroup group : SidebarButtonManager.INSTANCE.groups) {
             for (SidebarButton button : group.getButtons()) {
                 if (!button.isVisible()) continue;
                 panel.add(new ButtonConfigSidebarButton(panel, button));
             }
         }
+
     }
 
     @Override
