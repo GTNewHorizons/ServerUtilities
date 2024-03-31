@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import net.minecraft.client.renderer.texture.ITickable;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -163,7 +162,7 @@ public class CmdEditNBT extends CmdTreeBase {
                 addInfo(
                         list,
                         new ChatComponentText("Ticking"),
-                        new ChatComponentText(tile instanceof ITickable ? "true" : "false"));
+                        new ChatComponentText(tile.canUpdate() ? "true" : "false"));
                 info.setTag("text", list);
 
                 IChatComponent title = new ChatComponentText(tile.getClass().getSimpleName());
