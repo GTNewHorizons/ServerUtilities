@@ -246,10 +246,6 @@ public class ConfigGroup extends FinalIDObject {
     public IChatComponent getInfoOf(ConfigValueInstance inst) {
         IChatComponent name = inst.getDisplayName();
 
-        if (!inst.getCanEdit()) {
-            return new ChatComponentTranslation("serverutilties.config.disabled");
-        }
-
         if (name instanceof ChatComponentTranslation component) {
             return new ChatComponentTranslation(component.getKey() + ".tooltip");
         }

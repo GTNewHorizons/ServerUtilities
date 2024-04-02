@@ -22,6 +22,7 @@ import serverutils.lib.client.ClientUtils;
 import serverutils.lib.gui.GuiHelper;
 import serverutils.lib.gui.GuiIcons;
 import serverutils.lib.gui.misc.GuiLoading;
+import serverutils.lib.icon.Color4I;
 import serverutils.lib.icon.Icon;
 import serverutils.lib.util.ChainedBooleanSupplier;
 import serverutils.lib.util.JsonUtils;
@@ -41,6 +42,7 @@ public class SidebarButton implements Comparable<SidebarButton> {
     private final List<String> shiftClickEvents = new ArrayList<>();
     private final boolean loadingScreen;
     private ChainedBooleanSupplier visible = ChainedBooleanSupplier.TRUE;
+    private ChainedBooleanSupplier disabled = ChainedBooleanSupplier.FALSE;
     private Supplier<String> customTextHandler = null;
     private Consumer<List<String>> tooltipHandler = null;
 
@@ -91,7 +93,7 @@ public class SidebarButton implements Comparable<SidebarButton> {
         }
 
         if (json.has("hide_if_server_disabled") && json.get("hide_if_server_disabled").getAsBoolean()) {
-            addVisibilityCondition(() -> SidedUtils.isButtonEnabledOnServer(id));
+            addDisabledCondition(() -> !SidedUtils.isButtonEnabledOnServer(id));
         }
 
         if (json.has("required_server_mods")) {
@@ -109,6 +111,10 @@ public class SidebarButton implements Comparable<SidebarButton> {
 
     public void addVisibilityCondition(BooleanSupplier supplier) {
         visible = visible.and(supplier);
+    }
+
+    public void addDisabledCondition(BooleanSupplier supplier) {
+        disabled = disabled.or(supplier);
     }
 
     public String getLangKey() {
@@ -135,7 +141,7 @@ public class SidebarButton implements Comparable<SidebarButton> {
     }
 
     public Icon getIcon() {
-        return icon;
+        return isDisabled() ? icon.withColor(Color4I.DARK_GRAY.addBrightness(0.1f)) : icon;
     }
 
     public int getX() {
@@ -147,6 +153,10 @@ public class SidebarButton implements Comparable<SidebarButton> {
     }
 
     public void onClicked(boolean shift) {
+        if (isDisabled()) {
+            return;
+        }
+
         if (loadingScreen) {
             new GuiLoading(I18n.format(getLangKey())).openGui();
         }
@@ -163,6 +173,10 @@ public class SidebarButton implements Comparable<SidebarButton> {
 
     public boolean isVisible() {
         return visible.getAsBoolean();
+    }
+
+    public boolean isDisabled() {
+        return disabled.getAsBoolean();
     }
 
     public boolean getConfig() {

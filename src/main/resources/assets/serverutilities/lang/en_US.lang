@@ -15,7 +15,8 @@ serverutilities.lang.god_on=God mode turned on for %s
 serverutilities.lang.god_off=God mode turned off for %s
 serverutilities.lang.heal=%s has been healed
 serverutilities.lang.permissions_dumped=%s permissions successfully dumped to file at: %s.
-serverutilties.config.disabled=Disabled by server.
+serverutilities.disabled.config=Disabled in config
+serverutilities.disabled.server=Disabled by server
 serverutilities.vp.button=Show Server Utilities Claims Overlay
 
 serverutilities.stat.dph=Deaths Per Hour

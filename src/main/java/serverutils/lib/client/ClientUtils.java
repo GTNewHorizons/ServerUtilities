@@ -11,9 +11,11 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.ClientCommandHandler;
 
 import codechicken.nei.GuiExtendedCreativeInv;
+import serverutils.ServerUtilities;
 import serverutils.client.EnumSidebarLocation;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.client.gui.SidebarButtonManager;
@@ -111,5 +113,14 @@ public class ClientUtils {
             return gui instanceof GuiExtendedCreativeInv;
         }
         return false;
+    }
+
+    public static String getDisabledTip() {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.isSingleplayer()) {
+            return StatCollector.translateToLocal(ServerUtilities.MOD_ID + ".disabled.config");
+        } else {
+            return StatCollector.translateToLocal(ServerUtilities.MOD_ID + ".disabled.server");
+        }
     }
 }
