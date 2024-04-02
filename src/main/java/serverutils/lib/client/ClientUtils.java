@@ -20,12 +20,10 @@ import serverutils.client.EnumSidebarLocation;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.client.gui.SidebarButtonManager;
 import serverutils.lib.OtherMods;
-import serverutils.lib.gui.GuiBase;
-import serverutils.lib.gui.IGuiWrapper;
 import serverutils.lib.icon.PlayerHeadIcon;
-import serverutils.lib.util.misc.NameMap;
 
 public class ClientUtils {
+
     public static final BooleanSupplier IS_CLIENT_OP = ClientUtils::isClientOpped;
     public static final List<Runnable> RUN_LATER = new ArrayList<>();
 
@@ -74,6 +72,7 @@ public class ClientUtils {
     public static void runLater(final Runnable runnable) {
         RUN_LATER.add(runnable);
     }
+
     public static boolean isClientOpped() {
         return is_op;
     }
