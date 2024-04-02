@@ -5,11 +5,13 @@ import java.util.Comparator;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 
+import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.ConfigValueInstance;
@@ -217,6 +219,7 @@ public class GuiEditConfig extends GuiBase {
                 EnumChatFormatting color = EnumChatFormatting.GRAY;
 
                 if (!inst.getCanEdit()) {
+                    infoText = new ChatComponentText(ClientUtils.getDisabledTip());
                     color = EnumChatFormatting.RED;
                 }
 

@@ -11,22 +11,19 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.ClientCommandHandler;
 
 import codechicken.nei.GuiExtendedCreativeInv;
+import serverutils.ServerUtilities;
 import serverutils.client.EnumSidebarLocation;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.client.gui.SidebarButtonManager;
 import serverutils.lib.OtherMods;
-import serverutils.lib.gui.GuiBase;
-import serverutils.lib.gui.IGuiWrapper;
 import serverutils.lib.icon.PlayerHeadIcon;
-import serverutils.lib.util.misc.NameMap;
 
 public class ClientUtils {
 
-    public static final NameMap<BlockRenderLayer> BLOCK_RENDER_LAYER_NAME_MAP = NameMap
-            .create(BlockRenderLayer.SOLID, BlockRenderLayer.values());
     public static final BooleanSupplier IS_CLIENT_OP = ClientUtils::isClientOpped;
     public static final List<Runnable> RUN_LATER = new ArrayList<>();
 
@@ -76,26 +73,6 @@ public class ClientUtils {
         RUN_LATER.add(runnable);
     }
 
-    @Nullable
-    @SuppressWarnings("unchecked")
-    public static <T> T getGuiAs(GuiScreen gui, Class<T> clazz) {
-        if (gui instanceof IGuiWrapper guiWrapper) {
-            GuiBase guiBase = guiWrapper.getGui();
-
-            if (clazz.isAssignableFrom(guiBase.getClass())) {
-                return (T) guiBase;
-            }
-        }
-
-        return clazz.isAssignableFrom(gui.getClass()) ? (T) Minecraft.getMinecraft().currentScreen : null;
-    }
-
-    @Nullable
-    public static <T> T getCurrentGuiAs(Class<T> clazz) {
-        return Minecraft.getMinecraft().currentScreen == null ? null
-                : getGuiAs(Minecraft.getMinecraft().currentScreen, clazz);
-    }
-
     public static boolean isClientOpped() {
         return is_op;
     }
@@ -111,5 +88,14 @@ public class ClientUtils {
             return gui instanceof GuiExtendedCreativeInv;
         }
         return false;
+    }
+
+    public static String getDisabledTip() {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.isSingleplayer()) {
+            return StatCollector.translateToLocal(ServerUtilities.MOD_ID + ".disabled.config");
+        } else {
+            return StatCollector.translateToLocal(ServerUtilities.MOD_ID + ".disabled.server");
+        }
     }
 }

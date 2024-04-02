@@ -10,8 +10,9 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainerCreative;
-import net.minecraft.client.resources.I18n;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.StatCollector;
 
 import org.lwjgl.opengl.GL11;
 
@@ -119,7 +120,11 @@ public class GuiSidebar extends GuiButton {
             int my1 = Math.max(3, my - 9);
 
             List<String> list = new ArrayList<>();
-            list.add(I18n.format(mouseOver.button.getLangKey()));
+            list.add(StatCollector.translateToLocal(mouseOver.button.getLangKey()));
+
+            if (mouseOver.button.isDisabled()) {
+                list.add(EnumChatFormatting.RED + ClientUtils.getDisabledTip());
+            }
 
             if (mouseOver.button.getTooltipHandler() != null) {
                 mouseOver.button.getTooltipHandler().accept(list);
