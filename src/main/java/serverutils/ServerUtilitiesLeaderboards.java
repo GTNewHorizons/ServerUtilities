@@ -91,7 +91,7 @@ public class ServerUtilitiesLeaderboards {
             double hours = Ticks.get(playTime).hoursd();
 
             if (hours >= 1D) {
-                return (double) player.stats().writeStat(StatList.damageDealtStat) / hours;
+                return (double) player.stats().writeStat(StatList.deathsStat) / hours;
             }
         }
 
