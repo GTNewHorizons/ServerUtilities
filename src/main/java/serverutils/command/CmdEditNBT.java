@@ -28,7 +28,6 @@ import serverutils.lib.command.CmdTreeHelp;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.math.MathUtils;
-import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.net.MessageEditNBT;
 import serverutils.net.MessageEditNBTRequest;
@@ -75,11 +74,7 @@ public class CmdEditNBT extends CmdTreeBase {
             NBTTagCompound info = new NBTTagCompound();
             NBTTagCompound nbt = editNBT(player, info, args);
 
-            long size = NBTUtils.getSizeInBytes(nbt, false);
-
-            if (size >= 30000L) {
-                throw ServerUtilities.error(sender, "commands.nbtedit.too_large");
-            } else if (info.hasKey("type")) {
+            if (info.hasKey("type")) {
                 info.setLong("random", MathUtils.RAND.nextLong());
                 EDITING.put(player.getGameProfile().getId(), info);
                 new MessageEditNBT(info, nbt).sendTo(player);
