@@ -274,7 +274,6 @@ commands.upload_crash_report.usage=/upload_crash_report <file>
 commands.heal.usage=/heal [player]
 commands.killall.usage=/killall [type] [dimension]
 commands.nbtedit.usage=/nbtedit
-commands.nbtedit.too_large=Размер NBT слишком большой!
 commands.nbtedit.tile.usage=/nbtedit tile <x> <y> <z>
 commands.nbtedit.entity.usage=/nbtedit entity <id>
 commands.nbtedit.player.usage=/nbtedit player <player>

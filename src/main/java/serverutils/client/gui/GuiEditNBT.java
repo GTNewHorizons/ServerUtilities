@@ -28,7 +28,6 @@ import net.minecraftforge.common.util.Constants;
 
 import it.unimi.dsi.fastutil.bytes.ByteArrayList;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import serverutils.ServerUtilities;
 import serverutils.lib.config.ConfigDouble;
 import serverutils.lib.config.ConfigInt;
 import serverutils.lib.config.ConfigString;
@@ -51,7 +50,6 @@ import serverutils.lib.icon.Icon;
 import serverutils.lib.icon.IconWithBorder;
 import serverutils.lib.icon.ItemIcon;
 import serverutils.lib.item.ItemEntryWithCount;
-import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.misc.MouseButton;
 import serverutils.net.MessageEditNBTResponse;
@@ -866,11 +864,7 @@ public class GuiEditNBT extends GuiBase {
         super.onClosed();
 
         if (shouldClose == 1) {
-            if (NBTUtils.getSizeInBytes(buttonNBTRoot.map, false) >= 30000L) {
-                ServerUtilities.LOGGER.error("NBT too large to send!");
-            } else {
-                new MessageEditNBTResponse(info, buttonNBTRoot.map).sendToServer();
-            }
+            new MessageEditNBTResponse(info, buttonNBTRoot.map).sendToServer();
         }
     }
 

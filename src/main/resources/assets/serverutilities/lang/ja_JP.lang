@@ -290,7 +290,6 @@ commands.upload_crash_report.usage=/upload_crash_report <ファイル>
 commands.heal.usage=/heal [プレイヤー]
 commands.killall.usage=/killall [タイプ] [ディメンション]
 commands.nbtedit.usage=/nbtedit
-commands.nbtedit.too_large=NBTのサイズが大きすぎます！
 commands.nbtedit.tile.usage=/nbtedit tile <x> <y> <z>
 commands.nbtedit.entity.usage=/nbtedit entity <id>
 commands.nbtedit.player.usage=/nbtedit player <プレイヤー>

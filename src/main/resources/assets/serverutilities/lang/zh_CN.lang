@@ -275,7 +275,6 @@ commands.upload_crash_report.usage=/upload_crash_report <文件>
 commands.heal.usage=/heal [玩家]
 commands.killall.usage=/killall [类型] [维度]
 commands.nbtedit.usage=/nbtedit
-commands.nbtedit.too_large=NBT 大小过大！
 commands.nbtedit.tile.usage=/nbtedit tile <x> <y> <z>
 commands.nbtedit.entity.usage=/nbtedit entity <id>
 commands.nbtedit.player.usage=/nbtedit player <玩家>
