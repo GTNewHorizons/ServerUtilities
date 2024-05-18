@@ -383,8 +383,8 @@ public class ServerUtilitiesClientEventHandler {
     private static class Temp {
 
         private static final LinkedHashMap<ResourceLocation, IChatComponent> MAP = new LinkedHashMap<>();
+        private final NotificationWidget widget;
         private long tick, endTick;
-        private NotificationWidget widget;
 
         private Temp(IChatComponent n) {
             widget = new NotificationWidget(n, Minecraft.getMinecraft().fontRenderer);
@@ -403,21 +403,22 @@ public class ServerUtilitiesClientEventHandler {
             }
 
             GlStateManager.pushMatrix();
-            GlStateManager.translate((int) (screen.getScaledWidth() / 2F), (int) (screen.getScaledHeight() - 67F), 0F);
             GlStateManager.disableDepth();
             GlStateManager.depthMask(false);
             GlStateManager.disableLighting();
             GlStateManager.enableBlend();
             GlStateManager.color(1F, 1F, 1F, 1F);
 
-            int offy = -(widget.text.size() * 11) / 2;
+            int width = screen.getScaledWidth() / 2;
+            int height = screen.getScaledHeight() - 67;
+            int offy = (widget.text.size() * 11) / 2;
 
             for (int i = 0; i < widget.text.size(); i++) {
                 String string = widget.text.get(i);
                 widget.font.drawStringWithShadow(
                         string,
-                        (int) (-widget.font.getStringWidth(string) / 2F),
-                        offy + i * 11,
+                        width - widget.font.getStringWidth(string) / 2,
+                        height - offy + i * 11,
                         0xFFFFFF | (alpha << 24));
             }
 
@@ -438,7 +439,7 @@ public class ServerUtilitiesClientEventHandler {
         }
 
         private boolean isImportant() {
-            return widget.notification instanceof Notification && ((Notification) widget.notification).isImportant();
+            return widget.notification instanceof Notification notification && notification.isImportant();
         }
     }
 }
