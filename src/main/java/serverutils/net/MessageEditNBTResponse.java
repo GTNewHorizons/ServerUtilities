@@ -63,7 +63,7 @@ public class MessageEditNBTResponse extends MessageToServer {
                     int y = info.getInteger("y");
                     int z = info.getInteger("z");
 
-                    if (player.worldObj.getChunkProvider().chunkExists(x << 4, z << 4)) {
+                    if (player.worldObj.getChunkProvider().chunkExists(x >> 4, z >> 4)) {
                         TileEntity tile = player.worldObj.getTileEntity(x, y, z);
 
                         if (tile != null) {
