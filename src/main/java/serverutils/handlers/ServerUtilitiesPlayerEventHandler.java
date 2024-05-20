@@ -12,6 +12,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.EntityEvent;
@@ -157,15 +158,28 @@ public class ServerUtilitiesPlayerEventHandler {
             }
         }
 
-        MovingObjectPosition lookPos = MathUtils.rayTrace(player, true);
-        if (!cancelled && lookPos != null) {
+        int x = event.x;
+        int y = event.y;
+        int z = event.z;
+
+        if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
+            MovingObjectPosition lookPos = MathUtils.rayTrace(player, true);
+            if (lookPos != null) {
+                x = lookPos.blockX;
+                y = lookPos.blockY;
+                z = lookPos.blockZ;
+            } else {
+                x = MathHelper.floor_double(player.posX);
+                y = MathHelper.floor_double(player.posY);
+                z = MathHelper.floor_double(player.posZ);
+            }
+        }
+
+        if (!cancelled) {
             cancelled = switch (event.action) {
-                case RIGHT_CLICK_AIR -> ClaimedChunks
-                        .blockItemUse(player, lookPos.blockX, lookPos.blockY, lookPos.blockZ);
-                case RIGHT_CLICK_BLOCK -> ClaimedChunks
-                        .blockBlockInteractions(player, lookPos.blockX, lookPos.blockY, lookPos.blockZ, 0);
-                case LEFT_CLICK_BLOCK -> ClaimedChunks
-                        .blockBlockEditing(player, lookPos.blockX, lookPos.blockY, lookPos.blockZ, 0);
+                case RIGHT_CLICK_AIR -> ClaimedChunks.blockItemUse(player, x, y, z);
+                case RIGHT_CLICK_BLOCK -> ClaimedChunks.blockBlockInteractions(player, x, y, z, 0);
+                case LEFT_CLICK_BLOCK -> ClaimedChunks.blockBlockEditing(player, x, y, z, 0);
             };
         }
 
