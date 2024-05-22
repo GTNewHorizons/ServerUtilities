@@ -15,11 +15,13 @@ import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
+import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.util.StringJoiner;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.ranks.Rank;
 import serverutils.ranks.Ranks;
+import serverutils.task.SimpleTask;
 
 public class CmdWarp extends CmdBase {
 
@@ -64,13 +66,18 @@ public class CmdWarp extends CmdBase {
 
         ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
         data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.WARP);
-        ServerUtilitiesPlayerData.Timer.WARP.teleport(
-                player,
-                playerMP -> p.teleporter(),
-                universe -> Notification
+        SimpleTask task = new SimpleTask() {
+
+            @Override
+            public void execute(Universe universe) {
+                Notification
                         .of(
                                 ServerUtilitiesNotifications.TELEPORT,
                                 ServerUtilities.lang(sender, "serverutilities.lang.warps.tp", args[0]))
-                        .send(player.mcServer, player));
+                        .send(player.mcServer, player);
+            }
+        };
+
+        ServerUtilitiesPlayerData.Timer.WARP.teleport(player, playerMP -> p.teleporter(), task);
     }
 }

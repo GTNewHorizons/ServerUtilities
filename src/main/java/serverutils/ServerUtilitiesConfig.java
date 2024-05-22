@@ -3,7 +3,14 @@ package serverutils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.entity.monster.IMob;
+import net.minecraft.entity.passive.EntityAnimal;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -38,6 +45,8 @@ public class ServerUtilitiesConfig {
     public static final String LOGGING = WORLD + ".logging";
     public static final String DEBUGGING = "debugging";
     public static final String BACKUPS = "backups";
+    public static final String TASKS = "tasks";
+    public static final String TASK_CLEANUP = TASKS + ".cleanup";
 
     public static final String[] TRISTATE_VALUES = { "TRUE", "FALSE", "DEFAULT" };
 
@@ -343,6 +352,7 @@ public class ServerUtilitiesConfig {
     public static final Backups backups = new Backups();
     public static final General general = new General();
     public static final Teams teams = new Teams();
+    public static final Tasks tasks = new Tasks();
 
     public static class General {
 
@@ -604,5 +614,34 @@ public class ServerUtilitiesConfig {
 
             return false;
         }
+    }
+
+    public static class Tasks {
+
+        public static class Cleanup {
+
+            public boolean enabled = true;
+            public double interval = 2D;
+            public boolean hostiles = true;
+            public boolean passives = true;
+            public boolean items = true;
+            public boolean experience = true;
+            public boolean silent = false;
+            public Predicate<Entity> predicate = entity -> {
+                if (entity instanceof EntityPlayer) return false;
+                if (entity instanceof EntityAnimal) {
+                    return passives;
+                }
+                if (entity instanceof IMob) {
+                    return hostiles;
+                }
+                if (entity instanceof EntityItem) {
+                    return items;
+                }
+                return experience && entity instanceof EntityXPOrb;
+            };
+        }
+
+        public final Cleanup cleanup = new Cleanup();
     }
 }

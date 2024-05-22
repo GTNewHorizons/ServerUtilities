@@ -78,6 +78,7 @@ import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.ServerUtilitiesNetHandler;
 import serverutils.ranks.ServerUtilitiesPermissionHandler;
+import serverutils.task.CleanupTask;
 
 public class ServerUtilitiesCommon {
 
@@ -244,6 +245,11 @@ public class ServerUtilitiesCommon {
         if ((Loader.isModLoaded("FTBU") || Loader.isModLoaded("FTBL")) && event.getSide().isServer()) {
             throw new RuntimeException("FTBU/FTBL Detected, please remove them and start again.");
         }
+    }
+
+    public void registerTasks() {
+        Universe universe = Universe.get();
+        universe.scheduleTask(new CleanupTask(ServerUtilitiesConfig.tasks.cleanup.interval));
     }
 
     public void imc(FMLInterModComms.IMCMessage message) {}

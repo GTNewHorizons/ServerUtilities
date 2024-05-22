@@ -46,6 +46,9 @@ action_bar=Action Bar
 nothing_changed=Nothing changed!
 player_must_be_online=Player must be online!
 
+serverutilities.task.cleanup_entity=Removing entities in %s seconds
+serverutilities.task.cleanup_removed=Removed %s entities from world
+
 serverutilities.lang.reload_server_button=Reload Server
 serverutilities.lang.reload_server=Server reloaded in %s
 serverutilities.lang.reload_client=You can press %s to reload client

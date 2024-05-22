@@ -23,6 +23,7 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.lib.util.text_components.Notification;
+import serverutils.task.SimpleTask;
 
 public class CmdHome extends CmdBase {
 
@@ -110,14 +111,19 @@ public class CmdHome extends CmdBase {
             throw ServerUtilities.error(sender, "serverutilities.lang.homes.cross_dim");
         }
 
-        data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.HOME);
-        ServerUtilitiesPlayerData.Timer.HOME.teleport(
-                player,
-                playerMP -> pos.teleporter(),
-                universe -> Notification
+        SimpleTask task = new SimpleTask(0) {
+
+            @Override
+            public void execute(Universe universe) {
+                Notification
                         .of(
                                 ServerUtilitiesNotifications.TELEPORT,
                                 ServerUtilities.lang(sender, "serverutilities.lang.warps.tp", args[0]))
-                        .send(player.mcServer, player));
+                        .send(player.mcServer, player);
+            }
+        };
+
+        data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.HOME);
+        ServerUtilitiesPlayerData.Timer.HOME.teleport(player, playerMP -> pos.teleporter(), task);
     }
 }

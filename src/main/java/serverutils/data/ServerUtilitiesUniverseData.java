@@ -43,6 +43,7 @@ import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.misc.TimeType;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.ranks.Ranks;
+import serverutils.task.SimpleTask;
 
 public class ServerUtilitiesUniverseData {
 
@@ -145,26 +146,35 @@ public class ServerUtilitiesUniverseData {
 
             if (shutdownTime > 0L) {
                 ServerUtilities.LOGGER
-                        .info("Server will shut down in " + StringUtils.getTimeString(shutdownTime - now));
+                        .info("Server will shut down in {}", StringUtils.getTimeString(shutdownTime - now));
 
                 Ticks[] ticks = { Ticks.MINUTE.x(30), Ticks.MINUTE.x(10), Ticks.MINUTE.x(5), Ticks.MINUTE.x(1),
                         Ticks.SECOND.x(10), Ticks.SECOND.x(9), Ticks.SECOND.x(8), Ticks.SECOND.x(7), Ticks.SECOND.x(6),
                         Ticks.SECOND.x(5), Ticks.SECOND.x(4), Ticks.SECOND.x(3), Ticks.SECOND.x(2), Ticks.SECOND.x(1) };
 
                 for (Ticks t : ticks) {
-                    event.getUniverse().scheduleTask(TimeType.MILLIS, shutdownTime - t.millis(), universe -> {
-                        String timeString = t.toTimeString();
 
-                        for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
-                            Notification.of(
-                                    RESTART_TIMER_ID,
-                                    StringUtils.color(
-                                            ServerUtilities
-                                                    .lang(player, "serverutilities.lang.timer.shutdown", timeString),
-                                            EnumChatFormatting.LIGHT_PURPLE))
-                                    .send(universe.server, player);
+                    SimpleTask task = new SimpleTask(shutdownTime - t.millis()) {
+
+                        @Override
+                        public void execute(Universe universe) {
+                            String timeString = t.toTimeString();
+
+                            for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
+                                Notification.of(
+                                        RESTART_TIMER_ID,
+                                        StringUtils.color(
+                                                ServerUtilities.lang(
+                                                        player,
+                                                        "serverutilities.lang.timer.shutdown",
+                                                        timeString),
+                                                EnumChatFormatting.LIGHT_PURPLE))
+                                        .send(universe.server, player);
+                            }
                         }
-                    });
+                    };
+
+                    event.getUniverse().scheduleTask(task);
                 }
             }
         }

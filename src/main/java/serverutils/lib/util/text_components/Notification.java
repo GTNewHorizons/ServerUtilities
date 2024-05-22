@@ -2,7 +2,6 @@ package serverutils.lib.util.text_components;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
@@ -10,6 +9,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
+import serverutils.ServerUtilities;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringJoiner;
@@ -30,6 +30,10 @@ public class Notification extends ChatComponentText {
 
     public static Notification of(ResourceLocation id, IChatComponent... lines) {
         return of(id, "", lines);
+    }
+
+    public static Notification of(String id, IChatComponent... lines) {
+        return of(new ResourceLocation(ServerUtilities.MOD_ID, id), "", lines);
     }
 
     private final ResourceLocation id;
@@ -138,17 +142,11 @@ public class Notification extends ChatComponentText {
         return new Notification(this);
     }
 
-    public void send(MinecraftServer server, @Nullable EntityPlayer player) {
-        ServerUtils.notify(server, player, this);
+    public void sendToAll(MinecraftServer server) {
+        send(server, null);
     }
 
-    public void send(MinecraftServer server, @Nullable ICommandSender sender) {
-        if (sender == null) {
-            ServerUtils.notify(server, null, this);
-        } else if (sender instanceof EntityPlayer) {
-            ServerUtils.notify(server, (EntityPlayer) sender, this);
-        } else {
-            sender.addChatMessage(this);
-        }
+    public void send(MinecraftServer server, @Nullable EntityPlayer player) {
+        ServerUtils.notify(server, player, this);
     }
 }

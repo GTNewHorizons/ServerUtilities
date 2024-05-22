@@ -129,6 +129,7 @@ public class ServerUtilities {
     @Mod.EventHandler
     public void onServerStarted(FMLServerStartedEvent event) {
         Universe.onServerStarted(event);
+        PROXY.registerTasks();
 
         if (Ranks.isActive()) {
             Ranks.INSTANCE.commands.clear();
@@ -171,7 +172,7 @@ public class ServerUtilities {
                 Ranks.INSTANCE.commands.put(c.node, c);
             }
 
-            LOGGER.info("Overridden " + manager.getCommands().size() + " commands");
+            LOGGER.info("Overridden {} commands", manager.getCommands().size());
         }
     }
 
