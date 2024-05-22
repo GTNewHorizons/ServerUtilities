@@ -22,7 +22,6 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
-import serverutils.backups.Backups;
 import serverutils.command.CmdShutdown;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
@@ -230,15 +229,6 @@ public class ServerUtilitiesServerEventHandler {
 
             if (ServerUtilitiesUniverseData.shutdownTime > 0L && ServerUtilitiesUniverseData.shutdownTime - now <= 0) {
                 CmdShutdown.shutdown(universe.server);
-            }
-
-            if (Backups.nextBackup > 0L && Backups.nextBackup <= now) {
-                Backups.run(null, "");
-            }
-
-            if (Backups.thread != null && Backups.thread.isDone) {
-                Backups.thread = null;
-                Backups.postBackup();
             }
         }
     }

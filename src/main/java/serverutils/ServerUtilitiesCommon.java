@@ -26,7 +26,6 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import serverutils.aurora.AuroraConfig;
 import serverutils.aurora.mc.AuroraMinecraftHandler;
-import serverutils.backups.Backups;
 import serverutils.data.Leaderboard;
 import serverutils.data.NodeEntry;
 import serverutils.data.ServerUtilitiesLoadedChunkManager;
@@ -69,6 +68,7 @@ import serverutils.lib.data.ISyncData;
 import serverutils.lib.data.ServerUtilitiesAPI;
 import serverutils.lib.data.ServerUtilitiesTeamGuiActions;
 import serverutils.lib.data.TeamAction;
+import serverutils.lib.data.Universe;
 import serverutils.lib.gui.GuiIcons;
 import serverutils.lib.icon.Color4I;
 import serverutils.lib.math.Ticks;
@@ -79,6 +79,7 @@ import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.ServerUtilitiesNetHandler;
 import serverutils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.task.CleanupTask;
+import serverutils.task.backup.BackupTask;
 
 public class ServerUtilitiesCommon {
 
@@ -138,8 +139,6 @@ public class ServerUtilitiesCommon {
         KAOMOJIS.put("shrug", "\u00AF\\_(\u30C4)_/\u00AF");
         KAOMOJIS.put("tableflip", "(\u256F\u00B0\u25A1\u00B0)\u256F \uFE35 \u253B\u2501\u253B");
         KAOMOJIS.put("unflip", "\u252C\u2500\u252C\u30CE( \u309C-\u309C\u30CE)");
-
-        Backups.init();
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPlayerEventHandler.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesRegistryEventHandler.INST);
@@ -249,7 +248,12 @@ public class ServerUtilitiesCommon {
 
     public void registerTasks() {
         Universe universe = Universe.get();
-        universe.scheduleTask(new CleanupTask(ServerUtilitiesConfig.tasks.cleanup.interval));
+        if (ServerUtilitiesConfig.tasks.cleanup.enabled) {
+            universe.scheduleTask(new CleanupTask(ServerUtilitiesConfig.tasks.cleanup.interval));
+        }
+        if (ServerUtilitiesConfig.backups.enable_backups) {
+            universe.scheduleTask(new BackupTask(ServerUtilitiesConfig.backups.backup_timer));
+        }
     }
 
     public void imc(FMLInterModComms.IMCMessage message) {}

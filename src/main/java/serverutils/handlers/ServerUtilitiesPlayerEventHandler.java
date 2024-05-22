@@ -29,7 +29,6 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
-import serverutils.backups.Backups;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
@@ -47,6 +46,7 @@ import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageSyncData;
+import serverutils.task.backup.BackupTask;
 
 public class ServerUtilitiesPlayerEventHandler {
 
@@ -77,7 +77,7 @@ public class ServerUtilitiesPlayerEventHandler {
             ClaimedChunks.instance.markDirty();
         }
 
-        Backups.hadPlayer = true;
+        BackupTask.hadPlayer = true;
     }
 
     @SubscribeEvent

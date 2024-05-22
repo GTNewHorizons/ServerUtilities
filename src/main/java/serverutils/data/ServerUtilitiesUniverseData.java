@@ -26,7 +26,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
-import serverutils.backups.Backups;
 import serverutils.events.team.ForgeTeamDataEvent;
 import serverutils.events.universe.UniverseClosedEvent;
 import serverutils.events.universe.UniverseLoadedEvent;
@@ -40,7 +39,6 @@ import serverutils.lib.math.MathUtils;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.StringUtils;
-import serverutils.lib.util.misc.TimeType;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.ranks.Ranks;
 import serverutils.task.SimpleTask;
@@ -57,8 +55,6 @@ public class ServerUtilitiesUniverseData {
 
     public static long shutdownTime;
     public static final BlockDimPosStorage WARPS = new BlockDimPosStorage();
-    // public static final ChatHistory GENERAL_CHAT = new ChatHistory(() ->
-    // ServerUtilitiesConfig.chat.general_history_limit);
     private static final List<String> worldLog = new ArrayList<>();
     private static final List<String> chatLog = new ArrayList<>();
 
@@ -108,7 +104,6 @@ public class ServerUtilitiesUniverseData {
     @SubscribeEvent
     public void onUniverseLoaded(UniverseLoadedEvent.Finished event) {
         long now = System.currentTimeMillis();
-        Backups.nextBackup = now + Backups.backupMillis();
         shutdownTime = 0L;
 
         if (ServerUtilitiesConfig.auto_shutdown.enabled && ServerUtilitiesConfig.auto_shutdown.times.length > 0
@@ -286,7 +281,6 @@ public class ServerUtilitiesUniverseData {
             ClaimedChunks.instance.clear();
             ClaimedChunks.instance = null;
         }
-        Backups.nextBackup = 0L;
         ServerUtilitiesLoadedChunkManager.INSTANCE.clear();
 
         BADGE_CACHE.clear();
