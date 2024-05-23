@@ -67,15 +67,37 @@ public class CleanupTask implements ITask {
     @Override
     public void queueNotifications(Universe universe) {
         if (ServerUtilitiesConfig.tasks.cleanup.silent) return;
-        String notificationString = StatCollector.translateToLocal("serverutilities.task.cleanup_entity");
-        IChatComponent component = new ChatComponentText(String.format(notificationString, 30));
+        IChatComponent component = new ChatComponentText(getNotificationString(30));
         ITask task = new NotifyTask(nextTime - Ticks.SECOND.x(30).millis(), "cleanup_30", component);
 
         universe.scheduleTask(task);
 
-        component = new ChatComponentText(String.format(notificationString, 60));
+        component = new ChatComponentText(getNotificationString(60));
         task = new NotifyTask(nextTime - Ticks.SECOND.x(60).millis(), "cleanup_60", component);
 
         universe.scheduleTask(task);
+    }
+
+    private String getNotificationString(int seconds) {
+        ServerUtilitiesConfig.Tasks.Cleanup config = ServerUtilitiesConfig.tasks.cleanup;
+        StringBuilder builder = new StringBuilder();
+        if (config.hostiles) {
+            builder.append(StatCollector.translateToLocal("serverutilities.task.cleanup_hostiles"));
+        }
+        if (config.passives) {
+            if (builder.length() > 0) builder.append(", ");
+            builder.append(StatCollector.translateToLocal("serverutilities.task.cleanup_passives"));
+        }
+        if (config.items) {
+            if (builder.length() > 0) builder.append(", ");
+            builder.append(StatCollector.translateToLocal("serverutilities.task.cleanup_items"));
+        }
+        if (config.experience) {
+            if (builder.length() > 0) builder.append(", ");
+            builder.append(StatCollector.translateToLocal("serverutilities.task.cleanup_experience"));
+        }
+
+        return StatCollector
+                .translateToLocalFormatted("serverutilities.task.cleanup_entity", builder.toString(), seconds);
     }
 }
