@@ -39,8 +39,6 @@ public class CmdTPA extends CmdBase {
 
         IChatComponent selfName = StringUtils
                 .color(new ChatComponentText(self.player.getPlayer().getDisplayName()), EnumChatFormatting.BLUE);
-        IChatComponent otherName = StringUtils
-                .color(new ChatComponentText(other.player.getPlayer().getDisplayName()), EnumChatFormatting.BLUE);
 
         if (self.player.equalsPlayer(other.player) || !other.player.isOnline()
                 || other.tpaRequestsFrom.contains(self.player)) {
@@ -49,11 +47,13 @@ public class CmdTPA extends CmdBase {
             component.getChatStyle().setChatHoverEvent(
                     new HoverEvent(
                             HoverEvent.Action.SHOW_TEXT,
-                            ServerUtilities.lang(sender, "serverutilities.lang.tpa.from_to", selfName, otherName)));
+                            ServerUtilities.lang(sender, "serverutilities.lang.tpa.from_to", selfName, args[0])));
             sender.addChatMessage(component);
             return;
         }
 
+        IChatComponent otherName = StringUtils
+                .color(new ChatComponentText(other.player.getPlayer().getDisplayName()), EnumChatFormatting.BLUE);
         IChatComponent c = ServerUtilities.lang(sender, "serverutilities.lang.tpa.request_sent");
         c.getChatStyle().setChatHoverEvent(
                 new HoverEvent(

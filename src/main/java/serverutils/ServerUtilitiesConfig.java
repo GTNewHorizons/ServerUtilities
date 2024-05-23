@@ -3,14 +3,7 @@ package serverutils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityXPOrb;
-import net.minecraft.entity.monster.IMob;
-import net.minecraft.entity.passive.EntityAnimal;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -331,6 +324,22 @@ public class ServerUtilitiesConfig {
         world.show_playtime = config.get(WORLD, "show_playtime", false, "Show play time in corner.").getBoolean();
         config.setCategoryRequiresWorldRestart(WORLD, true);
 
+        tasks.cleanup.enabled = config
+                .get(TASK_CLEANUP, "cleanup_enabled", true, "Enables periodic removal of entities").getBoolean();
+        tasks.cleanup.interval = config
+                .get(TASK_CLEANUP, "cleanup_interval", 2.0, "How often the cleanup should run in hours").getDouble();
+        tasks.cleanup.hostiles = config.get(TASK_CLEANUP, "include_hostiles", true, "Include hostile mobs in cleanup")
+                .getBoolean();
+        tasks.cleanup.passives = config.get(TASK_CLEANUP, "include_passives", false, "Include passive mobs in cleanup")
+                .getBoolean();
+        tasks.cleanup.items = config.get(TASK_CLEANUP, "include_items", true, "Include items on the ground in cleanup")
+                .getBoolean();
+        tasks.cleanup.experience = config
+                .get(TASK_CLEANUP, "include_experience", true, "Include experience orbs in cleanup").getBoolean();
+        tasks.cleanup.silent = config
+                .get(TASK_CLEANUP, "silent_cleanup", false, "Silence cleanup warning that are sent prior to starting")
+                .getBoolean();
+
         login.motdComponents = null;
         login.startingItems = null;
         afk.notificationTimer = -1L;
@@ -618,26 +627,13 @@ public class ServerUtilitiesConfig {
 
         public static class Cleanup {
 
-            public boolean enabled = true;
-            public double interval = 2D;
-            public boolean hostiles = true;
-            public boolean passives = true;
-            public boolean items = true;
-            public boolean experience = true;
-            public boolean silent = false;
-            public Predicate<Entity> predicate = entity -> {
-                if (entity instanceof EntityPlayer) return false;
-                if (entity instanceof EntityAnimal) {
-                    return passives;
-                }
-                if (entity instanceof IMob) {
-                    return hostiles;
-                }
-                if (entity instanceof EntityItem) {
-                    return items;
-                }
-                return experience && entity instanceof EntityXPOrb;
-            };
+            public boolean enabled;
+            public double interval;
+            public boolean hostiles;
+            public boolean passives;
+            public boolean items;
+            public boolean experience;
+            public boolean silent;
         }
 
         public final Cleanup cleanup = new Cleanup();

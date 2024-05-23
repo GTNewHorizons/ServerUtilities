@@ -43,7 +43,7 @@ public class CmdBack extends CmdBase {
 
         data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.BACK);
 
-        SimpleTask task = new SimpleTask(0) {
+        SimpleTask task = new SimpleTask() {
 
             @Override
             public void execute(Universe universe) {

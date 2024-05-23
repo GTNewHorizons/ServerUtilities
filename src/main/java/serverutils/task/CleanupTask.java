@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.function.Predicate;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.INpc;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.entity.monster.IMob;
+import net.minecraft.entity.passive.IAnimals;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
@@ -18,6 +24,20 @@ public class CleanupTask implements ITask {
 
     private long nextTime;
     private final long interval;
+    private static final Predicate<Entity> ENTITY_PREDICATE = entity -> {
+        ServerUtilitiesConfig.Tasks.Cleanup config = ServerUtilitiesConfig.tasks.cleanup;
+        if (entity instanceof EntityPlayer) return false;
+        if ((entity instanceof IAnimals && !(entity instanceof IMob)) || entity instanceof INpc) {
+            return config.passives;
+        }
+        if (entity instanceof IMob) {
+            return config.hostiles;
+        }
+        if (entity instanceof EntityItem) {
+            return config.items;
+        }
+        return config.experience && entity instanceof EntityXPOrb;
+    };
 
     public CleanupTask(double interval) {
         this.interval = Ticks.HOUR.x(interval).millis();
@@ -48,10 +68,9 @@ public class CleanupTask implements ITask {
     @Override
     public void execute(Universe universe) {
         int removed = 0;
-        Predicate<Entity> predicate = ServerUtilitiesConfig.tasks.cleanup.predicate;
         for (World world : universe.server.worldServers) {
             for (Entity entity : new ArrayList<>(world.loadedEntityList)) {
-                if (predicate.test(entity)) {
+                if (ENTITY_PREDICATE.test(entity)) {
                     entity.setDead();
                     removed++;
                 }
@@ -95,6 +114,12 @@ public class CleanupTask implements ITask {
         if (config.experience) {
             if (builder.length() > 0) builder.append(", ");
             builder.append(StatCollector.translateToLocal("serverutilities.task.cleanup_experience"));
+        }
+
+        int index = builder.lastIndexOf(",");
+
+        if (index > 0) {
+            builder.replace(index, index + 1, " &");
         }
 
         return StatCollector
