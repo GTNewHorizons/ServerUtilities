@@ -20,8 +20,6 @@ public class ServerUtilitiesNetHandler {
         GENERAL.register(new MessageAdminPanelGui());
         GENERAL.register(new MessageAdminPanelGuiResponse());
         GENERAL.register(new MessageAdminPanelAction());
-        GENERAL.register(new MessageRequestBadge());
-        GENERAL.register(new MessageSendBadge());
         GENERAL.register(new MessageUpdateTabName());
         GENERAL.register(new MessageUpdatePlayTime());
 

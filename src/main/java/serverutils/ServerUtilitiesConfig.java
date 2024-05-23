@@ -463,8 +463,6 @@ public class ServerUtilitiesConfig {
 
         public boolean enable_motd;
         public boolean enable_starting_items;
-        public boolean enable_global_badges;
-        public boolean enable_event_badges;
         public String[] motd;
         private List<IChatComponent> motdComponents = null;
         private List<ItemStack> startingItems = null;

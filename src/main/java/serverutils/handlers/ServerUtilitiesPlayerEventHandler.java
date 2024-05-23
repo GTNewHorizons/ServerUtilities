@@ -88,7 +88,6 @@ public class ServerUtilitiesPlayerEventHandler {
             ClaimedChunks.instance.markDirty();
         }
 
-        ServerUtilitiesUniverseData.updateBadge(player.getUniqueID());
         player.getEntityData().removeTag(ServerUtilitiesPlayerData.TAG_LAST_CHUNK);
     }
 

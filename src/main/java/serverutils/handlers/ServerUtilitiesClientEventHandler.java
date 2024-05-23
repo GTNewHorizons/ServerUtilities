@@ -2,11 +2,8 @@ package serverutils.handlers;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -43,7 +40,6 @@ import serverutils.lib.OtherMods;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.gui.Widget;
-import serverutils.lib.icon.Icon;
 import serverutils.lib.icon.IconRenderer;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.InvUtils;
@@ -56,39 +52,20 @@ import serverutils.net.MessageClaimedChunksUpdate;
 import serverutils.net.MessageEditNBTRequest;
 import serverutils.net.MessageLeaderboardList;
 import serverutils.net.MessageMyTeamGui;
-import serverutils.net.MessageRequestBadge;
 
 public class ServerUtilitiesClientEventHandler {
 
     public static final ServerUtilitiesClientEventHandler INST = new ServerUtilitiesClientEventHandler();
     private static Temp currentNotification;
     public static boolean shouldRenderIcons = false;
-    private static final Map<UUID, Icon> BADGE_CACHE = new HashMap<>();
     public static long shutdownTime = 0L;
 
     public static void readSyncData(NBTTagCompound nbt) {
         shutdownTime = System.currentTimeMillis() + nbt.getLong("ShutdownTime");
     }
 
-    public static Icon getBadge(UUID id) {
-        Icon tex = BADGE_CACHE.get(id);
-
-        if (tex == null) {
-            tex = Icon.EMPTY;
-            BADGE_CACHE.put(id, tex);
-            new MessageRequestBadge(id).sendToServer();
-        }
-
-        return tex;
-    }
-
-    public static void setBadge(UUID id, String url) {
-        BADGE_CACHE.put(id, Icon.getIcon(url));
-    }
-
     @SubscribeEvent
     public void onClientDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
-        BADGE_CACHE.clear();
         shutdownTime = 0L;
         SidedUtils.SERVER_MODS.clear();
         if (OtherMods.isVPLoaded()) {

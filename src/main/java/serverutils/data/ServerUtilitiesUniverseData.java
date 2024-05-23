@@ -4,13 +4,9 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
@@ -21,27 +17,20 @@ import net.minecraftforge.common.MinecraftForge;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
-import serverutils.ServerUtilitiesPermissions;
 import serverutils.events.team.ForgeTeamDataEvent;
 import serverutils.events.universe.UniverseClosedEvent;
 import serverutils.events.universe.UniverseLoadedEvent;
 import serverutils.events.universe.UniverseSavedEvent;
-import serverutils.lib.config.ConfigValue;
-import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
-import serverutils.lib.io.DataReader;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.MathUtils;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
-import serverutils.lib.util.StringUtils;
 import serverutils.ranks.Ranks;
 
 public class ServerUtilitiesUniverseData {
 
     public static final ServerUtilitiesUniverseData INST = new ServerUtilitiesUniverseData();
-    private static final String BADGE_URL = "https://badges.latmod.com/get?id=";
-    private static final Map<UUID, String> BADGE_CACHE = new HashMap<>();
     public static final BlockDimPosStorage WARPS = new BlockDimPosStorage();
     private static final List<String> worldLog = new ArrayList<>();
     private static final List<String> chatLog = new ArrayList<>();
@@ -200,70 +189,5 @@ public class ServerUtilitiesUniverseData {
             ClaimedChunks.instance = null;
         }
         ServerUtilitiesLoadedChunkManager.INSTANCE.clear();
-
-        BADGE_CACHE.clear();
-    }
-
-    public static void updateBadge(UUID playerId) {
-        BADGE_CACHE.remove(playerId);
-    }
-
-    public static String getBadge(Universe universe, UUID playerId) {
-        String badge = BADGE_CACHE.get(playerId);
-
-        if (badge != null) {
-            return badge;
-        }
-
-        badge = getRawBadge(universe, playerId);
-        BADGE_CACHE.put(playerId, badge);
-        return badge;
-    }
-
-    private static String getRawBadge(Universe universe, UUID playerId) {
-        ForgePlayer player = universe.getPlayer(playerId);
-
-        if (player == null || player.isFake()) {
-            return "";
-        }
-
-        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(player);
-
-        if (!data.renderBadge()) {
-            return "";
-        } else if (ServerUtilitiesConfig.login.enable_global_badges && !data.disableGlobalBadge()) {
-            try {
-                String badge = DataReader.get(
-                        new URL(BADGE_URL + StringUtils.fromUUID(playerId)),
-                        DataReader.TEXT,
-                        universe.server.getServerProxy()).string(32);
-
-                if (!badge.isEmpty())// && (ServerUtilities.login.enable_event_badges ||
-                                     // !response.getHeaderField("Event-Badge").equals("true")))
-                {
-                    return badge;
-                }
-            } catch (Exception ex) {
-                if (ServerUtilitiesConfig.debugging.print_more_errors) {
-                    ServerUtilities.LOGGER.warn("Badge API errored! " + ex);
-                }
-            }
-        }
-
-        if (Ranks.isActive()) {
-            ConfigValue value = Ranks.INSTANCE
-                    .getPermission(player.getProfile(), ServerUtilitiesPermissions.BADGE, true);
-
-            if (!value.isNull() && !value.isEmpty()) {
-                return value.getString();
-            }
-        }
-
-        return "";
-    }
-
-    public static boolean clearBadgeCache() {
-        BADGE_CACHE.clear();
-        return true;
     }
 }

@@ -36,7 +36,6 @@ public class ServerUtilitiesPermissions {
     public static final ServerUtilitiesPermissions INST = new ServerUtilitiesPermissions();
     // Display //
     public static final String DISPLAY_ADMIN_INFO = "serverutilities.display.admin_info";
-    public static final String BADGE = "serverutilities.badge";
 
     // Homes //
     public static final String HOMES_CROSS_DIM = "serverutilities.homes.cross_dim";
@@ -281,7 +280,6 @@ public class ServerUtilitiesPermissions {
 
         event.register(CHAT_NAME_FORMAT, new ConfigString("<{name}>"), new ConfigString("<&2{name}&r>"));
         event.register(CHAT_TEXT_COLOR, new ConfigEnum<>(TextComponentParser.TEXT_FORMATTING_COLORS_NAME_MAP));
-        event.register(BADGE, new ConfigString(""));
         event.register(HOMES_MAX, new ConfigInt(1, 0, 30000), new ConfigInt(100));
         event.register(HOMES_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(5)), new ConfigTimer(Ticks.NO_TICKS));
         event.register(WARPS_COOLDOWN, new ConfigTimer(Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));

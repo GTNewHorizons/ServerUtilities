@@ -86,8 +86,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         return player.getData().get(ServerUtilities.MOD_ID);
     }
 
-    private boolean renderBadge = true;
-    private boolean disableGlobalBadge = false;
     private boolean enablePVP = true;
     private String nickname = "";
     private EnumMessageLocation afkMesageLocation = EnumMessageLocation.CHAT;
@@ -117,8 +115,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
     @Override
     public NBTTagCompound serializeNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
-        nbt.setBoolean("RenderBadge", renderBadge);
-        nbt.setBoolean("DisableGlobalBadges", disableGlobalBadge);
         nbt.setBoolean("EnablePVP", enablePVP);
         nbt.setTag("Homes", homes.serializeNBT());
         nbt.setTag("TeleportTracker", teleportTracker.serializeNBT());
@@ -129,8 +125,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
 
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
-        renderBadge = !nbt.hasKey("RenderBadge") || nbt.getBoolean("RenderBadge");
-        disableGlobalBadge = nbt.getBoolean("DisableGlobalBadges");
         enablePVP = !nbt.hasKey("EnablePVP") || nbt.getBoolean("EnablePVP");
         homes.deserializeNBT(nbt.getCompoundTag("Homes"));
         teleportTracker.deserializeNBT(nbt.getCompoundTag("TeleportTracker"));
@@ -143,8 +137,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         ConfigGroup config = main.getGroup(ServerUtilities.MOD_ID);
         config.setDisplayName(new ChatComponentText(ServerUtilities.MOD_NAME));
 
-        config.addBool("render_badge", () -> renderBadge, v -> renderBadge = v, true);
-        config.addBool("disable_global_badge", () -> disableGlobalBadge, v -> disableGlobalBadge = v, false);
         config.addBool("enable_pvp", () -> enablePVP, v -> enablePVP = v, true)
                 .setCanEdit(ServerUtilitiesConfig.world.enable_pvp.isDefault());
         config.addString("nickname", () -> nickname, v -> nickname = v, "").setCanEdit(
@@ -152,14 +144,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
                         && player.hasPermission(ServerUtilitiesPermissions.CHAT_NICKNAME_SET));
         config.addEnum("afk", () -> afkMesageLocation, v -> afkMesageLocation = v, EnumMessageLocation.NAME_MAP)
                 .setExcluded(!ServerUtilitiesConfig.afk.isEnabled(player.team.universe.server));
-    }
-
-    public boolean renderBadge() {
-        return renderBadge;
-    }
-
-    public boolean disableGlobalBadge() {
-        return disableGlobalBadge;
     }
 
     public boolean enablePVP() {
