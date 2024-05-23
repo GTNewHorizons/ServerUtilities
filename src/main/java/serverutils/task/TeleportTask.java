@@ -30,12 +30,12 @@ public class TeleportTask implements ITask {
     private final float startHP;
     private final int startSeconds;
     private int secondsLeft;
-    private final SimpleTask extraTask;
+    private final ITask extraTask;
     private final TeleportType teleportType;
     private long nextTime;
 
     public TeleportTask(TeleportType teleportType, EntityPlayerMP player, ServerUtilitiesPlayerData.Timer ticks,
-            int secStart, Function<EntityPlayerMP, TeleporterDimPos> to, @Nullable SimpleTask task) {
+            int secStart, Function<EntityPlayerMP, TeleporterDimPos> to, @Nullable ITask task) {
         this.teleportType = teleportType;
         this.player = player;
         this.timer = ticks;
@@ -77,7 +77,7 @@ public class TeleportTask implements ITask {
             }
         } else {
             secondsLeft -= 1;
-            setNextTime(System.currentTimeMillis() + Ticks.SECOND.x(1).millis());
+            setNextTime(System.currentTimeMillis() + Ticks.SECOND.millis());
             universe.scheduleTask(this);
 
             IChatComponent component = StringUtils.color(

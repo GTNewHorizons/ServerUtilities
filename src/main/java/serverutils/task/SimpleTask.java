@@ -4,10 +4,10 @@ import serverutils.lib.data.Universe;
 
 public abstract class SimpleTask implements ITask {
 
-    private final long runIn;
+    private final long time;
 
-    public SimpleTask(long runIn) {
-        this.runIn = runIn;
+    public SimpleTask(long whenToRun) {
+        this.time = whenToRun;
     }
 
     public SimpleTask() {
@@ -21,7 +21,7 @@ public abstract class SimpleTask implements ITask {
 
     @Override
     public long getNextTime() {
-        return runIn;
+        return time;
     }
 
     @Override

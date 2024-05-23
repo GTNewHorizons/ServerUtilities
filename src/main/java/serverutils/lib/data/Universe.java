@@ -163,12 +163,12 @@ public class Universe {
 
             while (taskIterator.hasNext()) {
                 ITask task = taskIterator.next();
-                task.notify(universe);
                 if (task.isComplete(universe)) {
                     task.execute(universe);
 
                     if (task.isRepeatable()) {
                         task.setNextTime(System.currentTimeMillis() + task.getInterval());
+                        task.queueNotifications(universe);
                         continue;
                     }
                     taskIterator.remove();

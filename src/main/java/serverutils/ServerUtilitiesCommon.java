@@ -18,7 +18,6 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -94,6 +93,7 @@ import serverutils.ranks.Rank;
 import serverutils.ranks.Ranks;
 import serverutils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.task.CleanupTask;
+import serverutils.task.ShutdownTask;
 import serverutils.task.backup.BackupTask;
 
 public class ServerUtilitiesCommon {
@@ -337,15 +337,13 @@ public class ServerUtilitiesCommon {
         if (ServerUtilitiesConfig.backups.enable_backups) {
             universe.scheduleTask(new BackupTask(ServerUtilitiesConfig.backups.backup_timer));
         }
+        if (ServerUtilitiesConfig.auto_shutdown.enabled && ServerUtilitiesConfig.auto_shutdown.times.length > 0
+                && (ServerUtilitiesConfig.auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
+            universe.scheduleTask(new ShutdownTask());
+        }
     }
 
     public void handleClientMessage(MessageToClient message) {}
-
-    public void spawnDust(World world, double x, double y, double z, float r, float g, float b, float a) {}
-
-    public void spawnDust(World world, double x, double y, double z, Color4I col) {
-        spawnDust(world, x, y, z, col.redf(), col.greenf(), col.bluef(), col.alphaf());
-    }
 
     public long getWorldTime() {
         return ServerUtils.getServerWorld().getTotalWorldTime();

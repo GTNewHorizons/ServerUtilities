@@ -12,17 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChunkCoordinates;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
@@ -39,21 +35,13 @@ import serverutils.lib.math.MathUtils;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.StringUtils;
-import serverutils.lib.util.text_components.Notification;
 import serverutils.ranks.Ranks;
-import serverutils.task.SimpleTask;
 
 public class ServerUtilitiesUniverseData {
 
     public static final ServerUtilitiesUniverseData INST = new ServerUtilitiesUniverseData();
     private static final String BADGE_URL = "https://badges.latmod.com/get?id=";
-    private static final ResourceLocation RESTART_TIMER_ID = new ResourceLocation(
-            ServerUtilities.MOD_ID,
-            "restart_timer");
-
     private static final Map<UUID, String> BADGE_CACHE = new HashMap<>();
-
-    public static long shutdownTime;
     public static final BlockDimPosStorage WARPS = new BlockDimPosStorage();
     private static final List<String> worldLog = new ArrayList<>();
     private static final List<String> chatLog = new ArrayList<>();
@@ -104,78 +92,8 @@ public class ServerUtilitiesUniverseData {
     @SubscribeEvent
     public void onUniverseLoaded(UniverseLoadedEvent.Finished event) {
         long now = System.currentTimeMillis();
-        shutdownTime = 0L;
-
-        if (ServerUtilitiesConfig.auto_shutdown.enabled && ServerUtilitiesConfig.auto_shutdown.times.length > 0
-                && (ServerUtilitiesConfig.auto_shutdown.enabled_singleplayer
-                        || event.getUniverse().server.isDedicatedServer())) {
-            Calendar calendar = Calendar.getInstance();
-            int currentTime = calendar.get(Calendar.HOUR_OF_DAY) * 3600 + calendar.get(Calendar.MINUTE) * 60
-                    + calendar.get(Calendar.SECOND);
-            IntArrayList times = new IntArrayList(ServerUtilitiesConfig.auto_shutdown.times.length);
-
-            for (String s0 : ServerUtilitiesConfig.auto_shutdown.times) {
-                try {
-                    String[] s = s0.split(":", 2);
-
-                    int t = Integer.parseInt(s[0]) * 3600 + Integer.parseInt(s[1]) * 60;
-
-                    if (t <= currentTime) {
-                        t += 24 * 3600;
-                    }
-
-                    times.add(t);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-
-            times.sort(null);
-
-            for (int time : times) {
-                if (time > currentTime) {
-                    shutdownTime = now + (time - currentTime) * 1000L;
-                    break;
-                }
-            }
-
-            if (shutdownTime > 0L) {
-                ServerUtilities.LOGGER
-                        .info("Server will shut down in {}", StringUtils.getTimeString(shutdownTime - now));
-
-                Ticks[] ticks = { Ticks.MINUTE.x(30), Ticks.MINUTE.x(10), Ticks.MINUTE.x(5), Ticks.MINUTE.x(1),
-                        Ticks.SECOND.x(10), Ticks.SECOND.x(9), Ticks.SECOND.x(8), Ticks.SECOND.x(7), Ticks.SECOND.x(6),
-                        Ticks.SECOND.x(5), Ticks.SECOND.x(4), Ticks.SECOND.x(3), Ticks.SECOND.x(2), Ticks.SECOND.x(1) };
-
-                for (Ticks t : ticks) {
-
-                    SimpleTask task = new SimpleTask(shutdownTime - t.millis()) {
-
-                        @Override
-                        public void execute(Universe universe) {
-                            String timeString = t.toTimeString();
-
-                            for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
-                                Notification.of(
-                                        RESTART_TIMER_ID,
-                                        StringUtils.color(
-                                                ServerUtilities.lang(
-                                                        player,
-                                                        "serverutilities.lang.timer.shutdown",
-                                                        timeString),
-                                                EnumChatFormatting.LIGHT_PURPLE))
-                                        .send(universe.server, player);
-                            }
-                        }
-                    };
-
-                    event.getUniverse().scheduleTask(task);
-                }
-            }
-        }
-
         if (ClaimedChunks.isActive()) {
-            ClaimedChunks.instance.nextChunkloaderUpdate = now + 1000L;
+            ClaimedChunks.instance.nextChunkloaderUpdate = now + Ticks.SECOND.millis();
         }
     }
 

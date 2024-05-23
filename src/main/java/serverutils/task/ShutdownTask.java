@@ -1,0 +1,105 @@
+package serverutils.task;
+
+import static serverutils.ServerUtilitiesNotifications.RESTART_TIMER_ID;
+
+import java.util.Calendar;
+
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.StatCollector;
+
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
+import serverutils.lib.data.Universe;
+import serverutils.lib.math.Ticks;
+import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.StringUtils;
+
+public class ShutdownTask implements ITask {
+
+    public static long shutdownTime = 0L;
+
+    public ShutdownTask() {
+        long now = System.currentTimeMillis();
+        shutdownTime = 0L;
+        Calendar calendar = Calendar.getInstance();
+        int currentTime = calendar.get(Calendar.HOUR_OF_DAY) * 3600 + calendar.get(Calendar.MINUTE) * 60
+                + calendar.get(Calendar.SECOND);
+        IntArrayList times = new IntArrayList(ServerUtilitiesConfig.auto_shutdown.times.length);
+
+        for (String s0 : ServerUtilitiesConfig.auto_shutdown.times) {
+            try {
+                String[] s = s0.split(":", 2);
+
+                int t = Integer.parseInt(s[0]) * 3600 + Integer.parseInt(s[1]) * 60;
+
+                if (t <= currentTime) {
+                    t += 24 * 3600;
+                }
+
+                times.add(t);
+            } catch (Exception ignored) {}
+        }
+
+        times.sort(null);
+
+        for (int time : times) {
+            if (time > currentTime) {
+                shutdownTime = now + (time - currentTime) * Ticks.SECOND.millis();
+                break;
+            }
+        }
+
+        queueNotifications(Universe.get());
+    }
+
+    @Override
+    public boolean isRepeatable() {
+        return false;
+    }
+
+    @Override
+    public long getNextTime() {
+        return shutdownTime;
+    }
+
+    @Override
+    public long getInterval() {
+        return 0;
+    }
+
+    @Override
+    public void setNextTime(long time) {}
+
+    @Override
+    public void execute(Universe universe) {
+        FileUtils.newFile(universe.server.getFile("autostart.stamp"));
+        universe.server.initiateShutdown();
+    }
+
+    @Override
+    public void queueNotifications(Universe universe) {
+        long now = System.currentTimeMillis();
+        if (shutdownTime > 0L) {
+            ServerUtilities.LOGGER.info("Server will shut down in {}", StringUtils.getTimeString(shutdownTime - now));
+
+            Ticks[] ticks = { Ticks.MINUTE.x(30), Ticks.MINUTE.x(10), Ticks.MINUTE.x(5), Ticks.MINUTE.x(1),
+                    Ticks.SECOND.x(10), Ticks.SECOND.x(9), Ticks.SECOND.x(8), Ticks.SECOND.x(7), Ticks.SECOND.x(6),
+                    Ticks.SECOND.x(5), Ticks.SECOND.x(4), Ticks.SECOND.x(3), Ticks.SECOND.x(2), Ticks.SECOND.x(1) };
+
+            for (Ticks t : ticks) {
+                IChatComponent component = StringUtils.color(
+                        new ChatComponentText(
+                                StatCollector.translateToLocalFormatted(
+                                        "serverutilities.lang.timer.shutdown",
+                                        t.toTimeString())),
+                        EnumChatFormatting.LIGHT_PURPLE);
+
+                ITask task = new NotifyTask(shutdownTime - t.millis(), RESTART_TIMER_ID, component);
+                universe.scheduleTask(task);
+            }
+        }
+    }
+}

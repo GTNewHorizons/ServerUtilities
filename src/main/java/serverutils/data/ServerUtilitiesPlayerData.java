@@ -34,7 +34,7 @@ import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.lib.util.text_components.TextComponentParser;
-import serverutils.task.SimpleTask;
+import serverutils.task.ITask;
 import serverutils.task.TeleportTask;
 
 public class ServerUtilitiesPlayerData extends PlayerData {
@@ -65,7 +65,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         }
 
         public void teleport(EntityPlayerMP player, Function<EntityPlayerMP, TeleporterDimPos> pos,
-                @Nullable SimpleTask extraTask) {
+                @Nullable ITask extraTask) {
             Universe universe = Universe.get();
             int seconds = (int) RankConfigAPI.get(player, warmup).getTimer().seconds();
 

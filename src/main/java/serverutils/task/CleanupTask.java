@@ -1,42 +1,28 @@
 package serverutils.task;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Predicate;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 
-import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.text_components.Notification;
-import serverutils.lib.util.text_components.TaskNotification;
 
 public class CleanupTask implements ITask {
 
-    private static final ResourceLocation CLEANUP_30 = new ResourceLocation(ServerUtilities.MOD_ID, "cleanup_30");
-    private static final ResourceLocation CLEANUP_60 = new ResourceLocation(ServerUtilities.MOD_ID, "cleanup_60");
     private long nextTime;
     private final long interval;
-    private final List<TaskNotification> notifications = new ArrayList<>();
 
     public CleanupTask(double interval) {
         this.interval = Ticks.HOUR.x(interval).millis();
         nextTime = System.currentTimeMillis() + this.interval;
-        String notificationString = StatCollector.translateToLocal("serverutilities.task.cleanup_entity");
-        TaskNotification notification = new TaskNotification(
-                Notification.of(CLEANUP_30, new ChatComponentText(String.format(notificationString, 30))))
-                        .setNextTime(nextTime - Ticks.SECOND.x(30).millis());
-        notifications.add(notification);
-        notification = new TaskNotification(
-                Notification.of(CLEANUP_60, new ChatComponentText(String.format(notificationString, 60))))
-                        .setNextTime(nextTime - Ticks.SECOND.x(60).millis());
-        notifications.add(notification);
+        queueNotifications(Universe.get());
     }
 
     @Override
@@ -60,18 +46,6 @@ public class CleanupTask implements ITask {
     }
 
     @Override
-    public void notify(Universe universe) {
-        if (ServerUtilitiesConfig.tasks.cleanup.silent) return;
-        for (TaskNotification notification : notifications) {
-            long now = System.currentTimeMillis();
-            if (now >= notification.getNextTime()) {
-                notification.sendToAll(universe.server);
-                notification.setNextTime(now + interval);
-            }
-        }
-    }
-
-    @Override
     public void execute(Universe universe) {
         int removed = 0;
         Predicate<Entity> predicate = ServerUtilitiesConfig.tasks.cleanup.predicate;
@@ -88,5 +62,20 @@ public class CleanupTask implements ITask {
                 new ChatComponentText(
                         StatCollector.translateToLocalFormatted("serverutilities.task.cleanup_removed", removed)))
                 .sendToAll(universe.server);
+    }
+
+    @Override
+    public void queueNotifications(Universe universe) {
+        if (ServerUtilitiesConfig.tasks.cleanup.silent) return;
+        String notificationString = StatCollector.translateToLocal("serverutilities.task.cleanup_entity");
+        IChatComponent component = new ChatComponentText(String.format(notificationString, 30));
+        ITask task = new NotifyTask(nextTime - Ticks.SECOND.x(30).millis(), "cleanup_30", component);
+
+        universe.scheduleTask(task);
+
+        component = new ChatComponentText(String.format(notificationString, 60));
+        task = new NotifyTask(nextTime - Ticks.SECOND.x(60).millis(), "cleanup_60", component);
+
+        universe.scheduleTask(task);
     }
 }

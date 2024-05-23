@@ -22,7 +22,6 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
-import serverutils.command.CmdShutdown;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
@@ -105,7 +104,7 @@ public class ServerUtilitiesServerEventHandler {
             text = ForgeHooks.newChatWithLinks(message);
         }
 
-        EnumChatFormatting colortf = (EnumChatFormatting) ((ConfigEnum) RankConfigAPI
+        EnumChatFormatting colortf = (EnumChatFormatting) ((ConfigEnum<?>) RankConfigAPI
                 .get(player, ServerUtilitiesPermissions.CHAT_TEXT_COLOR)).getValue();
 
         if (colortf != EnumChatFormatting.WHITE) {
@@ -203,11 +202,8 @@ public class ServerUtilitiesServerEventHandler {
                         }
 
                         ServerUtilities.LOGGER
-                                .info(player.getDisplayName() + (isAFK ? " is now AFK" : " is no longer AFK"));
+                                .info("{}{}", player.getDisplayName(), isAFK ? " is now AFK" : " is no longer AFK");
 
-                        // if (ServerUtilitiesConfig.chat.replace_tab_names) {
-                        // new MessageUpdateTabName(player).sendToAll();
-                        // }
                     }
 
                     if (playerToKickForAfk == null) {
@@ -225,10 +221,6 @@ public class ServerUtilitiesServerEventHandler {
             if (playerToKickForAfk != null && playerToKickForAfk.playerNetServerHandler != null) {
                 playerToKickForAfk.playerNetServerHandler
                         .onDisconnect(new ChatComponentTranslation("multiplayer.disconnect.idling"));
-            }
-
-            if (ServerUtilitiesUniverseData.shutdownTime > 0L && ServerUtilitiesUniverseData.shutdownTime - now <= 0) {
-                CmdShutdown.shutdown(universe.server);
             }
         }
     }

@@ -15,7 +15,7 @@ public interface ITask {
 
     void execute(Universe universe);
 
-    default void notify(Universe universe) {}
+    default void queueNotifications(Universe universe) {}
 
     default boolean isComplete(Universe universe) {
         return (getTimeType() == TimeType.TICKS ? universe.ticks.ticks() : System.currentTimeMillis()) >= getNextTime();
