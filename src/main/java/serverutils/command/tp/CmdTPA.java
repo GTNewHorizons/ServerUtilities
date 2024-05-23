@@ -13,6 +13,7 @@ import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.Universe;
+import serverutils.lib.math.Ticks;
 import serverutils.lib.util.StringUtils;
 import serverutils.task.SimpleTask;
 
@@ -75,7 +76,7 @@ public class CmdTPA extends CmdBase {
                 ServerUtilities
                         .lang(other.player.getPlayer(), "serverutilities.lang.tpa.request_received", selfName, accept));
 
-        SimpleTask task = new SimpleTask(System.currentTimeMillis() + 30000L) {
+        SimpleTask task = new SimpleTask(System.currentTimeMillis() + Ticks.SECOND.x(30).millis()) {
 
             @Override
             public void execute(Universe universe) {
@@ -105,30 +106,5 @@ public class CmdTPA extends CmdBase {
             }
         };
         Universe.get().scheduleTask(task);
-
-        // Universe.get().scheduleTask(TimeType.MILLIS, System.currentTimeMillis() + 30000L, universe -> {
-        // if (other.tpaRequestsFrom.remove(self.player)) {
-        // IChatComponent component = ServerUtilities.lang(sender, "serverutilities.lang.tpa.request_expired");
-        // component.getChatStyle().setChatHoverEvent(
-        // new HoverEvent(
-        // HoverEvent.Action.SHOW_TEXT,
-        // ServerUtilities.lang(sender, "serverutilities.lang.tpa.from_to", selfName, otherName)));
-        // sender.addChatMessage(component);
-        //
-        // if (other.player.isOnline()) {
-        // component = ServerUtilities
-        // .lang(other.player.getPlayer(), "serverutilities.lang.tpa.request_expired");
-        // component.getChatStyle().setChatHoverEvent(
-        // new HoverEvent(
-        // HoverEvent.Action.SHOW_TEXT,
-        // ServerUtilities.lang(
-        // other.player.getPlayer(),
-        // "serverutilities.lang.tpa.from_to",
-        // selfName,
-        // otherName)));
-        // other.player.getPlayer().addChatMessage(component);
-        // }
-        // }
-        // });
     }
 }

@@ -145,7 +145,6 @@ public class BackupTask implements ITask {
             return;
         }
 
-        ServerUtils.notifyAllChat(Universe.get().server, "Backup done");
         thread = null;
         try {
             MinecraftServer server = ServerUtils.getServer();
