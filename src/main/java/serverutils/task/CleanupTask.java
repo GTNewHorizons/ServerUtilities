@@ -1,6 +1,7 @@
 package serverutils.task;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 import net.minecraft.entity.Entity;
@@ -22,10 +23,8 @@ import serverutils.lib.math.Ticks;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 
-public class CleanupTask implements ITask {
+public class CleanupTask extends Task {
 
-    private long nextTime;
-    private final long interval;
     private static final Predicate<Entity> ENTITY_PREDICATE = entity -> {
         ServerUtilitiesConfig.Tasks.Cleanup config = ServerUtilitiesConfig.tasks.cleanup;
         if (entity instanceof EntityPlayer) return false;
@@ -42,29 +41,7 @@ public class CleanupTask implements ITask {
     };
 
     public CleanupTask(double interval) {
-        this.interval = Ticks.HOUR.x(interval).millis();
-        nextTime = System.currentTimeMillis() + this.interval;
-        queueNotifications(Universe.get());
-    }
-
-    @Override
-    public boolean isRepeatable() {
-        return true;
-    }
-
-    @Override
-    public long getNextTime() {
-        return nextTime;
-    }
-
-    @Override
-    public void setNextTime(long time) {
-        this.nextTime = time;
-    }
-
-    @Override
-    public long getInterval() {
-        return interval;
+        super(Ticks.HOUR.x(interval));
     }
 
     @Override
@@ -86,17 +63,18 @@ public class CleanupTask implements ITask {
     }
 
     @Override
-    public void queueNotifications(Universe universe) {
-        if (ServerUtilitiesConfig.tasks.cleanup.silent) return;
-        IChatComponent component = getNotificationString(30);
-        ITask task = new NotifyTask(nextTime - Ticks.SECOND.x(30).millis(), "cleanup_30", component);
+    public List<NotifyTask> getNotifications() {
+        List<NotifyTask> notifications = new ArrayList<>();
+        if (ServerUtilitiesConfig.tasks.cleanup.silent) return notifications;
 
-        universe.scheduleTask(task);
+        Notification notification = Notification.of("cleanup_30", getNotificationString(30));
+        NotifyTask task = new NotifyTask(nextTime - Ticks.SECOND.x(30).millis(), notification);
+        notifications.add(task);
 
-        component = getNotificationString(60);
-        task = new NotifyTask(nextTime - Ticks.SECOND.x(60).millis(), "cleanup_60", component);
-
-        universe.scheduleTask(task);
+        notification = Notification.of("cleanup_60", getNotificationString(60));
+        task = new NotifyTask(nextTime - Ticks.SECOND.x(60).millis(), notification);
+        notifications.add(task);
+        return notifications;
     }
 
     private IChatComponent getNotificationString(int seconds) {

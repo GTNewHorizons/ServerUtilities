@@ -15,7 +15,7 @@ import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
-import serverutils.task.SimpleTask;
+import serverutils.task.Task;
 
 public class CmdBack extends CmdBase {
 
@@ -43,7 +43,7 @@ public class CmdBack extends CmdBase {
 
         data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.BACK);
 
-        SimpleTask task = new SimpleTask() {
+        Task task = new Task() {
 
             @Override
             public void execute(Universe universe) {

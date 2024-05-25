@@ -2,7 +2,9 @@ package serverutils.task;
 
 import static serverutils.ServerUtilitiesNotifications.RESTART_TIMER_ID;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -16,12 +18,14 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.lib.util.text_components.Notification;
 
-public class ShutdownTask implements ITask {
+public class ShutdownTask extends Task {
 
     public static long shutdownTime = 0L;
 
     public ShutdownTask() {
+        super();
         long now = System.currentTimeMillis();
         shutdownTime = 0L;
         Calendar calendar = Calendar.getInstance();
@@ -51,13 +55,6 @@ public class ShutdownTask implements ITask {
                 break;
             }
         }
-
-        queueNotifications(Universe.get());
-    }
-
-    @Override
-    public boolean isRepeatable() {
-        return false;
     }
 
     @Override
@@ -66,21 +63,14 @@ public class ShutdownTask implements ITask {
     }
 
     @Override
-    public long getInterval() {
-        return 0;
-    }
-
-    @Override
-    public void setNextTime(long time) {}
-
-    @Override
     public void execute(Universe universe) {
         FileUtils.newFile(universe.server.getFile("autostart.stamp"));
         universe.server.initiateShutdown();
     }
 
     @Override
-    public void queueNotifications(Universe universe) {
+    public List<NotifyTask> getNotifications() {
+        List<NotifyTask> notifications = new ArrayList<>();
         long now = System.currentTimeMillis();
         if (shutdownTime > 0L) {
             ServerUtilities.LOGGER.info("Server will shut down in {}", StringUtils.getTimeString(shutdownTime - now));
@@ -97,9 +87,11 @@ public class ShutdownTask implements ITask {
                                         t.toTimeString())),
                         EnumChatFormatting.LIGHT_PURPLE);
 
-                ITask task = new NotifyTask(shutdownTime - t.millis(), RESTART_TIMER_ID, component);
-                universe.scheduleTask(task);
+                Notification notification = Notification.of(RESTART_TIMER_ID, component);
+                NotifyTask task = new NotifyTask(shutdownTime - t.millis(), notification);
+                notifications.add(task);
             }
         }
+        return notifications;
     }
 }

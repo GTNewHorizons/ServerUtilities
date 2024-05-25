@@ -19,10 +19,11 @@ import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.util.StringJoiner;
+import serverutils.lib.util.text_components.Notification;
 import serverutils.ranks.Rank;
 import serverutils.ranks.Ranks;
-import serverutils.task.ITask;
 import serverutils.task.NotifyTask;
+import serverutils.task.Task;
 
 public class CmdWarp extends CmdBase {
 
@@ -69,7 +70,8 @@ public class CmdWarp extends CmdBase {
         data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.WARP);
 
         IChatComponent component = ServerUtilities.lang(sender, "serverutilities.lang.warps.tp", args[0]);
-        ITask task = new NotifyTask(-1, player, TELEPORT, component);
+        Notification notification = Notification.of(TELEPORT, component);
+        Task task = new NotifyTask(-1, player, notification);
         ServerUtilitiesPlayerData.Timer.WARP.teleport(player, playerMP -> p.teleporter(), task);
     }
 }

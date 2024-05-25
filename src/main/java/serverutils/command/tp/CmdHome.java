@@ -23,8 +23,9 @@ import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
-import serverutils.task.ITask;
+import serverutils.lib.util.text_components.Notification;
 import serverutils.task.NotifyTask;
+import serverutils.task.Task;
 
 public class CmdHome extends CmdBase {
 
@@ -113,7 +114,8 @@ public class CmdHome extends CmdBase {
         }
 
         IChatComponent component = ServerUtilities.lang(sender, "serverutilities.lang.warps.tp", args[0]);
-        ITask task = new NotifyTask(-1, player, TELEPORT, component);
+        Notification notification = Notification.of(TELEPORT, component);
+        Task task = new NotifyTask(-1, player, notification);
         data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.HOME);
         ServerUtilitiesPlayerData.Timer.HOME.teleport(player, playerMP -> pos.teleporter(), task);
     }

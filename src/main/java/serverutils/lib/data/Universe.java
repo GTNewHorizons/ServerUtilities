@@ -54,7 +54,7 @@ import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
-import serverutils.task.ITask;
+import serverutils.task.Task;
 
 public class Universe {
 
@@ -159,16 +159,15 @@ public class Universe {
             universe.taskList.addAll(universe.taskQueue);
             universe.taskQueue.clear();
 
-            Iterator<ITask> taskIterator = universe.taskList.iterator();
+            Iterator<Task> taskIterator = universe.taskList.iterator();
 
             while (taskIterator.hasNext()) {
-                ITask task = taskIterator.next();
+                Task task = taskIterator.next();
                 if (task.isComplete(universe)) {
                     task.execute(universe);
 
                     if (task.isRepeatable()) {
                         task.setNextTime(System.currentTimeMillis() + task.getInterval());
-                        task.queueNotifications(universe);
                         continue;
                     }
                     taskIterator.remove();
@@ -199,8 +198,8 @@ public class Universe {
     boolean checkSaving;
     public ForgeTeam fakePlayerTeam;
     public FakeForgePlayer fakePlayer;
-    private final List<ITask> taskList;
-    private final List<ITask> taskQueue;
+    private final List<Task> taskList;
+    private final List<Task> taskQueue;
     public Ticks ticks;
     private boolean prevCheats = false;
     public File dataFolder;
@@ -234,7 +233,7 @@ public class Universe {
         return uuid;
     }
 
-    public void scheduleTask(ITask task) {
+    public void scheduleTask(Task task) {
         if (task.getNextTime() == -1) return;
         taskQueue.add(task);
     }

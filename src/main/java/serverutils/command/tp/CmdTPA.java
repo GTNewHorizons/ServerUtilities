@@ -15,7 +15,7 @@ import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.StringUtils;
-import serverutils.task.SimpleTask;
+import serverutils.task.Task;
 
 public class CmdTPA extends CmdBase {
 
@@ -76,7 +76,7 @@ public class CmdTPA extends CmdBase {
                 ServerUtilities
                         .lang(other.player.getPlayer(), "serverutilities.lang.tpa.request_received", selfName, accept));
 
-        SimpleTask task = new SimpleTask(System.currentTimeMillis() + Ticks.SECOND.x(30).millis()) {
+        Task task = new Task(System.currentTimeMillis() + Ticks.SECOND.x(30).millis()) {
 
             @Override
             public void execute(Universe universe) {

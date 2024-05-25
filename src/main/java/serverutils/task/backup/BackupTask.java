@@ -18,15 +18,13 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
-import serverutils.task.ITask;
+import serverutils.task.Task;
 
-public class BackupTask implements ITask {
+public class BackupTask extends Task {
 
     public static File backupsFolder;
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
-    public long nextBackup;
-    private final long interval;
     private ICommandSender sender;
     private String customName = "";
     private boolean post = false;
@@ -40,39 +38,22 @@ public class BackupTask implements ITask {
     }
 
     public BackupTask(double interval) {
-        this.interval = Ticks.HOUR.x(interval).millis();
-        this.nextBackup = System.currentTimeMillis() + this.interval;
+        super(Ticks.HOUR.x(interval));
     }
 
     public BackupTask(@Nullable ICommandSender ics, String customName) {
-        this(-1);
         this.customName = customName;
         this.sender = ics;
     }
 
     public BackupTask(boolean postCleanup) {
-        this(0);
+        super(0);
         this.post = postCleanup;
     }
 
     @Override
     public boolean isRepeatable() {
         return !post;
-    }
-
-    @Override
-    public long getNextTime() {
-        return nextBackup;
-    }
-
-    @Override
-    public long getInterval() {
-        return interval;
-    }
-
-    @Override
-    public void setNextTime(long time) {
-        nextBackup = time;
     }
 
     @Override
@@ -87,10 +68,8 @@ public class BackupTask implements ITask {
         if (auto && !ServerUtilitiesConfig.backups.enable_backups) return;
 
         MinecraftServer server = universe.server;
-        nextBackup = System.currentTimeMillis() + interval;
-
         if (auto && ServerUtilitiesConfig.backups.need_online_players) {
-            if (!hasOnlinePlayers(universe) && !hadPlayer) return;
+            if (!hasOnlinePlayers(server) && !hadPlayer) return;
             hadPlayer = false;
         }
         ServerUtilitiesNotifications.backupNotification(BACKUP_START, "cmd.backup_start");
@@ -135,11 +114,11 @@ public class BackupTask implements ITask {
         }
     }
 
-    private boolean hasOnlinePlayers(Universe universe) {
-        return !universe.server.getConfigurationManager().playerEntityList.isEmpty();
+    private boolean hasOnlinePlayers(MinecraftServer server) {
+        return !server.getConfigurationManager().playerEntityList.isEmpty();
     }
 
-    public static void postBackup() {
+    private void postBackup() {
         if (thread != null && !thread.isDone) {
             Universe.get().scheduleTask(new BackupTask(true));
             return;

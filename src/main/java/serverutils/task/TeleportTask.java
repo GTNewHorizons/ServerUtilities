@@ -21,7 +21,7 @@ import serverutils.lib.math.Ticks;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 
-public class TeleportTask implements ITask {
+public class TeleportTask extends Task {
 
     private final EntityPlayerMP player;
     private final ServerUtilitiesPlayerData.Timer timer;
@@ -30,12 +30,12 @@ public class TeleportTask implements ITask {
     private final float startHP;
     private final int startSeconds;
     private int secondsLeft;
-    private final ITask extraTask;
+    private final Task extraTask;
     private final TeleportType teleportType;
     private long nextTime;
 
     public TeleportTask(TeleportType teleportType, EntityPlayerMP player, ServerUtilitiesPlayerData.Timer ticks,
-            int secStart, Function<EntityPlayerMP, TeleporterDimPos> to, @Nullable ITask task) {
+            int secStart, Function<EntityPlayerMP, TeleporterDimPos> to, @Nullable Task task) {
         this.teleportType = teleportType;
         this.player = player;
         this.timer = ticks;
