@@ -49,8 +49,8 @@ player_must_be_online=Player must be online!
 serverutilities.task.cleanup_entity=Removing %s in %d seconds
 serverutilities.task.cleanup_hostiles=Hostile mobs
 serverutilities.task.cleanup_passives=Passive mobs
-serverutilities.task.cleanup_items=Items
-serverutilities.task.cleanup_experience=Experience
+serverutilities.task.cleanup_items=Dropped items
+serverutilities.task.cleanup_experience=XP orbs
 serverutilities.task.cleanup_removed=Removed %s entities from world
 
 serverutilities.lang.reload_server_button=Reload Server

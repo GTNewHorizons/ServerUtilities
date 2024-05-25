@@ -11,6 +11,7 @@ import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.passive.IAnimals;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
@@ -18,6 +19,7 @@ import net.minecraft.world.World;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
+import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 
 public class CleanupTask implements ITask {
@@ -86,18 +88,18 @@ public class CleanupTask implements ITask {
     @Override
     public void queueNotifications(Universe universe) {
         if (ServerUtilitiesConfig.tasks.cleanup.silent) return;
-        IChatComponent component = new ChatComponentText(getNotificationString(30));
+        IChatComponent component = getNotificationString(30);
         ITask task = new NotifyTask(nextTime - Ticks.SECOND.x(30).millis(), "cleanup_30", component);
 
         universe.scheduleTask(task);
 
-        component = new ChatComponentText(getNotificationString(60));
+        component = getNotificationString(60);
         task = new NotifyTask(nextTime - Ticks.SECOND.x(60).millis(), "cleanup_60", component);
 
         universe.scheduleTask(task);
     }
 
-    private String getNotificationString(int seconds) {
+    private IChatComponent getNotificationString(int seconds) {
         ServerUtilitiesConfig.Tasks.Cleanup config = ServerUtilitiesConfig.tasks.cleanup;
         StringBuilder builder = new StringBuilder();
         if (config.hostiles) {
@@ -122,7 +124,9 @@ public class CleanupTask implements ITask {
             builder.replace(index, index + 1, " &");
         }
 
-        return StatCollector
-                .translateToLocalFormatted("serverutilities.task.cleanup_entity", builder.toString(), seconds);
+        String finalString = StatCollector
+                .translateToLocalFormatted("serverutilities.task.cleanup_entity", builder.toString().toLowerCase(), seconds);
+
+        return StringUtils.color(new ChatComponentText(finalString), EnumChatFormatting.LIGHT_PURPLE);
     }
 }
