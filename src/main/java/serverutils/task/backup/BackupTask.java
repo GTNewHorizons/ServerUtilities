@@ -59,7 +59,7 @@ public class BackupTask extends Task {
     @Override
     public void execute(Universe universe) {
         if (post) {
-            postBackup();
+            postBackup(universe);
             return;
         }
         if (thread != null) return;
@@ -118,9 +118,10 @@ public class BackupTask extends Task {
         return !server.getConfigurationManager().playerEntityList.isEmpty();
     }
 
-    private void postBackup() {
+    private void postBackup(Universe universe) {
         if (thread != null && !thread.isDone) {
-            Universe.get().scheduleTask(new BackupTask(true));
+            setNextTime(System.currentTimeMillis() + Ticks.SECOND.millis());
+            universe.scheduleTask(this);
             return;
         }
 

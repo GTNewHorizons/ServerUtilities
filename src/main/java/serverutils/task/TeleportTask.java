@@ -32,10 +32,10 @@ public class TeleportTask extends Task {
     private int secondsLeft;
     private final Task extraTask;
     private final TeleportType teleportType;
-    private long nextTime;
 
     public TeleportTask(TeleportType teleportType, EntityPlayerMP player, ServerUtilitiesPlayerData.Timer ticks,
             int secStart, Function<EntityPlayerMP, TeleporterDimPos> to, @Nullable Task task) {
+        super(0);
         this.teleportType = teleportType;
         this.player = player;
         this.timer = ticks;
@@ -86,25 +86,5 @@ public class TeleportTask extends Task {
 
             Notification.of(TELEPORT_WARMUP, component).setVanilla(true).send(player.mcServer, player);
         }
-    }
-
-    @Override
-    public boolean isRepeatable() {
-        return false;
-    }
-
-    @Override
-    public long getNextTime() {
-        return nextTime;
-    }
-
-    @Override
-    public long getInterval() {
-        return 0;
-    }
-
-    @Override
-    public void setNextTime(long time) {
-        nextTime = time;
     }
 }
