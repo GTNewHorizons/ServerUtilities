@@ -124,8 +124,10 @@ public class CleanupTask implements ITask {
             builder.replace(index, index + 1, " &");
         }
 
-        String finalString = StatCollector
-                .translateToLocalFormatted("serverutilities.task.cleanup_entity", builder.toString().toLowerCase(), seconds);
+        String finalString = StatCollector.translateToLocalFormatted(
+                "serverutilities.task.cleanup_entity",
+                builder.toString().toLowerCase(),
+                seconds);
 
         return StringUtils.color(new ChatComponentText(finalString), EnumChatFormatting.LIGHT_PURPLE);
     }
