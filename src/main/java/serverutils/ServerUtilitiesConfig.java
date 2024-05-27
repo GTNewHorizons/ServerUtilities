@@ -64,8 +64,7 @@ public class ServerUtilitiesConfig {
 
         config.setCategoryRequiresWorldRestart(GEN_CAT, true);
 
-        teams.disable_teams = config.get(TEAM_CAT, "disable_teams", false).getBoolean();
-
+        teams.disable_teams = config.get(TEAM_CAT, "disable_teams", false, "Disable teams entirely").getBoolean();
         teams.autocreate_mp = config.get(
                 TEAM_CAT,
                 "autocreate_mp",
@@ -91,6 +90,12 @@ public class ServerUtilitiesConfig {
                 "interaction_protection",
                 true,
                 "Don't allow other players to interact with blocks in claimed chunks").getBoolean();
+        teams.force_team_prefix = config.get(
+                TEAM_CAT,
+                "force_team_prefix",
+                false,
+                "Forces player chat messages to be prefixed with their team name. Example: [Team] <Player> Message")
+                .getBoolean();
 
         config.setCategoryComment(DEBUG_CAT, "Don't set any values to true, unless you are debugging the mod.");
         debugging.special_commands = config.get(DEBUG_CAT, "special_commands", false, "Enables special debug commands.")
@@ -358,6 +363,7 @@ public class ServerUtilitiesConfig {
         public boolean hide_team_notification;
         public boolean grief_protection;
         public boolean interaction_protection;
+        public boolean force_team_prefix;
     }
 
     public static class Debugging {
