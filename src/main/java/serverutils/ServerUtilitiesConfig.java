@@ -330,7 +330,7 @@ public class ServerUtilitiesConfig {
         config.setCategoryRequiresWorldRestart(WORLD, true);
 
         tasks.cleanup.enabled = config
-                .get(TASK_CLEANUP, "cleanup_enabled", true, "Enables periodic removal of entities").getBoolean();
+                .get(TASK_CLEANUP, "cleanup_enabled", false, "Enables periodic removal of entities").getBoolean();
         tasks.cleanup.interval = config
                 .get(TASK_CLEANUP, "cleanup_interval", 2.0, "How often the cleanup should run in hours").getDouble();
         tasks.cleanup.hostiles = config.get(TASK_CLEANUP, "include_hostiles", true, "Include hostile mobs in cleanup")
