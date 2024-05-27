@@ -233,6 +233,8 @@ player_config.serverutilities.render_badge=Render My Badge
 player_config.serverutilities.enable_pvp=Enable PVP
 player_config.serverutilities.nickname=Nickname
 player_config.serverutilities.afk=AFK Notification Position
+player_config.serverutilities.show_team_prefix=Show Team Prefix In Chat
+player_config.serverutilities.show_team_prefix.info=§rAdd [%s] as a prefix to your chat messages
 
 # Team Settings
 team_config.serverutilities.display=Display

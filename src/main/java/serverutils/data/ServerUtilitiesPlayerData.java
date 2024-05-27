@@ -16,6 +16,7 @@ import net.minecraft.event.HoverEvent;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
@@ -161,6 +162,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
     private boolean renderBadge = true;
     private boolean disableGlobalBadge = false;
     private boolean enablePVP = true;
+    private boolean showTeamPrefix = false;
     private String nickname = "";
     private EnumMessageLocation afkMesageLocation = EnumMessageLocation.CHAT;
 
@@ -192,6 +194,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         nbt.setBoolean("RenderBadge", renderBadge);
         nbt.setBoolean("DisableGlobalBadges", disableGlobalBadge);
         nbt.setBoolean("EnablePVP", enablePVP);
+        nbt.setBoolean("ShowTeamPrefix", showTeamPrefix);
         nbt.setTag("Homes", homes.serializeNBT());
         nbt.setTag("TeleportTracker", teleportTracker.serializeNBT());
         nbt.setString("Nickname", nickname);
@@ -204,6 +207,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         renderBadge = !nbt.hasKey("RenderBadge") || nbt.getBoolean("RenderBadge");
         disableGlobalBadge = nbt.getBoolean("DisableGlobalBadges");
         enablePVP = !nbt.hasKey("EnablePVP") || nbt.getBoolean("EnablePVP");
+        showTeamPrefix = nbt.getBoolean("ShowTeamPrefix");
         homes.deserializeNBT(nbt.getCompoundTag("Homes"));
         teleportTracker.deserializeNBT(nbt.getCompoundTag("TeleportTracker"));
         setLastDeath(BlockDimPos.fromIntArray(nbt.getIntArray("LastDeath")), 0);
@@ -224,6 +228,11 @@ public class ServerUtilitiesPlayerData extends PlayerData {
                         && player.hasPermission(ServerUtilitiesPermissions.CHAT_NICKNAME_SET));
         config.addEnum("afk", () -> afkMesageLocation, v -> afkMesageLocation = v, EnumMessageLocation.NAME_MAP)
                 .setExcluded(!ServerUtilitiesConfig.afk.isEnabled(player.team.universe.server));
+        IChatComponent info = new ChatComponentTranslation(
+                "player_config.serverutilities.show_team_prefix.info",
+                player.team.getTitle());
+        config.addBool("show_team_prefix", () -> showTeamPrefix, v -> showTeamPrefix = v, false).setInfo(info)
+                .setExcluded(ServerUtilitiesConfig.teams.force_team_prefix);
     }
 
     public boolean renderBadge() {
@@ -315,6 +324,12 @@ public class ServerUtilitiesPlayerData extends PlayerData {
             cachedNameForChat.getChatStyle().setColor(EnumChatFormatting.RED);
             cachedNameForChat.getChatStyle()
                     .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(s)));
+        }
+
+        if (ServerUtilitiesConfig.teams.force_team_prefix || showTeamPrefix) {
+            IChatComponent end = new ChatComponentText("] ");
+            IChatComponent prefix = new ChatComponentText("[").appendSibling(player.team.getTitle()).appendSibling(end);
+            cachedNameForChat = new ChatComponentText("").appendSibling(prefix).appendSibling(cachedNameForChat);
         }
 
         if (NBTUtils.getPersistedData(playerMP, false).getBoolean("recording")) {
