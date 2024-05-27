@@ -10,7 +10,6 @@ import net.minecraft.world.GameRules;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesPermissions;
-import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.events.ServerUtilitiesPreInitRegistryEvent;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.IConfigCallback;
@@ -33,9 +32,6 @@ public class ServerUtilitiesRegistryEventHandler {
         registry.registerServerReloadHandler(
                 new ResourceLocation(ServerUtilities.MOD_ID, "ranks"),
                 reloadEvent -> Ranks.INSTANCE.reload());
-        registry.registerServerReloadHandler(
-                new ResourceLocation(ServerUtilities.MOD_ID, "badges"),
-                reloadEvent -> ServerUtilitiesUniverseData.clearBadgeCache());
 
         registry.registerSyncData(ServerUtilities.MOD_ID, new ServerUtilitiesSyncData());
 

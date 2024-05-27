@@ -1,4 +1,4 @@
-package serverutils.backups;
+package serverutils.task.backup;
 
 import static serverutils.ServerUtilitiesNotifications.BACKUP_END1;
 import static serverutils.ServerUtilitiesNotifications.BACKUP_END2;
@@ -56,11 +56,11 @@ public class ThreadBackup extends Thread {
             List<File> files = FileUtils.listTree(src);
             int allFiles = files.size();
 
-            ServerUtilities.LOGGER.info("Backing up " + files.size() + " files...");
+            ServerUtilities.LOGGER.info("Backing up {} files...", files.size());
             long start = System.currentTimeMillis();
             if (ServerUtilitiesConfig.backups.compression_level > 0) {
                 out.append(".zip");
-                dstFile = FileUtils.newFile(new File(Backups.backupsFolder, out.toString()));
+                dstFile = FileUtils.newFile(new File(BackupTask.backupsFolder, out.toString()));
                 ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dstFile));
                 zos.setLevel(ServerUtilitiesConfig.backups.compression_level);
 
@@ -68,14 +68,13 @@ public class ThreadBackup extends Thread {
 
                 byte[] buffer = new byte[4096];
 
-                ServerUtilities.LOGGER.info("Compressing " + allFiles + " files!");
+                ServerUtilities.LOGGER.info("Compressing {} files!", allFiles);
 
                 for (int i = 0; i < allFiles; i++) {
                     File file = files.get(i);
                     String filePath = file.getAbsolutePath();
                     ZipEntry ze = new ZipEntry(
-                            src.getName() + File.separator
-                                    + filePath.substring(src.getAbsolutePath().length() + 1, filePath.length()));
+                            src.getName() + File.separator + filePath.substring(src.getAbsolutePath().length() + 1));
 
                     long millis = System.currentTimeMillis();
 
@@ -110,7 +109,7 @@ public class ThreadBackup extends Thread {
                                 + ")!");
             } else {
                 out.append(File.separatorChar).append(src.getName());
-                dstFile = new File(Backups.backupsFolder, out.toString());
+                dstFile = new File(BackupTask.backupsFolder, out.toString());
                 dstFile.mkdirs();
 
                 String dstPath = dstFile.getAbsolutePath() + File.separator;
@@ -141,13 +140,13 @@ public class ThreadBackup extends Thread {
                 }
             }
 
-            ServerUtilities.LOGGER.info("Created " + dstFile.getAbsolutePath() + " from " + src.getAbsolutePath());
+            ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
 
-            Backups.clearOldBackups();
+            BackupTask.clearOldBackups();
 
             if (ServerUtilitiesConfig.backups.display_file_size) {
                 String sizeB = FileUtils.getSizeString(dstFile);
-                String sizeT = FileUtils.getSizeString(Backups.backupsFolder);
+                String sizeT = FileUtils.getSizeString(BackupTask.backupsFolder);
                 ServerUtilitiesNotifications.backupNotification(
                         BACKUP_END2,
                         "cmd.backup_end_2",
@@ -158,7 +157,7 @@ public class ThreadBackup extends Thread {
             }
         } catch (Exception e) {
             IChatComponent c = StringUtils.color(
-                    ServerUtilities.lang(null, "cmd.backup_fail", e.getClass() == null ? null : e.getClass().getName()),
+                    ServerUtilities.lang(null, "cmd.backup_fail", e.getClass().getName()),
                     EnumChatFormatting.RED);
             ServerUtils.notifyChat(ServerUtils.getServer(), null, c);
 

@@ -4,6 +4,7 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.command.chunks.CmdChunks;
 import serverutils.command.ranks.CmdRanks;
+import serverutils.command.team.CmdTeam;
 import serverutils.command.tp.CmdBack;
 import serverutils.command.tp.CmdDelHome;
 import serverutils.command.tp.CmdDelWarp;
@@ -20,6 +21,10 @@ import serverutils.command.tp.CmdWarp;
 public class ServerUtilitiesCommands {
 
     public static void registerCommands(FMLServerStartingEvent event) {
+        event.registerServerCommand(new CmdReload());
+        event.registerServerCommand(new CmdMySettings());
+        event.registerServerCommand(new CmdTeam());
+
         if (event.getServer().isDedicatedServer()) {
             event.registerServerCommand(new CmdShutdown());
 
@@ -128,6 +133,9 @@ public class ServerUtilitiesCommands {
         }
         if (ServerUtilitiesConfig.commands.dump_permissions) {
             event.registerServerCommand(new CmdDumpPermissions());
+        }
+        if (ServerUtilitiesConfig.debugging.special_commands) {
+            event.registerServerCommand(new CmdAddFakePlayer());
         }
     }
 }

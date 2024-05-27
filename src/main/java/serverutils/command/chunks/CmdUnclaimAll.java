@@ -5,6 +5,7 @@ import java.util.OptionalInt;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayerMP;
 
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesNotifications;
@@ -42,6 +43,7 @@ public class CmdUnclaimAll extends CmdBase {
         }
 
         ForgePlayer p = CommandUtils.getSelfOrOther(sender, args, 1, ServerUtilitiesPermissions.CLAIMS_OTHER_UNCLAIM);
+        EntityPlayerMP player = getCommandSenderAsPlayer(sender);
 
         if (p.hasTeam()) {
             OptionalInt dimension = CommandUtils.parseDimension(sender, args, 0);
@@ -50,7 +52,7 @@ public class CmdUnclaimAll extends CmdBase {
                     .of(
                             ServerUtilitiesNotifications.UNCLAIMED_ALL,
                             ServerUtilities.lang(sender, "serverutilities.lang.chunks.unclaimed_all"))
-                    .send(getCommandSenderAsPlayer(sender).mcServer, sender);
+                    .send(player.mcServer, player);
         } else {
             throw ServerUtilities.error(sender, "serverutilities.lang.team.error.no_team");
         }
