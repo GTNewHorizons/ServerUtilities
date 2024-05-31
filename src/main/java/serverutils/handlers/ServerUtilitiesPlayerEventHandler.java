@@ -31,12 +31,14 @@ import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.data.ServerUtilitiesTeamData;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.events.player.ForgePlayerConfigEvent;
 import serverutils.events.player.ForgePlayerDataEvent;
 import serverutils.events.player.ForgePlayerLoggedInEvent;
 import serverutils.events.player.ForgePlayerLoggedOutEvent;
 import serverutils.lib.data.ForgePlayer;
+import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.math.ChunkDimPos;
@@ -75,6 +77,16 @@ public class ServerUtilitiesPlayerEventHandler {
 
         if (ClaimedChunks.isActive()) {
             ClaimedChunks.instance.markDirty();
+        }
+
+        ForgeTeam team = event.getPlayer().team;
+        ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
+
+        if (team.isValid()) {
+            if (data.chunkloadsDecayed) {
+                data.unDecayChunkloads();
+            }
+            team.refreshActivity();
         }
 
         BackupTask.hadPlayer = true;
