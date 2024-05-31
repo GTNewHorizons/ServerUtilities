@@ -1,6 +1,5 @@
 package serverutils.data;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,13 +37,6 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
     @Override
     public void ticketsLoaded(List<ForgeChunkManager.Ticket> tickets, World world) {
         final int dim = world.provider.dimensionId;
-        /*
-         * Uncomment? Iterator<TicketKey> ticketMapItr = ticketMap.keySet().iterator(); while (ticketMapItr.hasNext()) {
-         * if (ticketMapItr.next().dimension == dim) { ticketMapItr.remove(); } } Iterator<ChunkDimPos> chunkTicketsItr
-         * = chunkTickets.keySet().iterator(); while (chunkTicketsItr.hasNext()) { if (chunkTicketsItr.next().dim ==
-         * dim) { chunkTicketsItr.remove(); } }
-         */
-
         for (ForgeChunkManager.Ticket ticket : tickets) {
             TicketKey key = new TicketKey(dim, ticket.getModData().getString("Team"));
 
@@ -176,20 +168,39 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
     }
 
     public boolean canForceChunks(ForgeTeam team) {
-        Collection<ForgePlayer> members = team.getMembers();
+        ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
+        if (data.chunkloadsDecayed) {
+            ServerUtilities.LOGGER.info("Skipping chunk decay for {}", team.getId());
+            return false;
+        }
 
-        for (ForgePlayer player : members) {
+        boolean allowForce = false;
+        boolean overLimit = false;
+        long highestTimer = team.getHighestTimer(ServerUtilitiesPermissions.CHUNKLOAD_DECAY_TIMER).millis();
+        long latestLogin = team.getLastActivity();
+        for (ForgePlayer player : team.getMembers()) {
             if (player.isOnline()) {
                 return true;
             }
-        }
 
-        for (ForgePlayer player : members) {
             if (player.hasPermission(ServerUtilitiesPermissions.CHUNKLOADER_LOAD_OFFLINE)) {
-                return true;
+                allowForce = true;
             }
         }
 
-        return false;
+        // Prevents accidentally unloading all chunks from before this feature
+        if (latestLogin == 0) return allowForce;
+
+        if (highestTimer > 0 && System.currentTimeMillis() >= latestLogin + highestTimer) {
+            overLimit = true;
+            data.decayChunkloads();
+            ServerUtilities.LOGGER.info("Decaying loaded chunks for {}", team.getId());
+        }
+
+        if (allowForce && !overLimit) {
+            ServerUtilities.LOGGER.info("Allowing forced chunks for {}", team.getId());
+        }
+
+        return allowForce && !overLimit;
     }
 }

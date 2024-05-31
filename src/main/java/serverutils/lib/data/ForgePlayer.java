@@ -123,7 +123,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
         if (isOnline()) {
             try {
                 return getPlayer().getDisplayName();
-            } catch (Exception ex) {}
+            } catch (Exception ignored) {}
         }
 
         return getName();
@@ -134,7 +134,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
             try {
                 return new ChatComponentText(getDisplayNameString());
 
-            } catch (Exception ex) {}
+            } catch (Exception ignored) {}
         }
 
         return new ChatComponentText(getName());
@@ -266,7 +266,6 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
 
         if (!isFake()) {
             lastTimeSeen = universe.ticks.ticks();
-            // ServerUtilitiesStats.updateLastSeen(stats());
             new MessageSyncData(true, player, this).sendTo(player);
         }
 
@@ -419,30 +418,9 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
         return RankConfigAPI.get(team.universe.server, getProfile(), node);
     }
 
-    public File getDataFile(String ext) {
+    public File getDataFile() {
         File dir = new File(team.universe.dataFolder, "players/");
-
-        if (ext.isEmpty()) {
-            return new File(dir, getName().toLowerCase() + ".dat");
-        }
-
-        File extFolder = new File(dir, ext);
-
-        if (!extFolder.exists()) {
-            extFolder.mkdirs();
-        }
-
-        File extFile = new File(extFolder, getName().toLowerCase() + ".dat");
-
-        if (!extFile.exists()) {
-            File oldExtFile = new File(dir, getName().toLowerCase() + "." + ext + ".dat");
-
-            if (oldExtFile.exists()) {
-                oldExtFile.renameTo(extFile);
-            }
-        }
-
-        return extFile;
+        return new File(dir, getName().toLowerCase() + ".dat");
     }
 
     @Override

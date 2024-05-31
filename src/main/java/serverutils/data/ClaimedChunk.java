@@ -9,12 +9,14 @@ public final class ClaimedChunk {
     private final ServerUtilitiesTeamData teamData;
     private boolean loaded;
     private boolean invalid;
+    public boolean preDecay;
     public Boolean forced;
 
     public ClaimedChunk(ChunkDimPos c, ServerUtilitiesTeamData t) {
         pos = c;
         teamData = t;
         loaded = false;
+        preDecay = false;
         invalid = false;
         forced = null;
     }

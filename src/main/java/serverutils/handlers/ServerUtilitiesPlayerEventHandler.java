@@ -29,15 +29,16 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
-import serverutils.backups.Backups;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.data.ServerUtilitiesTeamData;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.events.player.ForgePlayerConfigEvent;
 import serverutils.events.player.ForgePlayerDataEvent;
 import serverutils.events.player.ForgePlayerLoggedInEvent;
 import serverutils.events.player.ForgePlayerLoggedOutEvent;
 import serverutils.lib.data.ForgePlayer;
+import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.math.ChunkDimPos;
@@ -47,6 +48,7 @@ import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageSyncData;
+import serverutils.task.backup.BackupTask;
 
 public class ServerUtilitiesPlayerEventHandler {
 
@@ -77,7 +79,17 @@ public class ServerUtilitiesPlayerEventHandler {
             ClaimedChunks.instance.markDirty();
         }
 
-        Backups.hadPlayer = true;
+        ForgeTeam team = event.getPlayer().team;
+        ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
+
+        if (team.isValid()) {
+            if (data.chunkloadsDecayed) {
+                data.unDecayChunkloads();
+            }
+            team.refreshActivity();
+        }
+
+        BackupTask.hadPlayer = true;
     }
 
     @SubscribeEvent
@@ -88,7 +100,6 @@ public class ServerUtilitiesPlayerEventHandler {
             ClaimedChunks.instance.markDirty();
         }
 
-        ServerUtilitiesUniverseData.updateBadge(player.getUniqueID());
         player.getEntityData().removeTag(ServerUtilitiesPlayerData.TAG_LAST_CHUNK);
     }
 
