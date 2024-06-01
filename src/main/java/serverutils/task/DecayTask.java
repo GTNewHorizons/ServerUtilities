@@ -1,12 +1,12 @@
 package serverutils.task;
 
+import static serverutils.ServerUtilitiesConfig.world;
 import static serverutils.ServerUtilitiesPermissions.CHUNKLOAD_DECAY_TIMER;
 import static serverutils.ServerUtilitiesPermissions.CLAIM_DECAY_TIMER;
 
 import java.util.OptionalInt;
 
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesTeamData;
 import serverutils.lib.data.ForgeTeam;
@@ -21,6 +21,7 @@ public class DecayTask extends Task {
 
     @Override
     public void execute(Universe universe) {
+        if (!ClaimedChunks.isActive()) return;
         for (ForgeTeam team : universe.getTeams()) {
             if (checkDecay(team, CLAIM_DECAY_TIMER)) {
                 ClaimedChunks.instance.unclaimAllChunks(null, team, OptionalInt.empty());
@@ -29,7 +30,7 @@ public class DecayTask extends Task {
             }
 
             ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
-            if (data.chunkloadsDecayed || !ServerUtilitiesConfig.world.chunk_loading) continue;
+            if (data.chunkloadsDecayed || !world.chunk_loading) continue;
 
             if (checkDecay(team, CHUNKLOAD_DECAY_TIMER)) {
                 data.decayChunkloads();

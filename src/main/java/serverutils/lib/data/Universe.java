@@ -16,11 +16,8 @@ import javax.annotation.Nullable;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.WorldServer;
-import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.world.WorldEvent;
 
 import com.google.gson.JsonElement;
@@ -43,7 +40,6 @@ import serverutils.events.player.ForgePlayerSavedEvent;
 import serverutils.events.team.ForgeTeamDeletedEvent;
 import serverutils.events.team.ForgeTeamLoadedEvent;
 import serverutils.events.team.ForgeTeamSavedEvent;
-import serverutils.events.universe.PersistentScheduledTaskEvent;
 import serverutils.events.universe.UniverseClearCacheEvent;
 import serverutils.events.universe.UniverseClosedEvent;
 import serverutils.events.universe.UniverseLoadedEvent;
@@ -58,38 +54,9 @@ import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
-import serverutils.lib.util.misc.IScheduledTask;
-import serverutils.lib.util.misc.TimeType;
+import serverutils.task.Task;
 
 public class Universe {
-
-    private static class ScheduledTask {
-
-        private final TimeType type;
-        private final long time;
-        private final IScheduledTask task;
-
-        public ScheduledTask(TimeType tt, long t, IScheduledTask tk) {
-            type = tt;
-            time = t;
-            task = tk;
-        }
-    }
-
-    private static class PersistentScheduledTask {
-
-        private final ResourceLocation id;
-        private final TimeType type;
-        private final long time;
-        private final NBTTagCompound data;
-
-        public PersistentScheduledTask(ResourceLocation i, TimeType tt, long t, NBTTagCompound d) {
-            id = i;
-            type = tt;
-            time = t;
-            data = d;
-        }
-    }
 
     private static final HashSet<UUID> LOGGED_IN_PLAYERS = new HashSet<>(); // Required because of a Forge bug
     // https://github.com/MinecraftForge/MinecraftForge/issues/5696
@@ -189,30 +156,21 @@ public class Universe {
         if (event.phase == TickEvent.Phase.START) {
             universe.ticks = Ticks.get(event.world.getTotalWorldTime());
         } else if (!event.world.isRemote && event.world.provider.dimensionId == 0) {
-            universe.scheduledTasks.addAll(universe.scheduledTaskQueue);
-            universe.scheduledTaskQueue.clear();
-            universe.persistentScheduledTasks.addAll(universe.persistentScheduledTaskQueue);
-            universe.persistentScheduledTaskQueue.clear();
+            universe.taskList.addAll(universe.taskQueue);
+            universe.taskQueue.clear();
 
-            Iterator<ScheduledTask> iterator = universe.scheduledTasks.iterator();
+            Iterator<Task> taskIterator = universe.taskList.iterator();
 
-            while (iterator.hasNext()) {
-                ScheduledTask task = iterator.next();
+            while (taskIterator.hasNext()) {
+                Task task = taskIterator.next();
+                if (task.isComplete(universe)) {
+                    task.execute(universe);
 
-                if (task.task.isComplete(universe, task.type, task.time)) {
-                    task.task.execute(universe);
-                    iterator.remove();
-                }
-            }
-
-            Iterator<PersistentScheduledTask> piterator = universe.persistentScheduledTasks.iterator();
-
-            while (piterator.hasNext()) {
-                PersistentScheduledTask task = piterator.next();
-
-                if ((task.type == TimeType.TICKS ? universe.ticks.ticks() : System.currentTimeMillis()) >= task.time) {
-                    new PersistentScheduledTaskEvent(universe, task.id, task.data).post();
-                    piterator.remove();
+                    if (task.isRepeatable()) {
+                        task.setNextTime(System.currentTimeMillis() + task.getInterval());
+                        continue;
+                    }
+                    taskIterator.remove();
                 }
             }
 
@@ -240,10 +198,8 @@ public class Universe {
     boolean checkSaving;
     public ForgeTeam fakePlayerTeam;
     public FakeForgePlayer fakePlayer;
-    private final List<ScheduledTask> scheduledTasks;
-    private final List<PersistentScheduledTask> persistentScheduledTasks;
-    private final List<ScheduledTask> scheduledTaskQueue;
-    private final List<PersistentScheduledTask> persistentScheduledTaskQueue;
+    private final List<Task> taskList;
+    private final List<Task> taskQueue;
     public Ticks ticks;
     private boolean prevCheats = false;
     public File dataFolder;
@@ -259,10 +215,8 @@ public class Universe {
         uuid = null;
         needsSaving = false;
         checkSaving = true;
-        scheduledTasks = new ArrayList<>();
-        persistentScheduledTasks = new ArrayList<>();
-        scheduledTaskQueue = new ArrayList<>();
-        persistentScheduledTaskQueue = new ArrayList<>();
+        taskList = new ArrayList<>();
+        taskQueue = new ArrayList<>();
     }
 
     public void markDirty() {
@@ -279,13 +233,14 @@ public class Universe {
         return uuid;
     }
 
-    public void scheduleTask(TimeType type, long time, IScheduledTask task) {
-        scheduledTaskQueue.add(new ScheduledTask(type, time, task));
+    public void scheduleTask(Task task) {
+        scheduleTask(task, true);
     }
 
-    public void scheduleTask(ResourceLocation id, TimeType type, long time, NBTTagCompound data) {
-        persistentScheduledTaskQueue.add(new PersistentScheduledTask(id, type, time, data));
-        markDirty();
+    public void scheduleTask(Task task, boolean condition) {
+        if (!condition) return;
+        if (task.getNextTime() <= -1) return;
+        taskQueue.add(task);
     }
 
     private void load() {
@@ -314,18 +269,6 @@ public class Universe {
 
         if (uuid != null && uuid.getLeastSignificantBits() == 0L && uuid.getMostSignificantBits() == 0L) {
             uuid = null;
-        }
-
-        NBTTagList taskTag = universeData.getTagList("PersistentScheduledTasks", Constants.NBT.TAG_COMPOUND);
-
-        for (int i = 0; i < taskTag.tagCount(); i++) {
-            NBTTagCompound taskData = taskTag.getCompoundTagAt(i);
-            persistentScheduledTasks.add(
-                    new PersistentScheduledTask(
-                            new ResourceLocation(taskData.getString("ID")),
-                            TimeType.NAME_MAP.get(taskData.getString("Type")),
-                            taskData.getLong("Time"),
-                            taskData.getCompoundTag("Data")));
         }
 
         NBTTagCompound data = universeData.getCompoundTag("Data");
@@ -478,19 +421,6 @@ public class Universe {
             new UniverseSavedEvent(this, data).post();
             universeData.setTag("Data", data);
             universeData.setString("UUID", StringUtils.fromUUID(getUUID()));
-
-            NBTTagList taskTag = new NBTTagList();
-
-            for (PersistentScheduledTask task : persistentScheduledTasks) {
-                NBTTagCompound taskData = new NBTTagCompound();
-                taskData.setString("ID", task.id.toString());
-                taskData.setString("Type", TimeType.NAME_MAP.getName(task.type));
-                taskData.setLong("Time", task.time);
-                taskData.setTag("Data", task.data);
-                taskTag.appendTag(taskData);
-            }
-
-            universeData.setTag("PersistentScheduledTasks", taskTag);
             universeData.setTag("FakePlayer", fakePlayer.serializeNBT());
             universeData.setTag("FakeTeam", fakePlayerTeam.serializeNBT());
             NBTUtils.writeNBTSafe(new File(dataFolder, "universe.dat"), universeData);
@@ -516,7 +446,7 @@ public class Universe {
         for (ForgeTeam team : getTeams()) {
             if (team.needsSaving) {
                 if (ServerUtilitiesConfig.debugging.print_more_info) {
-                    ServerUtilities.LOGGER.info("Saved team data for " + team.getId());
+                    ServerUtilities.LOGGER.info("Saved team data for {}", team.getId());
                 }
 
                 File file = team.getDataFile("");
@@ -528,7 +458,6 @@ public class Universe {
                     nbt.setString("Type", team.type.getName());
                     NBTUtils.writeNBTSafe(file, nbt);
                     new ForgeTeamSavedEvent(team).post();
-                    team.needsSaving = false;
                 } else if (file.exists()) {
                     file.delete();
                 }

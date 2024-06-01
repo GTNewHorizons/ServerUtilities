@@ -1,5 +1,11 @@
 package serverutils;
 
+import static serverutils.ServerUtilitiesConfig.auto_shutdown;
+import static serverutils.ServerUtilitiesConfig.backups;
+import static serverutils.ServerUtilitiesConfig.ranks;
+import static serverutils.ServerUtilitiesConfig.tasks;
+import static serverutils.ServerUtilitiesConfig.world;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -137,7 +143,7 @@ public class ServerUtilitiesCommon {
         ServerUtilitiesConfig.init(event);
         AuroraConfig.init(event);
 
-        if (ServerUtilitiesConfig.ranks.enabled) {
+        if (ranks.enabled) {
             PermissionAPI.setPermissionHandler(ServerUtilitiesPermissionHandler.INSTANCE);
         }
 
@@ -292,7 +298,7 @@ public class ServerUtilitiesCommon {
                         "Thermos/Ultramine detected, command overriding has been disabled. If there are any issues with Server Utilities ranks or permissions, please test them without those mods!");
             }
 
-            if (!ServerUtilitiesConfig.ranks.override_commands || bukkitLoaded) {
+            if (!ranks.override_commands || bukkitLoaded) {
                 return;
             }
 
@@ -332,17 +338,11 @@ public class ServerUtilitiesCommon {
 
     public void registerTasks() {
         Universe universe = Universe.get();
-        if (ServerUtilitiesConfig.world.chunk_claiming) {
-            universe.scheduleTask(new DecayTask());
-        }
-        if (ServerUtilitiesConfig.tasks.cleanup.enabled) {
-            universe.scheduleTask(new CleanupTask(ServerUtilitiesConfig.tasks.cleanup.interval));
-        }
-        if (ServerUtilitiesConfig.backups.enable_backups) {
-            universe.scheduleTask(new BackupTask(ServerUtilitiesConfig.backups.backup_timer));
-        }
-        if (ServerUtilitiesConfig.auto_shutdown.enabled && ServerUtilitiesConfig.auto_shutdown.times.length > 0
-                && (ServerUtilitiesConfig.auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
+        universe.scheduleTask(new DecayTask(), world.chunk_claiming);
+        universe.scheduleTask(new CleanupTask(tasks.cleanup.interval), tasks.cleanup.enabled);
+        universe.scheduleTask(new BackupTask(backups.backup_timer), backups.enable_backups);
+        if (auto_shutdown.enabled && auto_shutdown.times.length > 0
+                && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
             universe.scheduleTask(new ShutdownTask());
         }
     }
