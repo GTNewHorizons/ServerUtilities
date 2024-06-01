@@ -234,7 +234,12 @@ public class Universe {
     }
 
     public void scheduleTask(Task task) {
-        if (task.getNextTime() == -1) return;
+        scheduleTask(task, true);
+    }
+
+    public void scheduleTask(Task task, boolean condition) {
+        if (!condition) return;
+        if (task.getNextTime() <= -1) return;
         taskQueue.add(task);
     }
 
