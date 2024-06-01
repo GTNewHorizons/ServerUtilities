@@ -432,7 +432,7 @@ public class Universe {
                 nbt.setString("Name", player.getName());
                 nbt.setString("UUID", StringUtils.fromUUID(player.getId()));
                 nbt.setString("TeamID", player.team.getId());
-                NBTUtils.writeNBTSafe(player.getDataFile(""), nbt);
+                NBTUtils.writeNBTSafe(player.getDataFile(), nbt);
                 new ForgePlayerSavedEvent(player).post();
                 player.needsSaving = false;
             }
@@ -481,11 +481,11 @@ public class Universe {
             p.onLoggedIn(player, this, true);
         } else {
             if (!p.getId().equals(player.getUniqueID()) || !p.getName().equals(player.getCommandSenderName())) {
-                File old = p.getDataFile("");
+                File old = p.getDataFile();
                 players.remove(p.getId());
                 p.profile = new GameProfile(player.getUniqueID(), player.getCommandSenderName());
                 players.put(p.getId(), p);
-                old.renameTo(p.getDataFile(""));
+                old.renameTo(p.getDataFile());
                 p.markDirty();
                 p.team.markDirty();
                 markDirty();
