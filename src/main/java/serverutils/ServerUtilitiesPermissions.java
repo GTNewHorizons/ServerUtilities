@@ -319,7 +319,8 @@ public class ServerUtilitiesPermissions {
         event.register(CLAIM_DECAY_TIMER, new ConfigTimer(Ticks.NO_TICKS, Ticks.DAY.x(365)));
         event.register(
                 CHUNKLOAD_DECAY_TIMER,
-                new ConfigTimer(Ticks.WEEK.x(2), Ticks.DAY.x(365))/* , new ConfigTimer(Ticks.NO_TICKS) */);
+                new ConfigTimer(Ticks.WEEK.x(2), Ticks.DAY.x(365)),
+                new ConfigTimer(Ticks.NO_TICKS));
     }
 
     @SubscribeEvent
