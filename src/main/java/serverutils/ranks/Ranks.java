@@ -103,7 +103,7 @@ public class Ranks {
             pRank.setPermission(ServerUtilitiesPermissions.HOMES_MAX, 1);
             pRank.setPermission(ServerUtilitiesPermissions.HOMES_WARMUP, "5s");
             pRank.setPermission(ServerUtilitiesPermissions.HOMES_COOLDOWN, "5s");
-            // pRank.setPermission(ServerUtilitiesPermissions.CHUNKLOAD_DECAY_TIMER, "2w");
+            pRank.setPermission(ServerUtilitiesPermissions.CHUNKLOAD_DECAY_TIMER, "2w");
             pRank.setPermission("example.permission", true);
             pRank.setPermission("example.other_permission", false);
             pRank.setPermission("example.permission_with_value", 0);
