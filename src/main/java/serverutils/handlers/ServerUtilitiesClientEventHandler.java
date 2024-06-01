@@ -245,6 +245,7 @@ public class ServerUtilitiesClientEventHandler {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @SubscribeEvent
     public void onGuiInit(final GuiScreenEvent.InitGuiEvent.Post event) {
         if (ClientUtils.areButtonsVisible(event.gui)) {
