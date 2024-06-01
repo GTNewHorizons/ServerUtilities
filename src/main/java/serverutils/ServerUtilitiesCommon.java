@@ -92,8 +92,8 @@ import serverutils.ranks.CommandOverride;
 import serverutils.ranks.Rank;
 import serverutils.ranks.Ranks;
 import serverutils.ranks.ServerUtilitiesPermissionHandler;
-import serverutils.task.ClaimDecayTask;
 import serverutils.task.CleanupTask;
+import serverutils.task.DecayTask;
 import serverutils.task.ShutdownTask;
 import serverutils.task.backup.BackupTask;
 
@@ -333,7 +333,7 @@ public class ServerUtilitiesCommon {
     public void registerTasks() {
         Universe universe = Universe.get();
         if (ServerUtilitiesConfig.world.chunk_claiming) {
-            universe.scheduleTask(new ClaimDecayTask());
+            universe.scheduleTask(new DecayTask());
         }
         if (ServerUtilitiesConfig.tasks.cleanup.enabled) {
             universe.scheduleTask(new CleanupTask(ServerUtilitiesConfig.tasks.cleanup.interval));
