@@ -23,13 +23,20 @@ public class DecayTask extends Task {
     public void execute(Universe universe) {
         if (!ClaimedChunks.isActive()) return;
         for (ForgeTeam team : universe.getTeams()) {
+            ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
+            if (!team.isValid() || data.getTeamChunks().isEmpty()) continue;
+
+            if (!team.getOnlineMembers().isEmpty()) {
+                team.refreshActivity();
+                continue;
+            }
+
             if (checkDecay(team, CLAIM_DECAY_TIMER)) {
                 ClaimedChunks.instance.unclaimAllChunks(null, team, OptionalInt.empty());
                 ServerUtilities.LOGGER.info("Decaying claimed chunks for {}", team.getId());
                 continue;
             }
 
-            ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
             if (data.chunkloadsDecayed || !world.chunk_loading) continue;
 
             if (checkDecay(team, CHUNKLOAD_DECAY_TIMER)) {
@@ -40,19 +47,10 @@ public class DecayTask extends Task {
     }
 
     public boolean checkDecay(ForgeTeam team, String node) {
-        ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
-        if (!team.isValid() || data.getTeamChunks().isEmpty()) return false;
-
-        if (!team.getOnlineMembers().isEmpty()) {
-            team.refreshActivity();
-            return false;
-        }
-
         long highestTimer = team.getHighestTimer(node).millis();
-        long latestLogin = team.getLastActivity();
+        long latestActivity = team.getLastActivity();
+        if (latestActivity <= 0 || highestTimer <= 0) return false;
 
-        if (latestLogin <= 0 || highestTimer <= 0) return false;
-
-        return System.currentTimeMillis() >= latestLogin + highestTimer;
+        return System.currentTimeMillis() >= latestActivity + highestTimer;
     }
 }
