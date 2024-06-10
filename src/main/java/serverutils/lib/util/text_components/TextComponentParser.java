@@ -99,80 +99,85 @@ public class TextComponentParser {
         builder = new StringBuilder();
         boolean sub = false;
 
-        for (int i = 0; i < c.length; i++) {
-            boolean escape = i > 0 && c[i - 1] == '\\';
-            boolean end = i == c.length - 1;
-
-            if (sub && (end || c[i] == '{' || c[i] == '}')) {
-                if (c[i] == '{') {
-                    throw new IllegalArgumentException("Invalid formatting! Can't nest multiple substitutes!");
-                }
-
-                finishPart();
-                sub = false;
-                continue;
-            }
-
-            if (!escape) {
-                if (c[i] == '&') {
-                    c[i] = StringUtils.FORMATTING_CHAR;
-                }
-
-                if (c[i] == StringUtils.FORMATTING_CHAR) {
+        try {
+            for (int i = 0; i < c.length; i++) {
+                boolean escape = i > 0 && c[i - 1] == '\\';
+                boolean end = i == c.length - 1;
+    
+                if (sub && (end || c[i] == '{' || c[i] == '}')) {
+                    if (c[i] == '{') {
+                        throw new IllegalArgumentException("Invalid formatting! Can't nest multiple substitutes!");
+                    }
+    
                     finishPart();
-
-                    if (end) {
-                        throw new IllegalArgumentException(
-                                "Invalid formatting! Can't end string with & or " + StringUtils.FORMATTING_CHAR + "!");
-                    }
-
-                    i++;
-
-                    EnumChatFormatting formatting = CODE_TO_FORMATTING.get(c[i]);
-
-                    if (formatting == null) {
-                        throw new IllegalArgumentException(
-                                "Illegal formatting! Unknown color code character: " + c[i] + "!");
-                    }
-
-                    switch (formatting) {
-                        case OBFUSCATED:
-                            style.setObfuscated(!style.getObfuscated());
-                            break;
-                        case BOLD:
-                            style.setBold(!style.getBold());
-                            break;
-                        case STRIKETHROUGH:
-                            style.setStrikethrough(!style.getStrikethrough());
-                            break;
-                        case UNDERLINE:
-                            style.setUnderlined(!style.getUnderlined());
-                            break;
-                        case ITALIC:
-                            style.setItalic(!style.getItalic());
-                            break;
-                        case RESET:
-                            style = new ChatStyle();
-                            break;
-                        default:
-                            style.setColor(formatting);
-                    }
-
+                    sub = false;
                     continue;
-                } else if (c[i] == '{') {
-                    finishPart();
-
-                    if (end) {
-                        throw new IllegalArgumentException("Invalid formatting! Can't end string with {!");
+                }
+    
+                if (!escape) {
+                    if (c[i] == '&') {
+                        c[i] = StringUtils.FORMATTING_CHAR;
                     }
-
-                    sub = true;
+    
+                    if (c[i] == StringUtils.FORMATTING_CHAR) {
+                        finishPart();
+    
+                        if (end) {
+                            throw new IllegalArgumentException(
+                                    "Invalid formatting! Can't end string with & or " + StringUtils.FORMATTING_CHAR + "!");
+                        }
+    
+                        i++;
+    
+                        EnumChatFormatting formatting = CODE_TO_FORMATTING.get(c[i]);
+    
+                        if (formatting == null) {
+                            throw new IllegalArgumentException(
+                                    "Illegal formatting! Unknown color code character: " + c[i] + "!");
+                        }
+    
+                        switch (formatting) {
+                            case OBFUSCATED:
+                                style.setObfuscated(!style.getObfuscated());
+                                break;
+                            case BOLD:
+                                style.setBold(!style.getBold());
+                                break;
+                            case STRIKETHROUGH:
+                                style.setStrikethrough(!style.getStrikethrough());
+                                break;
+                            case UNDERLINE:
+                                style.setUnderlined(!style.getUnderlined());
+                                break;
+                            case ITALIC:
+                                style.setItalic(!style.getItalic());
+                                break;
+                            case RESET:
+                                style = new ChatStyle();
+                                break;
+                            default:
+                                style.setColor(formatting);
+                        }
+    
+                        continue;
+                    } else if (c[i] == '{') {
+                        finishPart();
+    
+                        if (end) {
+                            throw new IllegalArgumentException("Invalid formatting! Can't end string with {!");
+                        }
+    
+                        sub = true;
+                    }
+                }
+    
+                if (c[i] != '\\' || escape) {
+                    builder.append(c[i]);
                 }
             }
-
-            if (c[i] != '\\' || escape) {
-                builder.append(c[i]);
-            }
+        } catch (IllegalArgumentException e) {
+            ServerUtilities.LOGGER.info(String.format("Not formatting invalid text component \"%s\": %s", text, e.getMessage()));
+            return new ChatComponentText(text);
         }
 
         finishPart();
