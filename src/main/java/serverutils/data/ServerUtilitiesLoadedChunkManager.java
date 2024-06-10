@@ -1,5 +1,7 @@
 package serverutils.data;
 
+import static serverutils.ServerUtilitiesPermissions.CHUNKLOADER_LOAD_OFFLINE;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,8 +18,6 @@ import net.minecraftforge.common.ForgeChunkManager;
 
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
-import serverutils.ServerUtilitiesPermissions;
-import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.ServerUtils;
@@ -168,39 +168,6 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
     }
 
     public boolean canForceChunks(ForgeTeam team) {
-        ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
-        if (data.chunkloadsDecayed) {
-            ServerUtilities.LOGGER.info("Skipping chunk decay for {}", team.getId());
-            return false;
-        }
-
-        boolean allowForce = false;
-        boolean overLimit = false;
-        long highestTimer = team.getHighestTimer(ServerUtilitiesPermissions.CHUNKLOAD_DECAY_TIMER).millis();
-        long latestLogin = team.getLastActivity();
-        for (ForgePlayer player : team.getMembers()) {
-            if (player.isOnline()) {
-                return true;
-            }
-
-            if (player.hasPermission(ServerUtilitiesPermissions.CHUNKLOADER_LOAD_OFFLINE)) {
-                allowForce = true;
-            }
-        }
-
-        // Prevents accidentally unloading all chunks from before this feature
-        if (latestLogin == 0) return allowForce;
-
-        if (highestTimer > 0 && System.currentTimeMillis() >= latestLogin + highestTimer) {
-            overLimit = true;
-            data.decayChunkloads();
-            ServerUtilities.LOGGER.info("Decaying loaded chunks for {}", team.getId());
-        }
-
-        if (allowForce && !overLimit) {
-            ServerUtilities.LOGGER.info("Allowing forced chunks for {}", team.getId());
-        }
-
-        return allowForce && !overLimit;
+        return !team.getOnlineMembers().isEmpty() || team.anyMemberHasPermission(CHUNKLOADER_LOAD_OFFLINE);
     }
 }

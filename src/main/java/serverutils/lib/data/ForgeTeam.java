@@ -606,6 +606,10 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
         return false;
     }
 
+    public boolean anyMemberHasPermission(String permission) {
+        return anyPlayerHasPermission(permission, EnumTeamStatus.MEMBER);
+    }
+
     public File getDataFile(String ext) {
         File dir = new File(universe.dataFolder, "teams/");
 
