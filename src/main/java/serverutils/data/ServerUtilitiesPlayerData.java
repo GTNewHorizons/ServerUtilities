@@ -32,6 +32,7 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.math.TeleporterDimPos;
 import serverutils.lib.util.NBTUtils;
+import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.lib.util.text_components.TextComponentParser;
@@ -211,7 +212,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
     @Override
     public void clearCache() {
         cachedNameForChat = null;
-
+        if (player.isFake()) return;
         EntityPlayerMP p = player.getNullablePlayer();
 
         if (p != null) {
@@ -220,6 +221,10 @@ public class ServerUtilitiesPlayerData extends PlayerData {
     }
 
     public IChatComponent getNameForChat(EntityPlayerMP playerMP) {
+        if (ServerUtils.isFake(playerMP)) {
+            return new ChatComponentText(player.getName());
+        }
+
         if (cachedNameForChat != null) {
             return cachedNameForChat.createCopy();
         }
