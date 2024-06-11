@@ -16,7 +16,7 @@ import serverutils.lib.util.misc.NameMap;
 
 public class TextComponentParser {
 
-    public static final NameMap.ObjectProperties<EnumChatFormatting> TEXT_FORMATTING_OBJECT_PROPERTIES = new NameMap.ObjectProperties<EnumChatFormatting>() {
+    public static final NameMap.ObjectProperties<EnumChatFormatting> TEXT_FORMATTING_OBJECT_PROPERTIES = new NameMap.ObjectProperties<>() {
 
         @Override
         public String getName(EnumChatFormatting value) {
@@ -170,34 +170,24 @@ public class TextComponentParser {
     private void finishPart() {
         String string = builder.toString();
         builder.setLength(0);
+        if (string.isEmpty()) return;
 
-        if (string.isEmpty()) {
-            return;
-        } else if (string.length() < 2 && string.charAt(0) != '{') {
-            IChatComponent component1 = new ChatComponentText(string);
+        IChatComponent component1 = new ChatComponentText(string);
+        if (string.length() < 2 || string.charAt(0) != '{') {
             component1.setChatStyle(style.createShallowCopy());
             component.appendSibling(component1);
             return;
         }
 
-        IChatComponent component1;
-        if (substitutes == null) {
-            int index = string.indexOf("{");
-            component1 = new ChatComponentText(string.substring(1 + index));
-        } else {
+        if (substitutes != null) {
             component1 = substitutes.apply(string.substring(1));
         }
 
-        if (component1 != null) {
-            ChatStyle style0 = component1.getChatStyle().createShallowCopy();
-            ChatStyle style1 = style.createShallowCopy();
-            style1.setChatHoverEvent(style0.getChatHoverEvent());
-            style1.setChatClickEvent(style0.getChatClickEvent());
-            component1.setChatStyle(style1);
-        } else {
-            throw new IllegalArgumentException("Invalid formatting! Unknown substitute " + string);
-        }
-
+        ChatStyle style0 = component1.getChatStyle().createShallowCopy();
+        ChatStyle style1 = style.createShallowCopy();
+        style1.setChatHoverEvent(style0.getChatHoverEvent());
+        style1.setChatClickEvent(style0.getChatClickEvent());
+        component1.setChatStyle(style1);
         component.appendSibling(component1);
     }
 }
