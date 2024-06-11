@@ -1,5 +1,7 @@
 package serverutils.command.tp;
 
+import static serverutils.ServerUtilitiesNotifications.TELEPORT;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -13,7 +15,6 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.lib.command.CmdBase;
@@ -23,6 +24,8 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.lib.util.text_components.Notification;
+import serverutils.task.NotifyTask;
+import serverutils.task.Task;
 
 public class CmdHome extends CmdBase {
 
@@ -110,14 +113,10 @@ public class CmdHome extends CmdBase {
             throw ServerUtilities.error(sender, "serverutilities.lang.homes.cross_dim");
         }
 
+        IChatComponent component = ServerUtilities.lang(sender, "serverutilities.lang.warps.tp", args[0]);
+        Notification notification = Notification.of(TELEPORT, component);
+        Task task = new NotifyTask(-1, player, notification);
         data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.HOME);
-        ServerUtilitiesPlayerData.Timer.HOME.teleport(
-                player,
-                playerMP -> pos.teleporter(),
-                universe -> Notification
-                        .of(
-                                ServerUtilitiesNotifications.TELEPORT,
-                                ServerUtilities.lang(sender, "serverutilities.lang.warps.tp", args[0]))
-                        .send(player.mcServer, player));
+        ServerUtilitiesPlayerData.Timer.HOME.teleport(player, playerMP -> pos.teleporter(), task);
     }
 }

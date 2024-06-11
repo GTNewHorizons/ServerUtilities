@@ -4,9 +4,9 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 
 import serverutils.ServerUtilities;
-import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.util.StringUtils;
+import serverutils.task.ShutdownTask;
 
 public class CmdShutdownTime extends CmdBase {
 
@@ -16,13 +16,12 @@ public class CmdShutdownTime extends CmdBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        if (ServerUtilitiesUniverseData.shutdownTime > 0L) {
+        if (ShutdownTask.shutdownTime > 0L) {
             sender.addChatMessage(
                     ServerUtilities.lang(
                             sender,
                             "serverutilities.lang.timer.shutdown",
-                            StringUtils.getTimeString(
-                                    ServerUtilitiesUniverseData.shutdownTime - System.currentTimeMillis())));
+                            StringUtils.getTimeString(ShutdownTask.shutdownTime - System.currentTimeMillis())));
         } else {
             throw ServerUtilities.errorFeatureDisabledServer(sender);
         }

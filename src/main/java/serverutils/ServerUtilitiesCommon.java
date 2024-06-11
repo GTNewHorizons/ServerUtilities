@@ -1,32 +1,40 @@
 package serverutils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+import net.minecraft.command.ICommand;
+import net.minecraft.command.ServerCommandManager;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
+import serverutils.aurora.Aurora;
 import serverutils.aurora.AuroraConfig;
 import serverutils.aurora.mc.AuroraMinecraftHandler;
-import serverutils.backups.Backups;
+import serverutils.command.ServerUtilitiesCommands;
 import serverutils.data.Leaderboard;
 import serverutils.data.NodeEntry;
 import serverutils.data.ServerUtilitiesLoadedChunkManager;
@@ -40,6 +48,7 @@ import serverutils.handlers.ServerUtilitiesPlayerEventHandler;
 import serverutils.handlers.ServerUtilitiesRegistryEventHandler;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.handlers.ServerUtilitiesWorldEventHandler;
+import serverutils.lib.ATHelper;
 import serverutils.lib.EnumReloadType;
 import serverutils.lib.OtherMods;
 import serverutils.lib.config.ConfigBoolean;
@@ -69,15 +78,23 @@ import serverutils.lib.data.ISyncData;
 import serverutils.lib.data.ServerUtilitiesAPI;
 import serverutils.lib.data.ServerUtilitiesTeamGuiActions;
 import serverutils.lib.data.TeamAction;
+import serverutils.lib.data.Universe;
 import serverutils.lib.gui.GuiIcons;
 import serverutils.lib.icon.Color4I;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.net.MessageToClient;
+import serverutils.lib.util.CommonUtils;
 import serverutils.lib.util.InvUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.ServerUtilitiesNetHandler;
+import serverutils.ranks.CommandOverride;
+import serverutils.ranks.Rank;
+import serverutils.ranks.Ranks;
 import serverutils.ranks.ServerUtilitiesPermissionHandler;
+import serverutils.task.CleanupTask;
+import serverutils.task.ShutdownTask;
+import serverutils.task.backup.BackupTask;
 
 public class ServerUtilitiesCommon {
 
@@ -137,8 +154,6 @@ public class ServerUtilitiesCommon {
         KAOMOJIS.put("shrug", "\u00AF\\_(\u30C4)_/\u00AF");
         KAOMOJIS.put("tableflip", "(\u256F\u00B0\u25A1\u00B0)\u256F \uFE35 \u253B\u2501\u253B");
         KAOMOJIS.put("unflip", "\u252C\u2500\u252C\u30CE( \u309C-\u309C\u30CE)");
-
-        Backups.init();
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPlayerEventHandler.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesRegistryEventHandler.INST);
@@ -246,15 +261,89 @@ public class ServerUtilitiesCommon {
         }
     }
 
-    public void imc(FMLInterModComms.IMCMessage message) {}
+    public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
+        Universe.onServerAboutToStart(event);
+        MinecraftForge.EVENT_BUS.register(Universe.get());
+        FMLCommonHandler.instance().bus().register(Universe.get());
+    }
+
+    public void onServerStarting(FMLServerStartingEvent event) {
+        ServerUtilitiesCommands.registerCommands(event);
+
+        if (AuroraConfig.general.enable) {
+            Aurora.start(event.getServer());
+        }
+    }
+
+    public void onServerStarted(FMLServerStartedEvent event) {
+        Universe.onServerStarted(event);
+        registerTasks();
+
+        if (Ranks.isActive()) {
+            Ranks.INSTANCE.commands.clear();
+
+            boolean bukkitLoaded = CommonUtils.getClassExists("thermos.ThermosRemapper")
+                    || CommonUtils.getClassExists("org.ultramine.server.UltraminePlugin")
+                    || CommonUtils.getClassExists("org.bukkit.World");
+
+            if (bukkitLoaded) {
+                ServerUtilities.LOGGER.warn(
+                        "Thermos/Ultramine detected, command overriding has been disabled. If there are any issues with Server Utilities ranks or permissions, please test them without those mods!");
+            }
+
+            if (!ServerUtilitiesConfig.ranks.override_commands || bukkitLoaded) {
+                return;
+            }
+
+            ServerCommandManager manager = (ServerCommandManager) Ranks.INSTANCE.universe.server.getCommandManager();
+            List<ICommand> commands = new ArrayList<>(ATHelper.getCommandSet(manager));
+            ATHelper.getCommandSet(manager).clear();
+            manager.getCommands().clear();
+
+            for (ICommand command : commands) {
+                ModContainer container = CommonUtils.getModContainerForClass(command.getClass());
+                manager.registerCommand(
+                        CommandOverride.create(
+                                command,
+                                container == null ? Rank.NODE_COMMAND
+                                        : (Rank.NODE_COMMAND + '.' + container.getModId()),
+                                container));
+            }
+
+            List<CommandOverride> ocommands = new ArrayList<>(Ranks.INSTANCE.commands.values());
+            ocommands.sort((o1, o2) -> {
+                int i = Boolean.compare(o1.modContainer != null, o2.modContainer != null);
+                return i == 0 ? o1.node.compareTo(o2.node) : i;
+            });
+
+            for (CommandOverride c : ocommands) {
+                Ranks.INSTANCE.commands.put(c.node, c);
+            }
+
+            ServerUtilities.LOGGER.info("Overridden {} commands", manager.getCommands().size());
+        }
+    }
+
+    public void onServerStopping(FMLServerStoppingEvent event) {
+        Universe.onServerStopping(event);
+        Aurora.stop();
+    }
+
+    public void registerTasks() {
+        Universe universe = Universe.get();
+        if (ServerUtilitiesConfig.tasks.cleanup.enabled) {
+            universe.scheduleTask(new CleanupTask(ServerUtilitiesConfig.tasks.cleanup.interval));
+        }
+        if (ServerUtilitiesConfig.backups.enable_backups) {
+            universe.scheduleTask(new BackupTask(ServerUtilitiesConfig.backups.backup_timer));
+        }
+        if (ServerUtilitiesConfig.auto_shutdown.enabled && ServerUtilitiesConfig.auto_shutdown.times.length > 0
+                && (ServerUtilitiesConfig.auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
+            universe.scheduleTask(new ShutdownTask());
+        }
+    }
 
     public void handleClientMessage(MessageToClient message) {}
-
-    public void spawnDust(World world, double x, double y, double z, float r, float g, float b, float a) {}
-
-    public void spawnDust(World world, double x, double y, double z, Color4I col) {
-        spawnDust(world, x, y, z, col.redf(), col.greenf(), col.bluef(), col.alphaf());
-    }
 
     public long getWorldTime() {
         return ServerUtils.getServerWorld().getTotalWorldTime();

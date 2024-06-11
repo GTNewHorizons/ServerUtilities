@@ -1,11 +1,12 @@
-package serverutils.backups;
+package serverutils.task.backup;
 
 import static serverutils.ServerUtilitiesNotifications.BACKUP_START;
 
 import java.io.File;
 import java.util.Arrays;
 
-import net.minecraft.client.Minecraft;
+import javax.annotation.Nullable;
+
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
@@ -13,37 +14,62 @@ import net.minecraft.world.WorldServer;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
+import serverutils.lib.data.Universe;
+import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
+import serverutils.task.Task;
 
-public class Backups {
+public class BackupTask extends Task {
 
     public static File backupsFolder;
-    public static long nextBackup = -1L;
-    public static ThreadBackup thread = null;
+    public static ThreadBackup thread;
     public static boolean hadPlayer = false;
+    private ICommandSender sender;
+    private String customName = "";
+    private boolean post = false;
 
-    public static void init() {
-        backupsFolder = ServerUtilitiesConfig.backups.backup_folder_path.isEmpty()
-                ? new File(Minecraft.getMinecraft().mcDataDir, "/backups/")
+    static {
+        backupsFolder = ServerUtilitiesConfig.backups.backup_folder_path.isEmpty() ? new File("/backups/")
                 : new File(ServerUtilitiesConfig.backups.backup_folder_path);
         if (!backupsFolder.exists()) backupsFolder.mkdirs();
-        thread = null;
         clearOldBackups();
-        ServerUtilities.LOGGER.info("Backups folder - " + backupsFolder.getAbsolutePath());
+        ServerUtilities.LOGGER.info("Backups folder - {}", backupsFolder.getAbsolutePath());
     }
 
-    public static boolean run(ICommandSender ics, String customName) {
-        if (thread != null) return false;
-        boolean auto = ics == null;
+    public BackupTask(double interval) {
+        super(Ticks.HOUR.x(interval));
+    }
 
-        if (auto && !ServerUtilitiesConfig.backups.enable_backups) return false;
+    public BackupTask(@Nullable ICommandSender ics, String customName) {
+        this.customName = customName;
+        this.sender = ics;
+    }
 
-        MinecraftServer server = ServerUtils.getServer();
-        nextBackup = System.currentTimeMillis() + backupMillis();
+    public BackupTask(boolean postCleanup) {
+        super(0);
+        this.post = postCleanup;
+    }
 
+    @Override
+    public boolean isRepeatable() {
+        return !post;
+    }
+
+    @Override
+    public void execute(Universe universe) {
+        if (post) {
+            postBackup(universe);
+            return;
+        }
+        if (thread != null) return;
+        boolean auto = sender == null;
+
+        if (auto && !ServerUtilitiesConfig.backups.enable_backups) return;
+
+        MinecraftServer server = universe.server;
         if (auto && ServerUtilitiesConfig.backups.need_online_players) {
-            if (!hasOnlinePlayers() && !hadPlayer) return true;
+            if (!hasOnlinePlayers(server) && !hadPlayer) return;
             hadPlayer = false;
         }
         ServerUtilitiesNotifications.backupNotification(BACKUP_START, "cmd.backup_start");
@@ -57,7 +83,7 @@ public class Backups {
                 }
             }
         } catch (Exception ex) {
-            ServerUtilities.LOGGER.info("Error while saving world: " + ex.getMessage());
+            ServerUtilities.LOGGER.info("Error while saving world: {}", ex.getMessage());
         }
 
         File wd = server.getEntityWorld().getSaveHandler().getWorldDirectory();
@@ -68,8 +94,7 @@ public class Backups {
         } else {
             ThreadBackup.doBackup(wd, customName);
         }
-
-        return true;
+        universe.scheduleTask(new BackupTask(true));
     }
 
     public static void clearOldBackups() {
@@ -79,25 +104,28 @@ public class Backups {
             Arrays.sort(backups);
 
             int toDelete = backups.length - ServerUtilitiesConfig.backups.backups_to_keep;
-            ServerUtilities.LOGGER.info("Deleting " + toDelete + " old backups");
+            ServerUtilities.LOGGER.info("Deleting {} old backups", toDelete);
 
             for (int i = 0; i < toDelete; i++) {
                 File f = new File(backupsFolder, backups[i]);
-                ServerUtilities.LOGGER.info("Deleted old backup: " + f.getPath());
+                ServerUtilities.LOGGER.info("Deleted old backup: {}", f.getPath());
                 FileUtils.delete(f);
             }
         }
     }
 
-    public static long backupMillis() {
-        return (long) (ServerUtilitiesConfig.backups.backup_timer * 3600D * 1000D);
+    private boolean hasOnlinePlayers(MinecraftServer server) {
+        return !server.getConfigurationManager().playerEntityList.isEmpty();
     }
 
-    public static boolean hasOnlinePlayers() {
-        return !ServerUtils.getServer().getConfigurationManager().playerEntityList.isEmpty();
-    }
+    private void postBackup(Universe universe) {
+        if (thread != null && !thread.isDone) {
+            setNextTime(System.currentTimeMillis() + Ticks.SECOND.millis());
+            universe.scheduleTask(this);
+            return;
+        }
 
-    public static void postBackup() {
+        thread = null;
         try {
             MinecraftServer server = ServerUtils.getServer();
 

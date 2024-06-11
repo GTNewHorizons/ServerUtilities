@@ -26,7 +26,7 @@ public class ServerUtilitiesNotifications {
             ServerUtilities.MOD_ID,
             "cant_claim_chunk");
     public static final ResourceLocation UNCLAIMED_ALL = new ResourceLocation(ServerUtilities.MOD_ID, "unclaimed_all");
-    public static final ResourceLocation TELEPORT = new ResourceLocation(ServerUtilities.MOD_ID, "teleport");
+    public static final String TELEPORT = "teleport";
     public static final ResourceLocation TELEPORT_WARMUP = new ResourceLocation(
             ServerUtilities.MOD_ID,
             "teleport_warmup");
@@ -37,6 +37,7 @@ public class ServerUtilitiesNotifications {
     public static final ResourceLocation CONFIG_CHANGED = new ResourceLocation(
             ServerUtilities.MOD_ID,
             "config_changed");
+    public static final String RESTART_TIMER_ID = "restart_timer";
 
     public static final Notification NO_TEAM = Notification.of(
             new ResourceLocation(ServerUtilities.MOD_ID, "no_team"),
