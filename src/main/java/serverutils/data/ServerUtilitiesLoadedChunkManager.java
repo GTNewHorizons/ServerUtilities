@@ -1,6 +1,7 @@
 package serverutils.data;
 
-import java.util.Collection;
+import static serverutils.ServerUtilitiesPermissions.CHUNKLOADER_LOAD_OFFLINE;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +18,6 @@ import net.minecraftforge.common.ForgeChunkManager;
 
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
-import serverutils.ServerUtilitiesPermissions;
-import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.ServerUtils;
@@ -38,13 +37,6 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
     @Override
     public void ticketsLoaded(List<ForgeChunkManager.Ticket> tickets, World world) {
         final int dim = world.provider.dimensionId;
-        /*
-         * Uncomment? Iterator<TicketKey> ticketMapItr = ticketMap.keySet().iterator(); while (ticketMapItr.hasNext()) {
-         * if (ticketMapItr.next().dimension == dim) { ticketMapItr.remove(); } } Iterator<ChunkDimPos> chunkTicketsItr
-         * = chunkTickets.keySet().iterator(); while (chunkTicketsItr.hasNext()) { if (chunkTicketsItr.next().dim ==
-         * dim) { chunkTicketsItr.remove(); } }
-         */
-
         for (ForgeChunkManager.Ticket ticket : tickets) {
             TicketKey key = new TicketKey(dim, ticket.getModData().getString("Team"));
 
@@ -176,20 +168,6 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
     }
 
     public boolean canForceChunks(ForgeTeam team) {
-        Collection<ForgePlayer> members = team.getMembers();
-
-        for (ForgePlayer player : members) {
-            if (player.isOnline()) {
-                return true;
-            }
-        }
-
-        for (ForgePlayer player : members) {
-            if (player.hasPermission(ServerUtilitiesPermissions.CHUNKLOADER_LOAD_OFFLINE)) {
-                return true;
-            }
-        }
-
-        return false;
+        return !team.getOnlineMembers().isEmpty() || team.anyMemberHasPermission(CHUNKLOADER_LOAD_OFFLINE);
     }
 }

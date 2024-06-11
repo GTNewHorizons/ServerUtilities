@@ -27,6 +27,7 @@ import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
 import serverutils.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.math.ChunkDimPos;
+import serverutils.lib.math.Ticks;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageClaimedChunksUpdate;
 import serverutils.net.MessageJourneyMapRemove;
@@ -97,7 +98,7 @@ public class ClaimedChunks {
 
     public void update(Universe universe, long now) {
         if (nextChunkloaderUpdate <= now) {
-            nextChunkloaderUpdate = now + 60000L;
+            nextChunkloaderUpdate = now + Ticks.MINUTE.millis();
             markDirty();
         }
 
