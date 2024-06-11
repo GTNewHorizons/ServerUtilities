@@ -11,6 +11,7 @@ import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import serverutils.ServerUtilities;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.misc.NameMap;
 
@@ -103,39 +104,40 @@ public class TextComponentParser {
             for (int i = 0; i < c.length; i++) {
                 boolean escape = i > 0 && c[i - 1] == '\\';
                 boolean end = i == c.length - 1;
-    
+
                 if (sub && (end || c[i] == '{' || c[i] == '}')) {
                     if (c[i] == '{') {
                         throw new IllegalArgumentException("Invalid formatting! Can't nest multiple substitutes!");
                     }
-    
+
                     finishPart();
                     sub = false;
                     continue;
                 }
-    
+
                 if (!escape) {
                     if (c[i] == '&') {
                         c[i] = StringUtils.FORMATTING_CHAR;
                     }
-    
+
                     if (c[i] == StringUtils.FORMATTING_CHAR) {
                         finishPart();
-    
+
                         if (end) {
                             throw new IllegalArgumentException(
-                                    "Invalid formatting! Can't end string with & or " + StringUtils.FORMATTING_CHAR + "!");
+                                    "Invalid formatting! Can't end string with & or " + StringUtils.FORMATTING_CHAR
+                                            + "!");
                         }
-    
+
                         i++;
-    
+
                         EnumChatFormatting formatting = CODE_TO_FORMATTING.get(c[i]);
-    
+
                         if (formatting == null) {
                             throw new IllegalArgumentException(
                                     "Illegal formatting! Unknown color code character: " + c[i] + "!");
                         }
-    
+
                         switch (formatting) {
                             case OBFUSCATED:
                                 style.setObfuscated(!style.getObfuscated());
@@ -158,25 +160,26 @@ public class TextComponentParser {
                             default:
                                 style.setColor(formatting);
                         }
-    
+
                         continue;
                     } else if (c[i] == '{') {
                         finishPart();
-    
+
                         if (end) {
                             throw new IllegalArgumentException("Invalid formatting! Can't end string with {!");
                         }
-    
+
                         sub = true;
                     }
                 }
-    
+
                 if (c[i] != '\\' || escape) {
                     builder.append(c[i]);
                 }
             }
         } catch (IllegalArgumentException e) {
-            ServerUtilities.LOGGER.info(String.format("Not formatting invalid text component \"%s\": %s", text, e.getMessage()));
+            ServerUtilities.LOGGER
+                    .info(String.format("Not formatting invalid text component \"%s\": %s", text, e.getMessage()));
             return new ChatComponentText(text);
         }
 
