@@ -208,7 +208,7 @@ public class ServerUtilitiesPlayerEventHandler {
     public void onNameFormat(PlayerEvent.NameFormat event) {
         if (!(event.entityPlayer instanceof EntityPlayerMP player) || ServerUtils.isFake(player)) return;
         if (ServerUtilitiesConfig.commands.nick && Universe.loaded()) {
-            ForgePlayer p = Universe.get().getPlayer(player);
+            ForgePlayer p = Universe.get().getPlayer(player.getGameProfile());
 
             if (p != null) {
                 ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(p);
