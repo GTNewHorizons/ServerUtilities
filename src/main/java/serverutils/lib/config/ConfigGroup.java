@@ -26,6 +26,7 @@ import net.minecraft.util.IChatComponent;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.util.FinalIDObject;
+import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.misc.BooleanConsumer;
 import serverutils.lib.util.misc.NameMap;
 
@@ -40,6 +41,7 @@ public class ConfigGroup extends FinalIDObject {
 
         for (ConfigValueInstance instance : object.getValues()) {
             data.writeString(instance.getId());
+            data.writeVarInt(instance.getIdFlag());
             instance.writeData(data);
         }
 
@@ -130,8 +132,8 @@ public class ConfigGroup extends FinalIDObject {
         return inst;
     }
 
-    public <T extends ConfigValue> ConfigValueInstance add(String id, T value, @Nullable T def) {
-        ConfigValueInstance instance = add(new ConfigValueInstance(id, this, value));
+    public <T extends ConfigValue> ConfigValueInstance add(String id, T value, @Nullable T def, int idFlag) {
+        ConfigValueInstance instance = add(new ConfigValueInstance(id, this, value, idFlag));
         instance.setOrder(values.size());
 
         if (def != null) {
@@ -139,6 +141,10 @@ public class ConfigGroup extends FinalIDObject {
         }
 
         return instance;
+    }
+
+    public <T extends ConfigValue> ConfigValueInstance add(String id, T value, @Nullable T def) {
+        return add(id, value, def, StringUtils.FLAG_ID_DEFAULTS);
     }
 
     public ConfigValueInstance addBool(String id, BooleanSupplier getter, BooleanConsumer setter, boolean def) {
@@ -188,7 +194,11 @@ public class ConfigGroup extends FinalIDObject {
     @Nullable
     public ConfigValueInstance getValueInstance(String key) {
         int index = key.indexOf('.');
-        return index == -1 ? values.get(key) : getGroup(key.substring(0, index)).values.get(key.substring(index + 1));
+        if (index == -1 || groups.isEmpty()) {
+            return values.get(key);
+        } else {
+            return getGroup(key.substring(0, index)).values.get(key.substring(index + 1));
+        }
     }
 
     public ConfigValue getValue(String key) {

@@ -2,6 +2,7 @@ package serverutils.lib.gui.misc;
 
 import net.minecraft.client.resources.I18n;
 
+import serverutils.lib.gui.CheckBoxList;
 import serverutils.lib.gui.GuiBase;
 import serverutils.lib.gui.Panel;
 import serverutils.lib.gui.PanelScrollBar;
@@ -12,8 +13,8 @@ import serverutils.lib.gui.WidgetLayout;
 
 public abstract class GuiButtonListBase extends GuiBase {
 
-    private final Panel panelButtons;
-    private final PanelScrollBar scrollBar;
+    protected final Panel panelButtons;
+    protected final PanelScrollBar scrollBar;
     private String title = "";
     private TextBox searchBox;
     private boolean hasSearchBox;
@@ -25,7 +26,8 @@ public abstract class GuiButtonListBase extends GuiBase {
             @Override
             public void add(Widget widget) {
                 if (!hasSearchBox || searchBox.getText().isEmpty()
-                        || getFilterText(widget).contains(searchBox.getText().toLowerCase())) {
+                        || getFilterText(widget).contains(searchBox.getText().toLowerCase())
+                        || widget instanceof CheckBoxList) {
                     super.add(widget);
                 }
             }
@@ -152,6 +154,14 @@ public abstract class GuiButtonListBase extends GuiBase {
                     y - theme.getFontHeight() - 2,
                     Theme.SHADOW);
         }
+    }
+
+    public boolean hasSearchBox() {
+        return hasSearchBox;
+    }
+
+    public String getTextInSearchBox() {
+        return searchBox.getText().toLowerCase();
     }
 
     public void focus() {

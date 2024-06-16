@@ -20,6 +20,7 @@ import serverutils.lib.data.ServerUtilitiesAPI;
 import serverutils.lib.gui.GuiIcons;
 import serverutils.lib.icon.ItemIcon;
 import serverutils.lib.util.StringUtils;
+import serverutils.net.MessageRanks;
 import serverutils.net.MessageViewCrashList;
 import serverutils.ranks.Ranks;
 
@@ -118,6 +119,23 @@ public class ServerUtilitiesRegistryEventHandler {
                         ServerUtilitiesAPI.editServerConfig(player.getPlayer(), main, IConfigCallback.DEFAULT);
                     }
 
+                });
+        registry.registerAdminPanelAction(
+                new AdminPanelAction(
+                        ServerUtilities.MOD_ID,
+                        "edit_rank",
+                        ItemIcon.getItemIcon(Item.getItemById(340)),
+                        0) {
+
+                    @Override
+                    public Type getType(ForgePlayer player, NBTTagCompound data) {
+                        return Type.fromBoolean(player.hasPermission(ServerUtilitiesPermissions.RANK_EDIT));
+                    }
+
+                    @Override
+                    public void onAction(ForgePlayer player, NBTTagCompound data) {
+                        new MessageRanks(Ranks.INSTANCE, player).sendTo(player.getPlayer());
+                    }
                 });
     }
 }
