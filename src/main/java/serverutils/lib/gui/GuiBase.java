@@ -15,6 +15,7 @@ import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -450,6 +451,9 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
     }
 
     public void openUnsavedYesNo(BooleanConsumer callback) {
-        openYesNoFull("Unsaved Changes", "You have unsaved changes. Do you want to save them?", callback::accept);
+        openYesNoFull(
+                StatCollector.translateToLocal("serverutilities.unsaved_changes.title"),
+                StatCollector.translateToLocal("serverutilities.unsaved_changes"),
+                callback::accept);
     }
 }

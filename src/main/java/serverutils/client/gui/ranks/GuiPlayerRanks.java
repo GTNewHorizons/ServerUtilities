@@ -80,7 +80,7 @@ public class GuiPlayerRanks extends GuiButtonListBase {
     }
 
     public GuiPlayerRanks() {
-        setTitle(StatCollector.translateToLocal("admin_panel.serverutilities.ranks.player_ranks"));
+        setTitle(StatCollector.translateToLocal("serverutilities.admin_panel.ranks.player_ranks"));
         setHasSearchBox(true);
     }
 

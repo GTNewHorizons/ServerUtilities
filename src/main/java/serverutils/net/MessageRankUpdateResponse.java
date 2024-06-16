@@ -8,7 +8,6 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-import net.minecraft.util.StatCollector;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -57,8 +56,7 @@ public class MessageRankUpdateResponse extends MessageToClient {
                             .setInfo(cmd.getTranslatedUsage(sender));
                 } else {
                     group.add(permissionNode, val, defaultValue, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                            .setDisplayName(new ChatComponentTranslation(permissionNode))
-                            .setInfo(getTooltip(permissionNode));
+                            .setDisplayName(new ChatComponentTranslation(permissionNode));
                 }
             }
 
@@ -73,13 +71,6 @@ public class MessageRankUpdateResponse extends MessageToClient {
             ranks.add(inst);
 
         }
-    }
-
-    private IChatComponent getTooltip(String node) {
-        if (StatCollector.canTranslate("permission." + node)) {
-            return new ChatComponentText(StatCollector.translateToLocal("permission." + node));
-        }
-        return null;
     }
 
     @Override

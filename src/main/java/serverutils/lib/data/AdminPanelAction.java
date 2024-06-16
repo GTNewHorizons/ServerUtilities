@@ -9,11 +9,7 @@ import serverutils.lib.icon.Icon;
 public abstract class AdminPanelAction extends Action {
 
     public AdminPanelAction(String mod, String id, Icon icon, int order) {
-        super(
-                new ResourceLocation(mod, id),
-                new ChatComponentTranslation("admin_panel." + mod + "." + id),
-                icon,
-                order);
+        super(new ResourceLocation(mod, id), new ChatComponentTranslation(mod + ".admin_panel." + id), icon, order);
     }
 
     @Override

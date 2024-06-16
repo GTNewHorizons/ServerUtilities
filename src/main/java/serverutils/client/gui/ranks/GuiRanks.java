@@ -51,7 +51,7 @@ public class GuiRanks extends GuiButtonListBase {
         panel.add(
                 new SimpleTextButton(
                         panel,
-                        I18n.format("admin_panel.serverutilities.ranks.player_ranks"),
+                        StatCollector.translateToLocal("serverutilities.admin_panel.ranks.player_ranks"),
                         new PlayerHeadIcon(null).withPadding(4)) {
 
                     @Override

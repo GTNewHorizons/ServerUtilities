@@ -68,10 +68,12 @@ public class GuiAddPermission extends GuiButtonListBase {
         @Override
         public void addMouseOverText(List<String> list) {
             IChatComponent infoText = inst.getInfo();
-            if (!(infoText instanceof ChatComponentTranslation component)
+            if (StatCollector.canTranslate("permission." + name)) {
+                list.add(StatCollector.translateToLocal("permission." + name));
+            } else if (!(infoText instanceof ChatComponentTranslation component)
                     || StatCollector.canTranslate(component.getKey())) {
-                list.addAll(Arrays.asList(infoText.getFormattedText().split("\n")));
-            }
+                        list.addAll(Arrays.asList(infoText.getFormattedText().split("\n")));
+                    }
         }
 
         @Override
