@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.gui.misc.GuiButtonListBase;
+import serverutils.lib.icon.Color4I;
 import serverutils.lib.util.misc.MouseButton;
 
 public class CheckBoxList extends Button {
@@ -96,7 +97,9 @@ public class CheckBoxList extends Button {
     }
 
     public void getCheckboxIcon(Theme theme, int x, int y, int w, int h, int index, int value) {
-        theme.drawCheckbox(x, y, w, h, WidgetType.NORMAL, value != 0, radioButtons);
+        if (value > 0) {
+            GuiIcons.BLANK.withColor(Color4I.BLACK.withAlpha(150)).draw(x, y, w, h);
+        }
     }
 
     public void addBox(CheckBoxEntry checkBox) {
