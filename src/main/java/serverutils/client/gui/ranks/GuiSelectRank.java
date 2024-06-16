@@ -97,8 +97,10 @@ public class GuiSelectRank extends GuiButtonListBase {
         @Override
         public void onValueChanged() {
             if (value > 0) {
+                playerRank.parents.add(name);
                 ClientUtils.execClientCommand("/ranks add " + username + " " + name);
             } else {
+                playerRank.parents.remove(name);
                 ClientUtils.execClientCommand("/ranks remove " + username + " " + name);
             }
         }

@@ -2,6 +2,7 @@ package serverutils.client.gui.ranks;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import net.minecraft.util.StatCollector;
 
@@ -29,7 +30,9 @@ public class GuiPlayerRanks extends GuiButtonListBase {
             super(panel);
             username = u;
             playerRank = r;
-            ranks = getRanksAsString(r);
+            List<String> sortedParents = r.parents.stream().sorted(String::compareToIgnoreCase)
+                    .collect(Collectors.toList());
+            ranks = getRanksAsString(sortedParents);
 
             Theme theme = getTheme();
             usernameSize = Math.max(usernameSize, theme.getStringWidth(username) + 8);
@@ -38,9 +41,9 @@ public class GuiPlayerRanks extends GuiButtonListBase {
             setSize(usernameSize + valueSize, 14);
         }
 
-        private String getRanksAsString(RankInst rank) {
+        private String getRanksAsString(List<String> parents) {
             StringBuilder builder = new StringBuilder();
-            for (String ranks : rank.parents) {
+            for (String ranks : parents) {
                 builder.append(StringUtils.firstUppercase(ranks)).append(", ");
             }
 
