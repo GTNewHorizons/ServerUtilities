@@ -1,5 +1,7 @@
 package serverutils.handlers;
 
+import static serverutils.ServerUtilitiesPermissions.RANK_EDIT;
+
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
@@ -129,7 +131,7 @@ public class ServerUtilitiesRegistryEventHandler {
 
                     @Override
                     public Type getType(ForgePlayer player, NBTTagCompound data) {
-                        return Type.fromBoolean(player.hasPermission(ServerUtilitiesPermissions.RANK_EDIT));
+                        return Type.fromBoolean(player.hasPermission(RANK_EDIT));
                     }
 
                     @Override
