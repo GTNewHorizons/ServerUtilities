@@ -301,6 +301,7 @@ serverutilities.admin_panel.edit_rank=Edit Ranks
 serverutilities.admin_panel.ranks.add_perm=Add Permission
 serverutilities.admin_panel.ranks.add_command=Add Command Permission
 serverutilities.admin_panel.ranks.cant_remove=Default rank can't be removed!
+serverutilities.admin_panel.ranks.delete_confirm=This will permanently delete rank: %s. Are you sure?
 
 # Keys
 key.serverutilities.nbt=Edit NBT

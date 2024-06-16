@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.StatCollector;
 
+import serverutils.lib.client.ClientUtils;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.ConfigValueInstance;
 import serverutils.lib.gui.ContextMenuItem;
@@ -66,38 +67,49 @@ public class GuiRanks extends GuiButtonListBase {
             @Override
             public void onClicked(MouseButton button) {
                 GuiHelper.playClickSound();
-                new GuiAddRank().openGui();
+                new GuiAddRank(GuiRanks.this).openGui();
             }
         });
         for (RankInst inst : ranks.values()) {
-            panel.add(new SimpleTextButton(panel, StringUtils.firstUppercase(inst.getId()), GuiIcons.SETTINGS) {
-
-                @Override
-                public void onClicked(MouseButton button) {
-                    ContextMenuItem item = new ContextMenuItem(
-                            StatCollector.translateToLocal("selectServer.delete"),
-                            GuiIcons.REMOVE,
-                            () -> removeRank(this));
-                    if (button == MouseButton.RIGHT) {
-                        GuiRanks.this.openContextMenu(Collections.singletonList(item));
-                    }
-                    GuiHelper.playClickSound();
-                    new GuiEditRank(inst).openGui();
-                }
-            });
+            panel.add(getRankButton(panel, inst));
         }
     }
 
-    public void removeRank(SimpleTextButton btn) {
-        ranks.remove(btn.getTitle().toLowerCase());
-        panelButtons.widgets.remove(btn);
-        panelButtons.refreshWidgets();
+    public void addRankButton(String name) {
+        RankInst inst = ranks.get(name);
+        if (inst == null) return;
+        panelButtons.add(getRankButton(panelButtons, inst));
     }
 
-    @Override
-    public void onPostInit() {
-        panelButtons.refreshWidgets();
-        super.onPostInit();
+    public SimpleTextButton getRankButton(Panel panel, RankInst inst) {
+        return new SimpleTextButton(panel, StringUtils.firstUppercase(inst.getId()), GuiIcons.SETTINGS) {
+
+            @Override
+            public void onClicked(MouseButton button) {
+                ContextMenuItem item = new ContextMenuItem(
+                        StatCollector.translateToLocal("selectServer.delete"),
+                        GuiIcons.REMOVE,
+                        () -> openYesNo(
+                                StatCollector.translateToLocalFormatted(
+                                        "serverutilities.admin_panel.ranks.delete_confirm",
+                                        inst.getId()),
+                                "",
+                                () -> removeRank(this)));
+                GuiHelper.playClickSound();
+                if (button == MouseButton.RIGHT) {
+                    GuiRanks.this.openContextMenu(Collections.singletonList(item));
+                } else {
+                    new GuiEditRank(inst).openGui();
+                }
+            }
+        };
+    }
+
+    public void removeRank(SimpleTextButton btn) {
+        ClientUtils.execClientCommand("/ranks delete " + btn.getTitle().toLowerCase());
+        ranks.remove(btn.getTitle().toLowerCase());
+        panelButtons.widgets.remove(btn);
+        refreshWidgets();
     }
 
     @Nullable

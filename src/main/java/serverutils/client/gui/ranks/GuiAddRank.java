@@ -20,7 +20,7 @@ public class GuiAddRank extends GuiBase {
     private final Button buttonAccept, buttonCancel;
     private final TextBox textBoxId;
 
-    public GuiAddRank() {
+    public GuiAddRank(GuiRanks prev) {
         setSize(162, 62);
 
         int bwidth = width / 2 - 10;
@@ -29,11 +29,12 @@ public class GuiAddRank extends GuiBase {
             @Override
             public void onClicked(MouseButton button) {
                 GuiHelper.playClickSound();
-                String text = textBoxId.getText();
+                String text = textBoxId.getText().toLowerCase();
                 if (!text.isEmpty()) {
                     getGui().closeGui(true);
                     ClientUtils.execClientCommand("/ranks create " + text);
                     GuiRanks.ranks.put(text, new RankInst(text));
+                    prev.addRankButton(text);
                     new MessageRankUpdateRequest(Collections.singletonList(text)).sendToServer();
                 }
             }
