@@ -1,5 +1,7 @@
 package serverutils.net;
 
+import static serverutils.ServerUtilitiesPermissions.RANK_EDIT;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -9,6 +11,7 @@ import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToServer;
 import serverutils.lib.net.NetworkWrapper;
+import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.ranks.Rank;
 import serverutils.ranks.Ranks;
 
@@ -39,6 +42,7 @@ public class MessageRankUpdateRequest extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
+        if (!PermissionAPI.hasPermission(player, RANK_EDIT)) return;
         Collection<Rank> r = new ArrayList<>();
         for (String id : ranks) {
             Rank rank = Ranks.INSTANCE.getRank(id);

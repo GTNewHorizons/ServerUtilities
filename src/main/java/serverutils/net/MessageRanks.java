@@ -8,10 +8,8 @@ import java.util.Map;
 
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-import net.minecraft.util.StatCollector;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -73,8 +71,7 @@ public class MessageRanks extends MessageToClient {
                             .setInfo(cmd.getTranslatedUsage(p.getPlayer()));
                 } else {
                     group.add(permissionNode, val, defaultValue, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                            .setDisplayName(new ChatComponentTranslation(permissionNode))
-                            .setInfo(getTooltip(permissionNode));
+                            .setDisplayName(new ChatComponentTranslation(permissionNode));
                 }
             }
 
@@ -94,7 +91,7 @@ public class MessageRanks extends MessageToClient {
 
         for (ForgePlayer player : r.universe.getPlayers()) {
             RankInst inst = new RankInst(player.getProfile().getId().toString());
-            boolean isOp = ServerUtils.isOP(null, player.getProfile());;
+            boolean isOp = ServerUtils.isOP(null, player.getProfile());
             inst.group = ConfigGroup.newGroup(player.getName());
             inst.group.add("is_op", new ConfigBoolean(isOp), null).setExcluded(true);
             inst.player = player.getName();
@@ -111,7 +108,7 @@ public class MessageRanks extends MessageToClient {
             allPermissions = ConfigGroup.newGroup("");
             for (RankConfigValueInfo info : RankConfigAPI.getHandler().getRegisteredConfigs()) {
                 allPermissions.add(info.node, info.defaultValue, info.defaultValue, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                        .setDisplayName(new ChatComponentTranslation(info.node)).setInfo(getTooltip(info.node));
+                        .setDisplayName(new ChatComponentTranslation(info.node));
             }
 
             for (String s : PermissionAPI.getPermissionHandler().getRegisteredNodes()) {
@@ -131,7 +128,7 @@ public class MessageRanks extends MessageToClient {
                 if (printNode) {
                     ConfigValue val = new ConfigBoolean(level == DefaultPermissionLevel.ALL);
                     allPermissions.add(s, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                            .setDisplayName(new ChatComponentTranslation(s)).setInfo(getTooltip(s));
+                            .setDisplayName(new ChatComponentTranslation(s));
                 }
             }
         }
@@ -149,14 +146,6 @@ public class MessageRanks extends MessageToClient {
                 }
             }
         }
-    }
-
-    private IChatComponent getTooltip(String node) {
-        if (StatCollector.canTranslate("permission." + node)) {
-            return new ChatComponentText(StatCollector.translateToLocal("permission." + node))
-                    .setChatStyle(new ChatStyle().setColor(EnumChatFormatting.GRAY));
-        }
-        return null;
     }
 
     @Override

@@ -36,12 +36,12 @@ public class GuiEditRank extends GuiEditConfig {
         rank = inst;
         buttonAddPermission = new SimpleButton(
                 this,
-                "Add Permission",
+                StatCollector.translateToLocal("serverutilities.admin_panel.ranks.add_perm"),
                 GuiIcons.ADD,
                 (widget, button) -> openContextMenu(new GuiAddPermission(group, GuiRanks.allPerms)));
         buttonAddCommand = new SimpleButton(
                 this,
-                "Add Command",
+                StatCollector.translateToLocal("serverutilities.admin_panel.ranks.add_command"),
                 GuiIcons.ADD_GRAY.withColor(Color4I.YELLOW),
                 (widget, button) -> openContextMenu(new GuiAddPermission(group, GuiRanks.commandPerms)));
     }
@@ -133,6 +133,14 @@ public class GuiEditRank extends GuiEditConfig {
                     GuiIcons.REMOVE,
                     () -> removeEntry(i.getId()));
             contextItems.add(item);
+        }
+
+        @Override
+        protected void addDescriptionText(List<String> list) {
+            super.addDescriptionText(list);
+            if (StatCollector.canTranslate("permission." + inst.getId())) {
+                list.add(StatCollector.translateToLocal("permission." + inst.getId()));
+            }
         }
 
         @Override

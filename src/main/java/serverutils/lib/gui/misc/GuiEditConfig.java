@@ -218,23 +218,26 @@ public class GuiEditConfig extends GuiBase {
         public void addMouseOverText(List<String> list) {
             if (getMouseY() > 18) {
                 list.add(EnumChatFormatting.UNDERLINE + keyText);
-                IChatComponent infoText = inst.getInfo();
-                EnumChatFormatting color = EnumChatFormatting.GRAY;
-
-                if (!inst.getCanEdit()) {
-                    infoText = new ChatComponentText(ClientUtils.getDisabledTip());
-                    color = EnumChatFormatting.RED;
-                }
-
-                if (!(infoText instanceof ChatComponentTranslation component)
-                        || StatCollector.canTranslate(component.getKey())) {
-                    for (String s : infoText.getFormattedText().split("\n")) {
-                        list.add(color.toString() + EnumChatFormatting.ITALIC + s);
-                    }
-                }
-
+                addDescriptionText(list);
                 list.add("");
                 inst.getValue().addInfo(inst, list);
+            }
+        }
+
+        protected void addDescriptionText(List<String> list) {
+            IChatComponent infoText = inst.getInfo();
+            EnumChatFormatting color = EnumChatFormatting.GRAY;
+
+            if (!inst.getCanEdit()) {
+                infoText = new ChatComponentText(ClientUtils.getDisabledTip());
+                color = EnumChatFormatting.RED;
+            }
+
+            if (!(infoText instanceof ChatComponentTranslation component)
+                    || StatCollector.canTranslate(component.getKey())) {
+                for (String s : infoText.getFormattedText().split("\n")) {
+                    list.add(color.toString() + EnumChatFormatting.ITALIC + s);
+                }
             }
         }
     }

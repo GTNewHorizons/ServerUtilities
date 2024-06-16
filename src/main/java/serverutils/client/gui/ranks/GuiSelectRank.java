@@ -2,10 +2,7 @@ package serverutils.client.gui.ranks;
 
 import java.util.List;
 
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 
 import serverutils.lib.client.ClientUtils;
@@ -24,7 +21,7 @@ public class GuiSelectRank extends GuiButtonListBase {
     public GuiSelectRank(String username, RankInst p) {
         playerRank = p;
         this.username = username;
-        setTitle(StatCollector.translateToLocal("admin_panel.serverutilities.ranks.select_rank"));
+        setTitle(StatCollector.translateToLocal("serverutilities.admin_panel.ranks.select_rank"));
         setHasSearchBox(true);
     }
 
@@ -84,7 +81,7 @@ public class GuiSelectRank extends GuiButtonListBase {
         @Override
         public void addMouseOverText(List<String> list) {
             if (locked) {
-                list.add("Default rank can't be removed.");
+                list.add(StatCollector.translateToLocal("serverutilities.admin_panel.ranks.cant_remove"));
             }
             super.addMouseOverText(list);
         }
@@ -92,9 +89,7 @@ public class GuiSelectRank extends GuiButtonListBase {
         @Override
         public String getDisplayName() {
             if (locked) {
-                IChatComponent component = new ChatComponentText(EnumChatFormatting.GOLD + displayName)
-                        .setChatStyle(new ChatStyle().setItalic(true));
-                return component.getFormattedText();
+                return EnumChatFormatting.GOLD + displayName;
             }
             return super.getDisplayName();
         }
