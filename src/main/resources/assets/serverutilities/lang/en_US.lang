@@ -311,6 +311,7 @@ admin_panel.serverutilities.loaded_chunks=View All Loaded Chunks
 admin_panel.serverutilities.whitelist=Edit Whitelist
 admin_panel.serverutilities.ops=Edit OPs
 admin_panel.serverutilities.edit_world=Edit World
+admin_panel.serverutilities.edit_rank=Edit Ranks
 
 # Keys
 key.serverutilities.nbt=Edit NBT

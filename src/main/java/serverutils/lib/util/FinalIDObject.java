@@ -3,9 +3,11 @@ package serverutils.lib.util;
 public class FinalIDObject implements IWithID {
 
     private final String id;
+    private final int idFlag;
 
     public FinalIDObject(String _id, int flags) {
         id = StringUtils.getID(_id, flags);
+        idFlag = flags;
     }
 
     public FinalIDObject(String id) {
@@ -15,6 +17,10 @@ public class FinalIDObject implements IWithID {
     @Override
     public final String getId() {
         return id;
+    }
+
+    public final int getIdFlag() {
+        return idFlag;
     }
 
     @Override

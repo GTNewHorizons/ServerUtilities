@@ -99,7 +99,7 @@ public class ServerUtilitiesPermissions {
     public static final String CRASH_REPORTS_DELETE = "admin_panel.serverutilities.crash_reports.delete";
     private static final String LEADERBOARD_PREFIX = "serverutilities.leaderboard.";
     public static final String EDIT_WORLD_GAMERULES = "admin_panel.serverutilities.edit_world.gamerules";
-    public static final String RANKS_VIEW = "admin_panel.serverutilities.ranks.view";
+    public static final String RANK_EDIT = "serverutilities.admin_panel.ranks.view";
 
     public static final String TPA_COOLDOWN = "serverutilities.tpa.cooldown";
     public static final String SPAWN_COOLDOWN = "serverutilities.spawn.cooldown";
@@ -224,6 +224,7 @@ public class ServerUtilitiesPermissions {
                 CLAIMS_JOURNEYMAP_OTHER,
                 DefaultPermissionLevel.ALL,
                 "Allow player to see other teams claims on JourneyMap overlay");
+        PermissionAPI.registerNode(RANK_EDIT, DefaultPermissionLevel.OP, "Allow player to edit ranks via Admin Panel");
 
         for (Block block : GameData.getBlockRegistry().typeSafeIterable()) {
             String name = formatId(block);

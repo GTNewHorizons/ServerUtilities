@@ -25,6 +25,7 @@ import serverutils.lib.client.ClientUtils;
 import serverutils.lib.gui.misc.GuiLoading;
 import serverutils.lib.gui.misc.YesNoCallback;
 import serverutils.lib.util.NetUtils;
+import serverutils.lib.util.misc.BooleanConsumer;
 import serverutils.lib.util.misc.MouseButton;
 
 public abstract class GuiBase extends Panel implements IOpenableGui {
@@ -196,8 +197,8 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
         posY = getY();
 
         if (contextMenu != null) {
-            if (contextMenu instanceof GuiBase) {
-                ((GuiBase) contextMenu).updateGui(mx, my, pt);
+            if (contextMenu instanceof GuiBase guiBase) {
+                guiBase.updateGui(mx, my, pt);
             } else {
                 contextMenu.updateMouseOver(mouseX, mouseY);
             }
@@ -446,5 +447,9 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
                 callback.run();
             }
         });
+    }
+
+    public void openUnsavedYesNo(BooleanConsumer callback) {
+        openYesNoFull("Unsaved Changes", "You have unsaved changes. Do you want to save them?", callback::accept);
     }
 }
