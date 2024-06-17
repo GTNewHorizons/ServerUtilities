@@ -237,30 +237,6 @@ public class Ranks {
             }
         }
 
-        File badgeFile = universe.server.getFile(ServerUtilities.SERVER_FOLDER + "server_badges.txt");
-
-        if (badgeFile.exists()) {
-            for (String s : DataReader.get(badgeFile).safeStringList()) {
-                if (s.isEmpty() || s.startsWith("//")) {
-                    continue;
-                }
-
-                String[] s1 = s.trim().split(":", 2);
-
-                if (s1.length == 2) {
-                    ForgePlayer player = universe.getPlayer(s1[0].trim());
-
-                    if (player != null) {
-                        getPlayerRank(player.getProfile())
-                                .setPermission(ServerUtilitiesPermissions.BADGE, s1[1].trim());
-                    }
-                }
-            }
-
-            badgeFile.delete();
-            save = true;
-        }
-
         playersFile = universe.server.getFile(ServerUtilities.SERVER_FOLDER + "players.txt");
 
         currentRank = null;

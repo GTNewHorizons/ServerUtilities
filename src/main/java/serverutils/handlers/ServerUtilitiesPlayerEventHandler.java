@@ -217,14 +217,15 @@ public class ServerUtilitiesPlayerEventHandler {
 
     @SubscribeEvent(priority = EventPriority.LOW)
     public void onNameFormat(PlayerEvent.NameFormat event) {
-        if (ServerUtilitiesConfig.commands.nick && Universe.loaded() && event.entityPlayer instanceof EntityPlayerMP) {
-            ForgePlayer p = Universe.get().getPlayer(event.entityPlayer.getGameProfile());
+        if (!(event.entityPlayer instanceof EntityPlayerMP player) || ServerUtils.isFake(player)) return;
+        if (ServerUtilitiesConfig.commands.nick && Universe.loaded()) {
+            ForgePlayer p = Universe.get().getPlayer(player.getGameProfile());
 
             if (p != null) {
                 ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(p);
 
-                if (!data.getNickname().isEmpty() && PermissionAPI
-                        .hasPermission(event.entityPlayer, ServerUtilitiesPermissions.CHAT_NICKNAME_SET)) {
+                if (!data.getNickname().isEmpty()
+                        && PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CHAT_NICKNAME_SET)) {
                     String name = StringUtils.addFormatting(data.getNickname());
 
                     if (!p.hasPermission(ServerUtilitiesPermissions.CHAT_NICKNAME_COLORS)) {

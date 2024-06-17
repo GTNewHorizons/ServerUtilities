@@ -18,6 +18,8 @@ serverutilities.lang.permissions_dumped=%s permissions successfully dumped to fi
 serverutilities.disabled.config=Disabled in config
 serverutilities.disabled.server=Disabled by server
 serverutilities.vp.button=Show Server Utilities Claims Overlay
+serverutilities.unsaved_changes.title=Unsaved Changes
+serverutilities.unsaved_changes=You have unsaved changes. Do you want to save them?
 
 serverutilities.stat.dph=Deaths Per Hour
 serverutilities.stat.last_seen=Last Seen
@@ -45,6 +47,13 @@ cant_use_now_cooldown=Can't use that right now! Cooldown: %s
 action_bar=Action Bar
 nothing_changed=Nothing changed!
 player_must_be_online=Player must be online!
+
+serverutilities.task.cleanup_entity=Removing %s in %d seconds
+serverutilities.task.cleanup_hostiles=Hostile mobs
+serverutilities.task.cleanup_passives=Passive mobs
+serverutilities.task.cleanup_items=Dropped items
+serverutilities.task.cleanup_experience=XP orbs
+serverutilities.task.cleanup_removed=Removed %s entities from world
 
 serverutilities.lang.reload_server_button=Reload Server
 serverutilities.lang.reload_server=Server reloaded in %s
@@ -237,6 +246,8 @@ player_config.serverutilities.render_badge=Render My Badge
 player_config.serverutilities.enable_pvp=Enable PVP
 player_config.serverutilities.nickname=Nickname
 player_config.serverutilities.afk=AFK Notification Position
+player_config.serverutilities.show_team_prefix=Show Team Prefix In Chat
+player_config.serverutilities.show_team_prefix.info=§rAdd [%s] as a prefix to your chat messages
 
 # Team Settings
 team_config.serverutilities.display=Display
@@ -287,21 +298,21 @@ sidebar_button.serverutilities.mail=Mail
 serverutilities.sidebar_button.reset=Reset Sidebar
 serverutilities.sidebar_button.reset.tooltip=Reset Sidebar Position
 
-admin_panel.serverutilities.file_browser=File Browser
-admin_panel.serverutilities.crash_reports=View Crash Reports
-admin_panel.serverutilities.config=Edit Config
-admin_panel.serverutilities.ranks=Edit Ranks
-admin_panel.serverutilities.ranks.player_ranks=Player Ranks
-admin_panel.serverutilities.ranks.select_rank=Select Rank
-admin_panel.serverutilities.ranks.edit.id=ID
-admin_panel.serverutilities.ranks.edit.parent=Parent
-admin_panel.serverutilities.ranks.edit.chat_formatting=Chat Formatting
-admin_panel.serverutilities.ranks.edit.permissions=Permissions
-admin_panel.serverutilities.claimed_chunks=View All Claimed Chunks
-admin_panel.serverutilities.loaded_chunks=View All Loaded Chunks
-admin_panel.serverutilities.whitelist=Edit Whitelist
-admin_panel.serverutilities.ops=Edit OPs
-admin_panel.serverutilities.edit_world=Edit World
+serverutilities.admin_panel.file_browser=File Browser
+serverutilities.admin_panel.crash_reports=View Crash Reports
+serverutilities.admin_panel.config=Edit Config
+serverutilities.admin_panel.claimed_chunks=View All Claimed Chunks
+serverutilities.admin_panel.loaded_chunks=View All Loaded Chunks
+serverutilities.admin_panel.whitelist=Edit Whitelist
+serverutilities.admin_panel.ops=Edit OPs
+serverutilities.admin_panel.edit_world=Edit World
+serverutilities.admin_panel.ranks.player_ranks=Player Ranks
+serverutilities.admin_panel.ranks.select_rank=Select Rank
+serverutilities.admin_panel.edit_rank=Edit Ranks
+serverutilities.admin_panel.ranks.add_perm=Add Permission
+serverutilities.admin_panel.ranks.add_command=Add Command Permission
+serverutilities.admin_panel.ranks.cant_remove=Default rank can't be removed!
+serverutilities.admin_panel.ranks.delete_confirm=This will permanently delete rank: %s. Are you sure?
 
 # Keys
 key.serverutilities.nbt=Edit NBT

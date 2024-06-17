@@ -38,6 +38,8 @@ public class ServerUtilitiesConfig {
     public static final String LOGGING = WORLD + ".logging";
     public static final String DEBUGGING = "debugging";
     public static final String BACKUPS = "backups";
+    public static final String TASKS = "tasks";
+    public static final String TASK_CLEANUP = TASKS + ".cleanup";
 
     public static final String[] TRISTATE_VALUES = { "TRUE", "FALSE", "DEFAULT" };
 
@@ -64,8 +66,7 @@ public class ServerUtilitiesConfig {
 
         config.setCategoryRequiresWorldRestart(GEN_CAT, true);
 
-        teams.disable_teams = config.get(TEAM_CAT, "disable_teams", false).getBoolean();
-
+        teams.disable_teams = config.get(TEAM_CAT, "disable_teams", false, "Disable teams entirely").getBoolean();
         teams.autocreate_mp = config.get(
                 TEAM_CAT,
                 "autocreate_mp",
@@ -91,6 +92,12 @@ public class ServerUtilitiesConfig {
                 "interaction_protection",
                 true,
                 "Don't allow other players to interact with blocks in claimed chunks").getBoolean();
+        teams.force_team_prefix = config.get(
+                TEAM_CAT,
+                "force_team_prefix",
+                false,
+                "Forces player chat messages to be prefixed with their team name. Example: [Team] <Player> Message")
+                .getBoolean();
 
         config.setCategoryComment(DEBUG_CAT, "Don't set any values to true, unless you are debugging the mod.");
         debugging.special_commands = config.get(DEBUG_CAT, "special_commands", false, "Enables special debug commands.")
@@ -322,6 +329,22 @@ public class ServerUtilitiesConfig {
         world.show_playtime = config.get(WORLD, "show_playtime", false, "Show play time in corner.").getBoolean();
         config.setCategoryRequiresWorldRestart(WORLD, true);
 
+        tasks.cleanup.enabled = config
+                .get(TASK_CLEANUP, "cleanup_enabled", false, "Enables periodic removal of entities").getBoolean();
+        tasks.cleanup.interval = config
+                .get(TASK_CLEANUP, "cleanup_interval", 2.0, "How often the cleanup should run in hours").getDouble();
+        tasks.cleanup.hostiles = config.get(TASK_CLEANUP, "include_hostiles", true, "Include hostile mobs in cleanup")
+                .getBoolean();
+        tasks.cleanup.passives = config.get(TASK_CLEANUP, "include_passives", false, "Include passive mobs in cleanup")
+                .getBoolean();
+        tasks.cleanup.items = config.get(TASK_CLEANUP, "include_items", true, "Include items on the ground in cleanup")
+                .getBoolean();
+        tasks.cleanup.experience = config
+                .get(TASK_CLEANUP, "include_experience", true, "Include experience orbs in cleanup").getBoolean();
+        tasks.cleanup.silent = config
+                .get(TASK_CLEANUP, "silent_cleanup", false, "Silence cleanup warning that are sent prior to starting")
+                .getBoolean();
+
         login.motdComponents = null;
         login.startingItems = null;
         afk.notificationTimer = -1L;
@@ -343,6 +366,7 @@ public class ServerUtilitiesConfig {
     public static final Backups backups = new Backups();
     public static final General general = new General();
     public static final Teams teams = new Teams();
+    public static final Tasks tasks = new Tasks();
 
     public static class General {
 
@@ -358,6 +382,7 @@ public class ServerUtilitiesConfig {
         public boolean hide_team_notification;
         public boolean grief_protection;
         public boolean interaction_protection;
+        public boolean force_team_prefix;
     }
 
     public static class Debugging {
@@ -453,8 +478,6 @@ public class ServerUtilitiesConfig {
 
         public boolean enable_motd;
         public boolean enable_starting_items;
-        public boolean enable_global_badges;
-        public boolean enable_event_badges;
         public String[] motd;
         private List<IChatComponent> motdComponents = null;
         private List<ItemStack> startingItems = null;
@@ -604,5 +627,21 @@ public class ServerUtilitiesConfig {
 
             return false;
         }
+    }
+
+    public static class Tasks {
+
+        public static class Cleanup {
+
+            public boolean enabled;
+            public double interval;
+            public boolean hostiles;
+            public boolean passives;
+            public boolean items;
+            public boolean experience;
+            public boolean silent;
+        }
+
+        public final Cleanup cleanup = new Cleanup();
     }
 }

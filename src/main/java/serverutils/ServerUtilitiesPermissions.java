@@ -36,7 +36,6 @@ public class ServerUtilitiesPermissions {
     public static final ServerUtilitiesPermissions INST = new ServerUtilitiesPermissions();
     // Display //
     public static final String DISPLAY_ADMIN_INFO = "serverutilities.display.admin_info";
-    public static final String BADGE = "serverutilities.badge";
 
     // Homes //
     public static final String HOMES_CROSS_DIM = "serverutilities.homes.cross_dim";
@@ -100,7 +99,7 @@ public class ServerUtilitiesPermissions {
     public static final String CRASH_REPORTS_DELETE = "admin_panel.serverutilities.crash_reports.delete";
     private static final String LEADERBOARD_PREFIX = "serverutilities.leaderboard.";
     public static final String EDIT_WORLD_GAMERULES = "admin_panel.serverutilities.edit_world.gamerules";
-    public static final String RANKS_VIEW = "admin_panel.serverutilities.ranks.view";
+    public static final String RANK_EDIT = "serverutilities.admin_panel.ranks.view";
 
     public static final String TPA_COOLDOWN = "serverutilities.tpa.cooldown";
     public static final String SPAWN_COOLDOWN = "serverutilities.spawn.cooldown";
@@ -225,6 +224,7 @@ public class ServerUtilitiesPermissions {
                 CLAIMS_JOURNEYMAP_OTHER,
                 DefaultPermissionLevel.ALL,
                 "Allow player to see other teams claims on JourneyMap overlay");
+        PermissionAPI.registerNode(RANK_EDIT, DefaultPermissionLevel.OP, "Allow player to edit ranks via Admin Panel");
 
         for (Block block : GameData.getBlockRegistry().typeSafeIterable()) {
             String name = formatId(block);
@@ -283,7 +283,6 @@ public class ServerUtilitiesPermissions {
 
         event.register(CHAT_NAME_FORMAT, new ConfigString("<{name}>"), new ConfigString("<&2{name}&r>"));
         event.register(CHAT_TEXT_COLOR, new ConfigEnum<>(TextComponentParser.TEXT_FORMATTING_COLORS_NAME_MAP));
-        event.register(BADGE, new ConfigString(""));
         event.register(HOMES_MAX, new ConfigInt(1, 0, 30000), new ConfigInt(100));
         event.register(HOMES_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(5)), new ConfigTimer(Ticks.NO_TICKS));
         event.register(WARPS_COOLDOWN, new ConfigTimer(Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));

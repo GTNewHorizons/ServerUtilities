@@ -162,8 +162,8 @@ public class GuiSidebar extends GuiButton {
                 } else {
                     mouseOver.button.onClicked(GuiScreen.isShiftKeyDown());
                 }
+                return true;
             }
-            return true;
         }
         return false;
     }

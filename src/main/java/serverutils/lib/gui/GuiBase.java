@@ -15,6 +15,7 @@ import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -25,6 +26,7 @@ import serverutils.lib.client.ClientUtils;
 import serverutils.lib.gui.misc.GuiLoading;
 import serverutils.lib.gui.misc.YesNoCallback;
 import serverutils.lib.util.NetUtils;
+import serverutils.lib.util.misc.BooleanConsumer;
 import serverutils.lib.util.misc.MouseButton;
 
 public abstract class GuiBase extends Panel implements IOpenableGui {
@@ -196,8 +198,8 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
         posY = getY();
 
         if (contextMenu != null) {
-            if (contextMenu instanceof GuiBase) {
-                ((GuiBase) contextMenu).updateGui(mx, my, pt);
+            if (contextMenu instanceof GuiBase guiBase) {
+                guiBase.updateGui(mx, my, pt);
             } else {
                 contextMenu.updateMouseOver(mouseX, mouseY);
             }
@@ -446,5 +448,12 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
                 callback.run();
             }
         });
+    }
+
+    public void openUnsavedYesNo(BooleanConsumer callback) {
+        openYesNoFull(
+                StatCollector.translateToLocal("serverutilities.unsaved_changes.title"),
+                StatCollector.translateToLocal("serverutilities.unsaved_changes"),
+                callback::accept);
     }
 }

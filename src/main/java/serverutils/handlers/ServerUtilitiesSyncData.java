@@ -5,9 +5,9 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ISyncData;
+import serverutils.task.ShutdownTask;
 
 public class ServerUtilitiesSyncData implements ISyncData {
 
@@ -15,8 +15,8 @@ public class ServerUtilitiesSyncData implements ISyncData {
     public NBTTagCompound writeSyncData(EntityPlayerMP player, ForgePlayer forgePlayer) {
         NBTTagCompound nbt = new NBTTagCompound();
 
-        if (ServerUtilitiesUniverseData.shutdownTime > 0L) {
-            nbt.setLong("ShutdownTime", ServerUtilitiesUniverseData.shutdownTime - System.currentTimeMillis());
+        if (ShutdownTask.shutdownTime > 0L) {
+            nbt.setLong("ShutdownTime", ShutdownTask.shutdownTime - System.currentTimeMillis());
         }
 
         return nbt;

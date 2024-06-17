@@ -35,6 +35,8 @@ public class StringUtils {
     public static final int FLAG_ID_ONLY_UNDERLINE = 8;
     public static final int FLAG_ID_ONLY_UNDERLINE_OR_PERIOD = FLAG_ID_ONLY_UNDERLINE | 16;
     public static final int FLAG_ID_DEFAULTS = FLAG_ID_FIX | FLAG_ID_ONLY_LOWERCASE | FLAG_ID_ONLY_UNDERLINE;
+    public static final int FLAG_ID_PERIOD_DEFAULTS = FLAG_ID_FIX | FLAG_ID_ONLY_LOWERCASE
+            | FLAG_ID_ONLY_UNDERLINE_OR_PERIOD;
 
     public static final Comparator<Object> IGNORE_CASE_COMPARATOR = (o1, o2) -> String.valueOf(o1)
             .compareToIgnoreCase(String.valueOf(o2));

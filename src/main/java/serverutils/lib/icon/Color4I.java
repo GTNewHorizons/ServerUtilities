@@ -61,6 +61,7 @@ public class Color4I extends Icon {
     public static final Color4I LIGHT_RED = rgb(0xFF5656);
     public static final Color4I LIGHT_GREEN = rgb(0x56FF56);
     public static final Color4I LIGHT_BLUE = rgb(0x5656FF);
+    public static final Color4I YELLOW = rgb(0xFFFF00);
     private static final Color4I[] CHAT_FORMATTING_COLORS = new Color4I[16];
     private static final Color4I[] DYE_TEXT_FORMATTING_COLORS = new Color4I[32];
     private static final Color4I[] COLORS_256 = new Color4I[256];

@@ -4,7 +4,7 @@ import serverutils.lib.util.misc.NameMap;
 
 public enum EnumMessageLocation {
 
-    OFF("options.narrator.off"),
+    OFF("options.off"),
     CHAT("options.chat.visibility"),
     ACTION_BAR("action_bar");
 

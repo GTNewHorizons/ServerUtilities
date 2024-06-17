@@ -16,7 +16,7 @@ import serverutils.lib.util.misc.NameMap;
 
 public class TextComponentParser {
 
-    public static final NameMap.ObjectProperties<EnumChatFormatting> TEXT_FORMATTING_OBJECT_PROPERTIES = new NameMap.ObjectProperties<EnumChatFormatting>() {
+    public static final NameMap.ObjectProperties<EnumChatFormatting> TEXT_FORMATTING_OBJECT_PROPERTIES = new NameMap.ObjectProperties<>() {
 
         @Override
         public String getName(EnumChatFormatting value) {
@@ -63,8 +63,8 @@ public class TextComponentParser {
         return new TextComponentParser(text, substitutes).parse();
     }
 
-    private String text;
-    private Function<String, IChatComponent> substitutes;
+    private final String text;
+    private final Function<String, IChatComponent> substitutes;
 
     private IChatComponent component;
     private StringBuilder builder;
@@ -114,57 +114,45 @@ public class TextComponentParser {
             }
 
             if (!escape) {
+                char prev = c[i];
                 if (c[i] == '&') {
                     c[i] = StringUtils.FORMATTING_CHAR;
                 }
 
                 if (c[i] == StringUtils.FORMATTING_CHAR) {
-                    finishPart();
 
-                    if (end) {
-                        throw new IllegalArgumentException(
-                                "Invalid formatting! Can't end string with & or " + StringUtils.FORMATTING_CHAR + "!");
+                    if (end || i + 1 >= c.length) {
+                        builder.append(prev);
+                        break;
                     }
 
-                    i++;
-
-                    EnumChatFormatting formatting = CODE_TO_FORMATTING.get(c[i]);
+                    EnumChatFormatting formatting = CODE_TO_FORMATTING.get(c[i + 1]);
 
                     if (formatting == null) {
-                        throw new IllegalArgumentException(
-                                "Illegal formatting! Unknown color code character: " + c[i] + "!");
+                        builder.append(prev);
+                        continue;
                     }
 
+                    finishPart();
+                    i++;
+
                     switch (formatting) {
-                        case OBFUSCATED:
-                            style.setObfuscated(!style.getObfuscated());
-                            break;
-                        case BOLD:
-                            style.setBold(!style.getBold());
-                            break;
-                        case STRIKETHROUGH:
-                            style.setStrikethrough(!style.getStrikethrough());
-                            break;
-                        case UNDERLINE:
-                            style.setUnderlined(!style.getUnderlined());
-                            break;
-                        case ITALIC:
-                            style.setItalic(!style.getItalic());
-                            break;
-                        case RESET:
-                            style = new ChatStyle();
-                            break;
-                        default:
-                            style.setColor(formatting);
+                        case OBFUSCATED -> style.setObfuscated(!style.getObfuscated());
+                        case BOLD -> style.setBold(!style.getBold());
+                        case STRIKETHROUGH -> style.setStrikethrough(!style.getStrikethrough());
+                        case UNDERLINE -> style.setUnderlined(!style.getUnderlined());
+                        case ITALIC -> style.setItalic(!style.getItalic());
+                        case RESET -> style = new ChatStyle();
+                        default -> style.setColor(formatting);
                     }
 
                     continue;
                 } else if (c[i] == '{') {
-                    finishPart();
-
                     if (end) {
-                        throw new IllegalArgumentException("Invalid formatting! Can't end string with {!");
+                        builder.append(c[i]);
+                        break;
                     }
+                    finishPart();
 
                     sub = true;
                 }
@@ -182,28 +170,24 @@ public class TextComponentParser {
     private void finishPart() {
         String string = builder.toString();
         builder.setLength(0);
+        if (string.isEmpty()) return;
 
-        if (string.isEmpty()) {
-            return;
-        } else if (string.length() < 2 || string.charAt(0) != '{') {
-            IChatComponent component1 = new ChatComponentText(string);
+        IChatComponent component1 = new ChatComponentText(string);
+        if (string.length() < 2 || string.charAt(0) != '{') {
             component1.setChatStyle(style.createShallowCopy());
             component.appendSibling(component1);
             return;
         }
 
-        IChatComponent component1 = substitutes.apply(string.substring(1));
-
-        if (component1 != null) {
-            ChatStyle style0 = component1.getChatStyle().createShallowCopy();
-            ChatStyle style1 = style.createShallowCopy();
-            style1.setChatHoverEvent(style0.getChatHoverEvent());
-            style1.setChatClickEvent(style0.getChatClickEvent());
-            component1.setChatStyle(style1);
-        } else {
-            throw new IllegalArgumentException("Invalid formatting! Unknown substitute " + string);
+        if (substitutes != null) {
+            component1 = substitutes.apply(string.substring(1));
         }
 
+        ChatStyle style0 = component1.getChatStyle().createShallowCopy();
+        ChatStyle style1 = style.createShallowCopy();
+        style1.setChatHoverEvent(style0.getChatHoverEvent());
+        style1.setChatClickEvent(style0.getChatClickEvent());
+        component1.setChatStyle(style1);
         component.appendSibling(component1);
     }
 }

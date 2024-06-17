@@ -5,13 +5,10 @@ import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.settings.KeyBinding;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.world.World;
 import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.opengl.Display;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -34,7 +31,6 @@ import serverutils.integration.vp.VPIntegration;
 import serverutils.lib.OtherMods;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.IncompatibleModException;
-import serverutils.lib.client.ParticleColoredDust;
 import serverutils.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.icon.PlayerHeadIcon;
 import serverutils.lib.net.MessageToClient;
@@ -48,21 +44,11 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
-
         ServerUtilitiesClientConfig.init(event);
         ClientUtils.localPlayerHead = new PlayerHeadIcon(Minecraft.getMinecraft().getSession().func_148256_e().getId());
         ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager())
                 .registerReloadListener(SidebarButtonManager.INSTANCE);
         ChunkSelectorMap.setMap(new BuiltinChunkMap());
-
-        if (System.getProperty("serverlibdev", "0").equals("1")) {
-            Display.setTitle(
-                    "[MC " + EnumChatFormatting.GOLD
-                            + Loader.MC_VERSION
-                            + EnumChatFormatting.WHITE
-                            + " Dev :: "
-                            + Minecraft.getMinecraft().getSession().getUsername());
-        }
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientConfig.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientEventHandler.INST);
@@ -101,15 +87,10 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
     @Override
     public void handleClientMessage(MessageToClient message) {
         if (ServerUtilitiesConfig.debugging.log_network) {
-            ServerUtilities.LOGGER.info("Net RX: " + message.getClass().getName());
+            ServerUtilities.LOGGER.info("Net RX: {}", message.getClass().getName());
         }
 
         message.onMessage();
-    }
-
-    @Override
-    public void spawnDust(World world, double x, double y, double z, float r, float g, float b, float a) {
-        ClientUtils.spawnParticle(new ParticleColoredDust(world, x, y, z, r, g, b, a));
     }
 
     @Override

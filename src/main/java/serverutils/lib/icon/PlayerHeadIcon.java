@@ -95,7 +95,7 @@ public class PlayerHeadIcon extends ImageIcon {
                                     }
                                 }
                             }
-                        } catch (Exception ex) {}
+                        } catch (Exception ignored) {}
 
                         if (imageUrl.isEmpty()) {
                             return;
@@ -106,7 +106,7 @@ public class PlayerHeadIcon extends ImageIcon {
                                     DataReader
                                             .get(new URL(imageUrl), DataReader.PNG, Minecraft.getMinecraft().getProxy())
                                             .image());
-                        } catch (Exception ex) {}
+                        } catch (Exception ignored) {}
                     }
                 };
 
@@ -141,8 +141,8 @@ public class PlayerHeadIcon extends ImageIcon {
     @SideOnly(Side.CLIENT)
     public void draw(int x, int y, int w, int h) {
         bindTexture();
-        GuiHelper.drawTexturedRect(x, y, w, h, color, 0.125D, 0.125D, 0.25D, 0.25D);
-        GuiHelper.drawTexturedRect(x, y, w, h, color, 0.625D, 0.125D, 0.75D, 0.25D);
+        GuiHelper.drawTexturedRect(x, y, w, h, color, 0.125D, 0.25D, 0.25D, 0.50D);
+        GuiHelper.drawTexturedRect(x, y, w, h, color, 0.625D, 0.25D, 0.75D, 0.50D);
     }
 
     @Override

@@ -2,8 +2,11 @@ package serverutils.lib.gui;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import serverutils.lib.client.GlStateManager;
+import serverutils.lib.gui.misc.GuiButtonListBase;
+import serverutils.lib.icon.Color4I;
 import serverutils.lib.util.misc.MouseButton;
 
 public class CheckBoxList extends Button {
@@ -11,11 +14,14 @@ public class CheckBoxList extends Button {
     public static class CheckBoxEntry {
 
         public String name;
+        public String displayName;
         public int value = 0;
-        private CheckBoxList checkBoxList;
+        protected boolean locked = false;
+        protected CheckBoxList checkBoxList;
 
         public CheckBoxEntry(String n) {
             name = n;
+            displayName = n;
         }
 
         public void onClicked(MouseButton button, int index) {
@@ -23,12 +29,27 @@ public class CheckBoxList extends Button {
             GuiHelper.playClickSound();
         }
 
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        public CheckBoxEntry setDisplayName(String name) {
+            displayName = name;
+            return this;
+        }
+
+        public CheckBoxEntry setLocked(boolean state) {
+            locked = state;
+            return this;
+        }
+
         public void addMouseOverText(List<String> list) {}
 
         public CheckBoxEntry select(int v) {
+            if (locked) return this;
             if (checkBoxList.radioButtons) {
                 if (v > 0) {
-                    for (CheckBoxEntry entry : checkBoxList.entries) {
+                    for (CheckBoxEntry entry : checkBoxList.getActiveEntries()) {
                         boolean old1 = entry.value > 0;
                         entry.value = 0;
 
@@ -55,9 +76,9 @@ public class CheckBoxList extends Button {
     }
 
     public final boolean radioButtons;
-    private final List<CheckBoxEntry> entries;
+    protected final List<CheckBoxEntry> entries;
 
-    public CheckBoxList(GuiBase gui, boolean radiobutton) {
+    public CheckBoxList(Panel gui, boolean radiobutton) {
         super(gui);
         setSize(10, 2);
         radioButtons = radiobutton;
@@ -76,12 +97,15 @@ public class CheckBoxList extends Button {
     }
 
     public void getCheckboxIcon(Theme theme, int x, int y, int w, int h, int index, int value) {
-        theme.drawCheckbox(x, y, w, h, WidgetType.mouseOver(isMouseOver()), value != 0, radioButtons);
+        if (value > 0) {
+            GuiIcons.BLANK.withColor(Color4I.BLACK.withAlpha(150)).draw(x, y, w, h);
+        }
     }
 
     public void addBox(CheckBoxEntry checkBox) {
         checkBox.checkBoxList = this;
         entries.add(checkBox);
+        entries.sort((e1, e2) -> e1.name.compareToIgnoreCase(e2.name));
         setWidth(Math.max(width, getGui().getTheme().getStringWidth(checkBox.name)));
         setHeight(height + 11);
     }
@@ -94,33 +118,66 @@ public class CheckBoxList extends Button {
 
     @Override
     public void onClicked(MouseButton button) {
-        int y = getMouseY() - getY();
-
-        if (y % 11 == 10) {
-            return;
-        }
-
-        int i = y / 11;
-
-        if (i >= 0 && i < entries.size()) {
-            entries.get(i).onClicked(button, i);
+        CheckBoxEntry entry = getEntryUnderMouse();
+        if (entry != null) {
+            entry.onClicked(button, getActiveEntries().indexOf(entry));
         }
     }
 
     @Override
-    public void addMouseOverText(List<String> list) {}
+    public void addMouseOverText(List<String> list) {
+        CheckBoxEntry entry = getEntryUnderMouse();
+
+        if (entry != null) {
+            entry.addMouseOverText(list);
+        }
+    }
+
+    public List<CheckBoxEntry> getActiveEntries() {
+        if (getGui() instanceof GuiButtonListBase btnList && btnList.hasSearchBox()
+                && !btnList.getTextInSearchBox().isEmpty()) {
+            return entries.stream().filter(entry -> entry.name.toLowerCase().contains(btnList.getTextInSearchBox()))
+                    .collect(Collectors.toList());
+        }
+        return entries;
+    }
 
     @Override
     public void draw(Theme theme, int x, int y, int w, int h) {
         drawBackground(theme, x, y, w, h);
 
-        for (int i = 0; i < entries.size(); i++) {
-            CheckBoxEntry entry = entries.get(i);
+        for (int i = 0; i < getActiveEntries().size(); i++) {
+            CheckBoxEntry entry = getActiveEntries().get(i);
             int ey = y + i * 11 + 1;
             drawCheckboxBackground(theme, x, ey, 10, 10);
             getCheckboxIcon(theme, x + 1, ey + 1, 8, 8, i, entry.value);
-            theme.drawString(entry.name, x + 12, ey + 1);
+            if (parent.isMouseOver && getEntryUnderMouse() == entry) {
+                theme.drawString(
+                        entry.getDisplayName(),
+                        x + 12,
+                        ey + 1,
+                        theme.getContentColor(WidgetType.mouseOver(true)),
+                        Theme.SHADOW);
+            } else {
+                theme.drawString(entry.getDisplayName(), x + 12, ey + 1, Theme.SHADOW);
+            }
             GlStateManager.color(1F, 1F, 1F, 1F);
         }
+    }
+
+    public CheckBoxEntry getEntryUnderMouse() {
+        int y = getMouseY() - getY();
+
+        if (y % 11 == 10) {
+            return null;
+        }
+
+        int i = y / 11;
+
+        if (i >= 0 && i < getActiveEntries().size()) {
+            return getActiveEntries().get(i);
+        }
+
+        return null;
     }
 }

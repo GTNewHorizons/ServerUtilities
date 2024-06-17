@@ -20,8 +20,6 @@ public class ServerUtilitiesNetHandler {
         GENERAL.register(new MessageAdminPanelGui());
         GENERAL.register(new MessageAdminPanelGuiResponse());
         GENERAL.register(new MessageAdminPanelAction());
-        GENERAL.register(new MessageRequestBadge());
-        GENERAL.register(new MessageSendBadge());
         GENERAL.register(new MessageUpdateTabName());
         GENERAL.register(new MessageUpdatePlayTime());
 
@@ -44,6 +42,8 @@ public class ServerUtilitiesNetHandler {
         FILES.register(new MessageViewCrash());
         FILES.register(new MessageViewCrashResponse());
         FILES.register(new MessageViewCrashDelete());
+        FILES.register(new MessageRankModify());
+        FILES.register(new MessageRanks());
 
         MY_TEAM.register(new MessageSelectTeamGui());
         MY_TEAM.register(new MessageMyTeamGui());

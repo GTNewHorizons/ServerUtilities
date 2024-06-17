@@ -11,6 +11,7 @@ import serverutils.lib.io.Bits;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.util.FinalIDObject;
+import serverutils.lib.util.StringUtils;
 
 public final class ConfigValueInstance extends FinalIDObject {
 
@@ -29,8 +30,8 @@ public final class ConfigValueInstance extends FinalIDObject {
     private int order;
     private Icon icon;
 
-    public ConfigValueInstance(String id, ConfigGroup g, ConfigValue v) {
-        super(id);
+    public ConfigValueInstance(String id, ConfigGroup g, ConfigValue v, int flag) {
+        super(id, flag);
         group = g;
         value = v;
         defaultValue = ConfigNull.INSTANCE;
@@ -41,8 +42,12 @@ public final class ConfigValueInstance extends FinalIDObject {
         icon = GuiIcons.SETTINGS_RED;
     }
 
+    public ConfigValueInstance(String id, ConfigGroup g, ConfigValue v) {
+        this(id, g, v, StringUtils.FLAG_ID_DEFAULTS);
+    }
+
     public ConfigValueInstance(ConfigGroup g, DataIn data) {
-        super(data.readString());
+        super(data.readString(), data.readVarInt());
         group = g;
         value = ServerUtilitiesAPI.createConfigValueFromId(data.readString());
         value.readData(data);
@@ -61,10 +66,6 @@ public final class ConfigValueInstance extends FinalIDObject {
     public ConfigValue getValue() {
         return value;
     }
-
-    /*
-     * public ConfigValueInstance changeValueType(ConfigValue newValue) { return this; }
-     */
 
     public ConfigValueInstance setDefaultValue(ConfigValue def) {
         if (def.isNull()) {
@@ -173,7 +174,7 @@ public final class ConfigValueInstance extends FinalIDObject {
     }
 
     public ConfigValueInstance copy(ConfigGroup g) {
-        ConfigValueInstance inst = new ConfigValueInstance(getId(), g, value.copy());
+        ConfigValueInstance inst = new ConfigValueInstance(getId(), g, value.copy(), getIdFlag());
         inst.defaultValue = defaultValue.copy();
         inst.displayName = displayName == null ? null : displayName.createCopy();
         inst.info = info == null ? null : info.createCopy();
