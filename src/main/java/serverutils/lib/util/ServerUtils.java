@@ -164,6 +164,10 @@ public class ServerUtils {
         }
     }
 
+    public static void notifyAllChat(MinecraftServer server, String message) {
+        notifyChat(server, null, new ChatComponentText(message));
+    }
+
     public static void notify(MinecraftServer server, @Nullable EntityPlayer player, IChatComponent notification) {
         if (player == null) {
             new MessageNotification(notification).sendToAll();

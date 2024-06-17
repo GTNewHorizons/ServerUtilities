@@ -12,8 +12,10 @@ import serverutils.data.TeleportType;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
+import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
+import serverutils.task.Task;
 
 public class CmdBack extends CmdBase {
 
@@ -41,12 +43,18 @@ public class CmdBack extends CmdBase {
 
         data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.BACK);
 
-        ServerUtilitiesPlayerData.Timer.BACK.teleport(player, playerMP -> lastTeleportLog.teleporter(), universe -> {
-            if (!PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.INFINITE_BACK_USAGE)) {
-                for (TeleportType t : TeleportType.values()) {
-                    data.clearLastTeleport(t);
+        Task task = new Task() {
+
+            @Override
+            public void execute(Universe universe) {
+                if (!PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.INFINITE_BACK_USAGE)) {
+                    for (TeleportType t : TeleportType.values()) {
+                        data.clearLastTeleport(t);
+                    }
                 }
             }
-        });
+        };
+
+        ServerUtilitiesPlayerData.Timer.BACK.teleport(player, playerMP -> lastTeleportLog.teleporter(), task);
     }
 }
