@@ -2,7 +2,7 @@ package serverutils.handlers;
 
 import static serverutils.ServerUtilitiesPermissions.RANK_EDIT;
 
-import net.minecraft.item.Item;
+import net.minecraft.init.Items;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
@@ -11,6 +11,7 @@ import net.minecraft.world.GameRules;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.events.ServerUtilitiesPreInitRegistryEvent;
@@ -43,11 +44,7 @@ public class ServerUtilitiesRegistryEventHandler {
         registry.registerSyncData(ServerUtilities.MOD_ID, new ServerUtilitiesSyncData());
 
         registry.registerAdminPanelAction(
-                new AdminPanelAction(
-                        ServerUtilities.MOD_ID,
-                        "crash_reports",
-                        ItemIcon.getItemIcon(Item.getItemById(339)),
-                        0) {
+                new AdminPanelAction(ServerUtilities.MOD_ID, "crash_reports", ItemIcon.getItemIcon(Items.paper), 0) {
 
                     @Override
                     public Type getType(ForgePlayer player, NBTTagCompound data) {
@@ -123,15 +120,11 @@ public class ServerUtilitiesRegistryEventHandler {
 
                 });
         registry.registerAdminPanelAction(
-                new AdminPanelAction(
-                        ServerUtilities.MOD_ID,
-                        "edit_rank",
-                        ItemIcon.getItemIcon(Item.getItemById(340)),
-                        0) {
+                new AdminPanelAction(ServerUtilities.MOD_ID, "edit_rank", ItemIcon.getItemIcon(Items.book), 0) {
 
                     @Override
                     public Type getType(ForgePlayer player, NBTTagCompound data) {
-                        return Type.fromBoolean(player.hasPermission(RANK_EDIT));
+                        return Type.fromBoolean(ServerUtilitiesConfig.ranks.enabled && player.hasPermission(RANK_EDIT));
                     }
 
                     @Override
