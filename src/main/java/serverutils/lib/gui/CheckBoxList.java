@@ -134,11 +134,9 @@ public class CheckBoxList extends Button {
     }
 
     public List<CheckBoxEntry> getActiveEntries() {
-        if (getGui() instanceof GuiButtonListBase btnList && btnList.hasSearchBox()) {
-            return entries.stream()
-                    .filter(
-                            entry -> btnList.getTextInSearchBox().isEmpty()
-                                    || entry.name.toLowerCase().contains(btnList.getTextInSearchBox()))
+        if (getGui() instanceof GuiButtonListBase btnList && btnList.hasSearchBox()
+                && !btnList.getTextInSearchBox().isEmpty()) {
+            return entries.stream().filter(entry -> entry.name.toLowerCase().contains(btnList.getTextInSearchBox()))
                     .collect(Collectors.toList());
         }
         return entries;
