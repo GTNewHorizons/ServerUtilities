@@ -1,7 +1,7 @@
 package serverutils.client.gui.ranks;
 
-import java.util.Collections;
-
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 
 import serverutils.lib.client.ClientUtils;
@@ -13,7 +13,6 @@ import serverutils.lib.gui.TextBox;
 import serverutils.lib.icon.Icon;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.misc.MouseButton;
-import serverutils.net.MessageRankUpdateRequest;
 
 public class GuiAddRank extends GuiBase {
 
@@ -33,9 +32,10 @@ public class GuiAddRank extends GuiBase {
                 if (!text.isEmpty()) {
                     getGui().closeGui(true);
                     ClientUtils.execClientCommand("/ranks create " + text);
-                    GuiRanks.ranks.put(text, new RankInst(text));
-                    prev.addRankButton(text);
-                    new MessageRankUpdateRequest(Collections.singletonList(text)).sendToServer();
+                    RankInst inst = new RankInst(text);
+                    inst.group.setDisplayName(
+                            new ChatComponentText(EnumChatFormatting.BOLD + StringUtils.firstUppercase(text)));
+                    prev.addRank(inst);
                 }
             }
 

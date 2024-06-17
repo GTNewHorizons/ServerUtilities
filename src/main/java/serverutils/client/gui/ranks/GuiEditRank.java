@@ -1,7 +1,6 @@
 package serverutils.client.gui.ranks;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -23,7 +22,6 @@ import serverutils.lib.gui.misc.GuiEditConfig;
 import serverutils.lib.icon.Color4I;
 import serverutils.lib.util.misc.MouseButton;
 import serverutils.net.MessageRankModify;
-import serverutils.net.MessageRankUpdateRequest;
 
 public class GuiEditRank extends GuiEditConfig {
 
@@ -70,7 +68,6 @@ public class GuiEditRank extends GuiEditConfig {
                 }
             }
             new MessageRankModify(rank, removedEntries).sendToServer();
-            new MessageRankUpdateRequest(Collections.singletonList(rank.getId())).sendToServer();
         }
         super.onClosed();
     }

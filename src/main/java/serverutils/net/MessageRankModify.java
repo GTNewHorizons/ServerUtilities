@@ -5,6 +5,7 @@ import static serverutils.ServerUtilitiesPermissions.RANK_EDIT;
 import java.util.Collection;
 
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentText;
 
 import serverutils.client.gui.ranks.RankInst;
 import serverutils.lib.config.ConfigValueInstance;
@@ -50,7 +51,10 @@ public class MessageRankModify extends MessageToServer {
         if (!PermissionAPI.hasPermission(player, RANK_EDIT)) return;
         boolean shouldSave = false;
         Rank rank = Ranks.INSTANCE.getRank(inst.getId());
-        if (rank == null) return;
+        if (rank == null) {
+            player.addChatMessage(new ChatComponentText("Rank: " + inst.getId() + " not found"));
+            return;
+        }
 
         for (ConfigValueInstance value : inst.group.getValues()) {
             if (rank.setPermission(value.getId(), value.getValue()) != null) {

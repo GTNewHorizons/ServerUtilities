@@ -32,7 +32,7 @@ public class RankInst extends FinalIDObject {
     public RankInst(String id) {
         super(id);
         parents = new HashSet<>();
-        group = ConfigGroup.DEFAULT;
+        group = ConfigGroup.newGroup("");
         player = "";
     }
 }

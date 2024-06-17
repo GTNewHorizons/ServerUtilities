@@ -44,10 +44,8 @@ public class ServerUtilitiesNetHandler {
         FILES.register(new MessageViewCrash());
         FILES.register(new MessageViewCrashResponse());
         FILES.register(new MessageViewCrashDelete());
-        FILES.register(new MessageRankUpdateResponse());
         FILES.register(new MessageRankModify());
         FILES.register(new MessageRanks());
-        FILES.register(new MessageRankUpdateRequest());
 
         MY_TEAM.register(new MessageSelectTeamGui());
         MY_TEAM.register(new MessageMyTeamGui());

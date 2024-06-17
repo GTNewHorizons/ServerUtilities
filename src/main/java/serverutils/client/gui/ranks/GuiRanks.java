@@ -71,17 +71,19 @@ public class GuiRanks extends GuiButtonListBase {
             }
         });
         for (RankInst inst : ranks.values()) {
-            panel.add(getRankButton(panel, inst));
+            panel.add(addRankButton(panel, inst));
         }
     }
 
-    public void addRankButton(String name) {
-        RankInst inst = ranks.get(name);
-        if (inst == null) return;
-        panelButtons.add(getRankButton(panelButtons, inst));
+    public void addRank(RankInst inst) {
+        ranks.computeIfAbsent(inst.getId(), k -> {
+            addRankButton(panelButtons, inst);
+            refreshWidgets();
+            return inst;
+        });
     }
 
-    public SimpleTextButton getRankButton(Panel panel, RankInst inst) {
+    public SimpleTextButton addRankButton(Panel panel, RankInst inst) {
         return new SimpleTextButton(panel, StringUtils.firstUppercase(inst.getId()), GuiIcons.SETTINGS) {
 
             @Override
