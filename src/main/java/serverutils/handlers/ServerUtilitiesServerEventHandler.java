@@ -43,12 +43,12 @@ public class ServerUtilitiesServerEventHandler {
 
     public static final ServerUtilitiesServerEventHandler INST = new ServerUtilitiesServerEventHandler();
     private static final ResourceLocation AFK_ID = new ResourceLocation(ServerUtilities.MOD_ID, "afk");
-    private static final Pattern STRIKETHROUGH_PATTERN = Pattern.compile("\\~\\~(.*?)\\~\\~");
+    private static final Pattern STRIKETHROUGH_PATTERN = Pattern.compile("~~(.+?)~~");
     private static final String STRIKETHROUGH_REPLACE = "&m$1&m";
-    private static final Pattern BOLD_PATTERN = Pattern.compile("\\*\\*(.*?)\\*\\*|__(.*?)__");
-    private static final String BOLD_REPLACE = "&l$1$2&l";
-    private static final Pattern ITALIC_PATTERN = Pattern.compile("\\*(.*?)\\*|_(.*?)_");
-    private static final String ITALIC_REPLACE = "&o$1$2&o";
+    private static final Pattern BOLD_PATTERN = Pattern.compile("\\*\\*(.+?)\\*\\*|__(.+?)__");
+    private static final String BOLD_REPLACE = "&l$1&l";
+    private static final Pattern ITALIC_PATTERN = Pattern.compile("\\*(.+?)\\*|_(.+?)_");
+    private static final String ITALIC_REPLACE = "&o$1&o";
 
     @SubscribeEvent
     public void onCacheCleared(UniverseClearCacheEvent event) {
@@ -87,7 +87,7 @@ public class ServerUtilitiesServerEventHandler {
                 message = message.replace(entry.getValue(), "<emoji:" + entry.getKey() + ">");
             }
 
-            b = !message.equals(message = STRIKETHROUGH_PATTERN.matcher(message).replaceAll(STRIKETHROUGH_REPLACE)) | b;
+            b = !message.equals(message = STRIKETHROUGH_PATTERN.matcher(message).replaceAll(STRIKETHROUGH_REPLACE));
             b = !message.equals(message = BOLD_PATTERN.matcher(message).replaceAll(BOLD_REPLACE)) | b;
             b = !message.equals(message = ITALIC_PATTERN.matcher(message).replaceAll(ITALIC_REPLACE)) | b;
 
