@@ -339,8 +339,8 @@ public class ServerUtilitiesCommon {
     public void registerTasks() {
         Universe universe = Universe.get();
         universe.scheduleTask(new DecayTask(), world.chunk_claiming);
-        universe.scheduleTask(new CleanupTask(tasks.cleanup.interval), tasks.cleanup.enabled);
-        universe.scheduleTask(new BackupTask(backups.backup_timer), backups.enable_backups);
+        universe.scheduleTask(new CleanupTask(), tasks.cleanup.enabled);
+        universe.scheduleTask(new BackupTask(), backups.enable_backups);
         if (auto_shutdown.enabled && auto_shutdown.times.length > 0
                 && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
             universe.scheduleTask(new ShutdownTask());

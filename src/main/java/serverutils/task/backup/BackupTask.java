@@ -1,5 +1,6 @@
 package serverutils.task.backup;
 
+import static serverutils.ServerUtilitiesConfig.backups;
 import static serverutils.ServerUtilitiesNotifications.BACKUP_START;
 
 import java.io.File;
@@ -30,15 +31,15 @@ public class BackupTask extends Task {
     private boolean post = false;
 
     static {
-        backupsFolder = ServerUtilitiesConfig.backups.backup_folder_path.isEmpty() ? new File("/backups/")
-                : new File(ServerUtilitiesConfig.backups.backup_folder_path);
+        backupsFolder = backups.backup_folder_path.isEmpty() ? new File("/backups/")
+                : new File(backups.backup_folder_path);
         if (!backupsFolder.exists()) backupsFolder.mkdirs();
         clearOldBackups();
         ServerUtilities.LOGGER.info("Backups folder - {}", backupsFolder.getAbsolutePath());
     }
 
-    public BackupTask(double interval) {
-        super(Ticks.HOUR.x(interval));
+    public BackupTask() {
+        super(Ticks.HOUR.x(backups.backup_timer));
     }
 
     public BackupTask(@Nullable ICommandSender ics, String customName) {
@@ -65,10 +66,10 @@ public class BackupTask extends Task {
         if (thread != null) return;
         boolean auto = sender == null;
 
-        if (auto && !ServerUtilitiesConfig.backups.enable_backups) return;
+        if (auto && !backups.enable_backups) return;
 
         MinecraftServer server = universe.server;
-        if (auto && ServerUtilitiesConfig.backups.need_online_players) {
+        if (auto && backups.need_online_players) {
             if (!hasOnlinePlayers(server) && !hadPlayer) return;
             hadPlayer = false;
         }
@@ -88,7 +89,7 @@ public class BackupTask extends Task {
 
         File wd = server.getEntityWorld().getSaveHandler().getWorldDirectory();
 
-        if (ServerUtilitiesConfig.backups.use_separate_thread) {
+        if (backups.use_separate_thread) {
             thread = new ThreadBackup(wd, customName);
             thread.start();
         } else {
