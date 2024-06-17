@@ -78,6 +78,7 @@ public interface GuiIcons {
     Icon LOCK = get("lock");
     Icon LOCK_OPEN = get("lock_open");
     Icon SUPPORT = get("support");
+    Icon BLANK = get("blank");
 
     static Icon get(String id) {
         return Icon.getIcon("serverutilities:textures/icons/" + id + ".png");

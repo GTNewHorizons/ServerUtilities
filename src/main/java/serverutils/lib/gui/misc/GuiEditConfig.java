@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
@@ -77,8 +79,6 @@ public class GuiEditConfig extends GuiBase {
             if (group.parent != null) {
                 List<ConfigGroup> groups = new ArrayList<>();
 
-                g = group;
-
                 do {
                     groups.add(g);
                     g = g.parent;
@@ -139,19 +139,22 @@ public class GuiEditConfig extends GuiBase {
         }
     }
 
-    private class ButtonConfigEntry extends Button {
+    protected class ButtonConfigEntry extends Button {
 
         public final ButtonConfigGroup group;
         public final ConfigValueInstance inst;
         public String keyText;
-        private String valueString = null;
+        protected String valueString = null;
 
-        public ButtonConfigEntry(Panel panel, ButtonConfigGroup g, ConfigValueInstance i) {
+        public ButtonConfigEntry(Panel panel, @Nullable ButtonConfigGroup g, ConfigValueInstance i) {
             super(panel);
             setHeight(12);
             group = g;
             inst = i;
+            addKeyText();
+        }
 
+        protected void addKeyText() {
             if (!inst.getCanEdit()) {
                 IChatComponent c = inst.getDisplayName().createCopy();
                 c.getChatStyle().setColor(EnumChatFormatting.GRAY);
@@ -215,40 +218,43 @@ public class GuiEditConfig extends GuiBase {
         public void addMouseOverText(List<String> list) {
             if (getMouseY() > 18) {
                 list.add(EnumChatFormatting.UNDERLINE + keyText);
-                IChatComponent infoText = inst.getInfo();
-                EnumChatFormatting color = EnumChatFormatting.GRAY;
-
-                if (!inst.getCanEdit()) {
-                    infoText = new ChatComponentText(ClientUtils.getDisabledTip());
-                    color = EnumChatFormatting.RED;
-                }
-
-                if (!(infoText instanceof ChatComponentTranslation component)
-                        || StatCollector.canTranslate(component.getKey())) {
-                    for (String s : infoText.getFormattedText().split("\\\n")) {
-                        list.add(color.toString() + EnumChatFormatting.ITALIC + s);
-                    }
-                }
-
+                addDescriptionText(list);
                 list.add("");
                 inst.getValue().addInfo(inst, list);
             }
         }
+
+        protected void addDescriptionText(List<String> list) {
+            IChatComponent infoText = inst.getInfo();
+            EnumChatFormatting color = EnumChatFormatting.GRAY;
+
+            if (!inst.getCanEdit()) {
+                infoText = new ChatComponentText(ClientUtils.getDisabledTip());
+                color = EnumChatFormatting.RED;
+            }
+
+            if (!(infoText instanceof ChatComponentTranslation component)
+                    || StatCollector.canTranslate(component.getKey())) {
+                for (String s : infoText.getFormattedText().split("\n")) {
+                    list.add(color.toString() + EnumChatFormatting.ITALIC + s);
+                }
+            }
+        }
     }
 
-    private final ConfigGroup group;
-    private final ConfigGroup originalGroup;
-    private final IConfigCallback callback;
+    protected final ConfigGroup group;
+    protected final ConfigGroup originalGroup;
+    protected final IConfigCallback callback;
 
-    private final String title;
-    private final List<Widget> configEntryButtons;
-    private final Panel configPanel;
-    private final Button buttonAccept, buttonCancel, buttonCollapseAll, buttonExpandAll;
-    private final PanelScrollBar scroll;
-    private int shouldClose = 0;
-    private int groupSize = 0;
+    protected final String title;
+    protected final List<Widget> configEntryButtons;
+    protected final Panel configPanel;
+    protected final Button buttonAccept, buttonCancel, buttonCollapseAll, buttonExpandAll;
+    protected final PanelScrollBar scroll;
+    protected int shouldClose = 0;
+    protected int groupSize = 0;
 
-    public GuiEditConfig(ConfigGroup g, IConfigCallback c) {
+    public GuiEditConfig(ConfigGroup g, @Nullable IConfigCallback c) {
         group = g;
         originalGroup = group.copy();
         callback = c;
@@ -264,7 +270,7 @@ public class GuiEditConfig extends GuiBase {
             @Override
             public void addWidgets() {
                 for (Widget w : configEntryButtons) {
-                    if (!(w instanceof ButtonConfigEntry entry) || !entry.group.collapsed) {
+                    if (!(w instanceof ButtonConfigEntry entry) || entry.group == null || !entry.group.collapsed) {
                         add(w);
                     }
                 }
@@ -280,30 +286,7 @@ public class GuiEditConfig extends GuiBase {
             }
         };
 
-        List<ConfigValueInstance> list = new ArrayList<>();
-        collectAllConfigValues(group, list);
-
-        if (!list.isEmpty()) {
-            list.sort(COMPARATOR);
-
-            ButtonConfigGroup group = null;
-
-            for (ConfigValueInstance instance : list) {
-                if (instance.getExcluded()) continue;
-
-                if (group == null || !group.group.equals(instance.getGroup())) {
-                    group = new ButtonConfigGroup(configPanel, instance.getGroup());
-                    configEntryButtons.add(group);
-                    groupSize++;
-                }
-
-                configEntryButtons.add(new ButtonConfigEntry(configPanel, group, instance));
-            }
-
-            if (groupSize == 1) {
-                configEntryButtons.remove(group);
-            }
-        }
+        addConfigEntryButtons(collectAllConfigValues(group));
 
         scroll = new PanelScrollBar(this, configPanel);
 
@@ -356,7 +339,8 @@ public class GuiEditConfig extends GuiBase {
                 });
     }
 
-    private void collectAllConfigValues(ConfigGroup group, List<ConfigValueInstance> list) {
+    protected List<ConfigValueInstance> collectAllConfigValues(ConfigGroup group) {
+        List<ConfigValueInstance> list = new ArrayList<>();
         for (ConfigValueInstance instance : group.getValues()) {
             if (!instance.getHidden()) {
                 list.add(instance);
@@ -364,8 +348,10 @@ public class GuiEditConfig extends GuiBase {
         }
 
         for (ConfigGroup group1 : group.getGroups()) {
-            collectAllConfigValues(group1, list);
+            list.addAll(collectAllConfigValues(group1));
         }
+
+        return list;
     }
 
     @Override
@@ -416,6 +402,7 @@ public class GuiEditConfig extends GuiBase {
             group.deserializeNBT(originalGroup.serializeNBT());
         }
 
+        if (callback == null) return;
         callback.onConfigSaved(group, Minecraft.getMinecraft().thePlayer);
     }
 
@@ -427,6 +414,33 @@ public class GuiEditConfig extends GuiBase {
         }
 
         return false;
+    }
+
+    protected void addConfigEntryButtons(List<ConfigValueInstance> list) {
+        if (!list.isEmpty()) {
+            list.sort(COMPARATOR);
+
+            ButtonConfigGroup group = null;
+
+            for (ConfigValueInstance instance : list) {
+                if (instance.getExcluded()) continue;
+
+                if (group == null || !group.group.equals(instance.getGroup())) {
+                    group = new ButtonConfigGroup(configPanel, instance.getGroup());
+                    configEntryButtons.add(group);
+                    groupSize++;
+                }
+                configEntryButtons.add(getEntryButton(configPanel, group, instance));
+            }
+
+            if (groupSize == 1) {
+                configEntryButtons.remove(group);
+            }
+        }
+    }
+
+    protected Widget getEntryButton(Panel panel, @Nullable ButtonConfigGroup group, ConfigValueInstance instance) {
+        return new ButtonConfigEntry(panel, group, instance);
     }
 
     @Override
