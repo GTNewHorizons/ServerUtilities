@@ -299,6 +299,7 @@ public class ServerUtilitiesTeamData extends TeamData {
         chunkloadsDecayed = false;
         for (ClaimedChunk chunk : getTeamChunks()) {
             if (chunk.preDecay) {
+                chunk.preDecay = false;
                 chunk.setLoaded(true);
             }
         }
