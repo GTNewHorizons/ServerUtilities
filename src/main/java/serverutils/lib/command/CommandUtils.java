@@ -1,14 +1,19 @@
 package serverutils.lib.command;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.OptionalInt;
+import java.util.Set;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.PlayerSelector;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.DimensionManager;
@@ -151,5 +156,32 @@ public class CommandUtils {
             case "all", "*" -> OptionalInt.empty();
             default -> OptionalInt.of(CommandBase.parseInt(sender, args[index]));
         };
+    }
+
+    public static IChatComponent getTranslatedUsage(ICommand command, ICommandSender sender) {
+        String usageS = command.getCommandUsage(sender);
+        IChatComponent usage;
+        if (usageS == null || usageS.isEmpty()
+                || usageS.indexOf('/') != -1
+                || usageS.indexOf('%') != -1
+                || usageS.indexOf(' ') != -1) {
+            usage = new ChatComponentText(usageS);
+        } else {
+            usage = new ChatComponentTranslation(usageS);
+        }
+        return usage;
+    }
+
+    public static List<ICommand> getAllCommands(ICommandSender sender) {
+        ArrayList<ICommand> commands = new ArrayList<>();
+        Set<String> cmdIds = new HashSet<>();
+
+        for (ICommand cmd : ServerUtils.getServer().getCommandManager().getPossibleCommands(sender)) {
+            if (cmdIds.add(cmd.getCommandName())) {
+                commands.add(cmd);
+            }
+        }
+
+        return commands;
     }
 }
