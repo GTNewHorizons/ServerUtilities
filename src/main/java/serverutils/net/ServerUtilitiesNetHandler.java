@@ -22,6 +22,8 @@ public class ServerUtilitiesNetHandler {
         GENERAL.register(new MessageAdminPanelAction());
         GENERAL.register(new MessageUpdateTabName());
         GENERAL.register(new MessageUpdatePlayTime());
+        GENERAL.register(new MessageCommandsResponse());
+        GENERAL.register(new MessageCommandsRequest());
 
         CLAIMS.register(new MessageClaimedChunksRequest());
         CLAIMS.register(new MessageClaimedChunksUpdate());

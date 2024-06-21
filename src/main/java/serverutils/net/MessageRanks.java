@@ -18,6 +18,7 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.client.gui.ranks.GuiRanks;
 import serverutils.client.gui.ranks.RankInst;
 import serverutils.data.NodeEntry;
+import serverutils.lib.command.CommandUtils;
 import serverutils.lib.config.ConfigBoolean;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.ConfigValue;
@@ -68,7 +69,7 @@ public class MessageRanks extends MessageToClient {
                     defaultValue = new ConfigBoolean(cmd.getRequiredPermissionLevel() == 0);
                     group.add(permissionNode, val, defaultValue, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
                             .setDisplayName(new ChatComponentTranslation(permissionNode))
-                            .setInfo(cmd.getTranslatedUsage(p.getPlayer()));
+                            .setInfo(CommandUtils.getTranslatedUsage(cmd, p.getPlayer()));
                 } else {
                     group.add(permissionNode, val, defaultValue, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
                             .setDisplayName(new ChatComponentTranslation(permissionNode));
@@ -142,7 +143,7 @@ public class MessageRanks extends MessageToClient {
 
                     commandPermissions.add(commandNode, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
                             .setDisplayName(new ChatComponentTranslation(commandNode))
-                            .setInfo(command.getTranslatedUsage(p.getPlayer()));
+                            .setInfo(CommandUtils.getTranslatedUsage(command, p.getPlayer()));
                 }
             }
         }

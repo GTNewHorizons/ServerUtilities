@@ -4,7 +4,8 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.init.Items;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
 
@@ -22,8 +23,10 @@ import serverutils.lib.gui.WidgetType;
 import serverutils.lib.gui.misc.GuiButtonListBase;
 import serverutils.lib.gui.misc.GuiLoading;
 import serverutils.lib.icon.Icon;
+import serverutils.lib.icon.ItemIcon;
 import serverutils.lib.util.SidedUtils;
 import serverutils.lib.util.misc.MouseButton;
+import serverutils.net.MessageCommandsRequest;
 
 public class GuiClientConfig extends GuiButtonListBase {
 
@@ -82,13 +85,33 @@ public class GuiClientConfig extends GuiButtonListBase {
         panel.add(
                 new SimpleTextButton(
                         panel,
-                        new ChatComponentTranslation("serverutilities_client").getUnformattedText(),
+                        StatCollector.translateToLocal("serverutilities_client"),
                         Icon.getIcon("serverutilities:textures/logo_small.png")) {
 
                     @Override
                     public void onClicked(MouseButton button) {
                         GuiHelper.playClickSound();
                         Minecraft.getMinecraft().displayGuiScreen(new GuiCustomConfig(getTitle()));
+                    }
+                });
+
+        panel.add(
+                new SimpleTextButton(
+                        panel,
+                        StatCollector.translateToLocal("serverutilities.command_overview"),
+                        ItemIcon.getItemIcon(Items.compass)) {
+
+                    @Override
+                    public void onClicked(MouseButton button) {
+                        GuiHelper.playClickSound();
+                        new GuiLoading().openGui();
+                        new MessageCommandsRequest().sendToServer();
+                    }
+
+                    @Override
+                    public WidgetType getWidgetType() {
+                        return SidedUtils.isModLoadedOnServer(ServerUtilities.MOD_ID) ? super.getWidgetType()
+                                : WidgetType.DISABLED;
                     }
                 });
     }
