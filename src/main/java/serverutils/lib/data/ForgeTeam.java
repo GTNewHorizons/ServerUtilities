@@ -39,6 +39,7 @@ import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.IConfigCallback;
 import serverutils.lib.icon.Icon;
 import serverutils.lib.icon.PlayerHeadIcon;
+import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FinalIDObject;
 import serverutils.lib.util.INBTSerializable;
 import serverutils.lib.util.StringUtils;
@@ -65,6 +66,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
     private IChatComponent cachedTitle;
     private Icon cachedIcon;
     public boolean needsSaving;
+    private long lastActivity;
 
     public ForgeTeam(Universe u, short id, String n, TeamType t) {
         super(n, t.isNone ? 0 : (StringUtils.FLAG_ID_DEFAULTS | StringUtils.FLAG_ID_ALLOW_EMPTY));
@@ -84,6 +86,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
         clearCache();
         cachedIcon = null;
         needsSaving = false;
+        lastActivity = 0L;
     }
 
     public final short getUID() {
@@ -115,6 +118,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
         nbt.setString("Icon", icon);
         nbt.setBoolean("FreeToJoin", freeToJoin);
         nbt.setString("FakePlayerStatus", EnumTeamStatus.NAME_MAP_PERMS.getName(fakePlayerStatus));
+        nbt.setLong("LastActivity", lastActivity);
 
         NBTTagCompound nbt1 = new NBTTagCompound();
 
@@ -151,6 +155,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
         icon = nbt.getString("Icon");
         freeToJoin = nbt.getBoolean("FreeToJoin");
         fakePlayerStatus = EnumTeamStatus.NAME_MAP_PERMS.get(nbt.getString("FakePlayerStatus"));
+        lastActivity = nbt.getLong("LastActivity");
 
         players.clear();
 
@@ -555,9 +560,8 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
             cachedConfig.setDisplayName(
                     new ChatComponentTranslation("gui.settings").appendSibling(
                             StringUtils.bold(
-                                    StringUtils.color(
-                                            new ChatComponentText(" #" + toString()),
-                                            EnumChatFormatting.DARK_GRAY),
+                                    StringUtils
+                                            .color(new ChatComponentText(" #" + getId()), EnumChatFormatting.DARK_GRAY),
                                     false)));
             ForgeTeamConfigEvent event = new ForgeTeamConfigEvent(this, cachedConfig);
             event.post();
@@ -600,6 +604,10 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
         }
 
         return false;
+    }
+
+    public boolean anyMemberHasPermission(String permission) {
+        return anyPlayerHasPermission(permission, EnumTeamStatus.MEMBER);
     }
 
     public File getDataFile(String ext) {
@@ -648,5 +656,29 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
         }
 
         return list;
+    }
+
+    public long getLastActivity() {
+        return lastActivity;
+    }
+
+    public void refreshActivity() {
+        lastActivity = System.currentTimeMillis();
+    }
+
+    public Ticks getHighestTimer(String node) {
+        Ticks highest = Ticks.NO_TICKS;
+        for (ForgePlayer player : getMembers()) {
+            Ticks ticks = player.getRankConfig(node).getTimer();
+            if (ticks.millis() == Ticks.NO_TICKS.millis()) {
+                return ticks;
+            }
+
+            if (ticks.millis() > highest.millis()) {
+                highest = ticks;
+            }
+        }
+
+        return highest;
     }
 }

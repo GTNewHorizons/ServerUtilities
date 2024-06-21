@@ -1,5 +1,7 @@
 package serverutils.task;
 
+import static serverutils.ServerUtilitiesConfig.tasks;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -26,7 +28,7 @@ import serverutils.lib.util.text_components.Notification;
 public class CleanupTask extends Task {
 
     private static final Predicate<Entity> ENTITY_PREDICATE = entity -> {
-        ServerUtilitiesConfig.Tasks.Cleanup config = ServerUtilitiesConfig.tasks.cleanup;
+        ServerUtilitiesConfig.Tasks.Cleanup config = tasks.cleanup;
         if (entity instanceof EntityPlayer) return false;
         if ((entity instanceof IAnimals && !(entity instanceof IMob)) || entity instanceof INpc) {
             return config.passives;
@@ -40,8 +42,8 @@ public class CleanupTask extends Task {
         return config.experience && entity instanceof EntityXPOrb;
     };
 
-    public CleanupTask(double interval) {
-        super(Ticks.HOUR.x(interval));
+    public CleanupTask() {
+        super(Ticks.HOUR.x(tasks.cleanup.interval));
     }
 
     @Override
@@ -65,7 +67,7 @@ public class CleanupTask extends Task {
     @Override
     public List<NotifyTask> getNotifications() {
         List<NotifyTask> notifications = new ArrayList<>();
-        if (ServerUtilitiesConfig.tasks.cleanup.silent) return notifications;
+        if (tasks.cleanup.silent) return notifications;
 
         Notification notification = Notification.of("cleanup_30", getNotificationString(30));
         NotifyTask task = new NotifyTask(nextTime - Ticks.SECOND.x(30).millis(), notification);
@@ -78,7 +80,7 @@ public class CleanupTask extends Task {
     }
 
     private IChatComponent getNotificationString(int seconds) {
-        ServerUtilitiesConfig.Tasks.Cleanup config = ServerUtilitiesConfig.tasks.cleanup;
+        ServerUtilitiesConfig.Tasks.Cleanup config = tasks.cleanup;
         StringBuilder builder = new StringBuilder();
         if (config.hostiles) {
             builder.append(StatCollector.translateToLocal("serverutilities.task.cleanup_hostiles"));

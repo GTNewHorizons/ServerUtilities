@@ -1,8 +1,10 @@
 package serverutils.data;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.Set;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -59,6 +61,7 @@ public class ServerUtilitiesTeamData extends TeamData {
             NBTTagCompound chunkNBT = new NBTTagCompound();
             chunkNBT.setInteger("x", pos.posX);
             chunkNBT.setInteger("z", pos.posZ);
+            chunkNBT.setBoolean("preDecay", chunk.preDecay);
 
             if (chunk.isLoaded()) {
                 chunkNBT.setBoolean("loaded", true);
@@ -114,6 +117,7 @@ public class ServerUtilitiesTeamData extends TeamData {
                                 dimInt),
                         data);
                 chunk.setLoaded(chunkNBT.getBoolean("loaded"));
+                chunk.preDecay = chunkNBT.getBoolean("preDecay");
                 ClaimedChunks.instance.addChunk(chunk);
             }
         }
@@ -138,6 +142,7 @@ public class ServerUtilitiesTeamData extends TeamData {
     private boolean explosions = false;
     public boolean canForceChunks = false;
     private int cachedMaxClaimChunks, cachedMaxChunkloaderChunks;
+    public boolean chunkloadsDecayed;
 
     ServerUtilitiesTeamData(ForgeTeam t) {
         super(t);
@@ -156,6 +161,7 @@ public class ServerUtilitiesTeamData extends TeamData {
         nbt.setString("InteractWithBlocks", interactWithBlocks.getName());
         nbt.setString("AttackEntities", attackEntities.getName());
         nbt.setString("UseItems", useItems.getName());
+        nbt.setBoolean("DecayedChunkloads", chunkloadsDecayed);
         return nbt;
     }
 
@@ -166,6 +172,7 @@ public class ServerUtilitiesTeamData extends TeamData {
         interactWithBlocks = EnumTeamStatus.NAME_MAP_PERMS.get(nbt.getString("InteractWithBlocks"));
         attackEntities = EnumTeamStatus.NAME_MAP_PERMS.get(nbt.getString("AttackEntities"));
         useItems = EnumTeamStatus.NAME_MAP_PERMS.get(nbt.getString("UseItems"));
+        chunkloadsDecayed = nbt.getBoolean("DecayedChunkloads");
 
         if (ClaimedChunks.isActive() && nbt.hasKey("ClaimedChunks")) {
             team.markDirty();
@@ -264,9 +271,38 @@ public class ServerUtilitiesTeamData extends TeamData {
         return cachedMaxChunkloaderChunks;
     }
 
+    public Set<ClaimedChunk> getTeamChunks() {
+        if (!ClaimedChunks.isActive()) {
+            return Collections.emptySet();
+        }
+        return ClaimedChunks.instance.getTeamChunks(team, OptionalInt.empty());
+    }
+
     @Override
     public void clearCache() {
         cachedMaxClaimChunks = -1;
         cachedMaxChunkloaderChunks = -1;
+    }
+
+    public void decayChunkloads() {
+        chunkloadsDecayed = true;
+        for (ClaimedChunk chunk : getTeamChunks()) {
+            if (chunk.isLoaded()) {
+                chunk.preDecay = true;
+                chunk.setLoaded(false);
+            }
+        }
+        team.markDirty();
+    }
+
+    public void unDecayChunkloads() {
+        chunkloadsDecayed = false;
+        for (ClaimedChunk chunk : getTeamChunks()) {
+            if (chunk.preDecay) {
+                chunk.preDecay = false;
+                chunk.setLoaded(true);
+            }
+        }
+        team.markDirty();
     }
 }
