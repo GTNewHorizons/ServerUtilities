@@ -9,9 +9,6 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IChatComponent;
 
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.eventhandler.Event;
@@ -29,27 +26,12 @@ public class CommandOverride extends CommandBase {
 
     public final ICommand mirrored;
     public final String node;
-    // public final IChatComponent usage;
     public final ModContainer modContainer;
 
     private CommandOverride(ICommand c, String parent, @Nullable ModContainer container) {
         mirrored = c;
         node = parent + '.' + mirrored.getCommandName();
         Ranks.INSTANCE.commands.put(node, this);
-
-        // TODO: Fix crash with other mods
-
-        // String usageS = getCommandUsage(FakePlayerFactory.getMinecraft(Ranks.INSTANCE.universe.world));
-        //
-        // if (usageS == null || usageS.isEmpty()
-        // || usageS.indexOf('/') != -1
-        // || usageS.indexOf('%') != -1
-        // || usageS.indexOf(' ') != -1) {
-        // usage = new ChatComponentText(usageS);
-        // } else {
-        // usage = new ChatComponentTranslation(usageS);
-        // }
-
         modContainer = container;
     }
 
@@ -105,19 +87,5 @@ public class CommandOverride extends CommandBase {
     public int compareTo(ICommand o) {
         return o instanceof CommandOverride override ? node.compareTo(override.node)
                 : getCommandName().compareTo(o.getCommandName());
-    }
-
-    public IChatComponent getTranslatedUsage(ICommandSender sender) {
-        String usageS = getCommandUsage(sender);
-        IChatComponent usage;
-        if (usageS == null || usageS.isEmpty()
-                || usageS.indexOf('/') != -1
-                || usageS.indexOf('%') != -1
-                || usageS.indexOf(' ') != -1) {
-            usage = new ChatComponentText(usageS);
-        } else {
-            usage = new ChatComponentTranslation(usageS);
-        }
-        return usage;
     }
 }

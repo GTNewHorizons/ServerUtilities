@@ -65,7 +65,7 @@ public class ServerUtilitiesRegistryEventHandler {
                     @Override
                     public void onAction(ForgePlayer player, NBTTagCompound data) {
                         ConfigGroup main = ConfigGroup.newGroup("edit_world");
-                        main.setDisplayName(new ChatComponentTranslation("admin_panel.serverutilities.edit_world"));
+                        main.setDisplayName(new ChatComponentTranslation("serverutilities.admin_panel.edit_world"));
 
                         if (player.hasPermission(ServerUtilitiesPermissions.EDIT_WORLD_GAMERULES)) {
                             ConfigGroup gamerules = main.getGroup("gamerules");
