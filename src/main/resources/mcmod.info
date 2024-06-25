@@ -17,12 +17,7 @@
       "credits": "GTNH",
       "logoFile": "",
       "screenshots": [],
-      "parent": "",
-      "dependencies": [
-        "Baubles",
-        "Waila"
-      ],
-      "useDependencyInformation": true
+      "parent": ""
     }
   ]
 }
