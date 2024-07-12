@@ -67,7 +67,6 @@ public class NavigatorIntegration {
     }
 
     public static void claimChunk(int blockX, int blockZ) {
-        ServerUtilities.LOGGER.info("Claiming chunk: {}, {}", blockX, blockZ);
         Minecraft mc = Minecraft.getMinecraft();
         int selectionMode = MessageClaimedChunksModify.CLAIM;
         int chunkX = Util.coordBlockToChunk(blockX);
