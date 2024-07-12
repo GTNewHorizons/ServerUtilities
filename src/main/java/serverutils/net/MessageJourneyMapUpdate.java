@@ -2,7 +2,7 @@ package serverutils.net;
 
 import net.minecraft.entity.player.EntityPlayer;
 
-import com.sinthoras.visualprospecting.Utils;
+import com.gtnewhorizons.navigator.api.util.Util;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -12,7 +12,7 @@ import serverutils.ServerUtilitiesPermissions;
 import serverutils.client.gui.ClientClaimedChunks;
 import serverutils.data.ClaimedChunk;
 import serverutils.data.ClaimedChunks;
-import serverutils.integration.vp.VPIntegration;
+import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
@@ -32,10 +32,10 @@ public class MessageJourneyMapUpdate extends MessageToClient {
     public MessageJourneyMapUpdate() {}
 
     public MessageJourneyMapUpdate(int mix, int mx, int miz, int mz, EntityPlayer player) {
-        this.minX = Utils.coordBlockToChunk(mix);
-        this.maxX = Utils.coordBlockToChunk(mx);
-        this.minZ = Utils.coordBlockToChunk(miz);
-        this.maxZ = Utils.coordBlockToChunk(mz);
+        this.minX = Util.coordBlockToChunk(mix);
+        this.maxX = Util.coordBlockToChunk(mx);
+        this.minZ = Util.coordBlockToChunk(miz);
+        this.maxZ = Util.coordBlockToChunk(mz);
         ForgePlayer p = Universe.get().getPlayer(player);
 
         teams = new Short2ObjectOpenHashMap<>();
@@ -105,6 +105,6 @@ public class MessageJourneyMapUpdate extends MessageToClient {
     @Override
     @SideOnly(Side.CLIENT)
     public void onMessage() {
-        VPIntegration.updateMap(this);
+        NavigatorIntegration.updateMap(this);
     }
 }

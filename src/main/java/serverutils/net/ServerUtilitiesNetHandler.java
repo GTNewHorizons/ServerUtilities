@@ -28,7 +28,7 @@ public class ServerUtilitiesNetHandler {
         CLAIMS.register(new MessageClaimedChunksRequest());
         CLAIMS.register(new MessageClaimedChunksUpdate());
         CLAIMS.register(new MessageClaimedChunksModify());
-        if (OtherMods.isVPLoaded()) {
+        if (OtherMods.isNavigatorLoaded()) {
             CLAIMS.register(new MessageJourneyMapUpdate());
             CLAIMS.register(new MessageJourneyMapRequest());
             CLAIMS.register(new MessageJourneyMapRemove());

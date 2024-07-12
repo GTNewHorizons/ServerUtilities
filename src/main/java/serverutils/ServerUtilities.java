@@ -30,7 +30,7 @@ import serverutils.lib.util.SidedUtils;
         modid = ServerUtilities.MOD_ID,
         name = ServerUtilities.MOD_NAME,
         version = ServerUtilities.VERSION,
-        dependencies = "after:visualprospecting;",
+        dependencies = "after:navigator;",
         guiFactory = "serverutils.client.gui.GuiFactory")
 public class ServerUtilities {
 

@@ -3,7 +3,7 @@ package serverutils.net;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.client.ServerUtilitiesClientConfig;
-import serverutils.integration.vp.VPIntegration;
+import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.math.ChunkDimPos;
@@ -39,7 +39,7 @@ public class MessageJourneyMapRemove extends MessageToClient {
     @SideOnly(Side.CLIENT)
     public void onMessage() {
         if (ServerUtilitiesClientConfig.general.journeymap_overlay) {
-            VPIntegration.CLAIMS.remove(chunkPos);
+            NavigatorIntegration.CLAIMS.remove(chunkPos);
         }
     }
 }
