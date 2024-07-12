@@ -11,7 +11,6 @@ import com.gtnewhorizons.navigator.api.util.Util;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import serverutils.ServerUtilities;
 import serverutils.client.gui.ClientClaimedChunks;
 import serverutils.integration.navigator.journeymap.JMClaimsButton;
 import serverutils.integration.navigator.journeymap.JMClaimsRenderer;
