@@ -8,7 +8,7 @@ Utilizes a permission system to handle whether a player can use certain commands
 
 ## Dependencies
 * [GTNHLib](https://www.curseforge.com/minecraft/mc-mods/gtnhlib)
-* Optionally [Navigator](insert-Navigator-link-here) which enables claims and chunkload integration for JourneyMap or Xaeros World & Minimap
+* Optionally [Navigator](https://github.com/GTNewHorizons/Navigator) which enables claims and chunkload integration for JourneyMap or Xaeros World & Minimap
 
 ## Quick Install
 
