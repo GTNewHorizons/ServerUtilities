@@ -12,9 +12,7 @@ import com.gtnewhorizons.navigator.api.util.Util;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import serverutils.client.gui.ClientClaimedChunks;
-import serverutils.integration.navigator.journeymap.JMClaimsButton;
 import serverutils.integration.navigator.journeymap.JMClaimsRenderer;
-import serverutils.integration.navigator.xaero.XaeroClaimsButton;
 import serverutils.integration.navigator.xaero.XaeroClaimsRenderer;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.net.MessageClaimedChunksModify;
@@ -32,12 +30,10 @@ public class NavigatorIntegration {
         NavigatorApi.registerLayerManager(ClaimsLayerManager.INSTANCE);
         NavigatorApi.registerButtonManager(ClaimsButtonManager.INSTANCE);
         if (Util.isJourneyMapInstalled()) {
-            NavigatorApi.registerLayerButton(JMClaimsButton.INSTANCE);
             NavigatorApi.registerLayerRenderer(JMClaimsRenderer.INSTANCE);
         }
 
         if (Util.isXaerosWorldMapInstalled()) {
-            NavigatorApi.registerLayerButton(XaeroClaimsButton.INSTANCE);
             NavigatorApi.registerLayerRenderer(XaeroClaimsRenderer.INSTANCE);
         }
     }
