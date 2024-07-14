@@ -27,7 +27,7 @@ import serverutils.command.client.CommandPrintItem;
 import serverutils.command.client.CommandPrintState;
 import serverutils.command.client.CommandSimulateButton;
 import serverutils.handlers.ServerUtilitiesClientEventHandler;
-import serverutils.integration.vp.VPIntegration;
+import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.OtherMods;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.IncompatibleModException;
@@ -75,8 +75,8 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
         ClientCommandHandler.instance.registerCommand(new CommandPrintState());
         ClientCommandHandler.instance.registerCommand(new CommandPing());
 
-        if (OtherMods.isVPLoaded() && ServerUtilitiesClientConfig.general.journeymap_overlay) {
-            VPIntegration.init();
+        if (OtherMods.isNavigatorLoaded() && ServerUtilitiesClientConfig.general.journeymap_overlay) {
+            NavigatorIntegration.init();
         }
 
         if (Loader.isModLoaded("FTBU") || Loader.isModLoaded("FTBL")) {

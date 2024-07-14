@@ -1,4 +1,4 @@
-package serverutils.integration.vp.journeymap;
+package serverutils.integration.navigator.journeymap;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -6,22 +6,22 @@ import java.util.List;
 
 import net.minecraft.client.gui.FontRenderer;
 
-import com.sinthoras.visualprospecting.VP;
-import com.sinthoras.visualprospecting.integration.journeymap.drawsteps.ClickableDrawStep;
-import com.sinthoras.visualprospecting.integration.model.locations.IWaypointAndLocationProvider;
+import com.gtnewhorizons.navigator.api.NavigatorApi;
+import com.gtnewhorizons.navigator.api.journeymap.drawsteps.JMInteractableStep;
+import com.gtnewhorizons.navigator.api.model.locations.IWaypointAndLocationProvider;
 
 import journeymap.client.render.map.GridRenderer;
-import serverutils.integration.vp.VPClaimsLocation;
+import serverutils.integration.navigator.ClaimsLocation;
 import serverutils.lib.icon.Color4I;
 
-public class VPDrawStep implements ClickableDrawStep {
+public class JMRenderStep implements JMInteractableStep {
 
-    private final VPClaimsLocation location;
+    private final ClaimsLocation location;
     private double topX = 0;
     private double topY = 0;
     private double chunkSize = 0;
 
-    public VPDrawStep(VPClaimsLocation location) {
+    public JMRenderStep(ClaimsLocation location) {
         this.location = location;
     }
 
@@ -36,7 +36,7 @@ public class VPDrawStep implements ClickableDrawStep {
                 blockAsPixel.getX() + draggedPixelX,
                 blockAsPixel.getY() + draggedPixelY);
 
-        chunkSize = blockSize * VP.chunkWidth;
+        chunkSize = blockSize * NavigatorApi.CHUNK_WIDTH;
         topX = pixel.getX();
         topY = pixel.getY();
 
