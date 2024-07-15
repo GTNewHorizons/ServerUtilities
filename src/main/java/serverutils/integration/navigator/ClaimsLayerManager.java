@@ -5,19 +5,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 
-import com.gtnewhorizons.navigator.api.model.layers.WaypointProviderManager;
+import com.gtnewhorizons.navigator.api.model.SupportedMods;
+import com.gtnewhorizons.navigator.api.model.layers.InteractableLayerManager;
+import com.gtnewhorizons.navigator.api.model.layers.LayerRenderer;
 import com.gtnewhorizons.navigator.api.model.locations.IWaypointAndLocationProvider;
 import com.gtnewhorizons.navigator.api.model.waypoints.Waypoint;
 import com.gtnewhorizons.navigator.api.util.Util;
 
 import serverutils.client.gui.ClientClaimedChunks;
+import serverutils.integration.navigator.journeymap.JMClaimsRenderer;
+import serverutils.integration.navigator.xaero.XaeroClaimsRenderer;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.net.MessageJourneyMapRequest;
 
-public class ClaimsLayerManager extends WaypointProviderManager {
+public class ClaimsLayerManager extends InteractableLayerManager {
 
     public static final ClaimsLayerManager INSTANCE = new ClaimsLayerManager();
     private int oldMinBlockX = 0;
@@ -28,6 +34,16 @@ public class ClaimsLayerManager extends WaypointProviderManager {
 
     public ClaimsLayerManager() {
         super(ClaimsButtonManager.INSTANCE);
+    }
+
+    @Nullable
+    @Override
+    protected LayerRenderer addLayerRenderer(InteractableLayerManager manager, SupportedMods mod) {
+        return switch (mod) {
+            case JourneyMap -> new JMClaimsRenderer(manager);
+            case XaeroWorldMap -> new XaeroClaimsRenderer(manager);
+            default -> null;
+        };
     }
 
     @Override
