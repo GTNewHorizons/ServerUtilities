@@ -1,6 +1,5 @@
 package serverutils.integration.navigator.xaero;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -11,7 +10,6 @@ import org.lwjgl.opengl.GL11;
 
 import com.gtnewhorizons.navigator.api.NavigatorApi;
 import com.gtnewhorizons.navigator.api.model.locations.IWaypointAndLocationProvider;
-import com.gtnewhorizons.navigator.api.util.DrawUtils;
 import com.gtnewhorizons.navigator.api.xaero.rendersteps.XaeroInteractableStep;
 
 import serverutils.integration.navigator.ClaimsLocation;
@@ -58,33 +56,24 @@ public class XaeroRenderStep implements XaeroInteractableStep {
     }
 
     @Override
-    public void drawTooltip(GuiScreen gui, double mouseX, double mouseY, double scale, int scaleAdj) {
-        final List<String> tooltip = new ArrayList<>();
-        // correct for gl matrix differences
-        mouseX = mouseX * scale + (gui.mc.displayWidth >> 1);
-        mouseY = mouseY * scale + (gui.mc.displayHeight >> 1);
-
-        tooltip.add(location.getTeamName());
+    public void getTooltip(List<String> list) {
+        list.add(location.getTeamName());
 
         if (!location.teamHint().isEmpty()) {
-            tooltip.add(location.teamHint());
+            list.add(location.teamHint());
         }
         if (!location.loadedHint().isEmpty()) {
-            tooltip.add(location.loadedHint());
+            list.add(location.loadedHint());
         }
         if (location.getOwnTeam()) {
-            tooltip.add(location.claimHint());
-            tooltip.add(location.toggleLoadHint());
-            tooltip.add(location.unclaimHint());
+            list.add(location.claimHint());
+            list.add(location.toggleLoadHint());
+            list.add(location.unclaimHint());
         }
-
-        GL11.glPushMatrix();
-
-        DrawUtils
-                .drawSimpleTooltip(gui, tooltip, mouseX / scaleAdj + 6, mouseY / scaleAdj - 12, 0xFFFFFFFF, 0x86000000);
-
-        GL11.glPopMatrix();
     }
+
+    @Override
+    public void drawCustomTooltip(GuiScreen gui, double mouseX, double mouseY, double scale, int scaleAdj) {}
 
     @Override
     public void onActionButton() {

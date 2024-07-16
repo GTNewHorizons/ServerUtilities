@@ -4,19 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.gtnewhorizons.navigator.api.journeymap.render.JMInteractableLayerRenderer;
+import com.gtnewhorizons.navigator.api.model.layers.InteractableLayerManager;
 import com.gtnewhorizons.navigator.api.model.locations.ILocationProvider;
 import com.gtnewhorizons.navigator.api.model.steps.RenderStep;
 
-import serverutils.integration.navigator.ClaimsLayerManager;
 import serverutils.integration.navigator.ClaimsLocation;
 import serverutils.integration.navigator.NavigatorIntegration;
 
 public class JMClaimsRenderer extends JMInteractableLayerRenderer {
 
-    public static final JMClaimsRenderer INSTANCE = new JMClaimsRenderer();
-
-    public JMClaimsRenderer() {
-        super(ClaimsLayerManager.INSTANCE);
+    public JMClaimsRenderer(InteractableLayerManager manager) {
+        super(manager);
     }
 
     @Override

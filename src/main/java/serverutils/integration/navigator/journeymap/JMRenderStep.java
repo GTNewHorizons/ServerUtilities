@@ -1,7 +1,6 @@
 package serverutils.integration.navigator.journeymap;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.gui.FontRenderer;
@@ -50,9 +49,7 @@ public class JMRenderStep implements JMInteractableStep {
     }
 
     @Override
-    public List<String> getTooltip() {
-        final List<String> tooltip = new ArrayList<>();
-
+    public void getTooltip(List<String> tooltip) {
         tooltip.add(location.getTeamName());
 
         if (!location.teamHint().isEmpty()) {
@@ -66,11 +63,11 @@ public class JMRenderStep implements JMInteractableStep {
             tooltip.add(location.toggleLoadHint());
             tooltip.add(location.unclaimHint());
         }
-        return tooltip;
     }
 
     @Override
-    public void drawTooltip(FontRenderer fontRenderer, int mouseX, int mouseY, int displayWidth, int displayHeight) {}
+    public void drawCustomTooltip(FontRenderer fontRenderer, int mouseX, int mouseY, int displayWidth,
+            int displayHeight) {}
 
     @Override
     public boolean isMouseOver(int mouseX, int mouseY) {

@@ -3,20 +3,18 @@ package serverutils.integration.navigator.xaero;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gtnewhorizons.navigator.api.model.layers.InteractableLayerManager;
 import com.gtnewhorizons.navigator.api.model.locations.ILocationProvider;
 import com.gtnewhorizons.navigator.api.model.steps.RenderStep;
 import com.gtnewhorizons.navigator.api.xaero.renderers.XaeroInteractableLayerRenderer;
 
-import serverutils.integration.navigator.ClaimsLayerManager;
 import serverutils.integration.navigator.ClaimsLocation;
 import serverutils.integration.navigator.NavigatorIntegration;
 
 public class XaeroClaimsRenderer extends XaeroInteractableLayerRenderer {
 
-    public static final XaeroClaimsRenderer INSTANCE = new XaeroClaimsRenderer();
-
-    public XaeroClaimsRenderer() {
-        super(ClaimsLayerManager.INSTANCE);
+    public XaeroClaimsRenderer(InteractableLayerManager manager) {
+        super(manager);
     }
 
     @Override
