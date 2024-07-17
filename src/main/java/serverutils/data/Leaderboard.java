@@ -3,6 +3,7 @@ package serverutils.data;
 import java.util.Comparator;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.function.LongFunction;
 import java.util.function.Predicate;
 
 import net.minecraft.stats.StatBase;
@@ -54,6 +55,8 @@ public class Leaderboard {
                 value <= 0 ? "0" : Integer.toString(value));
         public static final IntFunction<IChatComponent> TIME = value -> new ChatComponentText(
                 "[" + (int) (value / 72000D + 0.5D) + "h] " + Ticks.get(value).toTimeString());
+        public static final LongFunction<IChatComponent> LONG_TIME = value -> new ChatComponentText(
+                "[" + (long) (value / 72000D + 0.5D) + "h] " + Ticks.get(value).toTimeString());
 
         public FromStat(ResourceLocation id, IChatComponent t, StatBase statBase, boolean from0to1,
                 IntFunction<IChatComponent> valueToString) {

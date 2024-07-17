@@ -68,8 +68,8 @@ public class ServerUtilitiesLeaderboards {
                                 return component;
                             } else {
                                 long worldTime = player.team.universe.world.getTotalWorldTime();
-                                int time = (int) (worldTime - player.getLastTimeSeen());
-                                return Leaderboard.FromStat.TIME.apply(time);
+                                long time = worldTime - player.getLastTimeSeen();
+                                return Leaderboard.FromStat.LONG_TIME.apply(time);
                             }
                         },
                         Comparator.comparingLong(ServerUtilitiesLeaderboards::getRelativeLastSeen),
