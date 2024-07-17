@@ -147,6 +147,7 @@ public class ServerUtilitiesCommon {
             PermissionAPI.setPermissionHandler(ServerUtilitiesPermissionHandler.INSTANCE);
         }
 
+        ServerUtilitiesStats.init();
         ServerUtilitiesNetHandler.init();
 
         if (!ForgeChunkManager.getConfig().hasCategory(ServerUtilities.MOD_ID)) {

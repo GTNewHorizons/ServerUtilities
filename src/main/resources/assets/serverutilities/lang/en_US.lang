@@ -22,6 +22,9 @@ serverutilities.unsaved_changes.title=Unsaved Changes
 serverutilities.unsaved_changes=You have unsaved changes. Do you want to save them?
 serverutilities.command_overview=Command Overview
 
+serverutilities.stat.time_afk=Time AFK
+serverutilities.stat.time_afk_percent=Percentage of time spent AFK
+serverutilities.stat.time_active=Time actively playing (not AFK)
 serverutilities.stat.dph=Deaths Per Hour
 serverutilities.stat.last_seen=Last Seen
 
