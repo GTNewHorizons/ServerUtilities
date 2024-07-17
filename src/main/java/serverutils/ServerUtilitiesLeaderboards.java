@@ -15,11 +15,14 @@ import serverutils.events.LeaderboardRegistryEvent;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.math.Ticks;
 
-public class ServerUtilitiesLeaderboards {
+public final class ServerUtilitiesLeaderboards {
+
+    private ServerUtilitiesLeaderboards() {}
 
     public static final ServerUtilitiesLeaderboards INST = new ServerUtilitiesLeaderboards();
 
     @SubscribeEvent
+    @SuppressWarnings("unused") // used by reflection
     public void registerLeaderboards(LeaderboardRegistryEvent event) {
         event.register(
                 new Leaderboard.FromStat(
@@ -37,6 +40,12 @@ public class ServerUtilitiesLeaderboards {
                 new Leaderboard.FromStat(
                         new ResourceLocation(ServerUtilities.MOD_ID, "time_played"),
                         StatList.minutesPlayedStat,
+                        false,
+                        Leaderboard.FromStat.TIME));
+        event.register(
+                new Leaderboard.FromStat(
+                        new ResourceLocation(ServerUtilities.MOD_ID, "time_afk"),
+                        ServerUtilitiesStats.AFK_TIME,
                         false,
                         Leaderboard.FromStat.TIME));
         event.register(
@@ -59,6 +68,20 @@ public class ServerUtilitiesLeaderboards {
 
         event.register(
                 new Leaderboard(
+                        new ResourceLocation(ServerUtilities.MOD_ID, "time_active"),
+                        new ChatComponentTranslation("serverutilities.stat.time_active"),
+                        player -> Leaderboard.FromStat.TIME.apply(getActivePlayTime(player)),
+                        Comparator.comparingLong(ServerUtilitiesLeaderboards::getActivePlayTime).reversed(),
+                        player -> getActivePlayTime(player) != 0));
+        event.register(
+                new Leaderboard(
+                        new ResourceLocation(ServerUtilities.MOD_ID, "time_afk_percent"),
+                        new ChatComponentTranslation("serverutilities.stat.time_afk_percent"),
+                        player -> Leaderboard.FromStat.PERCENTAGE.apply(getAfkTimeFraction(player)),
+                        Comparator.comparingDouble(ServerUtilitiesLeaderboards::getAfkTimeFraction).reversed(),
+                        player -> getAfkTimeFraction(player) != 0));
+        event.register(
+                new Leaderboard(
                         new ResourceLocation(ServerUtilities.MOD_ID, "last_seen"),
                         new ChatComponentTranslation("serverutilities.stat.last_seen"),
                         player -> {
@@ -74,6 +97,18 @@ public class ServerUtilitiesLeaderboards {
                         },
                         Comparator.comparingLong(ServerUtilitiesLeaderboards::getRelativeLastSeen),
                         player -> player.getLastTimeSeen() != 0L));
+    }
+
+    private static int getActivePlayTime(ForgePlayer player) {
+        final int playTime = player.stats().writeStat(StatList.minutesPlayedStat);
+        final int afkTime = player.stats().writeStat(ServerUtilitiesStats.AFK_TIME);
+        return playTime - afkTime;
+    }
+
+    private static float getAfkTimeFraction(ForgePlayer player) {
+        final float playTime = player.stats().writeStat(StatList.minutesPlayedStat);
+        final float afkTime = player.stats().writeStat(ServerUtilitiesStats.AFK_TIME);
+        return afkTime / Math.max(playTime, 1.0f);
     }
 
     private static long getRelativeLastSeen(ForgePlayer player) {
