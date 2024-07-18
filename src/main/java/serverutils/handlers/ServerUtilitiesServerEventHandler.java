@@ -22,6 +22,7 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
+import serverutils.ServerUtilitiesStats;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
@@ -179,6 +180,10 @@ public class ServerUtilitiesServerEventHandler {
                     boolean prevIsAfk = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
                     data.afkTime = System.currentTimeMillis() - player.func_154331_x();
                     boolean isAFK = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
+
+                    if (isAFK) {
+                        player.addStat(ServerUtilitiesStats.AFK_TIME, 1);
+                    }
 
                     if (prevIsAfk != isAFK) {
                         for (EntityPlayerMP player1 : universe.server.getConfigurationManager().playerEntityList) {
