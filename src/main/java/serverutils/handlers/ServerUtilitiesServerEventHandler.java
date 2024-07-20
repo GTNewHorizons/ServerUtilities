@@ -183,7 +183,9 @@ public class ServerUtilitiesServerEventHandler {
 
                     if (isAFK) {
                         if (!prevIsAfk) {
-                            player.addStat(ServerUtilitiesStats.AFK_TIME, floor(ServerUtilitiesConfig.afk.getNotificationTimer() / 50));//Millisec to ticks
+                            player.addStat(
+                                    ServerUtilitiesStats.AFK_TIME,
+                                    floor(ServerUtilitiesConfig.afk.getNotificationTimer() / 50));// Millisec to ticks
                         } else {
                             player.addStat(ServerUtilitiesStats.AFK_TIME, 1);
                         }
