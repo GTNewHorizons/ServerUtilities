@@ -1,4 +1,4 @@
-package serverutils.integration.vp;
+package serverutils.integration.navigator;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -9,10 +9,10 @@ import net.minecraft.world.ChunkCoordIntPair;
 
 import org.lwjgl.input.Keyboard;
 
-import com.sinthoras.visualprospecting.Utils;
-import com.sinthoras.visualprospecting.VP;
-import com.sinthoras.visualprospecting.integration.model.locations.IWaypointAndLocationProvider;
-import com.sinthoras.visualprospecting.integration.model.waypoints.Waypoint;
+import com.gtnewhorizons.navigator.api.NavigatorApi;
+import com.gtnewhorizons.navigator.api.model.locations.IWaypointAndLocationProvider;
+import com.gtnewhorizons.navigator.api.model.waypoints.Waypoint;
+import com.gtnewhorizons.navigator.api.util.Util;
 
 import serverutils.client.gui.ClientClaimedChunks;
 import serverutils.lib.EnumTeamColor;
@@ -20,7 +20,7 @@ import serverutils.lib.math.ChunkDimPos;
 import serverutils.net.MessageClaimedChunksModify;
 import serverutils.net.MessageJourneyMapRequest;
 
-public class VPClaimsLocation implements IWaypointAndLocationProvider {
+public class ClaimsLocation implements IWaypointAndLocationProvider {
 
     private final int blockX;
     private final int blockZ;
@@ -31,9 +31,9 @@ public class VPClaimsLocation implements IWaypointAndLocationProvider {
     private final boolean member;
     private final EnumTeamColor color;
 
-    public VPClaimsLocation(ChunkDimPos chunk, ClientClaimedChunks.ChunkData data) {
-        blockX = Utils.coordChunkToBlock(chunk.posX);
-        blockZ = Utils.coordChunkToBlock(chunk.posZ);
+    public ClaimsLocation(ChunkDimPos chunk, ClientClaimedChunks.ChunkData data) {
+        blockX = Util.coordChunkToBlock(chunk.posX);
+        blockZ = Util.coordChunkToBlock(chunk.posZ);
         dimensionId = chunk.dim;
         teamName = data.team.nameComponent.getUnformattedText();
         loaded = data.isLoaded();
@@ -93,18 +93,18 @@ public class VPClaimsLocation implements IWaypointAndLocationProvider {
     }
 
     public String unclaimHint() {
-        return EnumChatFormatting.DARK_GRAY
-                + I18n.format("serverutilities.jm.unclaim_hint", Keyboard.getKeyName(VP.keyAction.getKeyCode()));
+        return EnumChatFormatting.DARK_GRAY + I18n
+                .format("serverutilities.jm.unclaim_hint", Keyboard.getKeyName(NavigatorApi.ACTION_KEY.getKeyCode()));
     }
 
     public void toggleLoaded() {
         // Double click loads/unloads the chunk
         int selectionMode = isLoaded() ? MessageClaimedChunksModify.UNLOAD : MessageClaimedChunksModify.LOAD;
         Collection<ChunkCoordIntPair> chunks = Collections
-                .singleton(new ChunkCoordIntPair(Utils.coordBlockToChunk(blockX), Utils.coordBlockToChunk(blockZ)));
+                .singleton(new ChunkCoordIntPair(Util.coordBlockToChunk(blockX), Util.coordBlockToChunk(blockZ)));
         new MessageClaimedChunksModify(
-                Utils.coordBlockToChunk(blockX),
-                Utils.coordBlockToChunk(blockZ),
+                Util.coordBlockToChunk(blockX),
+                Util.coordBlockToChunk(blockZ),
                 selectionMode,
                 chunks).sendToServer();
         new MessageJourneyMapRequest(blockX, blockX, blockZ, blockZ).sendToServer();
@@ -114,10 +114,10 @@ public class VPClaimsLocation implements IWaypointAndLocationProvider {
         // Deplete/VP Action key unclaims the chunk
         int selectionMode = MessageClaimedChunksModify.UNCLAIM;
         Collection<ChunkCoordIntPair> chunks = Collections
-                .singleton(new ChunkCoordIntPair(Utils.coordBlockToChunk(blockX), Utils.coordBlockToChunk(blockZ)));
+                .singleton(new ChunkCoordIntPair(Util.coordBlockToChunk(blockX), Util.coordBlockToChunk(blockZ)));
         new MessageClaimedChunksModify(
-                Utils.coordBlockToChunk(blockX),
-                Utils.coordBlockToChunk(blockZ),
+                Util.coordBlockToChunk(blockX),
+                Util.coordBlockToChunk(blockZ),
                 selectionMode,
                 chunks).sendToServer();
         new MessageJourneyMapRequest(blockX, blockX, blockZ, blockZ).sendToServer();

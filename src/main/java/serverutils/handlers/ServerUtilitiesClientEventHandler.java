@@ -35,7 +35,7 @@ import serverutils.client.gui.GuiClientConfig;
 import serverutils.client.gui.GuiSidebar;
 import serverutils.events.chunks.UpdateClientDataEvent;
 import serverutils.events.client.CustomClickEvent;
-import serverutils.integration.vp.VPIntegration;
+import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.OtherMods;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.GlStateManager;
@@ -68,8 +68,8 @@ public class ServerUtilitiesClientEventHandler {
     public void onClientDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         shutdownTime = 0L;
         SidedUtils.SERVER_MODS.clear();
-        if (OtherMods.isVPLoaded()) {
-            VPIntegration.CLAIMS.clear();
+        if (OtherMods.isNavigatorLoaded()) {
+            NavigatorIntegration.CLAIMS.clear();
         }
     }
 
@@ -95,8 +95,8 @@ public class ServerUtilitiesClientEventHandler {
     public void onChunkDataUpdate(UpdateClientDataEvent event) {
         MessageClaimedChunksUpdate message = event.getMessage();
         GuiClaimedChunks.onChunkDataUpdate(message);
-        if (OtherMods.isVPLoaded()) {
-            VPIntegration.onChunkDataUpdate(message);
+        if (OtherMods.isNavigatorLoaded()) {
+            NavigatorIntegration.onChunkDataUpdate(message);
         }
     }
 
