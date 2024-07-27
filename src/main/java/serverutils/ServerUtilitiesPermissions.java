@@ -176,7 +176,7 @@ public class ServerUtilitiesPermissions {
                 "Keep loaded chunks working when player goes offline");
         PermissionAPI.registerNode(
                 INFINITE_BACK_USAGE,
-                DefaultPermissionLevel.NONE,
+                DefaultPermissionLevel.ALL,
                 "Allow to use 'back' command infinite times");
         PermissionAPI.registerNode(
                 CRASH_REPORTS_VIEW,
