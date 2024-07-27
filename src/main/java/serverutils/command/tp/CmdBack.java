@@ -33,7 +33,7 @@ public class CmdBack extends CmdBase {
         TeleportLog lastTeleportLog = data.getLastTeleportLog();
 
         if (lastTeleportLog == null) {
-            throw ServerUtilities.error(sender, "serverutilities.lang.warps.no_dp");
+            throw ServerUtilities.error(sender, "serverutilities.lang.warps.no_pos_found");
         }
 
         BlockDimPos noPosFound = new BlockDimPos(0, 0, 0, 0);
@@ -43,18 +43,6 @@ public class CmdBack extends CmdBase {
 
         data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.BACK);
 
-        Task task = new Task() {
-
-            @Override
-            public void execute(Universe universe) {
-                if (!PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.INFINITE_BACK_USAGE)) {
-                    for (TeleportType t : TeleportType.values()) {
-                        data.clearLastTeleport(t);
-                    }
-                }
-            }
-        };
-
-        ServerUtilitiesPlayerData.Timer.BACK.teleport(player, playerMP -> lastTeleportLog.teleporter(), task);
+        ServerUtilitiesPlayerData.Timer.BACK.teleport(player, playerMP -> lastTeleportLog.teleporter(), null);
     }
 }
