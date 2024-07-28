@@ -1,5 +1,7 @@
 package serverutils.handlers;
 
+import static net.minecraft.realms.RealmsMth.floor;
+
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -182,7 +184,13 @@ public class ServerUtilitiesServerEventHandler {
                     boolean isAFK = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
 
                     if (isAFK) {
-                        player.addStat(ServerUtilitiesStats.AFK_TIME, 1);
+                        if (!prevIsAfk) {
+                            player.addStat(
+                                    ServerUtilitiesStats.AFK_TIME,
+                                    floor(ServerUtilitiesConfig.afk.getNotificationTimer() / 50));// Millisec to ticks
+                        } else {
+                            player.addStat(ServerUtilitiesStats.AFK_TIME, 1);
+                        }
                     }
 
                     if (prevIsAfk != isAFK) {
