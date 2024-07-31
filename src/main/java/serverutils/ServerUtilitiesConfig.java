@@ -174,6 +174,20 @@ public class ServerUtilitiesConfig {
                 .getBoolean();
         backups.need_online_players = config
                 .get(BACKUPS, "need_online_players", true, "Backups won't run if no players are online.").getBoolean();
+        backups.max_folder_size = config
+                .get(
+                        BACKUPS,
+                        "max_folder_size",
+                        1,
+                        """
+                                Max size of backup folder in GB. If total folder size exceeds this value it will delete old backups until the size is under.
+                                0 = Disabled and backups_to_keep will be used instead.""")
+                .getInt();
+        backups.delete_custom_name_backups = config.get(
+                BACKUPS,
+                "delete_custom_name_backups",
+                true,
+                "Delete backups that have a custom name set through /backup start <name>").getBoolean();
 
         chat.add_nickname_tilde = config.get(
                 CHAT,
@@ -472,6 +486,8 @@ public class ServerUtilitiesConfig {
         public boolean display_file_size;
         public boolean need_online_players;
         public boolean silent_backup;
+        public int max_folder_size;
+        public boolean delete_custom_name_backups;
     }
 
     public static class Login {

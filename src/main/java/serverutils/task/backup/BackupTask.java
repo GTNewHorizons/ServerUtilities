@@ -2,9 +2,15 @@ package serverutils.task.backup;
 
 import static serverutils.ServerUtilitiesConfig.backups;
 import static serverutils.ServerUtilitiesNotifications.BACKUP_START;
+import static serverutils.lib.util.FileUtils.SizeUnit;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -23,6 +29,7 @@ import serverutils.task.Task;
 
 public class BackupTask extends Task {
 
+    public static final Pattern BACKUP_NAME_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
     public static File backupsFolder;
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
@@ -84,7 +91,7 @@ public class BackupTask extends Task {
                 }
             }
         } catch (Exception ex) {
-            ServerUtilities.LOGGER.info("Error while saving world: {}", ex.getMessage());
+            ServerUtilities.LOGGER.info("An error occurred while turning off auto-save.", ex);
         }
 
         File wd = server.getEntityWorld().getSaveHandler().getWorldDirectory();
@@ -99,19 +106,45 @@ public class BackupTask extends Task {
     }
 
     public static void clearOldBackups() {
-        String[] backups = backupsFolder.list();
+        File[] files = backupsFolder.listFiles();
+        if (files == null || files.length == 0) return;
 
-        if (backups != null && backups.length > ServerUtilitiesConfig.backups.backups_to_keep) {
-            Arrays.sort(backups);
+        List<File> backupFiles = Arrays.stream(files).filter(
+                file -> backups.delete_custom_name_backups || BACKUP_NAME_PATTERN.matcher(file.getName()).matches())
+                .sorted(Comparator.comparingLong(File::lastModified)).collect(Collectors.toList());
 
-            int toDelete = backups.length - ServerUtilitiesConfig.backups.backups_to_keep;
-            ServerUtilities.LOGGER.info("Deleting {} old backups", toDelete);
+        int maxGb = backups.max_folder_size;
+        if (maxGb > 0) {
+            long currentSize = backupFiles.stream().mapToLong(file -> FileUtils.getSize(file, SizeUnit.GB)).sum();
+            if (currentSize <= maxGb) return;
+            deleteOldBackups(backupFiles, currentSize, maxGb);
 
-            for (int i = 0; i < toDelete; i++) {
-                File f = new File(backupsFolder, backups[i]);
-                ServerUtilities.LOGGER.info("Deleted old backup: {}", f.getPath());
-                FileUtils.delete(f);
-            }
+        } else if (backupFiles.size() > backups.backups_to_keep) {
+            deleteExcessBackups(backupFiles);
+        }
+    }
+
+    private static void deleteOldBackups(List<File> backupFiles, long currentSize, int maxGb) {
+        int deleted = 0;
+        Iterator<File> it = backupFiles.iterator();
+        while (it.hasNext() && currentSize > maxGb) {
+            File file = it.next();
+            currentSize -= FileUtils.getSize(file, SizeUnit.GB);
+            ServerUtilities.LOGGER.info("Deleting old backup: {}", file.getPath());
+            FileUtils.delete(file);
+            it.remove();
+            deleted++;
+        }
+        ServerUtilities.LOGGER.info("Deleted {} old backups", deleted);
+    }
+
+    private static void deleteExcessBackups(List<File> backupFiles) {
+        int toDelete = backupFiles.size() - ServerUtilitiesConfig.backups.backups_to_keep;
+        ServerUtilities.LOGGER.info("Deleting {} old backups", toDelete);
+        for (int i = 0; i < toDelete; i++) {
+            File file = backupFiles.get(i);
+            ServerUtilities.LOGGER.info("Deleted old backup: {}", file.getPath());
+            FileUtils.delete(file);
         }
     }
 
@@ -140,7 +173,7 @@ public class BackupTask extends Task {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            ServerUtilities.LOGGER.info("An error occurred while turning on auto-save.", ex);
         }
     }
 }
