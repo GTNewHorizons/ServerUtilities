@@ -1,5 +1,9 @@
 package serverutils.lib.util;
 
+import static serverutils.lib.util.FileUtils.SizeUnit.GB;
+import static serverutils.lib.util.FileUtils.SizeUnit.KB;
+import static serverutils.lib.util.FileUtils.SizeUnit.MB;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,13 +18,23 @@ import net.minecraft.world.storage.ThreadedFileIOBase;
 
 public class FileUtils {
 
-    public static final int KB = 1024;
-    public static final int MB = KB * 1024;
-    public static final int GB = MB * 1024;
+    public enum SizeUnit {
 
-    public static final double KB_D = 1024D;
-    public static final double MB_D = KB_D * 1024D;
-    public static final double GB_D = MB_D * 1024D;
+        B(1),
+        KB(B.size * 1024),
+        MB(KB.size * 1024),
+        GB(MB.size * 1024);
+
+        private final long size;
+
+        SizeUnit(long size) {
+            this.size = size;
+        }
+
+        public long getSize() {
+            return size;
+        }
+    }
 
     public static File newFile(File file) {
         if (!file.exists()) {
@@ -104,33 +118,49 @@ public class FileUtils {
     }
 
     public static long getSize(File file) {
-        if (!file.exists()) {
-            return 0L;
-        } else if (file.isFile()) {
-            return file.length();
+        return getSize(file, SizeUnit.B);
+    }
+
+    public static long getSize(File file, SizeUnit sizeUnit) {
+        long size = getSize0(file);
+        if (size == 0L) return 0L;
+
+        return switch (sizeUnit) {
+            case KB -> size / KB.getSize();
+            case MB -> size / MB.getSize();
+            case GB -> size / GB.getSize();
+            default -> size;
+        };
+    }
+
+    private static long getSize0(File file) {
+        if (!file.exists()) return 0L;
+        long size = 0;
+
+        if (file.isFile()) {
+            size += file.length();
         } else if (file.isDirectory()) {
-            long length = 0L;
             File[] f1 = file.listFiles();
             if (f1 != null && f1.length > 0) {
                 for (File aF1 : f1) {
-                    length += getSize(aF1);
+                    size += getSize0(aF1);
                 }
             }
-            return length;
         }
-        return 0L;
+
+        return size;
     }
 
     public static String getSizeString(double b) {
-        if (b >= GB_D) {
-            return String.format("%.1fGB", b / GB_D);
-        } else if (b >= MB_D) {
-            return String.format("%.1fMB", b / MB_D);
-        } else if (b >= KB_D) {
-            return String.format("%.1fKB", b / KB_D);
+        if (b >= GB.getSize()) {
+            return String.format("%.1fGB", b / (double) GB.getSize());
+        } else if (b >= MB.getSize()) {
+            return String.format("%.1fMB", b / (double) MB.getSize());
+        } else if (b >= KB.getSize()) {
+            return String.format("%.1fKB", b / (double) KB.getSize());
         }
 
-        return ((long) b) + "B";
+        return b + "B";
     }
 
     public static String getSizeString(File file) {
