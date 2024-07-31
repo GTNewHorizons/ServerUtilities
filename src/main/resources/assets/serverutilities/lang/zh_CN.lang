@@ -1,6 +1,6 @@
 # Misc
 gamerules=游戏规则
-serverutilities.lang.timer.shutdown=服务器在%s后关闭
+serverutilities.lang.timer.shutdown=服务器将在%s后关闭
 serverutilities.lang.killed_entities=已杀死 %d 个类型为“%s”的实体
 serverutilities.lang.kickme=你踢出了自己！
 serverutilities.lang.upload_crash=上传崩溃报告
