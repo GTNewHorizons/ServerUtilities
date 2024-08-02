@@ -94,13 +94,13 @@ public class BackupTask extends Task {
             ServerUtilities.LOGGER.info("An error occurred while turning off auto-save.", ex);
         }
 
-        File wd = server.getEntityWorld().getSaveHandler().getWorldDirectory();
+        File worldDir = server.getEntityWorld().getSaveHandler().getWorldDirectory();
 
         if (backups.use_separate_thread) {
-            thread = new ThreadBackup(wd, customName);
+            thread = new ThreadBackup(worldDir, customName);
             thread.start();
         } else {
-            ThreadBackup.doBackup(wd, customName);
+            ThreadBackup.doBackup(worldDir, customName);
         }
         universe.scheduleTask(new BackupTask(true));
     }
@@ -159,6 +159,7 @@ public class BackupTask extends Task {
             return;
         }
 
+        clearOldBackups();
         thread = null;
         try {
             MinecraftServer server = ServerUtils.getServer();
