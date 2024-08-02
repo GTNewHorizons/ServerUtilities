@@ -48,19 +48,16 @@ public class ThreadBackup extends Thread {
     }
 
     public static void doBackup(File src, String customName) {
-
-        String time = DATE_FORMAT.format(Calendar.getInstance().getTime());
+        String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
+                + ".zip";
         File dstFile = null;
-        StringBuilder out = new StringBuilder();
-        out.append(customName.isEmpty() ? time : customName).append(".zip");
-
         try {
             List<File> files = FileUtils.listTree(src);
             int allFiles = files.size();
             ServerUtilities.LOGGER.info("Backing up {} files...", files.size());
             long start = System.currentTimeMillis();
 
-            dstFile = FileUtils.newFile(new File(BackupTask.backupsFolder, out.toString()));
+            dstFile = FileUtils.newFile(new File(BackupTask.backupsFolder, outName));
             try (ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(dstFile)) {
 
                 if (backups.compression_level == 0) {
@@ -75,30 +72,28 @@ public class ThreadBackup extends Thread {
                 for (int i = 0; i < allFiles; i++) {
                     File file = files.get(i);
                     String filePath = file.getAbsolutePath();
-                    ZipArchiveEntry ze = new ZipArchiveEntry(
+                    ZipArchiveEntry entry = new ZipArchiveEntry(
                             src.getName() + File.separator + filePath.substring(src.getAbsolutePath().length() + 1));
 
                     logProgress(i, allFiles, filePath);
-                    zaos.putArchiveEntry(ze);
+                    zaos.putArchiveEntry(entry);
                     try (FileInputStream fis = new FileInputStream(file)) {
                         IOUtils.copy(fis, zaos);
                     }
                     zaos.closeArchiveEntry();
                 }
             }
-
-            ServerUtilities.LOGGER
-                    .info("Backup done in {} seconds ({})!", getDoneTime(start), FileUtils.getSizeString(dstFile));
+            String backupSize = FileUtils.getSizeString(dstFile);
+            ServerUtilities.LOGGER.info("Backup done in {} seconds ({})!", getDoneTime(start), backupSize);
             ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
 
             if (backups.display_file_size) {
-                String sizeB = FileUtils.getSizeString(dstFile);
                 String sizeT = FileUtils.getSizeString(BackupTask.backupsFolder);
                 ServerUtilitiesNotifications.backupNotification(
                         BACKUP_END2,
                         "cmd.backup_end_2",
                         getDoneTime(start),
-                        (sizeB.equals(sizeT) ? sizeB : (sizeB + " | " + sizeT)));
+                        (backupSize.equals(sizeT) ? backupSize : (backupSize + " | " + sizeT)));
             } else {
                 ServerUtilitiesNotifications.backupNotification(BACKUP_END1, "cmd.backup_end_1", getDoneTime(start));
             }
@@ -107,7 +102,7 @@ public class ThreadBackup extends Thread {
                     ServerUtilities.lang(null, "cmd.backup_fail", e.getClass().getName()),
                     EnumChatFormatting.RED);
             ServerUtils.notifyChat(ServerUtils.getServer(), null, c);
-            ServerUtilities.LOGGER.error("Error while backing up: {}", e.getMessage());
+            ServerUtilities.LOGGER.error("Error while backing up", e);
 
             if (dstFile != null) FileUtils.delete(dstFile);
         }
