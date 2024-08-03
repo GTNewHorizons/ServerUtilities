@@ -1,29 +1,36 @@
 package serverutils.task.backup;
 
+import static serverutils.ServerUtilitiesConfig.backups;
 import static serverutils.ServerUtilitiesNotifications.BACKUP_END1;
 import static serverutils.ServerUtilitiesNotifications.BACKUP_END2;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.io.IOUtils;
+
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
+import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 
 public class ThreadBackup extends Thread {
 
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+
+    private static long logMillis;
     private final File src0;
     private final String customName;
     public boolean isDone = false;
@@ -41,117 +48,52 @@ public class ThreadBackup extends Thread {
     }
 
     public static void doBackup(File src, String customName) {
-
-        String time = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(Calendar.getInstance().getTime());
+        String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
+                + ".zip";
         File dstFile = null;
-        StringBuilder out = new StringBuilder();
-
-        if (customName.isEmpty()) {
-            out.append(time);
-        } else {
-            out.append(customName);
-        }
-
         try {
             List<File> files = FileUtils.listTree(src);
             int allFiles = files.size();
-
             ServerUtilities.LOGGER.info("Backing up {} files...", files.size());
             long start = System.currentTimeMillis();
-            if (ServerUtilitiesConfig.backups.compression_level > 0) {
-                out.append(".zip");
-                dstFile = FileUtils.newFile(new File(BackupTask.backupsFolder, out.toString()));
-                ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dstFile));
-                zos.setLevel(ServerUtilitiesConfig.backups.compression_level);
 
-                long logMillis = System.currentTimeMillis() + 5000L;
+            dstFile = FileUtils.newFile(new File(BackupTask.backupsFolder, outName));
+            try (ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(dstFile)) {
 
-                byte[] buffer = new byte[4096];
+                if (backups.compression_level == 0) {
+                    zaos.setMethod(ZipEntry.STORED);
+                } else {
+                    zaos.setLevel(backups.compression_level);
+                }
 
-                ServerUtilities.LOGGER.info("Compressing {} files!", allFiles);
+                logMillis = System.currentTimeMillis() + Ticks.SECOND.x(5).millis();
+                ServerUtilities.LOGGER.info("Backing up {} files!", allFiles);
 
                 for (int i = 0; i < allFiles; i++) {
                     File file = files.get(i);
                     String filePath = file.getAbsolutePath();
-                    ZipEntry ze = new ZipEntry(
+                    ZipArchiveEntry entry = new ZipArchiveEntry(
                             src.getName() + File.separator + filePath.substring(src.getAbsolutePath().length() + 1));
 
-                    long millis = System.currentTimeMillis();
-
-                    if (i == 0 || millis > logMillis || i == allFiles - 1) {
-                        logMillis = millis + 5000L;
-
-                        StringBuilder log = new StringBuilder();
-                        log.append('[');
-                        log.append(i);
-                        log.append(" | ");
-                        log.append(StringUtils.formatDouble00((i / (double) allFiles) * 100D));
-                        log.append("%]: ");
-                        log.append(ze.getName());
-                        ServerUtilities.LOGGER.info(log.toString());
+                    logProgress(i, allFiles, filePath);
+                    zaos.putArchiveEntry(entry);
+                    try (FileInputStream fis = new FileInputStream(file)) {
+                        IOUtils.copy(fis, zaos);
                     }
-
-                    zos.putNextEntry(ze);
-                    FileInputStream fis = new FileInputStream(file);
-
-                    int len;
-                    while ((len = fis.read(buffer)) > 0) zos.write(buffer, 0, len);
-                    zos.closeEntry();
-                    fis.close();
-                }
-
-                zos.close();
-
-                ServerUtilities.LOGGER.info(
-                        "Done compressing in " + getDoneTime(start)
-                                + " seconds ("
-                                + FileUtils.getSizeString(dstFile)
-                                + ")!");
-            } else {
-                out.append(File.separatorChar).append(src.getName());
-                dstFile = new File(BackupTask.backupsFolder, out.toString());
-                dstFile.mkdirs();
-
-                String dstPath = dstFile.getAbsolutePath() + File.separator;
-                String srcPath = src.getAbsolutePath();
-
-                long logMillis = System.currentTimeMillis() + 2000L;
-
-                for (int i = 0; i < allFiles; i++) {
-                    File file = files.get(i);
-
-                    long millis = System.currentTimeMillis();
-
-                    if (i == 0 || millis > logMillis || i == allFiles - 1) {
-                        logMillis = millis + 2000L;
-
-                        StringBuilder log = new StringBuilder();
-                        log.append('[');
-                        log.append(i);
-                        log.append(" | ");
-                        log.append(StringUtils.formatDouble00((i / (double) allFiles) * 100D));
-                        log.append("%]: ");
-                        log.append(file.getName());
-                        ServerUtilities.LOGGER.info(log.toString());
-                    }
-
-                    File dst1 = new File(dstPath + (file.getAbsolutePath().replace(srcPath, "")));
-                    FileUtils.copyFile(file, dst1);
+                    zaos.closeArchiveEntry();
                 }
             }
-
+            String backupSize = FileUtils.getSizeString(dstFile);
+            ServerUtilities.LOGGER.info("Backup done in {} seconds ({})!", getDoneTime(start), backupSize);
             ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
 
-            BackupTask.clearOldBackups();
-
-            if (ServerUtilitiesConfig.backups.display_file_size) {
-                String sizeB = FileUtils.getSizeString(dstFile);
+            if (backups.display_file_size) {
                 String sizeT = FileUtils.getSizeString(BackupTask.backupsFolder);
                 ServerUtilitiesNotifications.backupNotification(
                         BACKUP_END2,
                         "cmd.backup_end_2",
                         getDoneTime(start),
-                        (sizeB.equals(sizeT) ? sizeB : (sizeB + " | " + sizeT)));
+                        (backupSize.equals(sizeT) ? backupSize : (backupSize + " | " + sizeT)));
             } else {
                 ServerUtilitiesNotifications.backupNotification(BACKUP_END1, "cmd.backup_end_1", getDoneTime(start));
             }
@@ -160,9 +102,18 @@ public class ThreadBackup extends Thread {
                     ServerUtilities.lang(null, "cmd.backup_fail", e.getClass().getName()),
                     EnumChatFormatting.RED);
             ServerUtils.notifyChat(ServerUtils.getServer(), null, c);
+            ServerUtilities.LOGGER.error("Error while backing up", e);
 
-            e.printStackTrace();
             if (dstFile != null) FileUtils.delete(dstFile);
+        }
+    }
+
+    private static void logProgress(int i, int allFiles, String name) {
+        long millis = System.currentTimeMillis();
+        if (i == 0 || millis > logMillis || i == allFiles - 1) {
+            logMillis = millis + Ticks.SECOND.x(5).millis();
+            ServerUtilities.LOGGER
+                    .info("[{} | {}%]: {}", i, StringUtils.formatDouble00((i / (double) allFiles) * 100D), name);
         }
     }
 
