@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
@@ -94,7 +95,7 @@ public class BackupTask extends Task {
             ServerUtilities.LOGGER.info("An error occurred while turning off auto-save.", ex);
         }
 
-        File worldDir = server.getEntityWorld().getSaveHandler().getWorldDirectory();
+        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
 
         if (backups.use_separate_thread) {
             thread = new ThreadBackup(worldDir, customName);

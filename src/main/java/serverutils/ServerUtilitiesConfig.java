@@ -180,14 +180,15 @@ public class ServerUtilitiesConfig {
                         "max_folder_size",
                         0,
                         """
-                                Max size of backup folder in GB. If total folder size exceeds this value it will delete old backups until the size is under.
+                                Max size of backup folder in GB. If total folder size exceeds this value old backups will be deleted until the size is under.
                                 0 = Disabled and backups_to_keep will be used instead.""")
                 .getInt();
         backups.delete_custom_name_backups = config.get(
                 BACKUPS,
                 "delete_custom_name_backups",
-                false,
-                "Delete backups that have a custom name set through /backup start <name>").getBoolean();
+                true,
+                "Include backups that have a custom name set through /backup start <name> when deleting old backups")
+                .getBoolean();
 
         chat.add_nickname_tilde = config.get(
                 CHAT,
