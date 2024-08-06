@@ -79,7 +79,7 @@ public class ThreadBackup extends Thread {
                 if (backups.compression_level == 0) {
                     zaos.setMethod(ZipEntry.STORED);
                 } else {
-                    zaos.setMethod(ZipEntry.DEFLATED);
+                    zaos.setLevel(backups.compression_level);
                 }
 
                 if (ClaimedChunks.isActive() && backups.only_backup_claimed_chunks) {
