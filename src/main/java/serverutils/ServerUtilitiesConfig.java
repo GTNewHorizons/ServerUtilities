@@ -189,6 +189,10 @@ public class ServerUtilitiesConfig {
                 true,
                 "Include backups that have a custom name set through /backup start <name> when deleting old backups")
                 .getBoolean();
+        backups.only_backup_claimed_chunks = config.get(BACKUPS, "only_backup_claimed_chunks", false, """
+                Only claimed chunks will be included in backups.
+                Backups will be much faster and smaller, but any unclaimed chunk will be unrecoverable.""")
+                .getBoolean();
 
         chat.add_nickname_tilde = config.get(
                 CHAT,
@@ -489,6 +493,7 @@ public class ServerUtilitiesConfig {
         public boolean silent_backup;
         public int max_folder_size;
         public boolean delete_custom_name_backups;
+        public boolean only_backup_claimed_chunks;
     }
 
     public static class Login {

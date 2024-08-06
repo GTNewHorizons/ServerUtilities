@@ -45,6 +45,7 @@ public class ClaimedChunks {
     private final Map<ChunkDimPos, ClaimedChunk> map = new HashMap<>();
     public long nextChunkloaderUpdate;
     private boolean isDirty = true;
+    private boolean pauseQueue = false;
     private static boolean forceSave = false;
 
     public ClaimedChunks(Universe u) {
@@ -70,6 +71,10 @@ public class ClaimedChunks {
     }
 
     public void processQueue() {
+        if (pauseQueue) {
+            markDirty();
+            return;
+        }
         if (!pendingChunks.isEmpty()) {
             for (ClaimedChunk chunk : pendingChunks) {
                 ClaimedChunk prevChunk = map.put(chunk.getPos(), chunk);
@@ -170,6 +175,10 @@ public class ClaimedChunks {
 
     public Collection<ClaimedChunk> getAllChunks() {
         return map.isEmpty() ? Collections.emptyList() : map.values();
+    }
+
+    public Set<ChunkDimPos> getAllClaimedPositions() {
+        return map.isEmpty() ? Collections.emptySet() : map.keySet();
     }
 
     public Set<ClaimedChunk> getTeamChunks(@Nullable ForgeTeam team, OptionalInt dimension, boolean includePending) {
@@ -402,6 +411,10 @@ public class ClaimedChunks {
         new ChunkModifiedEvent.Unloaded(chunk, player).post();
         chunk.setLoaded(false);
         return true;
+    }
+
+    public void setPauseQueue(boolean pause) {
+        pauseQueue = pause;
     }
 
     public void forceSave() {

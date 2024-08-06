@@ -22,6 +22,7 @@ import net.minecraftforge.common.DimensionManager;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
+import serverutils.data.ClaimedChunks;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
@@ -31,6 +32,7 @@ import serverutils.task.Task;
 public class BackupTask extends Task {
 
     public static final Pattern BACKUP_NAME_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
+    public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
     public static File backupsFolder;
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
@@ -97,6 +99,11 @@ public class BackupTask extends Task {
 
         File worldDir = DimensionManager.getCurrentSaveRootDirectory();
 
+        if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
+            ClaimedChunks.instance.setPauseQueue(true);
+            BACKUP_TEMP_FOLDER.mkdirs();
+        }
+
         if (backups.use_separate_thread) {
             thread = new ThreadBackup(worldDir, customName);
             thread.start();
@@ -161,6 +168,12 @@ public class BackupTask extends Task {
         }
 
         clearOldBackups();
+        FileUtils.delete(BACKUP_TEMP_FOLDER);
+
+        if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
+            ClaimedChunks.instance.setPauseQueue(false);
+        }
+
         thread = null;
         try {
             MinecraftServer server = ServerUtils.getServer();

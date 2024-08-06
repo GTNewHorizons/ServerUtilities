@@ -230,4 +230,8 @@ public class FileUtils {
             return index == -1 ? name : name.substring(0, index);
         }
     }
+
+    public static String getRelativePath(File dir, File file) {
+        return dir.getName() + File.separator + file.getAbsolutePath().substring(dir.getAbsolutePath().length() + 1);
+    }
 }
