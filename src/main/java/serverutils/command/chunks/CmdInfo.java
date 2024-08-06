@@ -42,9 +42,9 @@ public class CmdInfo extends CmdBase {
                 ServerUtilities.lang(
                         sender,
                         "commands.chunks.info.text",
-                        pos.posX,
-                        pos.posZ,
-                        ServerUtils.getDimensionName(pos.dim),
+                        pos.x,
+                        pos.z,
+                        ServerUtils.getDimensionName(pos.getDim()),
                         owner));
     }
 }

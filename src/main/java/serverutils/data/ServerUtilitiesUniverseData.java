@@ -36,7 +36,7 @@ public class ServerUtilitiesUniverseData {
     private static final List<String> chatLog = new ArrayList<>();
 
     public static boolean isInSpawn(MinecraftServer server, ChunkDimPos pos) {
-        if (pos.dim != 0 || (!server.isDedicatedServer() && !ServerUtilitiesConfig.world.spawn_area_in_sp)) {
+        if (pos.getDim() != 0 || (!server.isDedicatedServer() && !ServerUtilitiesConfig.world.spawn_area_in_sp)) {
             return false;
         }
 
@@ -50,7 +50,7 @@ public class ServerUtilitiesUniverseData {
         int minZ = MathUtils.chunk(c.posZ - radius);
         int maxX = MathUtils.chunk(c.posX + radius);
         int maxZ = MathUtils.chunk(c.posZ + radius);
-        return pos.posX >= minX && pos.posX <= maxX && pos.posZ >= minZ && pos.posZ <= maxZ;
+        return pos.x >= minX && pos.x <= maxX && pos.z >= minZ && pos.z <= maxZ;
     }
 
     @SubscribeEvent

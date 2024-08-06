@@ -126,8 +126,8 @@ public class ClaimedChunks {
 
             for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
                 ChunkDimPos playerPos = new ChunkDimPos(player);
-                int startX = playerPos.posX - ChunkSelectorMap.TILES_GUI2;
-                int startZ = playerPos.posZ - ChunkSelectorMap.TILES_GUI2;
+                int startX = playerPos.x - ChunkSelectorMap.TILES_GUI2;
+                int startZ = playerPos.z - ChunkSelectorMap.TILES_GUI2;
                 new MessageClaimedChunksUpdate(startX, startZ, player).sendTo(player);
                 ServerUtilitiesNotifications.updateChunkMessage(player, playerPos);
             }
@@ -138,7 +138,7 @@ public class ClaimedChunks {
 
     @Nullable
     public ClaimedChunk getChunk(ChunkDimPos pos) {
-        if (ServerUtilitiesConfig.world.blockDimension(pos.dim)) {
+        if (ServerUtilitiesConfig.world.blockDimension(pos.getDim())) {
             return null;
         }
 
@@ -181,7 +181,7 @@ public class ClaimedChunks {
 
         for (ClaimedChunk chunk : map.values()) {
             if (!chunk.isInvalid() && team.equalsTeam(chunk.getTeam())
-                    && (!dimension.isPresent() || dimension.getAsInt() == chunk.getPos().dim)) {
+                    && (!dimension.isPresent() || dimension.getAsInt() == chunk.getPos().getDim())) {
                 set.add(chunk);
             }
         }
@@ -189,7 +189,7 @@ public class ClaimedChunks {
         if (includePending) {
             for (ClaimedChunk chunk : pendingChunks) {
                 if (team.equalsTeam(chunk.getTeam())
-                        && (!dimension.isPresent() || dimension.getAsInt() == chunk.getPos().dim)) {
+                        && (!dimension.isPresent() || dimension.getAsInt() == chunk.getPos().getDim())) {
                     set.add(chunk);
                 }
             }
@@ -285,7 +285,7 @@ public class ClaimedChunks {
 
         if (chunk == null) {
             return true;
-        } else if (ServerUtilitiesConfig.world.blockDimension(pos.dim)) {
+        } else if (ServerUtilitiesConfig.world.blockDimension(pos.getDim())) {
             return false;
         }
 
@@ -300,7 +300,7 @@ public class ClaimedChunks {
     public ClaimResult claimChunk(ForgePlayer player, ChunkDimPos pos, boolean checkLimits) {
         if (!player.hasTeam()) {
             return ClaimResult.NO_TEAM;
-        } else if (checkLimits && ServerUtilitiesConfig.world.blockDimension(pos.dim)) {
+        } else if (checkLimits && ServerUtilitiesConfig.world.blockDimension(pos.getDim())) {
             return ClaimResult.DIMENSION_BLOCKED;
         }
 
