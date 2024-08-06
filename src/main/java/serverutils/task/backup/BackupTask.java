@@ -172,6 +172,7 @@ public class BackupTask extends Task {
 
         if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
             ClaimedChunks.instance.setPauseQueue(false);
+            ClaimedChunks.instance.processQueue();
         }
 
         thread = null;

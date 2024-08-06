@@ -71,10 +71,7 @@ public class ClaimedChunks {
     }
 
     public void processQueue() {
-        if (pauseQueue) {
-            markDirty();
-            return;
-        }
+        if (pauseQueue) return;
         if (!pendingChunks.isEmpty()) {
             for (ClaimedChunk chunk : pendingChunks) {
                 ClaimedChunk prevChunk = map.put(chunk.getPos(), chunk);
