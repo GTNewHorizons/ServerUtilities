@@ -172,6 +172,10 @@ public class ClaimedChunks {
         return map.isEmpty() ? Collections.emptyList() : map.values();
     }
 
+    public Set<ChunkDimPos> getAllClaimedPositions() {
+        return map.isEmpty() ? Collections.emptySet() : map.keySet();
+    }
+
     public Set<ClaimedChunk> getTeamChunks(@Nullable ForgeTeam team, OptionalInt dimension, boolean includePending) {
         if (team == null) {
             return Collections.emptySet();
