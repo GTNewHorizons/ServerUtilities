@@ -47,6 +47,11 @@ public final class ChunkDimPos extends Vector3i {
         return false;
     }
 
+    public ChunkDimPos setFromLong(long packed) {
+        set(unpackX(packed), unpackDim(packed), unpackZ(packed));
+        return this;
+    }
+
     public boolean equalsChunkDimPos(ChunkDimPos p) {
         return p == this || (p.getDim() == getDim() && p.x == x && p.z == z);
     }
