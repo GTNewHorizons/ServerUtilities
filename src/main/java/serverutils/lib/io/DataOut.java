@@ -122,16 +122,16 @@ public class DataOut {
     }
 
     public void writeDimPos(BlockDimPos pos) {
-        writeVarInt(pos.dim);
+        writeVarInt(pos.getDim());
         writeVarInt(pos.posX);
         writeVarInt(pos.posY);
         writeVarInt(pos.posZ);
     }
 
     public void writeChunkDimPos(ChunkDimPos pos) {
-        writeVarInt(pos.posX);
-        writeVarInt(pos.posZ);
-        writeVarInt(pos.dim);
+        writeVarInt(pos.x);
+        writeVarInt(pos.z);
+        writeVarInt(pos.getDim());
     }
 
     public void writeUUID(UUID id) {

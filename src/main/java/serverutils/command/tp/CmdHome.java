@@ -108,7 +108,7 @@ public class CmdHome extends CmdBase {
 
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
 
-        if (player.dimension != pos.dim
+        if (player.dimension != pos.getDim()
                 && !PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.HOMES_CROSS_DIM)) {
             throw ServerUtilities.error(sender, "serverutilities.lang.homes.cross_dim");
         }

@@ -32,9 +32,9 @@ public class ClaimsLocation implements IWaypointAndLocationProvider {
     private final EnumTeamColor color;
 
     public ClaimsLocation(ChunkDimPos chunk, ClientClaimedChunks.ChunkData data) {
-        blockX = Util.coordChunkToBlock(chunk.posX);
-        blockZ = Util.coordChunkToBlock(chunk.posZ);
-        dimensionId = chunk.dim;
+        blockX = Util.coordChunkToBlock(chunk.x);
+        blockZ = Util.coordChunkToBlock(chunk.z);
+        dimensionId = chunk.getDim();
         teamName = data.team.nameComponent.getUnformattedText();
         loaded = data.isLoaded();
         color = data.team.color;

@@ -74,7 +74,7 @@ public class ServerUtilitiesWorldEventHandler {
         final MinecraftServer server = MinecraftServer.getServer();
 
         Function<ChunkDimPos, Boolean> func = pos -> {
-            if (pos.dim == 0 && ServerUtilitiesConfig.world.safe_spawn
+            if (pos.getDim() == 0 && ServerUtilitiesConfig.world.safe_spawn
                     && ServerUtilitiesUniverseData.isInSpawn(server, pos)) {
                 return false;
             } else {

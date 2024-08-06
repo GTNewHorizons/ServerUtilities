@@ -51,16 +51,16 @@ public class ServerUtilitiesTeamData extends TeamData {
                 .getTeamChunks(event.getTeam(), OptionalInt.empty(), ClaimedChunks.isForcedToSave())) {
             ChunkDimPos pos = chunk.getPos();
 
-            NBTTagList list = claimedChunks.get(pos.dim);
+            NBTTagList list = claimedChunks.get(pos.getDim());
 
             if (list == null) {
                 list = new NBTTagList();
-                claimedChunks.put(pos.dim, list);
+                claimedChunks.put(pos.getDim(), list);
             }
 
             NBTTagCompound chunkNBT = new NBTTagCompound();
-            chunkNBT.setInteger("x", pos.posX);
-            chunkNBT.setInteger("z", pos.posZ);
+            chunkNBT.setInteger("x", pos.x);
+            chunkNBT.setInteger("z", pos.z);
             chunkNBT.setBoolean("preDecay", chunk.preDecay);
 
             if (chunk.isLoaded()) {

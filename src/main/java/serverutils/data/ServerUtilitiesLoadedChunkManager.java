@@ -76,7 +76,7 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
         }
 
         ChunkDimPos pos = chunk.getPos();
-        ForgeChunkManager.Ticket ticket = requestTicket(server, new TicketKey(pos.dim, chunk.getTeam().getId()));
+        ForgeChunkManager.Ticket ticket = requestTicket(server, new TicketKey(pos.getDim(), chunk.getTeam().getId()));
 
         try {
             Objects.requireNonNull(ticket);
@@ -87,32 +87,32 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
             if (ServerUtilitiesConfig.debugging.log_chunkloading) {
                 ServerUtilities.LOGGER.info(
                         chunk.getTeam().getTitle().getUnformattedText() + " forced "
-                                + pos.posX
+                                + pos.x
                                 + ","
-                                + pos.posZ
+                                + pos.z
                                 + " in "
-                                + ServerUtils.getDimensionName(pos.dim).getUnformattedText());
+                                + ServerUtils.getDimensionName(pos.getDim()).getUnformattedText());
             }
         } catch (Exception ex) {
-            if (!DimensionManager.isDimensionRegistered(chunk.getPos().dim)) {
+            if (!DimensionManager.isDimensionRegistered(chunk.getPos().getDim())) {
                 ServerUtilities.LOGGER.error(
-                        "Failed to force chunk " + pos.posX
+                        "Failed to force chunk " + pos.x
                                 + ","
-                                + pos.posZ
+                                + pos.z
                                 + " in "
-                                + ServerUtils.getDimensionName(pos.dim).getUnformattedText()
+                                + ServerUtils.getDimensionName(pos.getDim()).getUnformattedText()
                                 + " from "
                                 + chunk.getTeam().getTitle().getUnformattedText()
                                 + ": Dimension "
-                                + chunk.getPos().dim
+                                + chunk.getPos().getDim()
                                 + " not registered!");
             } else {
                 ServerUtilities.LOGGER.error(
-                        "Failed to force chunk " + pos.posX
+                        "Failed to force chunk " + pos.x
                                 + ","
-                                + pos.posZ
+                                + pos.z
                                 + " in "
-                                + ServerUtils.getDimensionName(pos.dim).getUnformattedText()
+                                + ServerUtils.getDimensionName(pos.getDim()).getUnformattedText()
                                 + " from "
                                 + chunk.getTeam().getTitle().getUnformattedText()
                                 + ": "
@@ -125,11 +125,11 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
 
             if (ServerUtilitiesConfig.world.unload_erroring_chunks) {
                 ServerUtilities.LOGGER.warn(
-                        "Unloading erroring chunk at " + pos.posX
+                        "Unloading erroring chunk at " + pos.x
                                 + ","
-                                + pos.posZ
+                                + pos.z
                                 + " in "
-                                + ServerUtils.getDimensionName(pos.dim).getUnformattedText());
+                                + ServerUtils.getDimensionName(pos.getDim()).getUnformattedText());
                 chunk.setLoaded(false);
             }
         }
@@ -152,18 +152,18 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
         chunk.forced = false;
 
         if (ticket.getChunkList().isEmpty()) {
-            ticketMap.remove(new TicketKey(pos.dim, chunk.getTeam().getId()));
+            ticketMap.remove(new TicketKey(pos.getDim(), chunk.getTeam().getId()));
             ForgeChunkManager.releaseTicket(ticket);
         }
 
         if (ServerUtilitiesConfig.debugging.log_chunkloading) {
             ServerUtilities.LOGGER.info(
                     chunk.getTeam().getTitle().getUnformattedText() + " unforced "
-                            + pos.posX
+                            + pos.x
                             + ","
-                            + pos.posZ
+                            + pos.z
                             + " in "
-                            + ServerUtils.getDimensionName(pos.dim).getUnformattedText());
+                            + ServerUtils.getDimensionName(pos.getDim()).getUnformattedText());
         }
     }
 
