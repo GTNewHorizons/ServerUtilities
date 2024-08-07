@@ -185,6 +185,8 @@ public class ThreadBackup extends Thread {
             if (hasData) {
                 compressFile(FileUtils.getRelativePath(sourceFolder, file), tempFile, out, index++, totalFiles);
             }
+
+            FileUtils.delete(tempFile);
         }
 
         for (File file : files) {
