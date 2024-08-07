@@ -75,7 +75,7 @@ public class CmdClaimAs extends CmdBase {
 
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {
-                ChunkDimPos pos1 = new ChunkDimPos(pos.posX + x, pos.posZ + z, pos.dim);
+                ChunkDimPos pos1 = new ChunkDimPos(pos.x + x, pos.z + z, pos.getDim());
                 ClaimResult result = ClaimedChunks.instance.claimChunk(p, pos1, false);
 
                 if (x == 0 && z == 0) {

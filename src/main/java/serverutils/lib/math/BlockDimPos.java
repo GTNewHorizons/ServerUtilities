@@ -65,6 +65,10 @@ public final class BlockDimPos {
         return false;
     }
 
+    public int getDim() {
+        return dim;
+    }
+
     public int hashCode() {
         return 31 * (31 * (31 * posX + posY) + posZ) + dim;
     }
@@ -86,7 +90,7 @@ public final class BlockDimPos {
     }
 
     public boolean equalsPos(BlockDimPos p) {
-        return p == this || (p.dim == dim && p.posX == posX && p.posY == posY && p.posZ == posZ);
+        return p == this || (p.getDim() == dim && p.posX == posX && p.posY == posY && p.posZ == posZ);
     }
 
     public BlockDimPos add(int x, int y, int z) {

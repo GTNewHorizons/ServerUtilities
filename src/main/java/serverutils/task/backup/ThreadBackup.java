@@ -1,169 +1,247 @@
 package serverutils.task.backup;
 
+import static serverutils.ServerUtilitiesConfig.backups;
 import static serverutils.ServerUtilitiesNotifications.BACKUP_END1;
 import static serverutils.ServerUtilitiesNotifications.BACKUP_END2;
+import static serverutils.task.backup.BackupTask.BACKUP_TEMP_FOLDER;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.chunk.storage.RegionFile;
+import net.minecraft.world.chunk.storage.RegionFileCache;
 
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.io.IOUtils;
+
+import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
+
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
+import serverutils.lib.math.ChunkDimPos;
+import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 
 public class ThreadBackup extends Thread {
 
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+    private static long logMillis;
     private final File src0;
     private final String customName;
+    private final Set<ChunkDimPos> chunksToBackup;
     public boolean isDone = false;
 
-    public ThreadBackup(File w, String s) {
-        src0 = w;
-        customName = s;
+    public ThreadBackup(File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
+        src0 = sourceFile;
+        customName = backupName;
+        chunksToBackup = backupChunks;
         setPriority(7);
     }
 
     public void run() {
         isDone = false;
-        doBackup(src0, customName);
+        doBackup(src0, customName, chunksToBackup);
         isDone = true;
     }
 
-    public static void doBackup(File src, String customName) {
-
-        String time = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(Calendar.getInstance().getTime());
+    public static void doBackup(File src, String customName, Set<ChunkDimPos> chunks) {
+        String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
+                + ".zip";
         File dstFile = null;
-        StringBuilder out = new StringBuilder();
-
-        if (customName.isEmpty()) {
-            out.append(time);
-        } else {
-            out.append(customName);
-        }
-
         try {
             List<File> files = FileUtils.listTree(src);
-            int allFiles = files.size();
-
-            ServerUtilities.LOGGER.info("Backing up {} files...", files.size());
             long start = System.currentTimeMillis();
-            if (ServerUtilitiesConfig.backups.compression_level > 0) {
-                out.append(".zip");
-                dstFile = FileUtils.newFile(new File(BackupTask.backupsFolder, out.toString()));
-                ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dstFile));
-                zos.setLevel(ServerUtilitiesConfig.backups.compression_level);
+            logMillis = start + Ticks.SECOND.x(5).millis();
 
-                long logMillis = System.currentTimeMillis() + 5000L;
-
-                byte[] buffer = new byte[4096];
-
-                ServerUtilities.LOGGER.info("Compressing {} files!", allFiles);
-
-                for (int i = 0; i < allFiles; i++) {
-                    File file = files.get(i);
-                    String filePath = file.getAbsolutePath();
-                    ZipEntry ze = new ZipEntry(
-                            src.getName() + File.separator + filePath.substring(src.getAbsolutePath().length() + 1));
-
-                    long millis = System.currentTimeMillis();
-
-                    if (i == 0 || millis > logMillis || i == allFiles - 1) {
-                        logMillis = millis + 5000L;
-
-                        StringBuilder log = new StringBuilder();
-                        log.append('[');
-                        log.append(i);
-                        log.append(" | ");
-                        log.append(StringUtils.formatDouble00((i / (double) allFiles) * 100D));
-                        log.append("%]: ");
-                        log.append(ze.getName());
-                        ServerUtilities.LOGGER.info(log.toString());
-                    }
-
-                    zos.putNextEntry(ze);
-                    FileInputStream fis = new FileInputStream(file);
-
-                    int len;
-                    while ((len = fis.read(buffer)) > 0) zos.write(buffer, 0, len);
-                    zos.closeEntry();
-                    fis.close();
+            dstFile = FileUtils.newFile(new File(BackupTask.backupsFolder, outName));
+            try (ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(dstFile)) {
+                if (backups.compression_level == 0) {
+                    zaos.setMethod(ZipEntry.STORED);
+                } else {
+                    zaos.setLevel(backups.compression_level);
                 }
 
-                zos.close();
-
-                ServerUtilities.LOGGER.info(
-                        "Done compressing in " + getDoneTime(start)
-                                + " seconds ("
-                                + FileUtils.getSizeString(dstFile)
-                                + ")!");
-            } else {
-                out.append(File.separatorChar).append(src.getName());
-                dstFile = new File(BackupTask.backupsFolder, out.toString());
-                dstFile.mkdirs();
-
-                String dstPath = dstFile.getAbsolutePath() + File.separator;
-                String srcPath = src.getAbsolutePath();
-
-                long logMillis = System.currentTimeMillis() + 2000L;
-
-                for (int i = 0; i < allFiles; i++) {
-                    File file = files.get(i);
-
-                    long millis = System.currentTimeMillis();
-
-                    if (i == 0 || millis > logMillis || i == allFiles - 1) {
-                        logMillis = millis + 2000L;
-
-                        StringBuilder log = new StringBuilder();
-                        log.append('[');
-                        log.append(i);
-                        log.append(" | ");
-                        log.append(StringUtils.formatDouble00((i / (double) allFiles) * 100D));
-                        log.append("%]: ");
-                        log.append(file.getName());
-                        ServerUtilities.LOGGER.info(log.toString());
-                    }
-
-                    File dst1 = new File(dstPath + (file.getAbsolutePath().replace(srcPath, "")));
-                    FileUtils.copyFile(file, dst1);
+                if (!chunks.isEmpty() && backups.only_backup_claimed_chunks) {
+                    backupRegions(src, files, chunks, zaos);
+                } else {
+                    compressFiles(src, files, zaos);
                 }
-            }
 
-            ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
+                String backupSize = FileUtils.getSizeString(dstFile);
+                ServerUtilities.LOGGER.info("Backup done in {} seconds ({})!", getDoneTime(start), backupSize);
+                ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
 
-            BackupTask.clearOldBackups();
-
-            if (ServerUtilitiesConfig.backups.display_file_size) {
-                String sizeB = FileUtils.getSizeString(dstFile);
-                String sizeT = FileUtils.getSizeString(BackupTask.backupsFolder);
-                ServerUtilitiesNotifications.backupNotification(
-                        BACKUP_END2,
-                        "cmd.backup_end_2",
-                        getDoneTime(start),
-                        (sizeB.equals(sizeT) ? sizeB : (sizeB + " | " + sizeT)));
-            } else {
-                ServerUtilitiesNotifications.backupNotification(BACKUP_END1, "cmd.backup_end_1", getDoneTime(start));
+                if (backups.display_file_size) {
+                    String sizeT = FileUtils.getSizeString(BackupTask.backupsFolder);
+                    ServerUtilitiesNotifications.backupNotification(
+                            BACKUP_END2,
+                            "cmd.backup_end_2",
+                            getDoneTime(start),
+                            (backupSize.equals(sizeT) ? backupSize : (backupSize + " | " + sizeT)));
+                } else {
+                    ServerUtilitiesNotifications
+                            .backupNotification(BACKUP_END1, "cmd.backup_end_1", getDoneTime(start));
+                }
             }
         } catch (Exception e) {
-            IChatComponent c = StringUtils.color(
-                    ServerUtilities.lang(null, "cmd.backup_fail", e.getClass().getName()),
-                    EnumChatFormatting.RED);
+            IChatComponent c = StringUtils
+                    .color(ServerUtilities.lang(null, "cmd.backup_fail", e), EnumChatFormatting.RED);
             ServerUtils.notifyChat(ServerUtils.getServer(), null, c);
+            ServerUtilities.LOGGER.error("Error while backing up", e);
 
-            e.printStackTrace();
             if (dstFile != null) FileUtils.delete(dstFile);
         }
+    }
+
+    private static void logProgress(int i, int allFiles, String name) {
+        long millis = System.currentTimeMillis();
+        boolean first = i == 0;
+        if (first) {
+            ServerUtilities.LOGGER.info("Backing up {} files...", allFiles);
+        }
+
+        if (first || millis > logMillis || i == allFiles - 1) {
+            logMillis = millis + Ticks.SECOND.x(5).millis();
+            ServerUtilities.LOGGER
+                    .info("[{} | {}%]: {}", i, StringUtils.formatDouble00((i / (double) allFiles) * 100D), name);
+        }
+    }
+
+    private static void compressFiles(File sourceDir, List<File> files, ZipArchiveOutputStream zaos)
+            throws IOException {
+        int allFiles = files.size();
+        for (int i = 0; i < allFiles; i++) {
+            File file = files.get(i);
+            compressFile(FileUtils.getRelativePath(sourceDir, file), file, zaos, i, allFiles);
+        }
+    }
+
+    private static void compressFile(String entryName, File file, ZipArchiveOutputStream out, int index, int totalFiles)
+            throws IOException {
+        ArchiveEntry entry = new ZipArchiveEntry(file, entryName);
+        logProgress(index, totalFiles, file.getAbsolutePath());
+        out.putArchiveEntry(entry);
+        try (FileInputStream fis = new FileInputStream(file)) {
+            IOUtils.copy(fis, out);
+        }
+        out.closeArchiveEntry();
+
+    }
+
+    private static void backupRegions(File sourceFolder, List<File> files, Set<ChunkDimPos> chunksToBackup,
+            ZipArchiveOutputStream out) throws IOException {
+        Long2ObjectMap<LongSet> claimedChunks = mapClaimsToRegion(chunksToBackup);
+        Long2ObjectMap<File> regionFiles = mapRegionFilesToLong(claimedChunks);
+        files.removeIf(f -> f.getName().endsWith(".mca"));
+
+        int index = 0;
+        int savedChunks = 0;
+        int totalFiles = regionFiles.size() + files.size();
+        ChunkDimPos mutableTemp = new ChunkDimPos();
+        for (Long2ObjectMap.Entry<File> entry : regionFiles.long2ObjectEntrySet()) {
+            File file = entry.getValue();
+            LongSet chunks = claimedChunks.get(entry.getLongKey());
+            if (chunks == null || chunks.isEmpty()) continue;
+            File dimensionRoot = file.getParentFile().getParentFile();
+
+            File tempFile = FileUtils.newFile(new File(BACKUP_TEMP_FOLDER, file.getName()));
+            RegionFile tempRegion = new RegionFile(tempFile);
+            boolean hasData = false;
+            for (long pos : chunks) {
+                mutableTemp.setFromLong(pos);
+                DataInputStream in = RegionFileCache.getChunkInputStream(dimensionRoot, mutableTemp.x, mutableTemp.z);
+
+                if (in == null) continue;
+                savedChunks++;
+                hasData = true;
+                NBTTagCompound tag = CompressedStreamTools.read(in);
+                DataOutputStream tempOut = tempRegion.getChunkDataOutputStream(mutableTemp.x & 31, mutableTemp.z & 31);
+                CompressedStreamTools.write(tag, tempOut);
+                tempOut.close();
+            }
+
+            tempRegion.close();
+            if (hasData) {
+                compressFile(FileUtils.getRelativePath(sourceFolder, file), tempFile, out, index++, totalFiles);
+            }
+
+            FileUtils.delete(tempFile);
+        }
+
+        for (File file : files) {
+            compressFile(FileUtils.getRelativePath(sourceFolder, file), file, out, index++, totalFiles);
+        }
+
+        ServerUtilities.LOGGER
+                .info("Backed up {} regions containing {} claimed chunks", regionFiles.size(), savedChunks);
+    }
+
+    private static Long2ObjectMap<File> mapRegionFilesToLong(Long2ObjectMap<LongSet> regionClaims) {
+        Long2ObjectMap<File> regionFiles = new Long2ObjectOpenHashMap<>();
+        MinecraftServer server = ServerUtils.getServer();
+        for (WorldServer worldserver : server.worldServers) {
+            if (worldserver == null) continue;
+
+            int dim = worldserver.provider.dimensionId;
+            File regionFolder = new File(worldserver.getChunkSaveLocation(), "region");
+            if (!regionFolder.exists()) continue;
+
+            File[] regions = regionFolder.listFiles();
+            if (regions == null) continue;
+
+            for (File file : regions) {
+                int[] coords = getRegionCoords(file);
+                long key = CoordinatePacker.pack(coords[0], dim, coords[1]);
+                if (!regionClaims.containsKey(key)) {
+                    ServerUtilities.LOGGER.info("Skipping region file: {}", file.getName());
+                    continue;
+                }
+                regionFiles.put(key, file);
+            }
+        }
+        return regionFiles;
+    }
+
+    private static Long2ObjectMap<LongSet> mapClaimsToRegion(Set<ChunkDimPos> chunksToBackup) {
+        Long2ObjectMap<LongSet> regionClaims = new Long2ObjectOpenHashMap<>();
+        chunksToBackup.forEach(pos -> {
+            long region = pos.toRegionLong();
+            regionClaims.computeIfAbsent(region, k -> new LongOpenHashSet()).add(pos.toLong());
+        });
+        return regionClaims;
+    }
+
+    private static int[] getRegionCoords(File f) {
+        String fileName = f.getName();
+        int firstDot = fileName.indexOf('.');
+        int secondDot = fileName.indexOf('.', firstDot + 1);
+
+        int x = Integer.parseInt(fileName.substring(firstDot + 1, secondDot));
+        int z = Integer.parseInt(fileName.substring(secondDot + 1, fileName.lastIndexOf('.')));
+        return new int[] { x, z };
     }
 
     private static String getDoneTime(long l) {

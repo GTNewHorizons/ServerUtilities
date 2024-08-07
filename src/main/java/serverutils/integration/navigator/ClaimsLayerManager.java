@@ -81,10 +81,10 @@ public class ClaimsLayerManager extends InteractableLayerManager {
         for (Map.Entry<ChunkDimPos, ClientClaimedChunks.ChunkData> entry : NavigatorIntegration.CLAIMS.entrySet()) {
             ChunkDimPos key = entry.getKey();
             ClientClaimedChunks.ChunkData value = entry.getValue();
-            boolean withinRange = key.posX >= minX && key.posX <= maxX
-                    && key.posZ >= minZ
-                    && key.posZ <= maxZ
-                    && key.dim == player.dimension;
+            boolean withinRange = key.x >= minX && key.x <= maxX
+                    && key.z >= minZ
+                    && key.z <= maxZ
+                    && key.getDim() == player.dimension;
             if (!withinRange) {
                 continue;
             }

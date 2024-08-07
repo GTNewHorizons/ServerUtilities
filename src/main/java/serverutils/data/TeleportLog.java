@@ -38,7 +38,7 @@ public class TeleportLog implements INBTSerializable<NBTTagCompound>, Comparable
     @Override
     public NBTTagCompound serializeNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
-        nbt.setInteger(NBT_KEY_DIMENSION, from.dim);
+        nbt.setInteger(NBT_KEY_DIMENSION, from.getDim());
         nbt.setInteger(NBT_KEY_X, from.posX);
         nbt.setInteger(NBT_KEY_Y, from.posY);
         nbt.setInteger(NBT_KEY_Z, from.posZ);
