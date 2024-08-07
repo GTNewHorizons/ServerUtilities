@@ -14,6 +14,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 
 import net.minecraft.nbt.CompressedStreamTools;
@@ -38,7 +39,6 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesNotifications;
-import serverutils.data.ClaimedChunks;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
@@ -51,21 +51,23 @@ public class ThreadBackup extends Thread {
     private static long logMillis;
     private final File src0;
     private final String customName;
+    private final Set<ChunkDimPos> chunksToBackup;
     public boolean isDone = false;
 
-    public ThreadBackup(File w, String s) {
-        src0 = w;
-        customName = s;
+    public ThreadBackup(File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
+        src0 = sourceFile;
+        customName = backupName;
+        chunksToBackup = backupChunks;
         setPriority(7);
     }
 
     public void run() {
         isDone = false;
-        doBackup(src0, customName);
+        doBackup(src0, customName, chunksToBackup);
         isDone = true;
     }
 
-    public static void doBackup(File src, String customName) {
+    public static void doBackup(File src, String customName, Set<ChunkDimPos> chunks) {
         String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         File dstFile = null;
@@ -82,8 +84,8 @@ public class ThreadBackup extends Thread {
                     zaos.setLevel(backups.compression_level);
                 }
 
-                if (ClaimedChunks.isActive() && backups.only_backup_claimed_chunks) {
-                    backupRegions(src, files, zaos);
+                if (!chunks.isEmpty() && backups.only_backup_claimed_chunks) {
+                    backupRegions(src, files, chunks, zaos);
                 } else {
                     compressFiles(src, files, zaos);
                 }
@@ -149,9 +151,9 @@ public class ThreadBackup extends Thread {
 
     }
 
-    private static void backupRegions(File sourceFolder, List<File> files, ZipArchiveOutputStream out)
-            throws IOException {
-        Long2ObjectMap<LongSet> claimedChunks = mapClaimsToRegion();
+    private static void backupRegions(File sourceFolder, List<File> files, Set<ChunkDimPos> chunksToBackup,
+            ZipArchiveOutputStream out) throws IOException {
+        Long2ObjectMap<LongSet> claimedChunks = mapClaimsToRegion(chunksToBackup);
         Long2ObjectMap<File> regionFiles = mapRegionFilesToLong(claimedChunks);
         files.removeIf(f -> f.getName().endsWith(".mca"));
 
@@ -223,9 +225,9 @@ public class ThreadBackup extends Thread {
         return regionFiles;
     }
 
-    private static Long2ObjectMap<LongSet> mapClaimsToRegion() {
+    private static Long2ObjectMap<LongSet> mapClaimsToRegion(Set<ChunkDimPos> chunksToBackup) {
         Long2ObjectMap<LongSet> regionClaims = new Long2ObjectOpenHashMap<>();
-        ClaimedChunks.instance.getAllClaimedPositions().forEach(pos -> {
+        chunksToBackup.forEach(pos -> {
             long region = pos.toRegionLong();
             regionClaims.computeIfAbsent(region, k -> new LongOpenHashSet()).add(pos.toLong());
         });

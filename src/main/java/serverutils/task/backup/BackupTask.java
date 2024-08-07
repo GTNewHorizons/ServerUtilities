@@ -7,8 +7,10 @@ import static serverutils.lib.util.FileUtils.SizeUnit;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -24,6 +26,7 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
 import serverutils.data.ClaimedChunks;
 import serverutils.lib.data.Universe;
+import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
@@ -99,16 +102,17 @@ public class BackupTask extends Task {
 
         File worldDir = DimensionManager.getCurrentSaveRootDirectory();
 
+        Set<ChunkDimPos> backupChunks = new HashSet<>();
         if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
-            ClaimedChunks.instance.setPauseQueue(true);
+            backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
             BACKUP_TEMP_FOLDER.mkdirs();
         }
 
         if (backups.use_separate_thread) {
-            thread = new ThreadBackup(worldDir, customName);
+            thread = new ThreadBackup(worldDir, customName, backupChunks);
             thread.start();
         } else {
-            ThreadBackup.doBackup(worldDir, customName);
+            ThreadBackup.doBackup(worldDir, customName, backupChunks);
         }
         universe.scheduleTask(new BackupTask(true));
     }
@@ -169,11 +173,6 @@ public class BackupTask extends Task {
 
         clearOldBackups();
         FileUtils.delete(BACKUP_TEMP_FOLDER);
-
-        if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
-            ClaimedChunks.instance.setPauseQueue(false);
-            ClaimedChunks.instance.processQueue();
-        }
 
         thread = null;
         try {
