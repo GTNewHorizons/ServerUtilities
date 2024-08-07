@@ -45,7 +45,6 @@ public class ClaimedChunks {
     private final Map<ChunkDimPos, ClaimedChunk> map = new HashMap<>();
     public long nextChunkloaderUpdate;
     private boolean isDirty = true;
-    private boolean pauseQueue = false;
     private static boolean forceSave = false;
 
     public ClaimedChunks(Universe u) {
@@ -71,7 +70,6 @@ public class ClaimedChunks {
     }
 
     public void processQueue() {
-        if (pauseQueue) return;
         if (!pendingChunks.isEmpty()) {
             for (ClaimedChunk chunk : pendingChunks) {
                 ClaimedChunk prevChunk = map.put(chunk.getPos(), chunk);
@@ -408,10 +406,6 @@ public class ClaimedChunks {
         new ChunkModifiedEvent.Unloaded(chunk, player).post();
         chunk.setLoaded(false);
         return true;
-    }
-
-    public void setPauseQueue(boolean pause) {
-        pauseQueue = pause;
     }
 
     public void forceSave() {
