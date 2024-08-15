@@ -9,6 +9,7 @@ import java.util.function.Function;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.renderer.texture.TextureUtil;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.ChunkCoordinates;
@@ -163,7 +164,8 @@ public class ThreadReloadChunkSelector extends Thread {
 
     @Override
     public void run() {
-        Arrays.fill(PIXELS.getPixels(), Color4I.rgb(world.getSkyColor(Minecraft.getMinecraft().thePlayer, 0)).rgba());
+        EntityClientPlayerMP player = Minecraft.getMinecraft().thePlayer;
+        Arrays.fill(PIXELS.getPixels(), Color4I.rgb(world.getSkyColor(player, 0)).rgba());
         Arrays.fill(HEIGHT_MAP, -1);
         pixelBuffer = PIXELS.toByteBuffer(false);
 
@@ -172,7 +174,7 @@ public class ThreadReloadChunkSelector extends Thread {
         Color4I color;
         Pair<Block, Integer> state;
 
-        int startY = (int) Minecraft.getMinecraft().thePlayer.getPosition(1).yCoord;
+        int startY = (int) player.getPosition(1).yCoord;
 
         try {
             for (int index = 0; index < ChunkSelectorMap.TILES_GUI * ChunkSelectorMap.TILES_GUI + 1; index++) {
@@ -183,6 +185,7 @@ public class ThreadReloadChunkSelector extends Thread {
                 }
 
                 ChunkCoordIntPair pos = MathUtils.getSpiralPoint(index);
+                if (pos == null) continue;
                 int cx = pos.chunkXPos + ChunkSelectorMap.TILES_GUI2;
                 int cz = pos.chunkZPos + ChunkSelectorMap.TILES_GUI2;
 
@@ -224,6 +227,7 @@ public class ThreadReloadChunkSelector extends Thread {
                 }
 
                 ChunkCoordIntPair pos = MathUtils.getSpiralPoint(index);
+                if (pos == null) continue;
                 int cx = pos.chunkXPos + ChunkSelectorMap.TILES_GUI2;
                 int cz = pos.chunkZPos + ChunkSelectorMap.TILES_GUI2;
 

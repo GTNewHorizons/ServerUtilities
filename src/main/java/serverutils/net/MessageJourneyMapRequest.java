@@ -2,8 +2,8 @@ package serverutils.net;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
+import serverutils.data.ClaimedChunks;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToServer;
@@ -46,7 +46,7 @@ public class MessageJourneyMapRequest extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
-        if (ServerUtilitiesConfig.world.chunk_claiming
+        if (ClaimedChunks.isActive()
                 && PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP)) {
             new MessageJourneyMapUpdate(minX, maxX, minZ, maxZ, player).sendTo(player);
         }
