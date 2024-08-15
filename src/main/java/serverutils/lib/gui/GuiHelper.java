@@ -101,7 +101,7 @@ public class GuiHelper {
         }
     }
 
-    public static void addRectToBuffer(Tessellator tessellator, int x, int y, int w, int h, Color4I col) {
+    public static void addRectToBuffer(Tessellator tessellator, double x, double y, double w, double h, Color4I col) {
         int r = col.redi();
         int g = col.greeni();
         int b = col.bluei();

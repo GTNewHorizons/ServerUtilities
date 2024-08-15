@@ -156,7 +156,7 @@ public class ClaimedChunks {
         if (OtherMods.isNavigatorLoaded()) {
             for (EntityPlayerMP player : instance.universe.server.getConfigurationManager().playerEntityList) {
                 if (PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP)) {
-                    new MessageJourneyMapRemove(pos).sendTo(player);
+                    new MessageJourneyMapRemove(pos.toLong()).sendTo(player);
                 }
             }
         }

@@ -6,13 +6,12 @@ import net.minecraft.util.IChatComponent;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import serverutils.lib.EnumTeamColor;
 import serverutils.lib.io.Bits;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
-import serverutils.lib.math.ChunkDimPos;
 
 public class ClientClaimedChunks {
 
@@ -26,7 +25,7 @@ public class ClientClaimedChunks {
             EnumTeamColor.NAME_MAP.write(data, team.color);
             data.writeBoolean(team.isAlly);
             data.writeBoolean(team.isMember);
-            data.writeMap(team.chunkPos, DataOut.CHUNK_DIM_POS, ChunkData.SERIALIZER);
+            data.writeMap(team.chunkPos, DataOut.LONG, ChunkData.SERIALIZER);
             data.writeMap(team.chunks, DataOut.INT, ChunkData.SERIALIZER);
         };
 
@@ -37,7 +36,7 @@ public class ClientClaimedChunks {
             team.isAlly = data.readBoolean();
             team.isMember = data.readBoolean();
             currentTeam = team;
-            data.readMap(team.chunkPos, DataIn.CHUNK_DIM_POS, ChunkData.DESERIALIZER);
+            data.readMap(team.chunkPos, DataIn.LONG, ChunkData.DESERIALIZER);
             data.readMap(team.chunks, DataIn.INT, ChunkData.DESERIALIZER);
             return team;
         };
@@ -48,7 +47,7 @@ public class ClientClaimedChunks {
         public boolean isAlly;
         public boolean isMember;
         public final Int2ObjectMap<ChunkData> chunks = new Int2ObjectOpenHashMap<>();
-        public final Object2ObjectMap<ChunkDimPos, ChunkData> chunkPos = new Object2ObjectOpenHashMap<>();
+        public final Long2ObjectMap<ChunkData> chunkPos = new Long2ObjectOpenHashMap<>();
 
         public Team(short id) {
             uid = id;
@@ -64,7 +63,7 @@ public class ClientClaimedChunks {
 
         public static final int LOADED = 1;
 
-        public final Team team;
+        public Team team;
         private int flags;
 
         public ChunkData(Team t, int f) {
@@ -92,6 +91,11 @@ public class ClientClaimedChunks {
 
         public ChunkData setLoaded(boolean value) {
             flags = Bits.setFlag(flags, LOADED, value);
+            return this;
+        }
+
+        public ChunkData setTeam(Team newTeam) {
+            team = newTeam;
             return this;
         }
 

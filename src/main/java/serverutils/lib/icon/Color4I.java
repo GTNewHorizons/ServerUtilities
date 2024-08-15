@@ -361,6 +361,11 @@ public class Color4I extends Icon {
     @Override
     @SideOnly(Side.CLIENT)
     public void draw(int x, int y, int w, int h) {
+        drawD(x, y, w, h);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public void drawD(double x, double y, double w, double h) {
         if (w <= 0 || h <= 0) {
             return;
         }

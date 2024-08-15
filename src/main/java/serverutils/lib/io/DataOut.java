@@ -56,6 +56,7 @@ public class DataOut {
     public static final Serializer<String> STRING = DataOut::writeString;
     public static final Serializer<Integer> INT = DataOut::writeInt;
     public static final Serializer<Boolean> BOOLEAN = DataOut::writeBoolean;
+    public static final Serializer<Long> LONG = DataOut::writeLong;
     public static final Serializer<UUID> UUID = DataOut::writeUUID;
     public static final Serializer<Vec3> BLOCK_POS = DataOut::writePos;
     public static final Serializer<BlockDimPos> BLOCK_DIM_POS = DataOut::writeDimPos;

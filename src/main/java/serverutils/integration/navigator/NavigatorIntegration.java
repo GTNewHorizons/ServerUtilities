@@ -6,13 +6,13 @@ import java.util.Collections;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.ChunkCoordIntPair;
 
+import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
 import com.gtnewhorizons.navigator.api.NavigatorApi;
-import com.gtnewhorizons.navigator.api.util.Util;
+import com.gtnewhorizons.navigator.api.util.ClickPos;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import serverutils.client.gui.ClientClaimedChunks;
-import serverutils.lib.math.ChunkDimPos;
 import serverutils.net.MessageClaimedChunksModify;
 import serverutils.net.MessageClaimedChunksUpdate;
 import serverutils.net.MessageJourneyMapRequest;
@@ -20,7 +20,7 @@ import serverutils.net.MessageJourneyMapUpdate;
 
 public class NavigatorIntegration {
 
-    public static final Object2ObjectMap<ChunkDimPos, ClientClaimedChunks.ChunkData> CLAIMS = new Object2ObjectOpenHashMap<>();
+    public static final Long2ObjectMap<ClientClaimedChunks.ChunkData> CLAIMS = new Long2ObjectOpenHashMap<>();
     public static ClientClaimedChunks.ChunkData OWNTEAM = null;
     public static int maxClaimedChunks, currentClaimedChunks;
 
@@ -30,20 +30,50 @@ public class NavigatorIntegration {
 
     public static void updateMap(MessageJourneyMapUpdate message) {
         for (ClientClaimedChunks.Team team : message.teams.values()) {
-            CLAIMS.putAll(team.chunkPos);
+            for (Long2ObjectMap.Entry<ClientClaimedChunks.ChunkData> pos : team.chunkPos.long2ObjectEntrySet()) {
+                long location = pos.getLongKey();
+                ClientClaimedChunks.ChunkData newData = pos.getValue();
+                ClientClaimedChunks.ChunkData oldData = CLAIMS.get(location);
+                if (oldData == null) {
+                    CLAIMS.put(location, newData);
+                    continue;
+                }
+
+                oldData.setLoaded(newData.isLoaded());
+                oldData.setTeam(newData.team);
+            }
+
+            ClaimsLayerManager.INSTANCE.forceRefresh();
+
             if (OWNTEAM == null && team.isMember) {
                 OWNTEAM = team.chunkPos.values().iterator().next().copy().setLoaded(false);
             }
         }
+    }
+
+    public static void addToOwnTeam(int chunkX, int chunkZ) {
+        if (OWNTEAM == null) return;
+        if (currentClaimedChunks >= maxClaimedChunks) return;
+        Minecraft mc = Minecraft.getMinecraft();
+        long pos = CoordinatePacker.pack(chunkX, mc.thePlayer.dimension, chunkZ);
+        CLAIMS.put(pos, OWNTEAM.copy());
         ClaimsLayerManager.INSTANCE.forceRefresh();
     }
 
-    public static void addToOwnTeam(ChunkDimPos pos) {
-        if (OWNTEAM == null) return;
-        if (currentClaimedChunks >= maxClaimedChunks) return;
+    public static void removeChunk(long location) {
+        ClaimsLayerManager.INSTANCE.removeLocation(location);
+        CLAIMS.remove(location);
+    }
 
-        CLAIMS.put(pos, OWNTEAM);
-        ClaimsLayerManager.INSTANCE.forceRefresh();
+    public static void unclaimChunk(ClaimsLocation location) {
+        if (!location.isOwnTeam()) return;
+        int chunkX = location.getChunkX();
+        int chunkZ = location.getChunkZ();
+        int selectionMode = MessageClaimedChunksModify.UNCLAIM;
+
+        Collection<ChunkCoordIntPair> chunks = Collections.singleton(new ChunkCoordIntPair(chunkX, chunkZ));
+        new MessageClaimedChunksModify(chunkX, chunkZ, selectionMode, chunks).sendToServer();
+        removeChunk(location.toLong());
     }
 
     public static void onChunkDataUpdate(MessageClaimedChunksUpdate message) {
@@ -51,19 +81,19 @@ public class NavigatorIntegration {
         currentClaimedChunks = message.claimedChunks;
     }
 
-    public static void claimChunk(int blockX, int blockZ) {
-        Minecraft mc = Minecraft.getMinecraft();
+    public static boolean claimChunk(ClickPos pos) {
+        if (pos.getRenderStep() != null || !pos.isDoubleClick()) return false;
         int selectionMode = MessageClaimedChunksModify.CLAIM;
-        int chunkX = Util.coordBlockToChunk(blockX);
-        int chunkZ = Util.coordBlockToChunk(blockZ);
+        int chunkX = pos.getChunkX();
+        int chunkZ = pos.getChunkZ();
         Collection<ChunkCoordIntPair> chunk = Collections.singleton(new ChunkCoordIntPair(chunkX, chunkZ));
-        ChunkDimPos chunkDimPos = new ChunkDimPos(chunkX, chunkZ, mc.thePlayer.dimension);
         new MessageClaimedChunksModify(chunkX, chunkZ, selectionMode, chunk).sendToServer();
 
         if (OWNTEAM == null) {
-            new MessageJourneyMapRequest(blockX, blockX, blockZ, blockZ).sendToServer();
+            new MessageJourneyMapRequest(chunkX, chunkX, chunkZ, chunkZ).sendToServer();
         } else {
-            addToOwnTeam(chunkDimPos);
+            addToOwnTeam(chunkX, chunkZ);
         }
+        return true;
     }
 }

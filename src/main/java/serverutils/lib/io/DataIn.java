@@ -61,7 +61,7 @@ public class DataIn {
     public static final Deserializer<String> STRING = DataIn::readString;
     public static final Deserializer<Integer> INT = DataIn::readInt;
     public static final Deserializer<Boolean> BOOLEAN = DataIn::readBoolean;
-
+    public static final Deserializer<Long> LONG = DataIn::readLong;
     public static final Deserializer<UUID> UUID = DataIn::readUUID;
     public static final Deserializer<Vec3> BLOCK_POS = DataIn::readPos;
     public static final Deserializer<BlockDimPos> BLOCK_DIM_POS = DataIn::readDimPos;

@@ -31,6 +31,11 @@ public final class ChunkDimPos extends Vector3i {
 
     public ChunkDimPos() {}
 
+    public ChunkDimPos set(int x, int z, int d) {
+        super.set(x, d, z);
+        return this;
+    }
+
     public boolean equals(Object o) {
         if (o == null) {
             return false;

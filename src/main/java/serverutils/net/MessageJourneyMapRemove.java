@@ -6,17 +6,16 @@ import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
-import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.net.MessageToClient;
 import serverutils.lib.net.NetworkWrapper;
 
 public class MessageJourneyMapRemove extends MessageToClient {
 
-    private ChunkDimPos chunkPos;
+    private long chunkPos;
 
     public MessageJourneyMapRemove() {}
 
-    public MessageJourneyMapRemove(ChunkDimPos pos) {
+    public MessageJourneyMapRemove(long pos) {
         this.chunkPos = pos;
     }
 
@@ -27,19 +26,19 @@ public class MessageJourneyMapRemove extends MessageToClient {
 
     @Override
     public void writeData(DataOut data) {
-        data.writeChunkDimPos(chunkPos);
+        data.writeLong(chunkPos);
     }
 
     @Override
     public void readData(DataIn data) {
-        chunkPos = data.readChunkDimPos();
+        chunkPos = data.readLong();
     }
 
     @Override
     @SideOnly(Side.CLIENT)
     public void onMessage() {
         if (ServerUtilitiesClientConfig.general.journeymap_overlay) {
-            NavigatorIntegration.CLAIMS.remove(chunkPos);
+            NavigatorIntegration.removeChunk(chunkPos);
         }
     }
 }
