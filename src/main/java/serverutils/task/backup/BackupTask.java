@@ -7,7 +7,6 @@ import static serverutils.lib.util.FileUtils.SizeUnit;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -127,13 +126,11 @@ public class BackupTask extends Task {
 
     private static void deleteOldBackups(List<File> backupFiles, long currentSize, int maxGb) {
         int deleted = 0;
-        Iterator<File> it = backupFiles.iterator();
-        while (it.hasNext() && currentSize > maxGb) {
-            File file = it.next();
+        for (File file : backupFiles) {
+            if (currentSize <= maxGb) break;
             currentSize -= FileUtils.getSize(file, SizeUnit.GB);
             ServerUtilities.LOGGER.info("Deleting old backup: {}", file.getPath());
             FileUtils.delete(file);
-            it.remove();
             deleted++;
         }
         ServerUtilities.LOGGER.info("Deleted {} old backups", deleted);
