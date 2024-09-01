@@ -10,6 +10,9 @@ import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.input.Keyboard;
 
+import com.gtnewhorizon.gtnhlib.config.ConfigException;
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
+
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -41,19 +44,24 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
     public static final String KEY_CATEGORY = "key.categories.serverutilities";
     public static final String CLIENT_FOLDER = ServerUtilities.MOD_ID + "/client/";
 
+    static {
+        try {
+            ConfigurationManager.registerConfig(ServerUtilitiesClientConfig.class);
+        } catch (ConfigException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
-        ServerUtilitiesClientConfig.init(event);
         ClientUtils.localPlayerHead = new PlayerHeadIcon(Minecraft.getMinecraft().getSession().func_148256_e().getId());
         ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager())
                 .registerReloadListener(SidebarButtonManager.INSTANCE);
         ChunkSelectorMap.setMap(new BuiltinChunkMap());
 
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientConfig.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientEventHandler.INST);
         FMLCommonHandler.instance().bus().register(ServerUtilitiesClientEventHandler.INST);
-        FMLCommonHandler.instance().bus().register(ServerUtilitiesClientConfig.INST);
 
         ClientRegistry.registerKeyBinding(
                 KEY_NBT = new KeyBinding("key.serverutilities.nbt", Keyboard.KEY_NONE, KEY_CATEGORY));
@@ -75,7 +83,7 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
         ClientCommandHandler.instance.registerCommand(new CommandPrintState());
         ClientCommandHandler.instance.registerCommand(new CommandPing());
 
-        if (OtherMods.isNavigatorLoaded() && ServerUtilitiesClientConfig.general.journeymap_overlay) {
+        if (OtherMods.isNavigatorLoaded()) {
             NavigatorIntegration.init();
         }
 

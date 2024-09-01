@@ -28,6 +28,7 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
+import serverutils.client.EnumNotificationLocation;
 import serverutils.client.ServerUtilitiesClient;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.client.gui.GuiClaimedChunks;
@@ -107,10 +108,10 @@ public class ServerUtilitiesClientEventHandler {
             return;
         }
 
-        if (shutdownTime > 0L && ServerUtilitiesClientConfig.general.show_shutdown_timer) {
+        if (shutdownTime > 0L && ServerUtilitiesClientConfig.show_shutdown_timer) {
             long timeLeft = Math.max(0L, shutdownTime - System.currentTimeMillis());
 
-            if (timeLeft > 0L && timeLeft <= ServerUtilitiesClientConfig.general.getShowShutdownTimer()) {
+            if (timeLeft > 0L && timeLeft <= ServerUtilitiesClientConfig.getShowShutdownTimer()) {
                 event.left.add(
                         EnumChatFormatting.DARK_RED + I18n
                                 .format("serverutilities.lang.timer.shutdown", StringUtils.getTimeString(timeLeft)));
@@ -158,7 +159,7 @@ public class ServerUtilitiesClientEventHandler {
                     break;
                 case "daytime":
                     long addDay = (24000L - (Minecraft.getMinecraft().theWorld.getWorldTime() % 24000L)
-                            + ServerUtilitiesClientConfig.general.button_daytime) % 24000L;
+                            + ServerUtilitiesClientConfig.button_daytime) % 24000L;
 
                     if (addDay != 0L) {
                         ClientUtils.execClientCommand("/time add " + addDay);
@@ -167,7 +168,7 @@ public class ServerUtilitiesClientEventHandler {
                     break;
                 case "nighttime":
                     long addNight = (24000L - (Minecraft.getMinecraft().theWorld.getWorldTime() % 24000L)
-                            + ServerUtilitiesClientConfig.general.button_nighttime) % 24000L;
+                            + ServerUtilitiesClientConfig.button_nighttime) % 24000L;
 
                     if (addNight != 0L) {
                         ClientUtils.execClientCommand("/time add " + addNight);
@@ -190,11 +191,11 @@ public class ServerUtilitiesClientEventHandler {
     public void onNotify(IChatComponent component) {
         boolean importantNotification = component instanceof Notification noti && noti.isImportant();
 
-        if (ServerUtilitiesClientConfig.notifications.disabled() && !importantNotification) {
+        if (ServerUtilitiesClientConfig.notifications == EnumNotificationLocation.DISABLED && !importantNotification) {
             return;
         }
 
-        if (ServerUtilitiesClientConfig.notifications.chat() && !importantNotification) {
+        if (ServerUtilitiesClientConfig.notifications == EnumNotificationLocation.CHAT && !importantNotification) {
             Minecraft.getMinecraft().thePlayer.addChatMessage(component);
         } else if (component instanceof Notification notification) {
             ResourceLocation id = notification.getId();

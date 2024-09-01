@@ -21,11 +21,7 @@ public class PlayerListJson extends JsonWebPage {
 
     @Override
     public PageType getPageType() {
-        return switch (AuroraConfig.general.player_list_json) {
-            case "DISABLED" -> PageType.DISABLED;
-            case "REQUIRES_AUTH" -> PageType.REQUIRES_AUTH;
-            default -> PageType.ENABLED;
-        };
+        return AuroraConfig.player_list_json;
     }
 
     @Override
