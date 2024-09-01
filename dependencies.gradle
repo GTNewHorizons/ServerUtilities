@@ -2,8 +2,8 @@
 
 dependencies {
 
-    api("com.github.GTNewHorizons:GTNHLib:0.3.3:dev")
-    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.6.19-GTNH:dev")
+    api("com.github.GTNewHorizons:GTNHLib:0.4.9:dev")
+    compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.6.33-GTNH:dev")
     compileOnly("com.github.GTNewHorizons:EnderIO:2.8.17:dev")
     compileOnly("com.github.GTNewHorizons:Navigator:1.0.6:dev")
 
