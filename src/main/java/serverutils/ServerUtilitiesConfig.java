@@ -62,9 +62,6 @@ public class ServerUtilitiesConfig {
 
     public static class General {
 
-        @Config.Comment("This will replace /reload with ServerUtilities version of it.")
-        public boolean replace_reload_command;
-
         @Config.Comment("Merges player profiles, in case player logged in without internet connection/in offline mode server. "
                 + "If set to DEFAULT, it will only merge on singleplayer worlds.")
         @Config.DefaultEnum("TRUE")
@@ -155,7 +152,10 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(false)
         public boolean enabled_singleplayer;
 
-        @Config.Comment("Server will automatically shut down after X hours.\nTime Format: HH:MM. If the system time matches a value, server will shut down.\nIt will look for closest value available that is not equal to current time.")
+        @Config.Comment("""
+                Server will automatically shut down after X hours.
+                Time Format: HH:MM. If the system time matches a value, server will shut down.
+                It will look for closest value available that is not equal to current time.""")
         @Config.DefaultStringList({ "04:00", "16:00" })
         public String[] times;
     }
@@ -173,10 +173,6 @@ public class ServerUtilitiesConfig {
         @Config.Comment("After how much time it will display notification to all players.")
         @Config.DefaultString("5m")
         public String notification_timer;
-
-        @Config.Comment("Will print in console when someone goes/comes back from AFK.")
-        @Config.DefaultBoolean(false)
-        public boolean log_afk;
 
         @Config.Ignore
         private long notificationTimer;
@@ -265,6 +261,9 @@ public class ServerUtilitiesConfig {
 
         @Config.DefaultBoolean(true)
         public boolean rec;
+
+        @Config.DefaultBoolean(true)
+        public boolean reload;
 
         @Config.DefaultBoolean(true)
         public boolean backup;
@@ -371,7 +370,7 @@ public class ServerUtilitiesConfig {
                                 startingItems.add(stack);
                             }
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            ServerUtilities.LOGGER.warn("Failed to parse starting item: {}", s, ex);
                         }
                     }
                 }

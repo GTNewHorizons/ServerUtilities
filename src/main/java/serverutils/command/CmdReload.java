@@ -10,7 +10,6 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ResourceLocation;
 
 import serverutils.ServerUtilitiesCommon;
-import serverutils.ServerUtilitiesConfig;
 import serverutils.events.ServerReloadEvent;
 import serverutils.lib.EnumReloadType;
 import serverutils.lib.command.CmdBase;
@@ -37,9 +36,7 @@ public class CmdReload extends CmdBase {
     }
 
     public CmdReload() {
-        this(
-                ServerUtilitiesConfig.general.replace_reload_command ? "reload" : "serverutilities_reload",
-                Level.OP_OR_SP);
+        this("reload", Level.OP_OR_SP);
     }
 
     @Override

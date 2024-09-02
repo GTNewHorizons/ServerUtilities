@@ -26,14 +26,12 @@ import serverutils.net.MessageCommandsRequest;
 
 public class GuiClientConfig extends GuiButtonListBase {
 
-    private class GuiCustomConfig extends SimpleGuiConfig {
-
+    private static class GuiCustomConfig extends SimpleGuiConfig {
         public GuiCustomConfig(String title) throws ConfigException {
             super(
                     Minecraft.getMinecraft().currentScreen,
                     ServerUtilities.MOD_ID,
                     title,
-                    true,
                     ServerUtilitiesClientConfig.class);
 
         }
