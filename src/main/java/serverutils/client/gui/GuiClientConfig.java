@@ -27,6 +27,7 @@ import serverutils.net.MessageCommandsRequest;
 public class GuiClientConfig extends GuiButtonListBase {
 
     private static class GuiCustomConfig extends SimpleGuiConfig {
+
         public GuiCustomConfig(String title) throws ConfigException {
             super(
                     Minecraft.getMinecraft().currentScreen,
