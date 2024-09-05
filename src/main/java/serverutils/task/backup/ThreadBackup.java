@@ -19,7 +19,6 @@ import java.util.zip.ZipEntry;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.WorldServer;
@@ -37,6 +36,8 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import serverutils.ServerUtilities;
@@ -156,94 +157,80 @@ public class ThreadBackup extends Thread {
 
     private static void backupRegions(File sourceFolder, List<File> files, Set<ChunkDimPos> chunksToBackup,
             ZipArchiveOutputStream out) throws IOException {
-        Int2ObjectMap<Long2ObjectMap<ObjectSet<ChunkDimPos>>> claimedChunks = mapClaimsToRegion(chunksToBackup);
-        Int2ObjectMap<Long2ObjectMap<File>> dim2RegionFiles = mapRegionFilesToLong(claimedChunks);
+        Object2ObjectMap<File, ObjectSet<ChunkDimPos>> dimRegionClaims = mapClaimsToRegionFile(chunksToBackup);
         files.removeIf(f -> f.getName().endsWith(".mca"));
 
         int index = 0;
         int savedChunks = 0;
-        int totalFiles = files.size();
-        for (Int2ObjectMap.Entry<Long2ObjectMap<File>> dimEntry : dim2RegionFiles.int2ObjectEntrySet()) {
-            Long2ObjectMap<File> regionFiles = dimEntry.getValue();
-            Long2ObjectMap<ObjectSet<ChunkDimPos>> dimClaims = claimedChunks.get(dimEntry.getIntKey());
-            totalFiles += regionFiles.size();
-            for (Long2ObjectMap.Entry<File> entry : regionFiles.long2ObjectEntrySet()) {
-                File file = entry.getValue();
-                ObjectSet<ChunkDimPos> chunks = dimClaims.get(entry.getLongKey());
-                if (chunks == null || chunks.isEmpty()) continue;
-                File dimensionRoot = file.getParentFile().getParentFile();
-                File tempFile = FileUtils.newFile(new File(BACKUP_TEMP_FOLDER, file.getName()));
-                RegionFile tempRegion = new RegionFile(tempFile);
-                boolean hasData = false;
+        int regionFiles = dimRegionClaims.size();
+        int totalFiles = files.size() + regionFiles;
+        for (Object2ObjectMap.Entry<File, ObjectSet<ChunkDimPos>> entry : dimRegionClaims.object2ObjectEntrySet()) {
+            File file = entry.getKey();
+            File dimensionRoot = file.getParentFile().getParentFile();
+            File tempFile = FileUtils.newFile(new File(BACKUP_TEMP_FOLDER, file.getName()));
+            RegionFile tempRegion = new RegionFile(tempFile);
+            boolean hasData = false;
 
-                for (ChunkDimPos pos : chunks) {
-                    DataInputStream in = RegionFileCache.getChunkInputStream(dimensionRoot, pos.posX, pos.posZ);
-                    if (in == null) continue;
-                    savedChunks++;
-                    hasData = true;
-                    NBTTagCompound tag = CompressedStreamTools.read(in);
-                    DataOutputStream tempOut = tempRegion.getChunkDataOutputStream(pos.posX & 31, pos.posZ & 31);
-                    CompressedStreamTools.write(tag, tempOut);
-                    tempOut.close();
-                }
-
-                tempRegion.close();
-                if (hasData) {
-                    compressFile(FileUtils.getRelativePath(sourceFolder, file), tempFile, out, index++, totalFiles);
-                }
-
-                FileUtils.delete(tempFile);
+            for (ChunkDimPos pos : entry.getValue()) {
+                DataInputStream in = RegionFileCache.getChunkInputStream(dimensionRoot, pos.posX, pos.posZ);
+                if (in == null) continue;
+                savedChunks++;
+                hasData = true;
+                NBTTagCompound tag = CompressedStreamTools.read(in);
+                DataOutputStream tempOut = tempRegion.getChunkDataOutputStream(pos.posX & 31, pos.posZ & 31);
+                CompressedStreamTools.write(tag, tempOut);
+                tempOut.close();
             }
 
-            for (File file : files) {
-                compressFile(FileUtils.getRelativePath(sourceFolder, file), file, out, index++, totalFiles);
+            tempRegion.close();
+            if (hasData) {
+                compressFile(FileUtils.getRelativePath(sourceFolder, file), tempFile, out, index++, totalFiles);
             }
 
-            ServerUtilities.LOGGER
-                    .info("Backed up {} regions containing {} claimed chunks", regionFiles.size(), savedChunks);
+            FileUtils.delete(tempFile);
         }
+
+        for (File file : files) {
+            compressFile(FileUtils.getRelativePath(sourceFolder, file), file, out, index++, totalFiles);
+        }
+
+        ServerUtilities.LOGGER.info("Backed up {} regions containing {} claimed chunks", regionFiles, savedChunks);
     }
 
-    private static Int2ObjectMap<Long2ObjectMap<File>> mapRegionFilesToLong(
-            Int2ObjectMap<Long2ObjectMap<ObjectSet<ChunkDimPos>>> dimClaims) {
-        Int2ObjectMap<Long2ObjectMap<File>> regionFiles = new Int2ObjectOpenHashMap<>();
-        MinecraftServer server = ServerUtils.getServer();
-        for (WorldServer worldserver : server.worldServers) {
+    private static Object2ObjectMap<File, ObjectSet<ChunkDimPos>> mapClaimsToRegionFile(
+            Set<ChunkDimPos> chunksToBackup) {
+        Int2ObjectMap<Long2ObjectMap<ObjectSet<ChunkDimPos>>> regionClaimsByDim = new Int2ObjectOpenHashMap<>();
+        chunksToBackup.forEach(
+                pos -> regionClaimsByDim.computeIfAbsent(pos.dim, k -> new Long2ObjectOpenHashMap<>())
+                        .computeIfAbsent(getRegionFromChunk(pos.posX, pos.posZ), k -> new ObjectOpenHashSet<>())
+                        .add(pos));
+
+        Object2ObjectMap<File, ObjectSet<ChunkDimPos>> regionFilesToBackup = new Object2ObjectOpenHashMap<>();
+        for (WorldServer worldserver : ServerUtils.getServer().worldServers) {
             if (worldserver == null) continue;
 
             int dim = worldserver.provider.dimensionId;
             File regionFolder = new File(worldserver.getChunkSaveLocation(), "region");
-            if (!regionFolder.exists()) continue;
+            Long2ObjectMap<ObjectSet<ChunkDimPos>> regionClaims = regionClaimsByDim.get(dim);
+            if (!regionFolder.exists() || regionClaims == null) continue;
 
             File[] regions = regionFolder.listFiles();
             if (regions == null) continue;
 
-            Long2ObjectMap<ObjectSet<ChunkDimPos>> regionClaims = dimClaims.get(dim);
-            if (regionClaims == null) continue;
             for (File file : regions) {
                 int[] coords = getRegionCoords(file);
                 long key = CoordinatePacker.pack(coords[0], 0, coords[1]);
-                if (!regionClaims.containsKey(key)) {
+                ObjectSet<ChunkDimPos> claims = regionClaims.get(key);
+                if (claims == null) {
                     if (ServerUtilitiesConfig.debugging.print_more_info) {
                         ServerUtilities.LOGGER.info("Skipping region file {} from dimension {}", file.getName(), dim);
                     }
                     continue;
                 }
-                regionFiles.computeIfAbsent(dim, k -> new Long2ObjectOpenHashMap<>()).put(key, file);
+                regionFilesToBackup.put(file, claims);
             }
         }
-        return regionFiles;
-    }
-
-    private static Int2ObjectMap<Long2ObjectMap<ObjectSet<ChunkDimPos>>> mapClaimsToRegion(
-            Set<ChunkDimPos> chunksToBackup) {
-        Int2ObjectMap<Long2ObjectMap<ObjectSet<ChunkDimPos>>> dimClaims = new Int2ObjectOpenHashMap<>();
-        chunksToBackup.forEach(pos -> {
-            long region = getRegionFromChunk(pos.posX, pos.posZ);
-            dimClaims.computeIfAbsent(pos.dim, k -> new Long2ObjectOpenHashMap<>())
-                    .computeIfAbsent(region, k -> new ObjectOpenHashSet<>()).add(pos);
-        });
-        return dimClaims;
+        return regionFilesToBackup;
     }
 
     private static int[] getRegionCoords(File f) {
