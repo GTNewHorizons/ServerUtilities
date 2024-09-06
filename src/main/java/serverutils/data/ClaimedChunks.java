@@ -21,7 +21,6 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.events.chunks.ChunkModifiedEvent;
-import serverutils.lib.OtherMods;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
@@ -30,7 +29,6 @@ import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageClaimedChunksUpdate;
-import serverutils.net.MessageJourneyMapRemove;
 
 public class ClaimedChunks {
 
@@ -152,13 +150,6 @@ public class ClaimedChunks {
         if (prevChunk != null) {
             prevChunk.setInvalid();
             markDirty();
-        }
-        if (OtherMods.isNavigatorLoaded()) {
-            for (EntityPlayerMP player : instance.universe.server.getConfigurationManager().playerEntityList) {
-                if (PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP)) {
-                    new MessageJourneyMapRemove(pos).sendTo(player);
-                }
-            }
         }
     }
 
