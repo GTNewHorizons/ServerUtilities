@@ -38,7 +38,7 @@ public class MessageJourneyMapRemove extends MessageToClient {
     @Override
     @SideOnly(Side.CLIENT)
     public void onMessage() {
-        if(!OtherMods.isNavigatorLoaded()) return;
+        if (!OtherMods.isNavigatorLoaded()) return;
         NavigatorIntegration.removeChunk(chunkPos.posX, chunkPos.posZ, chunkPos.dim);
     }
 }
