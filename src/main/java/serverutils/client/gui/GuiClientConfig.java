@@ -1,18 +1,14 @@
 package serverutils.client.gui;
 
-import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.init.Items;
 import net.minecraft.util.StatCollector;
-import net.minecraftforge.common.config.ConfigElement;
-import net.minecraftforge.common.config.Configuration;
 
-import cpw.mods.fml.client.config.GuiConfig;
-import cpw.mods.fml.client.config.IConfigElement;
+import com.gtnewhorizon.gtnhlib.config.ConfigException;
+import com.gtnewhorizon.gtnhlib.config.SimpleGuiConfig;
+
 import serverutils.ServerUtilities;
-import serverutils.client.ServerUtilitiesClient;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.gui.GuiHelper;
@@ -30,20 +26,15 @@ import serverutils.net.MessageCommandsRequest;
 
 public class GuiClientConfig extends GuiButtonListBase {
 
-    private final List<IConfigElement> configElement = new ConfigElement<>(
-            ServerUtilitiesClientConfig.config.getCategory(Configuration.CATEGORY_GENERAL)).getChildElements();
+    private static class GuiCustomConfig extends SimpleGuiConfig {
 
-    private class GuiCustomConfig extends GuiConfig {
-
-        public GuiCustomConfig(String title) {
+        public GuiCustomConfig(String title) throws ConfigException {
             super(
                     Minecraft.getMinecraft().currentScreen,
-                    configElement,
                     ServerUtilities.MOD_ID,
-                    false,
-                    false,
                     title,
-                    getAbridgedConfigPath(ServerUtilitiesClient.CLIENT_FOLDER + "serverutilities.cfg"));
+                    ServerUtilitiesClientConfig.class);
+
         }
     }
 
@@ -91,7 +82,11 @@ public class GuiClientConfig extends GuiButtonListBase {
                     @Override
                     public void onClicked(MouseButton button) {
                         GuiHelper.playClickSound();
-                        Minecraft.getMinecraft().displayGuiScreen(new GuiCustomConfig(getTitle()));
+                        try {
+                            Minecraft.getMinecraft().displayGuiScreen(new GuiCustomConfig(getTitle()));
+                        } catch (ConfigException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 });
 

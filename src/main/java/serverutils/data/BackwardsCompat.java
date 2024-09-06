@@ -12,11 +12,11 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.ChunkCoordIntPair;
-import net.minecraftforge.common.config.ConfigCategory;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
@@ -161,27 +161,24 @@ public class BackwardsCompat {
     public static void loadConfig() {
         if (LATCONFIG == null) return;
         ServerUtilities.LOGGER.info("Loading config from LatMod");
-
         JsonObject latBackup = LATCONFIG.get("backups").getAsJsonObject();
-        ConfigCategory backupConfig = ServerUtilitiesConfig.config.getCategory("backups");
-        backupConfig.get("enable_backups").set(latBackup.get("enabled").getAsBoolean());
-        backupConfig.get("backup_timer").set(latBackup.get("backup_timer").getAsDouble());
-        backupConfig.get("backups_to_keep").set(latBackup.get("backups_to_keep").getAsInt());
-        backupConfig.get("backup_folder_path").set(latBackup.get("folder").getAsString());
-        backupConfig.get("use_separate_thread").set(latBackup.get("use_separate_thread").getAsBoolean());
-        backupConfig.get("need_online_players").set(latBackup.get("need_online_players").getAsBoolean());
-        backupConfig.get("compression_level").set(latBackup.get("compression_level").getAsInt());
-        backupConfig.get("display_file_size").set(latBackup.get("display_file_size").getAsBoolean());
+        ServerUtilitiesConfig.backups.enable_backups = latBackup.get("enabled").getAsBoolean();
+        ServerUtilitiesConfig.backups.backup_timer = latBackup.get("backup_timer").getAsDouble();
+        ServerUtilitiesConfig.backups.backups_to_keep = latBackup.get("backups_to_keep").getAsInt();
+        ServerUtilitiesConfig.backups.backup_folder_path = latBackup.get("folder").getAsString();
+        ServerUtilitiesConfig.backups.use_separate_thread = latBackup.get("use_separate_thread").getAsBoolean();
+        ServerUtilitiesConfig.backups.need_online_players = latBackup.get("need_online_players").getAsBoolean();
+        ServerUtilitiesConfig.backups.compression_level = latBackup.get("compression_level").getAsInt();
+        ServerUtilitiesConfig.backups.display_file_size = latBackup.get("display_file_size").getAsBoolean();
 
         JsonObject latGeneral = LATCONFIG.get("general").getAsJsonObject();
-        ConfigCategory worldConfig = ServerUtilitiesConfig.config.getCategory("world");
-        worldConfig.get("safe_spawn").set(latGeneral.get("safe_spawn").getAsBoolean());
-        worldConfig.get("spawn_area_in_sp").set(latGeneral.get("spawn_area_in_sp").getAsBoolean());
-        worldConfig.get("chunk_loading")
-                .set(LATCONFIG.get("chunkloading").getAsJsonObject().get("enabled").getAsBoolean());
+        ServerUtilitiesConfig.world.safe_spawn = latGeneral.get("safe_spawn").getAsBoolean();
+        ServerUtilitiesConfig.world.spawn_area_in_sp = latGeneral.get("spawn_area_in_sp").getAsBoolean();
+        ServerUtilitiesConfig.world.chunk_loading = LATCONFIG.get("chunkloading").getAsJsonObject().get("enabled")
+                .getAsBoolean();
 
-        ServerUtilitiesConfig.sync();
-        ServerUtilities.LOGGER.info("Finished loading warps from LatMod");
+        ConfigurationManager.save(ServerUtilitiesConfig.class);
+        ServerUtilities.LOGGER.info("Finished loading configs from LatMod");
     }
 
     public static void loadRanks(Rank player, Rank admin) {

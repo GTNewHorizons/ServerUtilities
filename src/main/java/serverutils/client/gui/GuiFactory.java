@@ -1,30 +1,25 @@
 package serverutils.client.gui;
 
-import java.util.Set;
-
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 
-import cpw.mods.fml.client.IModGuiFactory;
+import com.gtnewhorizon.gtnhlib.config.ConfigException;
+import com.gtnewhorizon.gtnhlib.config.SimpleGuiConfig;
+import com.gtnewhorizon.gtnhlib.config.SimpleGuiFactory;
 
-public class GuiFactory implements IModGuiFactory {
+import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 
-    @Override
-    public void initialize(Minecraft minecraftInstance) {}
+public class GuiFactory implements SimpleGuiFactory {
 
     @Override
     public Class<? extends GuiScreen> mainConfigGuiClass() {
-        return GuiForgeConfig.class;
+        return GuiConfig.class;
     }
 
-    @Override
-    public Set<RuntimeOptionCategoryElement> runtimeGuiCategories() {
-        return null;
-    }
+    public static class GuiConfig extends SimpleGuiConfig {
 
-    @Override
-    public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element) {
-        return null;
+        public GuiConfig(GuiScreen parent) throws ConfigException {
+            super(parent, ServerUtilities.MOD_ID, ServerUtilities.MOD_NAME, true, ServerUtilitiesConfig.class);
+        }
     }
-
 }

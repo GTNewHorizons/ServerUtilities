@@ -35,11 +35,7 @@ public class CommandListPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return switch (AuroraConfig.general.command_list_page) {
-            case "DISABLED" -> PageType.DISABLED;
-            case "REQUIRES_AUTH" -> PageType.REQUIRES_AUTH;
-            default -> PageType.ENABLED;
-        };
+        return AuroraConfig.command_list_page;
     }
 
     @Override
@@ -60,20 +56,7 @@ public class CommandListPage extends HTTPWebPage {
 
         for (CommandOverride c : Ranks.INSTANCE.commands.values()) {
             Tag row = nodeTable.tr();
-            row.td().paired("code", c.node.toString());
-            Tag n = row.td();
-
-            // boolean first = true;
-
-            // for (String s : Tag.fixHTML(c.usage.getUnformattedText()).split(" OR ")) {
-            // if (first) {
-            // first = false;
-            // } else {
-            // n.br();
-            // }
-            //
-            // n.text(s);
-            // }
+            row.td().paired("code", c.node);
         }
     }
 }

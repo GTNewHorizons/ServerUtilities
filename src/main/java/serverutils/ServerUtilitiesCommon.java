@@ -27,6 +27,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.gtnewhorizon.gtnhlib.config.ConfigException;
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
+
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
@@ -134,15 +137,20 @@ public class ServerUtilitiesCommon {
         }
     }
 
+    static {
+        try {
+            ConfigurationManager.registerConfig(ServerUtilitiesConfig.class);
+        } catch (ConfigException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void preInit(FMLPreInitializationEvent event) {
         if ((Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
             ServerUtilities.LOGGER.info("Loading ServerUtilities in development environment");
         }
 
         OtherMods.init();
-        ServerUtilitiesConfig.init(event);
-        AuroraConfig.init(event);
-
         if (ranks.enabled) {
             PermissionAPI.setPermissionHandler(ServerUtilitiesPermissionHandler.INSTANCE);
         }
@@ -171,7 +179,7 @@ public class ServerUtilitiesCommon {
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPermissions.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesLeaderboards.INST);
         FMLCommonHandler.instance().bus().register(ServerUtilitiesServerEventHandler.INST);
-        if (AuroraConfig.general.enable) {
+        if (AuroraConfig.enable) {
             MinecraftForge.EVENT_BUS.register(AuroraMinecraftHandler.INST);
             FMLCommonHandler.instance().bus().register(AuroraMinecraftHandler.INST);
         }
@@ -278,7 +286,7 @@ public class ServerUtilitiesCommon {
     public void onServerStarting(FMLServerStartingEvent event) {
         ServerUtilitiesCommands.registerCommands(event);
 
-        if (AuroraConfig.general.enable) {
+        if (AuroraConfig.enable) {
             Aurora.start(event.getServer());
         }
     }

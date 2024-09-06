@@ -1,6 +1,5 @@
 package serverutils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,10 +8,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.IChatComponent;
-import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.oredict.OreDictionary;
 
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import com.gtnewhorizon.gtnhlib.config.Config;
+
 import cpw.mods.fml.common.registry.GameData;
 import serverutils.data.ClaimedChunks;
 import serverutils.lib.config.EnumTristate;
@@ -22,415 +21,160 @@ import serverutils.lib.math.Ticks;
 import serverutils.lib.util.JsonUtils;
 import serverutils.lib.util.ServerUtils;
 
+@Config(modid = ServerUtilities.MOD_ID, category = "", configSubDirectory = "../serverutilities/")
 public class ServerUtilitiesConfig {
 
-    public static Configuration config;
-    public static final String GEN_CAT = Configuration.CATEGORY_GENERAL;
-    public static final String TEAM_CAT = "team";
-    public static final String DEBUG_CAT = "debugging";
-    public static final String AUTO_SHUTDOWN = "auto_shutdown";
-    public static final String AFK = "afk";
-    public static final String CHAT = "chat";
-    public static final String COMMANDS = "commands";
-    public static final String LOGIN = "login";
-    public static final String RANKS = "ranks";
-    public static final String WORLD = "world";
-    public static final String LOGGING = WORLD + ".logging";
-    public static final String DEBUGGING = "debugging";
-    public static final String BACKUPS = "backups";
-    public static final String TASKS = "tasks";
-    public static final String TASK_CLEANUP = TASKS + ".cleanup";
-
-    public static final String[] TRISTATE_VALUES = { "TRUE", "FALSE", "DEFAULT" };
-
-    public static void init(FMLPreInitializationEvent event) {
-        config = new Configuration(
-                new File(event.getModConfigurationDirectory() + "/../serverutilities/serverutilities.cfg"));
-        config.load();
-        sync();
-    }
-
-    public static boolean sync() {
-        general.replace_reload_command = config.get(
-                GEN_CAT,
-                "replace_reload_command",
-                true,
-                "This will replace /reload with ServerUtilities version of it.").getBoolean();
-        general.merge_offline_mode_players = EnumTristate.string2tristate(
-                config.get(
-                        GEN_CAT,
-                        "merge_offline_mode_players",
-                        EnumTristate.TRUE.getName(),
-                        "Merges player profiles, in case player logged in without internet connection/in offline mode server. If set to DEFAULT, it will only merge on singleplayer worlds.")
-                        .getString());
-
-        config.setCategoryRequiresWorldRestart(GEN_CAT, true);
-
-        teams.disable_teams = config.get(TEAM_CAT, "disable_teams", false, "Disable teams entirely").getBoolean();
-        teams.autocreate_mp = config.get(
-                TEAM_CAT,
-                "autocreate_mp",
-                false,
-                "Automatically creates a team for player on multiplayer, based on their username and with a random color.")
-                .getBoolean();
-        teams.autocreate_sp = config
-                .get(
-                        TEAM_CAT,
-                        "autocreate_sp",
-                        true,
-                        "Automatically creates (or joins) a team on singleplayer/LAN with ID 'singleplayer'.")
-                .getBoolean();
-        teams.hide_team_notification = config
-                .get(TEAM_CAT, "hide_team_notification", false, "Disable no team notification entirely.")
-                .setLanguageKey("player_config.serverutilities.hide_team_notification").getBoolean();
-
-        teams.grief_protection = config
-                .get(TEAM_CAT, "grief_protection", true, "Don't allow other players to break blocks in claimed chunks")
-                .getBoolean();
-        teams.interaction_protection = config.get(
-                TEAM_CAT,
-                "interaction_protection",
-                true,
-                "Don't allow other players to interact with blocks in claimed chunks").getBoolean();
-        teams.force_team_prefix = config.get(
-                TEAM_CAT,
-                "force_team_prefix",
-                false,
-                "Forces player chat messages to be prefixed with their team name. Example: [Team] <Player> Message")
-                .getBoolean();
-
-        config.setCategoryComment(DEBUG_CAT, "Don't set any values to true, unless you are debugging the mod.");
-        debugging.special_commands = config.get(DEBUG_CAT, "special_commands", false, "Enables special debug commands.")
-                .getBoolean();
-        debugging.print_more_info = config.get(DEBUG_CAT, "print_more_info", false, "Print more info.").getBoolean();
-        debugging.print_more_errors = config.get(DEBUG_CAT, "print_more_errors", false, "Print more errors.")
-                .getBoolean();
-        debugging.log_network = config
-                .get(DEBUG_CAT, "log_network", false, "Log incoming and outgoing network messages.").getBoolean();
-        debugging.log_teleport = config.get(DEBUG_CAT, "log_teleport", false, "Log player teleporting.").getBoolean();
-        debugging.log_config_editing = config.get(DEBUG_CAT, "log_config_editing", false, "Log config editing.")
-                .getBoolean();
-        debugging.dev_sidebar_buttons = config.get(
-                DEBUG_CAT,
-                "dev_sidebar_buttons",
-                false,
-                "See dev-only sidebar buttons. They probably don't do anything.").getBoolean();
-        debugging.gui_widget_bounds = config
-                .get(DEBUG_CAT, "gui_widget_bounds", false, "See GUI widget bounds when you hold B.").getBoolean();
-        debugging.log_events = config.get(DEBUG_CAT, "log_events", false, "Log all events that extend EventBase.")
-                .getBoolean();
-        debugging.log_chunkloading = config.get(
-                DEBUGGING,
-                "log_chunkloading",
-                false,
-                "Print a message in console every time a chunk is forced or unforced. Recommended to be off, because spam.")
-                .getBoolean();
-
-        config.setCategoryRequiresWorldRestart(AUTO_SHUTDOWN, true);
-        auto_shutdown.enabled = config.get(AUTO_SHUTDOWN, "enabled", false, "Enables auto-shutdown.").getBoolean();
-        auto_shutdown.enabled_singleplayer = config
-                .get(AUTO_SHUTDOWN, "enabled_singleplayer", false, "Enables auto-shutdown in singleplayer worlds.")
-                .getBoolean();
-        auto_shutdown.times = config.get(
-                AUTO_SHUTDOWN,
-                "times",
-                new String[] { "04:00", "16:00" },
-                "Server will automatically shut down after X hours.\nTime Format: HH:MM. If the system time matches a value, server will shut down.\nIt will look for closest value available that is not equal to current time.")
-                .getStringList();
-
-        afk.enabled = config.get(AFK, "enabled", true, "Enables afk timer.").getBoolean();
-        afk.enabled_singleplayer = config.get(AFK, "enabled_singleplayer", false, "Enables afk timer in singleplayer.")
-                .getBoolean();
-        afk.notification_timer = config
-                .get(AFK, "notificationTimer", "5m", "After how much time it will display notification to all players.")
-                .getString();
-        afk.log_afk = config.get(AFK, "log_afk", false, "Will print in console when someone goes/comes back from AFK.")
-                .getBoolean();
-
-        backups.enable_backups = config.get(BACKUPS, "enable_backups", true, "Enables backups.").getBoolean();
-        backups.compression_level = config.get(
-                BACKUPS,
-                "compression_level",
-                1,
-                "How much the backup file will be compressed. 1 - best speed 9 - smallest file size.").getInt();
-        backups.backups_to_keep = config
-                .get(BACKUPS, "backups_to_keep", 12, "Number of backup files to keep before deleting old ones.")
-                .getInt();
-        backups.backup_folder_path = config.get(BACKUPS, "backup_folder_path", "./backups/", "Path to backups folder.")
-                .getString();
-        backups.backup_timer = config.get(
-                BACKUPS,
-                "backup_timer",
-                "0.5",
-                "Time between backups in hours. \n1.0 - backups every hour 6.0 - backups every 6 hours 0.5 - backups every 30 minutes.")
-                .getDouble();
-        backups.display_file_size = config
-                .get(BACKUPS, "display_file_size", true, "Prints (current size | total size) when backup is done")
-                .getBoolean();
-        backups.silent_backup = config.get(BACKUPS, "silent_backup", false, "Silence backup notifications.")
-                .getBoolean();
-        backups.use_separate_thread = config
-                .get(BACKUPS, "use_separate_thread", true, "Run backup in a separated thread (recommended)")
-                .getBoolean();
-        backups.need_online_players = config
-                .get(BACKUPS, "need_online_players", true, "Backups won't run if no players are online.").getBoolean();
-        backups.max_folder_size = config
-                .get(
-                        BACKUPS,
-                        "max_folder_size",
-                        0,
-                        """
-                                Max size of backup folder in GB. If total folder size exceeds this value old backups will be deleted until the size is under.
-                                0 = Disabled and backups_to_keep will be used instead.""")
-                .getInt();
-        backups.delete_custom_name_backups = config.get(
-                BACKUPS,
-                "delete_custom_name_backups",
-                true,
-                "Include backups that have a custom name set through /backup start <name> when deleting old backups")
-                .getBoolean();
-        backups.only_backup_claimed_chunks = config.get(BACKUPS, "only_backup_claimed_chunks", false, """
-                Only claimed chunks will be included in backups.
-                Backups will be much faster and smaller, but any unclaimed chunk will be unrecoverable.""")
-                .getBoolean();
-
-        chat.add_nickname_tilde = config.get(
-                CHAT,
-                "add_nickname_tilde",
-                false,
-                "Adds ~ to player names that have changed nickname to prevent trolling.").getBoolean();
-
-        commands.warp = config.get(COMMANDS, "warp", true).getBoolean();
-        commands.home = config.get(COMMANDS, "home", true).getBoolean();
-        commands.back = config.get(COMMANDS, "back", true).getBoolean();
-        commands.spawn = config.get(COMMANDS, "spawn", true).getBoolean();
-        commands.inv = config.get(COMMANDS, "inv", true).getBoolean();
-        commands.tpl = config.get(COMMANDS, "tpl", true).getBoolean();
-        commands.trash_can = config.get(COMMANDS, "trash_can", true).getBoolean();
-        commands.chunks = config.get(COMMANDS, "chunks", true).getBoolean();
-        commands.kickme = config.get(COMMANDS, "kickme", true).getBoolean();
-        commands.ranks = config.get(COMMANDS, "ranks", true).getBoolean();
-        commands.heal = config.get(COMMANDS, "heal", true).getBoolean();
-        commands.killall = config.get(COMMANDS, "killall", true).getBoolean();
-        commands.nbtedit = config.get(COMMANDS, "nbtedit", true).getBoolean();
-        commands.fly = config.get(COMMANDS, "fly", true).getBoolean();
-        commands.leaderboard = config.get(COMMANDS, "leaderboard", true).getBoolean();
-        commands.tpa = config.get(COMMANDS, "tpa", true).getBoolean();
-        commands.nick = config.get(COMMANDS, "nick", true).getBoolean();
-        commands.mute = config.get(COMMANDS, "mute", true).getBoolean();
-        commands.rtp = config.get(COMMANDS, "rtp", true).getBoolean();
-        commands.god = config.get(COMMANDS, "god", true).getBoolean();
-        commands.rec = config.get(COMMANDS, "rec", true).getBoolean();
-        commands.backup = config.get(COMMANDS, "backup", true).getBoolean();
-        commands.dump_chunkloaders = config.get(COMMANDS, "dump_chunkloaders", true).getBoolean();
-        commands.dump_permissions = config.get(COMMANDS, "dump_permissions", true).getBoolean();
-
-        login.enable_motd = config.get(LOGIN, "enable_motd", false, "Enables message of the day.").getBoolean();
-        login.enable_starting_items = config.get(LOGIN, "enable_starting_items", false, "Enables starting items.")
-                .getBoolean();
-        login.motd = config.get(
-                LOGIN,
-                "motd",
-                new String[] { "\"Hello player!\"" },
-                "Message of the day. This will be displayed when player joins the server.").getStringList();
-        login.starting_items = config.get(
-                LOGIN,
-                "starting_items",
-                new String[] {
-                        "{id:\"minecraft:stone_sword\",Count:1,Damage:1,tag:{display:{Name:\"Epic Stone Sword\"}}}" },
-                "Items to give player when they first join the server.\nFormat: '{id:\"ID\",Count:X,Damage:X,tag:{}}', Use /print_item to get NBT of item in your hand.")
-                .getStringList();
-
-        ranks.enabled = config.get(
-                RANKS,
-                "enabled",
-                true,
-                "Enables ranks and adds command.x permissions and allows ranks to control them.").getBoolean();
-        ranks.override_chat = config.get(RANKS, "override_chat", true, "Adds chat colors/rank-specific syntax.")
-                .getBoolean();
-        ranks.override_commands = config.get(
-                RANKS,
-                "override_commands",
-                true,
-                "Allow to configure commands with ranks. Disable this if you want to use other permission mod for that.")
-                .getBoolean();
-        config.setCategoryRequiresMcRestart(RANKS, true);
-
-        world.logging.enabled = config.get(LOGGING, "enabled", false, "Enables world logging.").getBoolean();
-        world.logging.include_creative_players = config
-                .get(LOGGING, "include_creative_players", false, "Includes creative players in world logging.")
-                .getBoolean();
-        world.logging.include_fake_players = config
-                .get(LOGGING, "include_fake_players", false, "Includes fake players in world logging.").getBoolean();
-        world.logging.block_placed = config.get(LOGGING, "block_placed", true, "Logs block placement.").getBoolean();
-        world.logging.block_broken = config.get(LOGGING, "block_broken", true, "Logs block breaking.").getBoolean();
-        world.logging.item_clicked_in_air = config
-                .get(LOGGING, "item_clicked_in_air", true, "Logs item clicking in air.").getBoolean();
-        world.logging.entity_attacked = config
-                .get(LOGGING, "entity_attacked", true, "Logs player attacks on other players/entites.").getBoolean();
-        world.logging.exclude_mob_entity = config
-                .get(LOGGING, "exclude_mob_entity", true, "Exclude mobs from entity attack logging.").getBoolean();
-        world.logging.chat_enable = config.get(LOGGING, "chat_enable", false, "Enables chat logging.").getBoolean();
-        config.setCategoryComment(LOGGING, "Logs different events in logs/world.log file.");
-
-        world.chunk_claiming = config.get(WORLD, "chunk_claiming", true, "Enables chunk claiming.").getBoolean();
-        world.chunk_loading = config
-                .get(
-                        WORLD,
-                        "chunk_loading",
-                        true,
-                        "Enables chunk loading. If chunk_claiming is set to false, changing this won't do anything.")
-                .getBoolean();
-        world.safe_spawn = config.get(
-                WORLD,
-                "safe_spawn",
-                false,
-                "If set to true, explosions and hostile mobs in spawn area will be disabled, players won't be able to attack each other in spawn area.")
-                .getBoolean();
-        world.spawn_area_in_sp = config.get(WORLD, "spawn_area_in_sp", false, "Enable spawn area in singleplayer.")
-                .getBoolean();
-        world.blocked_claiming_dimensions = config.get(
-                WORLD,
-                "blocked_claiming_dimensions",
-                new int[] {},
-                "Dimensions where chunk claiming isn't allowed.").getIntList();
-        world.enable_pvp = EnumTristate.string2tristate(config.get(WORLD, "enable_pvp", EnumTristate.TRUE.getName(), """
-                Allowed values:
-                DEFAULT = Players can choose their own PVP status.
-                TRUE = PVP on for everyone.
-                FALSE = PVP disabled for everyone.""").setValidValues(TRISTATE_VALUES).getString());
-        world.enable_explosions = EnumTristate
-                .string2tristate(config.get(WORLD, "enable_explosions", EnumTristate.DEFAULT.getName(), """
-                        Allowed values:
-                        DEFAULT = Teams can decide their explosion setting
-                        TRUE = Explosions on for everyone.
-                        FALSE = Explosions disabled for everyone.""").setValidValues(TRISTATE_VALUES).getString());
-        world.spawn_radius = config.get(
-                WORLD,
-                "spawn_radius",
-                0,
-                "Spawn radius. You must set spawn-protection in server.properties file to 0!").getInt();
-        world.spawn_dimension = config.get(WORLD, "spawn_dimension", 0, "Spawn dimension. Overworld by default.")
-                .getInt();
-        world.unload_erroring_chunks = config.get(
-                WORLD,
-                "unload_erroring_chunks",
-                false,
-                "Unloads erroring chunks if dimension isn't loaded or some other problem occurs.").getBoolean();
-        world.rtp_min_distance = config.get(WORLD, "rtp_min_distance", 1000D, "Min /rtp distance").getDouble();
-        world.rtp_max_distance = config.get(WORLD, "rtp_max_distance", 100000D, "Max /rtp distance").getDouble();
-        world.rtp_max_tries = config.get(WORLD, "rtp_max_tries", 200, "Max tries /rtp does before failure.").getInt();
-        world.disabled_right_click_items = config.get(
-                WORLD,
-                "disabled_right_click_items",
-                new String[] {},
-                "List of items that will have right-click function disabled on both sides.\nYou can use '/inv disable_right_click' command to do with from in-game.\nSyntax: modid:item:metadata. Set metadata to * to ignore it.")
-                .getStringList();
-        world.forced_spawn_dimension_time = config.get(
-                WORLD,
-                "forced_spawn_dimension_time",
-                -1,
-                "Locked time in ticks in spawn dimension.\n-1 - Disabled\n0 - Morning\n6000 - Noon\n12000 - Evening\n18000 - Midnight",
-                -1,
-                23999).getInt();
-        world.forced_spawn_dimension_weather = config.get(
-                WORLD,
-                "forced_spawn_dimension_weather",
-                -1,
-                "Locked weather type in spawn dimension.\n-1 - Disabled\n0 - Clear\n1 - Raining\n2 - Thunderstorm",
-                -1,
-                2).getInt();
-        world.disable_player_suffocation_damage = config.get(
-                WORLD,
-                "disable_player_suffocation_damage",
-                false,
-                "Disables player damage when they are stuck in walls.").getBoolean();
-        world.show_playtime = config.get(WORLD, "show_playtime", false, "Show play time in corner.").getBoolean();
-        config.setCategoryRequiresWorldRestart(WORLD, true);
-
-        tasks.cleanup.enabled = config
-                .get(TASK_CLEANUP, "cleanup_enabled", false, "Enables periodic removal of entities").getBoolean();
-        tasks.cleanup.interval = config
-                .get(TASK_CLEANUP, "cleanup_interval", 2.0, "How often the cleanup should run in hours").getDouble();
-        tasks.cleanup.hostiles = config.get(TASK_CLEANUP, "include_hostiles", true, "Include hostile mobs in cleanup")
-                .getBoolean();
-        tasks.cleanup.passives = config.get(TASK_CLEANUP, "include_passives", false, "Include passive mobs in cleanup")
-                .getBoolean();
-        tasks.cleanup.items = config.get(TASK_CLEANUP, "include_items", true, "Include items on the ground in cleanup")
-                .getBoolean();
-        tasks.cleanup.experience = config
-                .get(TASK_CLEANUP, "include_experience", true, "Include experience orbs in cleanup").getBoolean();
-        tasks.cleanup.silent = config
-                .get(TASK_CLEANUP, "silent_cleanup", false, "Silence cleanup warning that are sent prior to starting")
-                .getBoolean();
-
-        login.motdComponents = null;
-        login.startingItems = null;
-        afk.notificationTimer = -1L;
-        world.disabledItems = null;
-
-        config.save();
-
-        return true;
-    }
-
+    @Config.RequiresWorldRestart
     public static final AutoShutdown auto_shutdown = new AutoShutdown();
+
+    @Config.RequiresWorldRestart
     public static final AFK afk = new AFK();
+
+    @Config.RequiresWorldRestart
     public static final Chat chat = new Chat();
+
+    @Config.RequiresWorldRestart
     public static final Commands commands = new Commands();
+
+    @Config.RequiresWorldRestart
     public static final Login login = new Login();
+
+    @Config.RequiresWorldRestart
     public static final RanksConfig ranks = new RanksConfig();
+
+    @Config.RequiresWorldRestart
     public static final WorldConfig world = new WorldConfig();
+
+    @Config.RequiresWorldRestart
     public static final Debugging debugging = new Debugging();
+
+    @Config.RequiresWorldRestart
     public static final Backups backups = new Backups();
+
+    @Config.RequiresWorldRestart
     public static final General general = new General();
+
+    @Config.RequiresWorldRestart
     public static final Teams teams = new Teams();
+
+    @Config.RequiresWorldRestart
     public static final Tasks tasks = new Tasks();
 
     public static class General {
 
-        public boolean replace_reload_command;
+        @Config.Comment("Merges player profiles, in case player logged in without internet connection/in offline mode server. "
+                + "If set to DEFAULT, it will only merge on singleplayer worlds.")
+        @Config.DefaultEnum("TRUE")
         public EnumTristate merge_offline_mode_players;
     }
 
     public static class Teams {
 
+        @Config.Comment("Disable teams entirely")
+        @Config.DefaultBoolean(false)
         public boolean disable_teams;
+
+        @Config.Comment("Automatically creates a team for player on multiplayer, based on their username and with a random color.")
+        @Config.DefaultBoolean(false)
         public boolean autocreate_mp;
+
+        @Config.Comment("Automatically creates (or joins) a team on singleplayer/LAN with ID 'singleplayer'.")
+        @Config.DefaultBoolean(true)
         public boolean autocreate_sp;
+
+        @Config.Comment("Disable no team notification entirely.")
+        @Config.DefaultBoolean(false)
         public boolean hide_team_notification;
+
+        @Config.Comment("Don't allow other players to break blocks in claimed chunks")
+        @Config.DefaultBoolean(true)
         public boolean grief_protection;
+
+        @Config.Comment("Don't allow other players to interact with blocks in claimed chunks")
+        @Config.DefaultBoolean(true)
         public boolean interaction_protection;
+
+        @Config.Comment("Forces player chat messages to be prefixed with their team name. Example: [Team] <Player> Message")
+        @Config.DefaultBoolean(false)
         public boolean force_team_prefix;
     }
 
     public static class Debugging {
 
+        @Config.Comment("Enables special debug commands.")
+        @Config.DefaultBoolean(false)
         public boolean special_commands;
+
+        @Config.Comment("Print more info.")
+        @Config.DefaultBoolean(false)
         public boolean print_more_info;
+
+        @Config.Comment("Print more errors.")
+        @Config.DefaultBoolean(false)
         public boolean print_more_errors;
+
+        @Config.Comment("Log incoming and outgoing network messages.")
+        @Config.DefaultBoolean(false)
         public boolean log_network;
+
+        @Config.Comment("Log player teleporting.")
+        @Config.DefaultBoolean(false)
         public boolean log_teleport;
+
+        @Config.Comment("Log config editing.")
+        @Config.DefaultBoolean(false)
         public boolean log_config_editing;
+
+        @Config.Comment("See dev-only sidebar buttons. They probably don't do anything.")
+        @Config.DefaultBoolean(false)
         public boolean dev_sidebar_buttons;
+
+        @Config.Comment("See GUI widget bounds when you hold B.")
+        @Config.DefaultBoolean(false)
         public boolean gui_widget_bounds;
+
+        @Config.Comment("Log all events that extend EventBase.")
+        @Config.DefaultBoolean(false)
         public boolean log_events;
+
+        @Config.Comment("Print a message in console every time a chunk is forced or unforced. Recommended to be off, because spam.")
+        @Config.DefaultBoolean(false)
         public boolean log_chunkloading;
     }
 
     public static class AutoShutdown {
 
+        @Config.Comment("Enables auto-shutdown.")
+        @Config.DefaultBoolean(false)
         public boolean enabled;
+
+        @Config.Comment("Enables auto-shutdown in singleplayer worlds.")
+        @Config.DefaultBoolean(false)
         public boolean enabled_singleplayer;
+
+        @Config.Comment("""
+                Server will automatically shut down after X hours.
+                Time Format: HH:MM. If the system time matches a value, server will shut down.
+                It will look for closest value available that is not equal to current time.""")
+        @Config.DefaultStringList({ "04:00", "16:00" })
         public String[] times;
     }
 
     public static class AFK {
 
+        @Config.Comment("Enables afk timer.")
+        @Config.DefaultBoolean(true)
         public boolean enabled;
+
+        @Config.Comment("Enables afk timer in singleplayer.")
+        @Config.DefaultBoolean(false)
         public boolean enabled_singleplayer;
+
+        @Config.Comment("After how much time it will display notification to all players.")
+        @Config.DefaultString("5m")
         public String notification_timer;
-        public boolean log_afk;
+
+        @Config.Ignore
         private long notificationTimer;
 
         public boolean isEnabled(MinecraftServer server) {
@@ -448,62 +192,152 @@ public class ServerUtilitiesConfig {
 
     public static class Chat {
 
+        @Config.Comment("Adds ~ to player names that have changed nickname to prevent trolling.")
+        @Config.DefaultBoolean(false)
         public boolean add_nickname_tilde;
-        public boolean replace_tab_names;
     }
 
     public static class Commands {
 
+        @Config.DefaultBoolean(true)
         public boolean warp;
+
+        @Config.DefaultBoolean(true)
         public boolean home;
+
+        @Config.DefaultBoolean(true)
         public boolean back;
+
+        @Config.DefaultBoolean(true)
         public boolean spawn;
+
+        @Config.DefaultBoolean(true)
         public boolean inv;
+
+        @Config.DefaultBoolean(true)
         public boolean tpl;
+
+        @Config.DefaultBoolean(true)
         public boolean trash_can;
+
+        @Config.DefaultBoolean(true)
         public boolean chunks;
+
+        @Config.DefaultBoolean(true)
         public boolean kickme;
+
+        @Config.DefaultBoolean(true)
         public boolean ranks;
+
+        @Config.DefaultBoolean(true)
         public boolean heal;
+
+        @Config.DefaultBoolean(true)
         public boolean killall;
+
+        @Config.DefaultBoolean(true)
         public boolean nbtedit;
+
+        @Config.DefaultBoolean(true)
         public boolean fly;
+
+        @Config.DefaultBoolean(true)
         public boolean leaderboard;
+
+        @Config.DefaultBoolean(true)
         public boolean tpa;
+
+        @Config.DefaultBoolean(true)
         public boolean nick;
+
+        @Config.DefaultBoolean(true)
         public boolean mute;
+
+        @Config.DefaultBoolean(true)
         public boolean rtp;
+
+        @Config.DefaultBoolean(true)
         public boolean god;
+
+        @Config.DefaultBoolean(true)
         public boolean rec;
+
+        @Config.DefaultBoolean(true)
+        public boolean reload;
+
+        @Config.DefaultBoolean(true)
         public boolean backup;
+
+        @Config.DefaultBoolean(true)
         public boolean dump_chunkloaders;
+
+        @Config.DefaultBoolean(true)
         public boolean dump_permissions;
     }
 
     public static class Backups {
 
+        @Config.Comment("Enables backups.")
+        @Config.DefaultBoolean(true)
         public boolean enable_backups;
+
+        @Config.Comment("Time between backups in hours. \n1.0 - backups every hour 6.0 - backups every 6 hours 0.5 - backups every 30 minutes.")
+        @Config.DefaultDouble(0.5)
         public double backup_timer;
+
+        @Config.Comment("Number of backup files to keep before deleting old ones.")
+        @Config.DefaultInt(12)
         public int backups_to_keep;
+
+        @Config.Comment("How much the backup file will be compressed. 1 - best speed 9 - smallest file size.")
+        @Config.DefaultInt(1)
         public int compression_level;
+
+        @Config.Comment("Path to backups folder.")
+        @Config.DefaultString("./backups/")
         public String backup_folder_path;
+
+        @Config.Comment("Run backup in a separated thread (recommended)")
+        @Config.DefaultBoolean(true)
         public boolean use_separate_thread;
+
+        @Config.Comment("Prints (current size | total size) when backup is done")
+        @Config.DefaultBoolean(true)
         public boolean display_file_size;
+
+        @Config.Comment("Backups won't run if no players are online.")
+        @Config.DefaultBoolean(true)
         public boolean need_online_players;
+
+        @Config.Comment("Silence backup notifications.")
+        @Config.DefaultBoolean(false)
         public boolean silent_backup;
-        public int max_folder_size;
-        public boolean delete_custom_name_backups;
-        public boolean only_backup_claimed_chunks;
     }
 
     public static class Login {
 
+        @Config.Comment("Enables message of the day.")
+        @Config.DefaultBoolean(false)
         public boolean enable_motd;
+
+        @Config.Comment("Enables starting items.")
+        @Config.DefaultBoolean(false)
         public boolean enable_starting_items;
+
+        @Config.Comment("Message of the day. This will be displayed when player joins the server.")
+        @Config.DefaultStringList({ "\"Hello player!\"" })
         public String[] motd;
-        private List<IChatComponent> motdComponents = null;
-        private List<ItemStack> startingItems = null;
+
+        @Config.Comment("Items to give player when they first join the server.\nFormat: '{id:\"ID\",Count:X,Damage:X,tag:{}}', Use /print_item to get NBT of item in your hand.")
+        @Config.DefaultStringList({
+                "{id:\"minecraft:stone_sword\",Count:1,Damage:1,tag:{display:{Name:\"Epic Stone Sword\"}}}" })
         public String[] starting_items;
+
+        @Config.Ignore
+        private List<IChatComponent> motdComponents = null;
+
+        @Config.Ignore
+        private List<ItemStack> startingItems = null;
 
         public List<IChatComponent> getMOTD() {
             if (motdComponents == null) {
@@ -536,7 +370,7 @@ public class ServerUtilitiesConfig {
                                 startingItems.add(stack);
                             }
                         } catch (Exception ex) {
-                            ex.printStackTrace();
+                            ServerUtilities.LOGGER.warn("Failed to parse starting item: {}", s, ex);
                         }
                     }
                 }
@@ -548,8 +382,16 @@ public class ServerUtilitiesConfig {
 
     public static class RanksConfig {
 
+        @Config.Comment("Enables ranks and adds command.x permissions and allows ranks to control them.")
+        @Config.DefaultBoolean(true)
         public boolean enabled;
+
+        @Config.Comment("Adds chat colors/rank-specific syntax.")
+        @Config.DefaultBoolean(true)
         public boolean override_chat;
+
+        @Config.Comment("Allow to configure commands with ranks. Disable this if you want to use other permission mod for that.")
+        @Config.DefaultBoolean(true)
         public boolean override_commands;
     }
 
@@ -557,14 +399,40 @@ public class ServerUtilitiesConfig {
 
         public static class WorldLogging {
 
+            @Config.Comment("Enables world logging.")
+            @Config.DefaultBoolean(false)
             public boolean enabled;
+
+            @Config.Comment("Includes creative players in world logging.")
+            @Config.DefaultBoolean(false)
             public boolean include_creative_players;
+
+            @Config.Comment("Includes fake players in world logging.")
+            @Config.DefaultBoolean(false)
             public boolean include_fake_players;
+
+            @Config.Comment("Logs block placement.")
+            @Config.DefaultBoolean(true)
             public boolean block_placed;
+
+            @Config.Comment("Logs block breaking.")
+            @Config.DefaultBoolean(true)
             public boolean block_broken;
+
+            @Config.Comment("Logs item clicking in air.")
+            @Config.DefaultBoolean(true)
             public boolean item_clicked_in_air;
+
+            @Config.Comment("Logs player attacks on other players/entites.")
+            @Config.DefaultBoolean(true)
             public boolean entity_attacked;
+
+            @Config.Comment("Exclude mobs from entity attack logging.")
+            @Config.DefaultBoolean(true)
             public boolean exclude_mob_entity;
+
+            @Config.Comment("Enables chat logging.")
+            @Config.DefaultBoolean(false)
             public boolean chat_enable;
 
             public boolean log(EntityPlayerMP player) {
@@ -575,25 +443,104 @@ public class ServerUtilitiesConfig {
 
         public final WorldLogging logging = new WorldLogging();
 
+        @Config.Comment("Enables chunk claiming.")
+        @Config.DefaultBoolean(true)
         public boolean chunk_claiming;
+
+        @Config.Comment("Enables chunk loading. If chunk_claiming is set to false, changing this won't do anything.")
+        @Config.DefaultBoolean(true)
         public boolean chunk_loading;
+
+        @Config.Comment("If set to true, explosions and hostile mobs in spawn area will be disabled, players won't be able to attack each other in spawn area.")
+        @Config.DefaultBoolean(false)
         public boolean safe_spawn;
+
+        @Config.Comment("Enable spawn area in singleplayer.")
+        @Config.DefaultBoolean(false)
         public boolean spawn_area_in_sp;
+
+        @Config.Comment("Dimensions where chunk claiming isn't allowed.")
+        @Config.DefaultIntList({})
         public int[] blocked_claiming_dimensions;
+
+        @Config.Comment("""
+                Allowed values:
+                DEFAULT = Players can choose their own PVP status.
+                TRUE = PVP on for everyone.
+                FALSE = PVP disabled for everyone.""")
+        @Config.DefaultEnum("DEFAULT")
         public EnumTristate enable_pvp;
+
+        @Config.Comment("""
+                Allowed values:
+                DEFAULT = Teams can decide their explosion setting
+                TRUE = Explosions on for everyone.
+                FALSE = Explosions disabled for everyone.""")
+        @Config.DefaultEnum("DEFAULT")
         public EnumTristate enable_explosions;
+
+        @Config.Comment("Spawn radius. You must set spawn-protection in server.properties file to 0!")
+        @Config.DefaultInt(0)
         public int spawn_radius;
+
+        @Config.Comment("Spawn dimension. Overworld by default.")
+        @Config.DefaultInt(0)
         public int spawn_dimension;
+
+        @Config.Comment("Unloads erroring chunks if dimension isn't loaded or some other problem occurs.")
+        @Config.DefaultBoolean(false)
         public boolean unload_erroring_chunks;
+
+        @Config.Comment("Min /rtp distance")
+        @Config.DefaultDouble(1000D)
         public double rtp_min_distance;
+
+        @Config.Comment("Max /rtp distance")
+        @Config.DefaultDouble(100000D)
         public double rtp_max_distance;
+
+        @Config.Comment("Max tries /rtp does before failure.")
+        @Config.DefaultInt(200)
         public int rtp_max_tries;
+
+        @Config.Comment("""
+                List of items that will have right-click function disabled on both sides.
+                You can use '/inv disable_right_click' command to do with from in-game.
+                Syntax: modid:item:metadata. Set metadata to * to ignore it.""")
+        @Config.DefaultStringList({ "" })
         public String[] disabled_right_click_items;
-        private List<DisabledItem> disabledItems = null;
+
+        @Config.Comment("""
+                Locked time in ticks in spawn dimension.
+                -1 - Disabled
+                0 - Morning
+                6000 - Noon
+                12000 - Evening
+                18000 - Midnight""")
+        @Config.RangeInt(min = -1, max = 23999)
+        @Config.DefaultInt(-1)
         public int forced_spawn_dimension_time;
+
+        @Config.Comment("""
+                Locked weather type in spawn dimension.
+                -1 - Disabled
+                0 - Clear
+                1 - Raining
+                2 - Thunderstorm""")
+        @Config.RangeInt(min = -1, max = 2)
+        @Config.DefaultInt(-1)
         public int forced_spawn_dimension_weather;
+
+        @Config.Comment("Disables player damage when they are stuck in walls.")
+        @Config.DefaultBoolean(false)
         public boolean disable_player_suffocation_damage;
+
+        @Config.Comment("Show play time in corner.")
+        @Config.DefaultBoolean(false)
         public boolean show_playtime;
+
+        @Config.Ignore
+        private List<DisabledItem> disabledItems = null;
 
         private static class DisabledItem {
 
@@ -655,12 +602,32 @@ public class ServerUtilitiesConfig {
 
         public static class Cleanup {
 
+            @Config.Comment("Enables periodic removal of entities")
+            @Config.DefaultBoolean(false)
             public boolean enabled;
+
+            @Config.Comment("How often the cleanup should run in hours")
+            @Config.DefaultDouble(2)
             public double interval;
+
+            @Config.Comment("Include hostile mobs in cleanup")
+            @Config.DefaultBoolean(true)
             public boolean hostiles;
+
+            @Config.Comment("Include passive mobs in cleanup")
+            @Config.DefaultBoolean(false)
             public boolean passives;
+
+            @Config.Comment("Include items on the ground in cleanup")
+            @Config.DefaultBoolean(true)
             public boolean items;
+
+            @Config.Comment("Include experience orbs in cleanup")
+            @Config.DefaultBoolean(true)
             public boolean experience;
+
+            @Config.Comment("Silence cleanup warning that are sent prior to starting")
+            @Config.DefaultBoolean(false)
             public boolean silent;
         }
 
