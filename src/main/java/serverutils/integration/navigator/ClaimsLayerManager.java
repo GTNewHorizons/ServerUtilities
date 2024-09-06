@@ -1,35 +1,22 @@
 package serverutils.integration.navigator;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.entity.EntityClientPlayerMP;
-
 import com.gtnewhorizons.navigator.api.model.SupportedMods;
 import com.gtnewhorizons.navigator.api.model.layers.InteractableLayerManager;
 import com.gtnewhorizons.navigator.api.model.layers.LayerRenderer;
-import com.gtnewhorizons.navigator.api.model.locations.IWaypointAndLocationProvider;
+import com.gtnewhorizons.navigator.api.model.layers.UniversalInteractableRenderer;
+import com.gtnewhorizons.navigator.api.model.locations.ILocationProvider;
 import com.gtnewhorizons.navigator.api.model.waypoints.Waypoint;
-import com.gtnewhorizons.navigator.api.util.Util;
 
 import serverutils.client.gui.ClientClaimedChunks;
-import serverutils.integration.navigator.journeymap.JMClaimsRenderer;
-import serverutils.integration.navigator.xaero.XaeroClaimsRenderer;
-import serverutils.lib.math.ChunkDimPos;
 import serverutils.net.MessageJourneyMapRequest;
 
 public class ClaimsLayerManager extends InteractableLayerManager {
 
     public static final ClaimsLayerManager INSTANCE = new ClaimsLayerManager();
-    private int oldMinBlockX = 0;
-    private int oldMinBlockZ = 0;
-    private int oldMaxBlockX = 0;
-    private int oldMaxBlockZ = 0;
     private long lastRequest = 0;
 
     public ClaimsLayerManager() {
@@ -39,58 +26,36 @@ public class ClaimsLayerManager extends InteractableLayerManager {
     @Nullable
     @Override
     protected LayerRenderer addLayerRenderer(InteractableLayerManager manager, SupportedMods mod) {
-        return switch (mod) {
-            case JourneyMap -> new JMClaimsRenderer(manager);
-            case XaeroWorldMap -> new XaeroClaimsRenderer(manager);
-            default -> null;
-        };
+        return new UniversalInteractableRenderer(manager).withClickAction(NavigatorIntegration::claimChunk)
+                .withRenderStep(location -> new ClaimsRenderStep((ClaimsLocation) location));
     }
 
     @Override
     public void setActiveWaypoint(Waypoint waypoint) {}
 
     @Override
-    protected boolean needsRegenerateVisibleElements(int minBlockX, int minBlockZ, int maxBlockX, int maxBlockZ) {
-        if (minBlockX != oldMinBlockX || minBlockZ != oldMinBlockZ
-                || maxBlockX != oldMaxBlockX
-                || maxBlockZ != oldMaxBlockZ) {
-            oldMinBlockX = minBlockX;
-            oldMinBlockZ = minBlockZ;
-            oldMaxBlockX = maxBlockX;
-            oldMaxBlockZ = maxBlockZ;
-            if (System.currentTimeMillis() - lastRequest >= TimeUnit.SECONDS.toMillis(2)) {
-                lastRequest = System.currentTimeMillis();
-                new MessageJourneyMapRequest(minBlockX, maxBlockX, minBlockZ, maxBlockZ).sendToServer();
-            }
-            return true;
+    public void onLayerToggled(boolean toEnabled) {
+        super.onLayerToggled(toEnabled);
+        if (!toEnabled) {
+            NavigatorIntegration.CLAIMS.clear();
+            lastRequest = 0;
         }
-        return false;
+    }
+
+    @Nullable
+    @Override
+    protected ILocationProvider generateLocation(int chunkX, int chunkZ, int dim) {
+        ClientClaimedChunks.ChunkData data = NavigatorIntegration.CLAIMS
+                .get(NavigatorIntegration.mutablePos.set(chunkX, chunkZ, dim));
+        if (data == null) return null;
+        return new ClaimsLocation(chunkX, chunkZ, dim, data);
     }
 
     @Override
-    protected List<? extends IWaypointAndLocationProvider> generateVisibleElements(int minBlockX, int minBlockZ,
-            int maxBlockX, int maxBlockZ) {
-        int minX = Util.coordBlockToChunk(minBlockX);
-        int minZ = Util.coordBlockToChunk(minBlockZ);
-        int maxX = Util.coordBlockToChunk(maxBlockX);
-        int maxZ = Util.coordBlockToChunk(maxBlockZ);
-        final EntityClientPlayerMP player = Minecraft.getMinecraft().thePlayer;
-
-        ArrayList<ClaimsLocation> locations = new ArrayList<>();
-
-        for (Map.Entry<ChunkDimPos, ClientClaimedChunks.ChunkData> entry : NavigatorIntegration.CLAIMS.entrySet()) {
-            ChunkDimPos key = entry.getKey();
-            ClientClaimedChunks.ChunkData value = entry.getValue();
-            boolean withinRange = key.posX >= minX && key.posX <= maxX
-                    && key.posZ >= minZ
-                    && key.posZ <= maxZ
-                    && key.dim == player.dimension;
-            if (!withinRange) {
-                continue;
-            }
-            locations.add(new ClaimsLocation(key, value));
+    public void onUpdatePre(int minX, int maxX, int minZ, int maxZ) {
+        if (System.currentTimeMillis() - lastRequest >= TimeUnit.SECONDS.toMillis(2)) {
+            lastRequest = System.currentTimeMillis();
+            new MessageJourneyMapRequest(minX, maxX, minZ, maxZ).sendToServer();
         }
-
-        return locations;
     }
 }
