@@ -17,7 +17,7 @@ import com.gtnewhorizons.navigator.api.util.Util;
 import serverutils.client.gui.ClientClaimedChunks;
 import serverutils.lib.EnumTeamColor;
 import serverutils.net.MessageClaimedChunksModify;
-import serverutils.net.MessageJourneyMapRequest;
+import serverutils.net.MessageNavigatorRequest;
 
 public class ClaimsLocation implements IWaypointAndLocationProvider {
 
@@ -103,7 +103,7 @@ public class ClaimsLocation implements IWaypointAndLocationProvider {
         int chunkZ = getChunkZ();
         Collection<ChunkCoordIntPair> chunks = Collections.singleton(new ChunkCoordIntPair(chunkX, chunkZ));
         new MessageClaimedChunksModify(chunkX, chunkZ, selectionMode, chunks).sendToServer();
-        new MessageJourneyMapRequest(chunkX, chunkX, chunkZ, chunkZ).sendToServer();
+        new MessageNavigatorRequest(chunkX, chunkX, chunkZ, chunkZ).sendToServer();
         chunkData.setLoaded(!isLoaded());
     }
 
