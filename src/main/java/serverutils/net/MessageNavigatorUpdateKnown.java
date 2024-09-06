@@ -1,17 +1,16 @@
 package serverutils.net;
 
+import javax.annotation.Nonnull;
+
 import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
-import serverutils.data.ClaimedChunk;
-import serverutils.data.ClaimedChunks;
 import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
-import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.net.MessageToClient;
 import serverutils.lib.net.NetworkWrapper;
 
@@ -21,16 +20,8 @@ public class MessageNavigatorUpdateKnown extends MessageToClient {
 
     public MessageNavigatorUpdateKnown() {}
 
-    public MessageNavigatorUpdateKnown(LongSet postitions, int dim) {
-        toRemove = new LongOpenHashSet();
-        ChunkDimPos mut = new ChunkDimPos();
-        for (long pos : postitions) {
-            ClaimedChunk chunk = ClaimedChunks.instance.getChunk(mut.set(pos, dim));
-
-            if (chunk == null) {
-                toRemove.add(pos);
-            }
-        }
+    public MessageNavigatorUpdateKnown(@Nonnull LongSet toRemove) {
+        this.toRemove = toRemove;
     }
 
     @Override
