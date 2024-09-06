@@ -312,6 +312,16 @@ public class ServerUtilitiesConfig {
         @Config.Comment("Silence backup notifications.")
         @Config.DefaultBoolean(false)
         public boolean silent_backup;
+
+        @Config.Comment("""
+                Max size of backup folder in GB. If total folder size exceeds this value it will delete old backups until the size is under.
+                0 = Disabled and backups_to_keep will be used instead.""")
+        @Config.DefaultInt(0)
+        public int max_folder_size;
+
+        @Config.Comment("Delete backups that have a custom name set through /backup start <name>")
+        @Config.DefaultBoolean(true)
+        public boolean delete_custom_name_backups;
     }
 
     public static class Login {
