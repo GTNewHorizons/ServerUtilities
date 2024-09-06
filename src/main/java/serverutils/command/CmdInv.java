@@ -10,6 +10,8 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
+
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
@@ -64,7 +66,7 @@ public class CmdInv extends CmdTreeBase {
             }
 
             ServerUtilitiesConfig.world.disabled_right_click_items = list.toArray(new String[0]);
-            ServerUtilitiesConfig.sync();
+            ConfigurationManager.save(ServerUtilitiesConfig.class);
         }
     }
 

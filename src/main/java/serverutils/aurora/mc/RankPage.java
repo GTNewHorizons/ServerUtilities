@@ -29,11 +29,7 @@ public class RankPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return switch (AuroraConfig.general.player_rank_page) {
-            case "DISABLED" -> PageType.DISABLED;
-            case "ENABLED" -> PageType.ENABLED;
-            default -> PageType.REQUIRES_AUTH;
-        };
+        return AuroraConfig.player_rank_page;
     }
 
     @Override

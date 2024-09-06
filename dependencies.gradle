@@ -1,6 +1,7 @@
 // Add your dependencies here
 
 dependencies {
+
     api("com.github.GTNewHorizons:GTNHLib:0.5.5:dev")
     compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.6.34-GTNH:dev")
     compileOnly("com.github.GTNewHorizons:EnderIO:2.8.17:dev")

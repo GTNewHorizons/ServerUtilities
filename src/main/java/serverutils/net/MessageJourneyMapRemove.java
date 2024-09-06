@@ -2,8 +2,8 @@ package serverutils.net;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.integration.navigator.NavigatorIntegration;
+import serverutils.lib.OtherMods;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.math.ChunkDimPos;
@@ -38,8 +38,7 @@ public class MessageJourneyMapRemove extends MessageToClient {
     @Override
     @SideOnly(Side.CLIENT)
     public void onMessage() {
-        if (ServerUtilitiesClientConfig.general.journeymap_overlay) {
-            NavigatorIntegration.removeChunk(chunkPos.posX, chunkPos.posZ, chunkPos.dim);
-        }
+        if (!OtherMods.isNavigatorLoaded()) return;
+        NavigatorIntegration.removeChunk(chunkPos.posX, chunkPos.posZ, chunkPos.dim);
     }
 }

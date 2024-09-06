@@ -8,11 +8,9 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
-import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.NBTUtils;
-import serverutils.net.MessageUpdateTabName;
 
 public class CmdRec extends CmdBase {
 
@@ -47,9 +45,5 @@ public class CmdRec extends CmdBase {
         }
 
         Universe.get().getPlayer(player).clearCache();
-
-        if (ServerUtilitiesConfig.chat.replace_tab_names) {
-            new MessageUpdateTabName(player).sendToAll();
-        }
     }
 }
