@@ -38,5 +38,8 @@ public class MessageJourneyMapRemove extends MessageToClient {
     @SideOnly(Side.CLIENT)
     public void onMessage() {
         NavigatorIntegration.CLAIMS.remove(chunkPos);
+        if (ServerUtilitiesClientConfig.general.journeymap_overlay) {
+            NavigatorIntegration.removeChunk(chunkPos.posX, chunkPos.posZ, chunkPos.dim);
+        }
     }
 }
