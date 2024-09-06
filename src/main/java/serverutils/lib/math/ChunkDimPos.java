@@ -3,6 +3,8 @@ package serverutils.lib.math;
 import net.minecraft.entity.Entity;
 import net.minecraft.world.ChunkCoordIntPair;
 
+import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
+
 public final class ChunkDimPos {
 
     public int posX, posZ, dim;
@@ -30,6 +32,13 @@ public final class ChunkDimPos {
     public ChunkDimPos set(int x, int z, int dim) {
         this.posX = x;
         this.posZ = z;
+        this.dim = dim;
+        return this;
+    }
+
+    public ChunkDimPos set(long packedPos, int dim) {
+        this.posX = CoordinatePacker.unpackX(packedPos);
+        this.posZ = CoordinatePacker.unpackZ(packedPos);
         this.dim = dim;
         return this;
     }

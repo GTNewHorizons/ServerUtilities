@@ -1,6 +1,5 @@
 package serverutils.net;
 
-import serverutils.lib.OtherMods;
 import serverutils.lib.net.NetworkWrapper;
 
 public class ServerUtilitiesNetHandler {
@@ -27,11 +26,10 @@ public class ServerUtilitiesNetHandler {
         CLAIMS.register(new MessageClaimedChunksRequest());
         CLAIMS.register(new MessageClaimedChunksUpdate());
         CLAIMS.register(new MessageClaimedChunksModify());
-        if (OtherMods.isNavigatorLoaded()) {
-            CLAIMS.register(new MessageJourneyMapUpdate());
-            CLAIMS.register(new MessageJourneyMapRequest());
-            CLAIMS.register(new MessageJourneyMapRemove());
-        }
+        CLAIMS.register(new MessageNavigatorUpdate());
+        CLAIMS.register(new MessageNavigatorRequest());
+        CLAIMS.register(new MessageNavigatorUpdateKnown());
+        CLAIMS.register(new MessageNavigatorValidateKnown());
 
         EDIT_CONFIG.register(new MessageEditConfig());
         EDIT_CONFIG.register(new MessageEditConfigResponse());
