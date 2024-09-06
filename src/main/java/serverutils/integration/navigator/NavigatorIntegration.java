@@ -15,8 +15,8 @@ import serverutils.client.gui.ClientClaimedChunks;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.net.MessageClaimedChunksModify;
 import serverutils.net.MessageClaimedChunksUpdate;
-import serverutils.net.MessageJourneyMapRequest;
-import serverutils.net.MessageJourneyMapUpdate;
+import serverutils.net.MessageNavigatorRequest;
+import serverutils.net.MessageNavigatorUpdate;
 
 public class NavigatorIntegration {
 
@@ -29,7 +29,7 @@ public class NavigatorIntegration {
         NavigatorApi.registerLayerManager(ClaimsLayerManager.INSTANCE);
     }
 
-    public static void updateMap(MessageJourneyMapUpdate message) {
+    public static void updateMap(MessageNavigatorUpdate message) {
         for (ClientClaimedChunks.Team team : message.teams.values()) {
             for (Object2ObjectMap.Entry<ChunkDimPos, ClientClaimedChunks.ChunkData> pos : team.chunkPos
                     .object2ObjectEntrySet()) {
@@ -61,7 +61,8 @@ public class NavigatorIntegration {
         ClaimsLayerManager.INSTANCE.forceRefresh();
     }
 
-    public static void removeChunk(int chunkX, int chunkZ, int dim) {
+    public static void removeChunk(int chunkX, int chunkZ) {
+        int dim = Minecraft.getMinecraft().thePlayer.dimension;
         ClaimsLayerManager.INSTANCE.removeLocation(chunkX, chunkZ);
         CLAIMS.remove(mutablePos.set(chunkX, chunkZ, dim));
     }
@@ -74,7 +75,7 @@ public class NavigatorIntegration {
 
         Collection<ChunkCoordIntPair> chunks = Collections.singleton(new ChunkCoordIntPair(chunkX, chunkZ));
         new MessageClaimedChunksModify(chunkX, chunkZ, selectionMode, chunks).sendToServer();
-        removeChunk(location.getChunkX(), location.getChunkZ(), location.getDimensionId());
+        removeChunk(location.getChunkX(), location.getChunkZ());
     }
 
     public static void onChunkDataUpdate(MessageClaimedChunksUpdate message) {
@@ -91,7 +92,7 @@ public class NavigatorIntegration {
         new MessageClaimedChunksModify(chunkX, chunkZ, selectionMode, chunk).sendToServer();
 
         if (OWNTEAM == null) {
-            new MessageJourneyMapRequest(chunkX, chunkX, chunkZ, chunkZ).sendToServer();
+            new MessageNavigatorRequest(chunkX, chunkX, chunkZ, chunkZ).sendToServer();
         } else {
             addToOwnTeam(chunkX, chunkZ);
         }

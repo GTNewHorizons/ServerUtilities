@@ -22,13 +22,13 @@ import serverutils.lib.net.MessageToClient;
 import serverutils.lib.net.NetworkWrapper;
 import serverutils.lib.util.permission.PermissionAPI;
 
-public class MessageJourneyMapUpdate extends MessageToClient {
+public class MessageNavigatorUpdate extends MessageToClient {
 
     public Short2ObjectMap<ClientClaimedChunks.Team> teams;
 
-    public MessageJourneyMapUpdate() {}
+    public MessageNavigatorUpdate() {}
 
-    public MessageJourneyMapUpdate(int minX, int maxX, int minZ, int maxZ, EntityPlayer player) {
+    public MessageNavigatorUpdate(int minX, int maxX, int minZ, int maxZ, EntityPlayer player) {
         ForgePlayer p = Universe.get().getPlayer(player);
         boolean canSeeChunkInfo = PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_OTHER_SEE_INFO);
         boolean canSeeOtherJourneymap = PermissionAPI

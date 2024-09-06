@@ -87,6 +87,10 @@ public class DataIn {
         return byteBuf.readerIndex();
     }
 
+    public boolean isReadable() {
+        return byteBuf.isReadable();
+    }
+
     public boolean readBoolean() {
         return byteBuf.readBoolean();
     }
