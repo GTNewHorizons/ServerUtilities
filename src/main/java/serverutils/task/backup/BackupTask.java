@@ -7,7 +7,10 @@ import static serverutils.lib.util.FileUtils.SizeUnit;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -21,7 +24,9 @@ import net.minecraftforge.common.DimensionManager;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
+import serverutils.data.ClaimedChunks;
 import serverutils.lib.data.Universe;
+import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
@@ -30,6 +35,7 @@ import serverutils.task.Task;
 public class BackupTask extends Task {
 
     public static final Pattern BACKUP_NAME_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
+    public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
     public static File backupsFolder;
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
@@ -96,11 +102,17 @@ public class BackupTask extends Task {
 
         File worldDir = DimensionManager.getCurrentSaveRootDirectory();
 
+        Set<ChunkDimPos> backupChunks = new HashSet<>();
+        if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
+            backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
+            BACKUP_TEMP_FOLDER.mkdirs();
+        }
+
         if (backups.use_separate_thread) {
-            thread = new ThreadBackup(worldDir, customName);
+            thread = new ThreadBackup(worldDir, customName, backupChunks);
             thread.start();
         } else {
-            ThreadBackup.doBackup(worldDir, customName);
+            ThreadBackup.doBackup(worldDir, customName, backupChunks);
         }
         universe.scheduleTask(new BackupTask(true));
     }
@@ -158,6 +170,8 @@ public class BackupTask extends Task {
         }
 
         clearOldBackups();
+        FileUtils.delete(BACKUP_TEMP_FOLDER);
+
         thread = null;
         try {
             MinecraftServer server = ServerUtils.getServer();
