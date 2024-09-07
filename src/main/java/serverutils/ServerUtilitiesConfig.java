@@ -273,6 +273,9 @@ public class ServerUtilitiesConfig {
 
         @Config.DefaultBoolean(true)
         public boolean dump_permissions;
+
+        @Config.DefaultBoolean(true)
+        public boolean dump_stats;
     }
 
     public static class Backups {

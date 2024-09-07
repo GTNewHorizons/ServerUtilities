@@ -177,7 +177,6 @@ public class ServerUtilitiesCommon {
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesWorldEventHandler.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesUniverseData.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPermissions.INST);
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesLeaderboards.INST);
         FMLCommonHandler.instance().bus().register(ServerUtilitiesServerEventHandler.INST);
         if (AuroraConfig.enable) {
             MinecraftForge.EVENT_BUS.register(AuroraMinecraftHandler.INST);
@@ -281,6 +280,7 @@ public class ServerUtilitiesCommon {
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());
+        ServerUtilitiesLeaderboards.loadLeaderboards();
     }
 
     public void onServerStarting(FMLServerStartingEvent event) {
