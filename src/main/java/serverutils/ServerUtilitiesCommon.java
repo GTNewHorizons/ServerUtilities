@@ -108,7 +108,6 @@ import serverutils.task.backup.BackupTask;
 public class ServerUtilitiesCommon {
 
     public static final Collection<NodeEntry> CUSTOM_PERM_PREFIX_REGISTRY = new HashSet<>();
-    public static final Map<ResourceLocation, Leaderboard> LEADERBOARDS = new HashMap<>();
     public static final Map<String, String> KAOMOJIS = new HashMap<>();
     public static final Map<String, ConfigValueProvider> CONFIG_VALUE_PROVIDERS = new HashMap<>();
     public static final Map<UUID, ServerUtilitiesCommon.EditingConfig> TEMP_SERVER_CONFIG = new HashMap<>();
@@ -260,7 +259,7 @@ public class ServerUtilitiesCommon {
         registry.registerTeamAction(ServerUtilitiesTeamGuiActions.TRANSFER_OWNERSHIP);
 
         new ServerUtilitiesPreInitRegistryEvent(registry).post();
-
+        RELOAD_IDS.put(new ResourceLocation(ServerUtilities.MOD_ID, "internal_reload"), this::onReload);
         RankConfigAPI.getHandler();
 
         CHAT_FORMATTING_SUBSTITUTES.put("name", ForgePlayer::getDisplayName);
@@ -277,7 +276,6 @@ public class ServerUtilitiesCommon {
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());
-        ServerUtilitiesLeaderboards.loadLeaderboards();
     }
 
     public void onServerStarting(FMLServerStartingEvent event) {
@@ -351,6 +349,13 @@ public class ServerUtilitiesCommon {
                 && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
             universe.scheduleTask(new ShutdownTask());
         }
+    }
+
+    public boolean onReload(ServerReloadEvent event) {
+        if (event.getUniverse() != null) {
+            ServerUtilitiesLeaderboards.loadLeaderboards();
+        }
+        return true;
     }
 
     public void handleClientMessage(MessageToClient message) {}
