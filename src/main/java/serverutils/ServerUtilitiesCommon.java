@@ -44,13 +44,11 @@ import serverutils.aurora.Aurora;
 import serverutils.aurora.AuroraConfig;
 import serverutils.aurora.mc.AuroraMinecraftHandler;
 import serverutils.command.ServerUtilitiesCommands;
-import serverutils.data.Leaderboard;
 import serverutils.data.NodeEntry;
 import serverutils.data.ServerUtilitiesLoadedChunkManager;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.events.CustomPermissionPrefixesRegistryEvent;
 import serverutils.events.IReloadHandler;
-import serverutils.events.LeaderboardRegistryEvent;
 import serverutils.events.ServerReloadEvent;
 import serverutils.events.ServerUtilitiesPreInitRegistryEvent;
 import serverutils.handlers.ServerUtilitiesPlayerEventHandler;
@@ -109,7 +107,6 @@ import serverutils.task.backup.BackupTask;
 public class ServerUtilitiesCommon {
 
     public static final Collection<NodeEntry> CUSTOM_PERM_PREFIX_REGISTRY = new HashSet<>();
-    public static final Map<ResourceLocation, Leaderboard> LEADERBOARDS = new HashMap<>();
     public static final Map<String, String> KAOMOJIS = new HashMap<>();
     public static final Map<String, ConfigValueProvider> CONFIG_VALUE_PROVIDERS = new HashMap<>();
     public static final Map<UUID, ServerUtilitiesCommon.EditingConfig> TEMP_SERVER_CONFIG = new HashMap<>();
@@ -186,9 +183,7 @@ public class ServerUtilitiesCommon {
     }
 
     public void init(FMLInitializationEvent event) {
-        new LeaderboardRegistryEvent(leaderboard -> LEADERBOARDS.put(leaderboard.id, leaderboard)).post();
         ServerUtilitiesPermissions.registerPermissions();
-
         ServerUtilitiesPreInitRegistryEvent.Registry registry = new ServerUtilitiesPreInitRegistryEvent.Registry() {
 
             @Override
@@ -263,7 +258,7 @@ public class ServerUtilitiesCommon {
         registry.registerTeamAction(ServerUtilitiesTeamGuiActions.TRANSFER_OWNERSHIP);
 
         new ServerUtilitiesPreInitRegistryEvent(registry).post();
-
+        RELOAD_IDS.put(new ResourceLocation(ServerUtilities.MOD_ID, "internal_reload"), this::onReload);
         RankConfigAPI.getHandler();
 
         CHAT_FORMATTING_SUBSTITUTES.put("name", ForgePlayer::getDisplayName);
@@ -280,7 +275,6 @@ public class ServerUtilitiesCommon {
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());
-        ServerUtilitiesLeaderboards.loadLeaderboards();
     }
 
     public void onServerStarting(FMLServerStartingEvent event) {
@@ -354,6 +348,13 @@ public class ServerUtilitiesCommon {
                 && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
             universe.scheduleTask(new ShutdownTask());
         }
+    }
+
+    public boolean onReload(ServerReloadEvent event) {
+        if (event.getUniverse() != null) {
+            ServerUtilitiesLeaderboards.loadLeaderboards();
+        }
+        return true;
     }
 
     public void handleClientMessage(MessageToClient message) {}

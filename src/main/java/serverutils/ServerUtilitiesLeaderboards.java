@@ -2,6 +2,7 @@ package serverutils;
 
 import java.io.File;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.IntFunction;
 
@@ -9,7 +10,6 @@ import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.ChatComponentTranslationFormatException;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
@@ -18,6 +18,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import serverutils.data.Leaderboard;
+import serverutils.events.LeaderboardRegistryEvent;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.io.DataReader;
 import serverutils.lib.math.Ticks;
@@ -27,6 +28,7 @@ import serverutils.lib.util.permission.PermissionAPI;
 
 public final class ServerUtilitiesLeaderboards {
 
+    public static final Map<ResourceLocation, Leaderboard> LEADERBOARDS = new HashMap<>();
     private static final File STAT_LEADERBOARD_FILE = new File(
             ServerUtilities.SERVER_FOLDER + "stat_leaderboards.json");
     private static final String[] DEFAULT_STAT_LEADERBOARDS = { StatList.deathsStat.statId,
@@ -34,6 +36,7 @@ public final class ServerUtilitiesLeaderboards {
             StatList.jumpStat.statId };
 
     static void loadLeaderboards() {
+        LEADERBOARDS.clear();
         registerLeaderboard(
                 new Leaderboard(
                         new ResourceLocation(ServerUtilities.MOD_ID, "deaths_per_hour"),
@@ -76,6 +79,7 @@ public final class ServerUtilitiesLeaderboards {
                         Comparator.comparingLong(ServerUtilitiesLeaderboards::getRelativeLastSeen),
                         player -> player.getLastTimeSeen() != 0L));
         loadFromFile();
+        new LeaderboardRegistryEvent(ServerUtilitiesLeaderboards::registerLeaderboard).post();
     }
 
     private static int getActivePlayTime(ForgePlayer player) {
@@ -193,18 +197,23 @@ public final class ServerUtilitiesLeaderboards {
 
     private static IChatComponent getSafeName(StatBase stat) {
         IChatComponent component = stat.statName;
-        if (component instanceof ChatComponentTranslation translation) {
-            try {
-                translation.getUnformattedText();
-            } catch (ChatComponentTranslationFormatException e) {
-                return new ChatComponentText(stat.statId);
+        String id = stat.statId;
+        if (component instanceof ChatComponentTranslation translation && translation.getFormatArgs().length > 0) {
+            if (translation.getFormatArgs()[0] instanceof ChatComponentTranslation arg) {
+                if (id.startsWith("stat.entityKilledBy")) {
+                    return new ChatComponentTranslation("serverutilities.stat.killed_by", arg.getUnformattedText());
+                } else if (id.startsWith("stat.killEntity")) {
+                    return new ChatComponentTranslation(
+                            "serverutilities.stat.entities_killed",
+                            arg.getUnformattedText());
+                }
             }
         }
         return component;
     }
 
     public static void registerLeaderboard(Leaderboard leaderboard) {
-        ServerUtilitiesCommon.LEADERBOARDS.put(leaderboard.id, leaderboard);
+        LEADERBOARDS.put(leaderboard.id, leaderboard);
         PermissionAPI.registerNode(
                 ServerUtilitiesPermissions.getLeaderboardNode(leaderboard),
                 DefaultPermissionLevel.ALL,

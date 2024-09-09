@@ -1,5 +1,7 @@
 package serverutils.net;
 
+import static serverutils.ServerUtilitiesPermissions.LEADERBOARD_PREFIX;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,8 +15,8 @@ import net.minecraft.util.IChatComponent;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
+import serverutils.ServerUtilitiesPermissions;
 import serverutils.client.gui.ranks.GuiRanks;
 import serverutils.client.gui.ranks.RankInst;
 import serverutils.data.NodeEntry;
@@ -112,13 +114,13 @@ public class MessageRanks extends MessageToClient {
                         .setDisplayName(new ChatComponentTranslation(info.node));
             }
 
-            for (String s : PermissionAPI.getPermissionHandler().getRegisteredNodes()) {
-                DefaultPermissionLevel level = DefaultPermissionHandler.INSTANCE.getDefaultPermissionLevel(s);
-                String desc = PermissionAPI.getPermissionHandler().getNodeDescription(s);
+            for (String node : PermissionAPI.getPermissionHandler().getRegisteredNodes()) {
+                DefaultPermissionLevel level = DefaultPermissionHandler.INSTANCE.getDefaultPermissionLevel(node);
+                String desc = PermissionAPI.getPermissionHandler().getNodeDescription(node);
                 boolean printNode = true;
 
-                for (NodeEntry cprefix : ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY) {
-                    if (s.startsWith(cprefix.getNode())) {
+                for (NodeEntry cprefix : ServerUtilitiesPermissions.getPrefixesExcluding(LEADERBOARD_PREFIX)) {
+                    if (node.startsWith(cprefix.getNode())) {
                         if (cprefix.level != null && level == cprefix.level && desc.isEmpty()) {
                             printNode = false;
                         }
@@ -128,8 +130,8 @@ public class MessageRanks extends MessageToClient {
 
                 if (printNode) {
                     ConfigValue val = new ConfigBoolean(level == DefaultPermissionLevel.ALL);
-                    allPermissions.add(s, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                            .setDisplayName(new ChatComponentTranslation(s));
+                    allPermissions.add(node, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
+                            .setDisplayName(new ChatComponentTranslation(node));
                 }
             }
         }
