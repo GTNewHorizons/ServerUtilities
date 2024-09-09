@@ -197,8 +197,17 @@ public final class ServerUtilitiesLeaderboards {
 
     private static IChatComponent getSafeName(StatBase stat) {
         IChatComponent component = stat.statName;
-        if (component instanceof ChatComponentTranslation translation && translation.getFormatArgs().length != 0) {
-            return new ChatComponentText(stat.statId);
+        String id = stat.statId;
+        if (component instanceof ChatComponentTranslation translation && translation.getFormatArgs().length > 0) {
+            if (translation.getFormatArgs()[0] instanceof ChatComponentTranslation arg) {
+                if (id.startsWith("stat.entityKilledBy")) {
+                    return new ChatComponentTranslation("serverutilities.stat.killed_by", arg.getUnformattedText());
+                } else if (id.startsWith("stat.killEntity")) {
+                    return new ChatComponentTranslation(
+                            "serverutilities.stat.entities_killed",
+                            arg.getUnformattedText());
+                }
+            }
         }
         return component;
     }

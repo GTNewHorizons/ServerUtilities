@@ -27,6 +27,8 @@ serverutilities.stat.time_afk_percent=Percentage of time spent AFK
 serverutilities.stat.time_active=Time actively playing (not AFK)
 serverutilities.stat.dph=Deaths Per Hour
 serverutilities.stat.last_seen=Last Seen
+serverutilities.stat.killed_by=Deaths by %s
+serverutilities.stat.entities_killed=%ss killed
 
 wip=Work In Progress!
 deprecated=This method is deprecated, please use %s
