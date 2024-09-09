@@ -264,10 +264,6 @@ public class ServerUtilitiesPermissions {
                     CLAIMS_ITEM_BLACKLIST.contains(item) ? DefaultPermissionLevel.OP : DefaultPermissionLevel.ALL,
                     "");
         }
-
-        for (Leaderboard leaderboard : ServerUtilitiesCommon.LEADERBOARDS.values()) {
-            PermissionAPI.registerNode(getLeaderboardNode(leaderboard), DefaultPermissionLevel.ALL, "");
-        }
     }
 
     @SubscribeEvent

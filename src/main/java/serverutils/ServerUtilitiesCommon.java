@@ -50,7 +50,6 @@ import serverutils.data.ServerUtilitiesLoadedChunkManager;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.events.CustomPermissionPrefixesRegistryEvent;
 import serverutils.events.IReloadHandler;
-import serverutils.events.LeaderboardRegistryEvent;
 import serverutils.events.ServerReloadEvent;
 import serverutils.events.ServerUtilitiesPreInitRegistryEvent;
 import serverutils.handlers.ServerUtilitiesPlayerEventHandler;
@@ -186,9 +185,7 @@ public class ServerUtilitiesCommon {
     }
 
     public void init(FMLInitializationEvent event) {
-        new LeaderboardRegistryEvent(leaderboard -> LEADERBOARDS.put(leaderboard.id, leaderboard)).post();
         ServerUtilitiesPermissions.registerPermissions();
-
         ServerUtilitiesPreInitRegistryEvent.Registry registry = new ServerUtilitiesPreInitRegistryEvent.Registry() {
 
             @Override
