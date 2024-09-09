@@ -44,7 +44,6 @@ import serverutils.aurora.Aurora;
 import serverutils.aurora.AuroraConfig;
 import serverutils.aurora.mc.AuroraMinecraftHandler;
 import serverutils.command.ServerUtilitiesCommands;
-import serverutils.data.Leaderboard;
 import serverutils.data.NodeEntry;
 import serverutils.data.ServerUtilitiesLoadedChunkManager;
 import serverutils.data.ServerUtilitiesUniverseData;
