@@ -167,7 +167,7 @@ public class ServerUtilitiesConfig {
         public boolean enabled;
 
         @Config.Comment("Enables afk timer in singleplayer.")
-        @Config.DefaultBoolean(false)
+        @Config.DefaultBoolean(true)
         public boolean enabled_singleplayer;
 
         @Config.Comment("After how much time it will display notification to all players.")
@@ -175,7 +175,7 @@ public class ServerUtilitiesConfig {
         public String notification_timer;
 
         @Config.Ignore
-        private long notificationTimer;
+        private long notificationTimer = -1L;
 
         public boolean isEnabled(MinecraftServer server) {
             return enabled && (enabled_singleplayer || !server.isSinglePlayer());
