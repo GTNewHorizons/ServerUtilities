@@ -8,14 +8,12 @@ import static serverutils.task.backup.BackupTask.BACKUP_TEMP_FOLDER;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
-import java.util.zip.ZipEntry;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -24,11 +22,6 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.storage.RegionFile;
 import net.minecraft.world.chunk.storage.RegionFileCache;
-
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.apache.commons.io.IOUtils;
 
 import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
 
@@ -48,6 +41,7 @@ import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.lib.util.compression.ICompress;
 
 public class ThreadBackup extends Thread {
 
@@ -57,21 +51,23 @@ public class ThreadBackup extends Thread {
     private final String customName;
     private final Set<ChunkDimPos> chunksToBackup;
     public boolean isDone = false;
+    private final ICompress compressor;
 
-    public ThreadBackup(File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
+    public ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
         src0 = sourceFile;
         customName = backupName;
         chunksToBackup = backupChunks;
+        compressor = compress;
         setPriority(7);
     }
 
     public void run() {
         isDone = false;
-        doBackup(src0, customName, chunksToBackup);
+        doBackup(compressor, src0, customName, chunksToBackup);
         isDone = true;
     }
 
-    public static void doBackup(File src, String customName, Set<ChunkDimPos> chunks) {
+    public static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks) {
         String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         File dstFile = null;
@@ -81,17 +77,12 @@ public class ThreadBackup extends Thread {
             logMillis = start + Ticks.SECOND.x(5).millis();
 
             dstFile = FileUtils.newFile(new File(BackupTask.backupsFolder, outName));
-            try (ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(dstFile)) {
-                if (backups.compression_level == 0) {
-                    zaos.setMethod(ZipEntry.STORED);
-                } else {
-                    zaos.setLevel(backups.compression_level);
-                }
-
+            try (compressor) {
+                compressor.createOutputStream(dstFile);
                 if (!chunks.isEmpty() && backups.only_backup_claimed_chunks) {
-                    backupRegions(src, files, chunks, zaos);
+                    backupRegions(src, files, chunks, compressor);
                 } else {
-                    compressFiles(src, files, zaos);
+                    compressFiles(src, files, compressor);
                 }
 
                 String backupSize = FileUtils.getSizeString(dstFile);
@@ -134,29 +125,22 @@ public class ThreadBackup extends Thread {
         }
     }
 
-    private static void compressFiles(File sourceDir, List<File> files, ZipArchiveOutputStream zaos)
-            throws IOException {
+    private static void compressFiles(File sourceDir, List<File> files, ICompress compressor) throws IOException {
         int allFiles = files.size();
         for (int i = 0; i < allFiles; i++) {
             File file = files.get(i);
-            compressFile(FileUtils.getRelativePath(sourceDir, file), file, zaos, i, allFiles);
+            compressFile(FileUtils.getRelativePath(sourceDir, file), file, compressor, i, allFiles);
         }
     }
 
-    private static void compressFile(String entryName, File file, ZipArchiveOutputStream out, int index, int totalFiles)
+    private static void compressFile(String entryName, File file, ICompress compressor, int index, int totalFiles)
             throws IOException {
-        ArchiveEntry entry = new ZipArchiveEntry(file, entryName);
         logProgress(index, totalFiles, file.getAbsolutePath());
-        out.putArchiveEntry(entry);
-        try (FileInputStream fis = new FileInputStream(file)) {
-            IOUtils.copy(fis, out);
-        }
-        out.closeArchiveEntry();
-
+        compressor.addFileToArchive(file, entryName);
     }
 
     private static void backupRegions(File sourceFolder, List<File> files, Set<ChunkDimPos> chunksToBackup,
-            ZipArchiveOutputStream out) throws IOException {
+            ICompress compressor) throws IOException {
         Object2ObjectMap<File, ObjectSet<ChunkDimPos>> dimRegionClaims = mapClaimsToRegionFile(chunksToBackup);
         files.removeIf(f -> f.getName().endsWith(".mca"));
 
@@ -184,14 +168,14 @@ public class ThreadBackup extends Thread {
 
             tempRegion.close();
             if (hasData) {
-                compressFile(FileUtils.getRelativePath(sourceFolder, file), tempFile, out, index++, totalFiles);
+                compressFile(FileUtils.getRelativePath(sourceFolder, file), tempFile, compressor, index++, totalFiles);
             }
 
             FileUtils.delete(tempFile);
         }
 
         for (File file : files) {
-            compressFile(FileUtils.getRelativePath(sourceFolder, file), file, out, index++, totalFiles);
+            compressFile(FileUtils.getRelativePath(sourceFolder, file), file, compressor, index++, totalFiles);
         }
 
         ServerUtilities.LOGGER.info("Backed up {} regions containing {} claimed chunks", regionFiles, savedChunks);

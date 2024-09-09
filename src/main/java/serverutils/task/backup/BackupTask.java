@@ -27,14 +27,19 @@ import serverutils.data.ClaimedChunks;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
+import serverutils.lib.util.CommonUtils;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
+import serverutils.lib.util.compression.CommonsCompressor;
+import serverutils.lib.util.compression.ICompress;
+import serverutils.lib.util.compression.LegacyCompressor;
 import serverutils.task.Task;
 
 public class BackupTask extends Task {
 
     public static final Pattern BACKUP_NAME_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
+    private static final boolean useLegacy;
     public static File backupsFolder;
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
@@ -48,6 +53,7 @@ public class BackupTask extends Task {
         if (!backupsFolder.exists()) backupsFolder.mkdirs();
         clearOldBackups();
         ServerUtilities.LOGGER.info("Backups folder - {}", backupsFolder.getAbsolutePath());
+        useLegacy = !CommonUtils.getClassExists("org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream");
     }
 
     public BackupTask() {
@@ -107,11 +113,18 @@ public class BackupTask extends Task {
             BACKUP_TEMP_FOLDER.mkdirs();
         }
 
+        ICompress compressor;
+        if (useLegacy) {
+            compressor = new LegacyCompressor();
+        } else {
+            compressor = new CommonsCompressor();
+        }
+
         if (backups.use_separate_thread) {
-            thread = new ThreadBackup(worldDir, customName, backupChunks);
+            thread = new ThreadBackup(compressor, worldDir, customName, backupChunks);
             thread.start();
         } else {
-            ThreadBackup.doBackup(worldDir, customName, backupChunks);
+            ThreadBackup.doBackup(compressor, worldDir, customName, backupChunks);
         }
         universe.scheduleTask(new BackupTask(true));
     }
