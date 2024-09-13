@@ -3,7 +3,7 @@ package serverutils.net;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ResourceLocation;
 
-import serverutils.ServerUtilitiesCommon;
+import serverutils.ServerUtilitiesLeaderboards;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.Leaderboard;
 import serverutils.lib.io.DataIn;
@@ -39,7 +39,7 @@ public class MessageLeaderboard extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
-        Leaderboard leaderboard = ServerUtilitiesCommon.LEADERBOARDS.get(id);
+        Leaderboard leaderboard = ServerUtilitiesLeaderboards.LEADERBOARDS.get(id);
 
         if (leaderboard != null
                 && PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.getLeaderboardNode(leaderboard))) {
