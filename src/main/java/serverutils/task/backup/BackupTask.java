@@ -7,7 +7,9 @@ import static serverutils.lib.util.FileUtils.SizeUnit;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -21,15 +23,23 @@ import net.minecraftforge.common.DimensionManager;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
+import serverutils.data.ClaimedChunks;
 import serverutils.lib.data.Universe;
+import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
+import serverutils.lib.util.CommonUtils;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
+import serverutils.lib.util.compression.CommonsCompressor;
+import serverutils.lib.util.compression.ICompress;
+import serverutils.lib.util.compression.LegacyCompressor;
 import serverutils.task.Task;
 
 public class BackupTask extends Task {
 
     public static final Pattern BACKUP_NAME_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
+    public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
+    private static final boolean useLegacy;
     public static File backupsFolder;
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
@@ -43,6 +53,7 @@ public class BackupTask extends Task {
         if (!backupsFolder.exists()) backupsFolder.mkdirs();
         clearOldBackups();
         ServerUtilities.LOGGER.info("Backups folder - {}", backupsFolder.getAbsolutePath());
+        useLegacy = !CommonUtils.getClassExists("org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream");
     }
 
     public BackupTask() {
@@ -96,11 +107,24 @@ public class BackupTask extends Task {
 
         File worldDir = DimensionManager.getCurrentSaveRootDirectory();
 
+        Set<ChunkDimPos> backupChunks = new HashSet<>();
+        if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
+            backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
+            BACKUP_TEMP_FOLDER.mkdirs();
+        }
+
+        ICompress compressor;
+        if (useLegacy) {
+            compressor = new LegacyCompressor();
+        } else {
+            compressor = new CommonsCompressor();
+        }
+
         if (backups.use_separate_thread) {
-            thread = new ThreadBackup(worldDir, customName);
+            thread = new ThreadBackup(compressor, worldDir, customName, backupChunks);
             thread.start();
         } else {
-            ThreadBackup.doBackup(worldDir, customName);
+            ThreadBackup.doBackup(compressor, worldDir, customName, backupChunks);
         }
         universe.scheduleTask(new BackupTask(true));
     }
@@ -158,6 +182,8 @@ public class BackupTask extends Task {
         }
 
         clearOldBackups();
+        FileUtils.delete(BACKUP_TEMP_FOLDER);
+
         thread = null;
         try {
             MinecraftServer server = ServerUtils.getServer();

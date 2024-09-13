@@ -36,11 +36,8 @@ public final class ChunkDimPos {
         return this;
     }
 
-    public ChunkDimPos set(long packedPos, int dim) {
-        this.posX = CoordinatePacker.unpackX(packedPos);
-        this.posZ = CoordinatePacker.unpackZ(packedPos);
-        this.dim = dim;
-        return this;
+    public ChunkDimPos set(long packed, int dim) {
+        return set(CoordinatePacker.unpackX(packed), CoordinatePacker.unpackZ(packed), dim);
     }
 
     public boolean equals(Object o) {

@@ -325,6 +325,12 @@ public class ServerUtilitiesConfig {
         @Config.Comment("Delete backups that have a custom name set through /backup start <name>")
         @Config.DefaultBoolean(true)
         public boolean delete_custom_name_backups;
+
+        @Config.Comment("""
+                Only include claimed chunks in backup.
+                Backups will be much faster and smaller, but any unclaimed chunk will be unrecoverable.""")
+        @Config.DefaultBoolean(false)
+        public boolean only_backup_claimed_chunks;
     }
 
     public static class Login {
