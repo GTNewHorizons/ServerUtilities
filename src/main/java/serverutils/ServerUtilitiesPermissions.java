@@ -1,7 +1,10 @@
 package serverutils;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -16,6 +19,7 @@ import net.minecraft.item.ItemBucket;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.GameData;
 import serverutils.data.Leaderboard;
+import serverutils.data.NodeEntry;
 import serverutils.events.CustomPermissionPrefixesRegistryEvent;
 import serverutils.events.RegisterRankConfigEvent;
 import serverutils.events.RegisterRankConfigHandlerEvent;
@@ -97,7 +101,7 @@ public class ServerUtilitiesPermissions {
     public static final String INFINITE_BACK_USAGE = "serverutilities.back.infinite";
     public static final String CRASH_REPORTS_VIEW = "admin_panel.serverutilities.crash_reports.view";
     public static final String CRASH_REPORTS_DELETE = "admin_panel.serverutilities.crash_reports.delete";
-    private static final String LEADERBOARD_PREFIX = "serverutilities.leaderboard.";
+    public static final String LEADERBOARD_PREFIX = "serverutilities.leaderboard.";
     public static final String EDIT_WORLD_GAMERULES = "admin_panel.serverutilities.edit_world.gamerules";
     public static final String RANK_EDIT = "serverutilities.admin_panel.ranks.view";
 
@@ -264,10 +268,6 @@ public class ServerUtilitiesPermissions {
                     CLAIMS_ITEM_BLACKLIST.contains(item) ? DefaultPermissionLevel.OP : DefaultPermissionLevel.ALL,
                     "");
         }
-
-        for (Leaderboard leaderboard : ServerUtilitiesCommon.LEADERBOARDS.values()) {
-            PermissionAPI.registerNode(getLeaderboardNode(leaderboard), DefaultPermissionLevel.ALL, "");
-        }
     }
 
     @SubscribeEvent
@@ -370,7 +370,19 @@ public class ServerUtilitiesPermissions {
         return PermissionAPI.hasPermission(player, CLAIMS_ITEM_PREFIX + '.' + formatId(block));
     }
 
+    public static Collection<NodeEntry> getPrefixes() {
+        return ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY;
+    }
+
+    public static Collection<NodeEntry> getPrefixesExcluding(String... toExclude) {
+        return ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY.stream().filter(
+                prefix -> toExclude.length == 0 || Arrays.stream(toExclude).noneMatch(prefix.getNode()::startsWith))
+                .collect(Collectors.toSet());
+    }
+
     public static String getLeaderboardNode(Leaderboard leaderboard) {
-        return LEADERBOARD_PREFIX + leaderboard.id.getResourceDomain() + "." + leaderboard.id.getResourcePath();
+        String domain = leaderboard.id.getResourceDomain();
+        String id = (domain.equals(ServerUtilities.MOD_ID) ? "" : domain + ".") + leaderboard.id.getResourcePath();
+        return LEADERBOARD_PREFIX + id;
     }
 }

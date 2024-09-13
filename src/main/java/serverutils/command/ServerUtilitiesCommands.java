@@ -140,5 +140,8 @@ public class ServerUtilitiesCommands {
         if (ServerUtilitiesConfig.debugging.special_commands) {
             event.registerServerCommand(new CmdAddFakePlayer());
         }
+        if (ServerUtilitiesConfig.commands.dump_stats) {
+            event.registerServerCommand(new CmdDumpStats());
+        }
     }
 }
