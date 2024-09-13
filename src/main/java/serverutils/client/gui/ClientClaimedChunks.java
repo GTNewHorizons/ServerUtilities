@@ -64,7 +64,7 @@ public class ClientClaimedChunks {
 
         public static final int LOADED = 1;
 
-        public final Team team;
+        public Team team;
         private int flags;
 
         public ChunkData(Team t, int f) {
@@ -92,6 +92,11 @@ public class ClientClaimedChunks {
 
         public ChunkData setLoaded(boolean value) {
             flags = Bits.setFlag(flags, LOADED, value);
+            return this;
+        }
+
+        public ChunkData setTeam(Team newTeam) {
+            team = newTeam;
             return this;
         }
 

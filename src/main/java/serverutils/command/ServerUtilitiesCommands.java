@@ -21,9 +21,12 @@ import serverutils.command.tp.CmdWarp;
 public class ServerUtilitiesCommands {
 
     public static void registerCommands(FMLServerStartingEvent event) {
-        event.registerServerCommand(new CmdReload());
         event.registerServerCommand(new CmdMySettings());
         event.registerServerCommand(new CmdTeam());
+
+        if (ServerUtilitiesConfig.commands.reload) {
+            event.registerServerCommand(new CmdReload());
+        }
 
         if (event.getServer().isDedicatedServer()) {
             event.registerServerCommand(new CmdShutdown());
@@ -136,6 +139,9 @@ public class ServerUtilitiesCommands {
         }
         if (ServerUtilitiesConfig.debugging.special_commands) {
             event.registerServerCommand(new CmdAddFakePlayer());
+        }
+        if (ServerUtilitiesConfig.commands.dump_stats) {
+            event.registerServerCommand(new CmdDumpStats());
         }
     }
 }

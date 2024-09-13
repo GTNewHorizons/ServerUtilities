@@ -2,27 +2,44 @@ package serverutils.task.backup;
 
 import static serverutils.ServerUtilitiesConfig.backups;
 import static serverutils.ServerUtilitiesNotifications.BACKUP_START;
+import static serverutils.lib.util.FileUtils.SizeUnit;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
+import serverutils.data.ClaimedChunks;
 import serverutils.lib.data.Universe;
+import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
+import serverutils.lib.util.CommonUtils;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
+import serverutils.lib.util.compression.CommonsCompressor;
+import serverutils.lib.util.compression.ICompress;
+import serverutils.lib.util.compression.LegacyCompressor;
 import serverutils.task.Task;
 
 public class BackupTask extends Task {
 
+    public static final Pattern BACKUP_NAME_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
+    public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
+    private static final boolean useLegacy;
     public static File backupsFolder;
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
@@ -36,6 +53,7 @@ public class BackupTask extends Task {
         if (!backupsFolder.exists()) backupsFolder.mkdirs();
         clearOldBackups();
         ServerUtilities.LOGGER.info("Backups folder - {}", backupsFolder.getAbsolutePath());
+        useLegacy = !CommonUtils.getClassExists("org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream");
     }
 
     public BackupTask() {
@@ -84,34 +102,71 @@ public class BackupTask extends Task {
                 }
             }
         } catch (Exception ex) {
-            ServerUtilities.LOGGER.info("Error while saving world: {}", ex.getMessage());
+            ServerUtilities.LOGGER.info("An error occurred while turning off auto-save.", ex);
         }
 
-        File wd = server.getEntityWorld().getSaveHandler().getWorldDirectory();
+        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
+
+        Set<ChunkDimPos> backupChunks = new HashSet<>();
+        if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
+            backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
+            BACKUP_TEMP_FOLDER.mkdirs();
+        }
+
+        ICompress compressor;
+        if (useLegacy) {
+            compressor = new LegacyCompressor();
+        } else {
+            compressor = new CommonsCompressor();
+        }
 
         if (backups.use_separate_thread) {
-            thread = new ThreadBackup(wd, customName);
+            thread = new ThreadBackup(compressor, worldDir, customName, backupChunks);
             thread.start();
         } else {
-            ThreadBackup.doBackup(wd, customName);
+            ThreadBackup.doBackup(compressor, worldDir, customName, backupChunks);
         }
         universe.scheduleTask(new BackupTask(true));
     }
 
     public static void clearOldBackups() {
-        String[] backups = backupsFolder.list();
+        File[] files = backupsFolder.listFiles();
+        if (files == null || files.length == 0) return;
 
-        if (backups != null && backups.length > ServerUtilitiesConfig.backups.backups_to_keep) {
-            Arrays.sort(backups);
+        List<File> backupFiles = Arrays.stream(files).filter(
+                file -> backups.delete_custom_name_backups || BACKUP_NAME_PATTERN.matcher(file.getName()).matches())
+                .sorted(Comparator.comparingLong(File::lastModified)).collect(Collectors.toList());
 
-            int toDelete = backups.length - ServerUtilitiesConfig.backups.backups_to_keep;
-            ServerUtilities.LOGGER.info("Deleting {} old backups", toDelete);
+        int maxGb = backups.max_folder_size;
+        if (maxGb > 0) {
+            long currentSize = backupFiles.stream().mapToLong(file -> FileUtils.getSize(file, SizeUnit.GB)).sum();
+            if (currentSize <= maxGb) return;
+            deleteOldBackups(backupFiles, currentSize, maxGb);
 
-            for (int i = 0; i < toDelete; i++) {
-                File f = new File(backupsFolder, backups[i]);
-                ServerUtilities.LOGGER.info("Deleted old backup: {}", f.getPath());
-                FileUtils.delete(f);
-            }
+        } else if (backupFiles.size() > backups.backups_to_keep) {
+            deleteExcessBackups(backupFiles);
+        }
+    }
+
+    private static void deleteOldBackups(List<File> backupFiles, long currentSize, int maxGb) {
+        int deleted = 0;
+        for (File file : backupFiles) {
+            if (currentSize <= maxGb) break;
+            currentSize -= FileUtils.getSize(file, SizeUnit.GB);
+            ServerUtilities.LOGGER.info("Deleting old backup: {}", file.getPath());
+            FileUtils.delete(file);
+            deleted++;
+        }
+        ServerUtilities.LOGGER.info("Deleted {} old backups", deleted);
+    }
+
+    private static void deleteExcessBackups(List<File> backupFiles) {
+        int toDelete = backupFiles.size() - ServerUtilitiesConfig.backups.backups_to_keep;
+        ServerUtilities.LOGGER.info("Deleting {} old backups", toDelete);
+        for (int i = 0; i < toDelete; i++) {
+            File file = backupFiles.get(i);
+            ServerUtilities.LOGGER.info("Deleted old backup: {}", file.getPath());
+            FileUtils.delete(file);
         }
     }
 
@@ -125,6 +180,9 @@ public class BackupTask extends Task {
             universe.scheduleTask(this);
             return;
         }
+
+        clearOldBackups();
+        FileUtils.delete(BACKUP_TEMP_FOLDER);
 
         thread = null;
         try {
@@ -140,7 +198,7 @@ public class BackupTask extends Task {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            ServerUtilities.LOGGER.info("An error occurred while turning on auto-save.", ex);
         }
     }
 }

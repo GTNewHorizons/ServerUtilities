@@ -50,11 +50,7 @@ public class PermissionListPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return switch (AuroraConfig.general.permission_list_page) {
-            case "DISABLED" -> PageType.DISABLED;
-            case "REQUIRES_AUTH" -> PageType.REQUIRES_AUTH;
-            default -> PageType.ENABLED;
-        };
+        return AuroraConfig.permission_list_page;
     }
 
     @Override

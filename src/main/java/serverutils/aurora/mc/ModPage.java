@@ -26,11 +26,7 @@ public class ModPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return switch (AuroraConfig.general.modlist_page) {
-            case "DISABLED" -> PageType.DISABLED;
-            case "REQUIRES_AUTH" -> PageType.REQUIRES_AUTH;
-            default -> PageType.ENABLED;
-        };
+        return AuroraConfig.modlist_page;
     }
 
     @Override

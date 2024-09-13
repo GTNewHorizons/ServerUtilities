@@ -2,21 +2,21 @@ package serverutils.net;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
+import serverutils.data.ClaimedChunks;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToServer;
 import serverutils.lib.net.NetworkWrapper;
 import serverutils.lib.util.permission.PermissionAPI;
 
-public class MessageJourneyMapRequest extends MessageToServer {
+public class MessageNavigatorRequest extends MessageToServer {
 
     private int minX, maxX, minZ, maxZ;
 
-    public MessageJourneyMapRequest() {}
+    public MessageNavigatorRequest() {}
 
-    public MessageJourneyMapRequest(int minX, int maxX, int minZ, int maxZ) {
+    public MessageNavigatorRequest(int minX, int maxX, int minZ, int maxZ) {
         this.minX = minX;
         this.maxX = maxX;
         this.minZ = minZ;
@@ -46,9 +46,9 @@ public class MessageJourneyMapRequest extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
-        if (ServerUtilitiesConfig.world.chunk_claiming
+        if (ClaimedChunks.isActive()
                 && PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP)) {
-            new MessageJourneyMapUpdate(minX, maxX, minZ, maxZ, player).sendTo(player);
+            new MessageNavigatorUpdate(minX, maxX, minZ, maxZ, player).sendTo(player);
         }
     }
 }

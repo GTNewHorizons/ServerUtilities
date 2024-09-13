@@ -1,7 +1,12 @@
 package serverutils;
 
+import java.io.File;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.IntFunction;
 
+import net.minecraft.stats.StatBase;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
@@ -9,53 +14,30 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import serverutils.data.Leaderboard;
 import serverutils.events.LeaderboardRegistryEvent;
 import serverutils.lib.data.ForgePlayer;
+import serverutils.lib.io.DataReader;
 import serverutils.lib.math.Ticks;
+import serverutils.lib.util.JsonUtils;
+import serverutils.lib.util.permission.DefaultPermissionLevel;
+import serverutils.lib.util.permission.PermissionAPI;
 
 public final class ServerUtilitiesLeaderboards {
 
-    private ServerUtilitiesLeaderboards() {}
+    public static final Map<ResourceLocation, Leaderboard> LEADERBOARDS = new HashMap<>();
+    private static final File STAT_LEADERBOARD_FILE = new File(
+            ServerUtilities.SERVER_FOLDER + "stat_leaderboards.json");
+    private static final String[] DEFAULT_STAT_LEADERBOARDS = { StatList.deathsStat.statId,
+            StatList.mobKillsStat.statId, StatList.minutesPlayedStat.statId, ServerUtilitiesStats.AFK_TIME.statId,
+            StatList.jumpStat.statId };
 
-    public static final ServerUtilitiesLeaderboards INST = new ServerUtilitiesLeaderboards();
-
-    @SubscribeEvent
-    @SuppressWarnings("unused") // used by reflection
-    public void registerLeaderboards(LeaderboardRegistryEvent event) {
-        event.register(
-                new Leaderboard.FromStat(
-                        new ResourceLocation(ServerUtilities.MOD_ID, "deaths"),
-                        StatList.deathsStat,
-                        false,
-                        Leaderboard.FromStat.DEFAULT));
-        event.register(
-                new Leaderboard.FromStat(
-                        new ResourceLocation(ServerUtilities.MOD_ID, "mob_kills"),
-                        StatList.mobKillsStat,
-                        false,
-                        Leaderboard.FromStat.DEFAULT));
-        event.register(
-                new Leaderboard.FromStat(
-                        new ResourceLocation(ServerUtilities.MOD_ID, "time_played"),
-                        StatList.minutesPlayedStat,
-                        false,
-                        Leaderboard.FromStat.TIME));
-        event.register(
-                new Leaderboard.FromStat(
-                        new ResourceLocation(ServerUtilities.MOD_ID, "time_afk"),
-                        ServerUtilitiesStats.AFK_TIME,
-                        false,
-                        Leaderboard.FromStat.TIME));
-        event.register(
-                new Leaderboard.FromStat(
-                        new ResourceLocation(ServerUtilities.MOD_ID, "jumps"),
-                        StatList.jumpStat,
-                        false,
-                        Leaderboard.FromStat.DEFAULT));
-
-        event.register(
+    static void loadLeaderboards() {
+        LEADERBOARDS.clear();
+        registerLeaderboard(
                 new Leaderboard(
                         new ResourceLocation(ServerUtilities.MOD_ID, "deaths_per_hour"),
                         new ChatComponentTranslation("serverutilities.stat.dph"),
@@ -65,22 +47,21 @@ public final class ServerUtilitiesLeaderboards {
                         },
                         Comparator.comparingDouble(ServerUtilitiesLeaderboards::getDPH).reversed(),
                         player -> getDPH(player) >= 0D));
-
-        event.register(
+        registerLeaderboard(
                 new Leaderboard(
                         new ResourceLocation(ServerUtilities.MOD_ID, "time_active"),
                         new ChatComponentTranslation("serverutilities.stat.time_active"),
                         player -> Leaderboard.FromStat.TIME.apply(getActivePlayTime(player)),
                         Comparator.comparingLong(ServerUtilitiesLeaderboards::getActivePlayTime).reversed(),
                         player -> getActivePlayTime(player) != 0));
-        event.register(
+        registerLeaderboard(
                 new Leaderboard(
                         new ResourceLocation(ServerUtilities.MOD_ID, "time_afk_percent"),
                         new ChatComponentTranslation("serverutilities.stat.time_afk_percent"),
                         player -> Leaderboard.FromStat.PERCENTAGE.apply(getAfkTimeFraction(player)),
                         Comparator.comparingDouble(ServerUtilitiesLeaderboards::getAfkTimeFraction).reversed(),
                         player -> getAfkTimeFraction(player) != 0));
-        event.register(
+        registerLeaderboard(
                 new Leaderboard(
                         new ResourceLocation(ServerUtilities.MOD_ID, "last_seen"),
                         new ChatComponentTranslation("serverutilities.stat.last_seen"),
@@ -97,6 +78,8 @@ public final class ServerUtilitiesLeaderboards {
                         },
                         Comparator.comparingLong(ServerUtilitiesLeaderboards::getRelativeLastSeen),
                         player -> player.getLastTimeSeen() != 0L));
+        loadFromFile();
+        new LeaderboardRegistryEvent(ServerUtilitiesLeaderboards::registerLeaderboard).post();
     }
 
     private static int getActivePlayTime(ForgePlayer player) {
@@ -131,5 +114,109 @@ public final class ServerUtilitiesLeaderboards {
         }
 
         return -1D;
+    }
+
+    private static JsonElement getAndSaveDefaults() {
+        JsonObject obj = new JsonObject();
+        for (String id : DEFAULT_STAT_LEADERBOARDS) {
+            JsonObject obj1 = new JsonObject();
+            obj1.addProperty("name", "");
+            obj1.addProperty("reverse", false);
+            obj.add(id, obj1);
+        }
+
+        JsonObject example = new JsonObject();
+        example.addProperty("name", "The name that appears in the gui, leave empty/remove for default");
+        example.addProperty(
+                "reverse",
+                "(true || false) whether lower numbers should appear highest in the leaderboard");
+        obj.add("example.Stat || Full list of usable stats can be dumped with /dump_stats", example);
+        JsonUtils.toJsonSafe(STAT_LEADERBOARD_FILE, obj);
+        return obj;
+    }
+
+    private static void loadFromFile() {
+        JsonElement element;
+        if (!STAT_LEADERBOARD_FILE.exists()) {
+            element = getAndSaveDefaults();
+        } else {
+            element = DataReader.get(STAT_LEADERBOARD_FILE).safeJson();
+        }
+
+        if (JsonUtils.isNull(element)) return;
+
+        if (element.isJsonObject()) {
+            for (Map.Entry<String, JsonElement> entry : element.getAsJsonObject().entrySet()) {
+                String key = entry.getKey();
+                if (key.startsWith("example")) continue;
+
+                StatBase stat = StatList.func_151177_a(key);
+                if (stat == null) {
+                    ServerUtilities.LOGGER.warn("Couldn't find stat with id {}, skipping", key);
+                    continue;
+                }
+
+                JsonElement value = entry.getValue();
+                if (value.isJsonObject()) {
+                    JsonObject obj = value.getAsJsonObject();
+
+                    IChatComponent name;
+                    JsonElement nameElem = obj.getAsJsonPrimitive("name");
+                    if (nameElem != null && !nameElem.getAsString().isEmpty()) {
+                        name = new ChatComponentText(nameElem.getAsString());
+                    } else {
+                        name = getSafeName(stat);
+                    }
+
+                    boolean reverse = false;
+                    JsonElement reverseElem = obj.getAsJsonPrimitive("reverse");
+                    if (reverseElem != null && reverseElem.getAsBoolean()) {
+                        reverse = true;
+                    }
+
+                    registerLeaderboard(
+                            new Leaderboard.FromStat(
+                                    new ResourceLocation(ServerUtilities.MOD_ID, key),
+                                    name,
+                                    stat,
+                                    reverse,
+                                    getStatIntFunction(stat)));
+
+                }
+            }
+        }
+    }
+
+    private static IntFunction<IChatComponent> getStatIntFunction(StatBase stat) {
+        if (stat.type.equals(StatBase.timeStatType)) {
+            return Leaderboard.FromStat.TIME;
+        }
+
+        return Leaderboard.FromStat.DEFAULT;
+    }
+
+    private static IChatComponent getSafeName(StatBase stat) {
+        IChatComponent component = stat.statName;
+        String id = stat.statId;
+        if (component instanceof ChatComponentTranslation translation && translation.getFormatArgs().length > 0) {
+            if (translation.getFormatArgs()[0] instanceof ChatComponentTranslation arg) {
+                if (id.startsWith("stat.entityKilledBy")) {
+                    return new ChatComponentTranslation("serverutilities.stat.killed_by", arg.getUnformattedText());
+                } else if (id.startsWith("stat.killEntity")) {
+                    return new ChatComponentTranslation(
+                            "serverutilities.stat.entities_killed",
+                            arg.getUnformattedText());
+                }
+            }
+        }
+        return component;
+    }
+
+    public static void registerLeaderboard(Leaderboard leaderboard) {
+        LEADERBOARDS.put(leaderboard.id, leaderboard);
+        PermissionAPI.registerNode(
+                ServerUtilitiesPermissions.getLeaderboardNode(leaderboard),
+                DefaultPermissionLevel.ALL,
+                "");
     }
 }

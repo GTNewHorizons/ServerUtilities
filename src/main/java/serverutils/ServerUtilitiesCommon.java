@@ -27,6 +27,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.gtnewhorizon.gtnhlib.config.ConfigException;
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
+
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
@@ -41,13 +44,11 @@ import serverutils.aurora.Aurora;
 import serverutils.aurora.AuroraConfig;
 import serverutils.aurora.mc.AuroraMinecraftHandler;
 import serverutils.command.ServerUtilitiesCommands;
-import serverutils.data.Leaderboard;
 import serverutils.data.NodeEntry;
 import serverutils.data.ServerUtilitiesLoadedChunkManager;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.events.CustomPermissionPrefixesRegistryEvent;
 import serverutils.events.IReloadHandler;
-import serverutils.events.LeaderboardRegistryEvent;
 import serverutils.events.ServerReloadEvent;
 import serverutils.events.ServerUtilitiesPreInitRegistryEvent;
 import serverutils.handlers.ServerUtilitiesPlayerEventHandler;
@@ -106,7 +107,6 @@ import serverutils.task.backup.BackupTask;
 public class ServerUtilitiesCommon {
 
     public static final Collection<NodeEntry> CUSTOM_PERM_PREFIX_REGISTRY = new HashSet<>();
-    public static final Map<ResourceLocation, Leaderboard> LEADERBOARDS = new HashMap<>();
     public static final Map<String, String> KAOMOJIS = new HashMap<>();
     public static final Map<String, ConfigValueProvider> CONFIG_VALUE_PROVIDERS = new HashMap<>();
     public static final Map<UUID, ServerUtilitiesCommon.EditingConfig> TEMP_SERVER_CONFIG = new HashMap<>();
@@ -134,15 +134,20 @@ public class ServerUtilitiesCommon {
         }
     }
 
+    static {
+        try {
+            ConfigurationManager.registerConfig(ServerUtilitiesConfig.class);
+        } catch (ConfigException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void preInit(FMLPreInitializationEvent event) {
         if ((Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
             ServerUtilities.LOGGER.info("Loading ServerUtilities in development environment");
         }
 
         OtherMods.init();
-        ServerUtilitiesConfig.init(event);
-        AuroraConfig.init(event);
-
         if (ranks.enabled) {
             PermissionAPI.setPermissionHandler(ServerUtilitiesPermissionHandler.INSTANCE);
         }
@@ -169,9 +174,8 @@ public class ServerUtilitiesCommon {
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesWorldEventHandler.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesUniverseData.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPermissions.INST);
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesLeaderboards.INST);
         FMLCommonHandler.instance().bus().register(ServerUtilitiesServerEventHandler.INST);
-        if (AuroraConfig.general.enable) {
+        if (AuroraConfig.enable) {
             MinecraftForge.EVENT_BUS.register(AuroraMinecraftHandler.INST);
             FMLCommonHandler.instance().bus().register(AuroraMinecraftHandler.INST);
         }
@@ -179,9 +183,7 @@ public class ServerUtilitiesCommon {
     }
 
     public void init(FMLInitializationEvent event) {
-        new LeaderboardRegistryEvent(leaderboard -> LEADERBOARDS.put(leaderboard.id, leaderboard)).post();
         ServerUtilitiesPermissions.registerPermissions();
-
         ServerUtilitiesPreInitRegistryEvent.Registry registry = new ServerUtilitiesPreInitRegistryEvent.Registry() {
 
             @Override
@@ -256,7 +258,7 @@ public class ServerUtilitiesCommon {
         registry.registerTeamAction(ServerUtilitiesTeamGuiActions.TRANSFER_OWNERSHIP);
 
         new ServerUtilitiesPreInitRegistryEvent(registry).post();
-
+        RELOAD_IDS.put(new ResourceLocation(ServerUtilities.MOD_ID, "internal_reload"), this::onReload);
         RankConfigAPI.getHandler();
 
         CHAT_FORMATTING_SUBSTITUTES.put("name", ForgePlayer::getDisplayName);
@@ -278,7 +280,7 @@ public class ServerUtilitiesCommon {
     public void onServerStarting(FMLServerStartingEvent event) {
         ServerUtilitiesCommands.registerCommands(event);
 
-        if (AuroraConfig.general.enable) {
+        if (AuroraConfig.enable) {
             Aurora.start(event.getServer());
         }
     }
@@ -346,6 +348,13 @@ public class ServerUtilitiesCommon {
                 && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
             universe.scheduleTask(new ShutdownTask());
         }
+    }
+
+    public boolean onReload(ServerReloadEvent event) {
+        if (event.getUniverse() != null) {
+            ServerUtilitiesLeaderboards.loadLeaderboards();
+        }
+        return true;
     }
 
     public void handleClientMessage(MessageToClient message) {}

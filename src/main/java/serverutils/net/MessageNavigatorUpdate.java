@@ -2,8 +2,6 @@ package serverutils.net;
 
 import net.minecraft.entity.player.EntityPlayer;
 
-import com.gtnewhorizons.navigator.api.util.Util;
-
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectMap;
@@ -24,29 +22,23 @@ import serverutils.lib.net.MessageToClient;
 import serverutils.lib.net.NetworkWrapper;
 import serverutils.lib.util.permission.PermissionAPI;
 
-public class MessageJourneyMapUpdate extends MessageToClient {
+public class MessageNavigatorUpdate extends MessageToClient {
 
-    public int minX, maxX, minZ, maxZ;
     public Short2ObjectMap<ClientClaimedChunks.Team> teams;
 
-    public MessageJourneyMapUpdate() {}
+    public MessageNavigatorUpdate() {}
 
-    public MessageJourneyMapUpdate(int mix, int mx, int miz, int mz, EntityPlayer player) {
-        this.minX = Util.coordBlockToChunk(mix);
-        this.maxX = Util.coordBlockToChunk(mx);
-        this.minZ = Util.coordBlockToChunk(miz);
-        this.maxZ = Util.coordBlockToChunk(mz);
+    public MessageNavigatorUpdate(int minX, int maxX, int minZ, int maxZ, EntityPlayer player) {
         ForgePlayer p = Universe.get().getPlayer(player);
-
-        teams = new Short2ObjectOpenHashMap<>();
-
         boolean canSeeChunkInfo = PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_OTHER_SEE_INFO);
         boolean canSeeOtherJourneymap = PermissionAPI
                 .hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP_OTHER);
+        teams = new Short2ObjectOpenHashMap<>();
 
+        ChunkDimPos pos = new ChunkDimPos();
         for (int chunkX = minX; chunkX <= maxX; chunkX++) {
             for (int chunkZ = minZ; chunkZ <= maxZ; chunkZ++) {
-                ClaimedChunk chunk = ClaimedChunks.instance.getChunk(new ChunkDimPos(chunkX, chunkZ, player.dimension));
+                ClaimedChunk chunk = ClaimedChunks.instance.getChunk(pos.set(chunkX, chunkZ, player.dimension));
                 if (chunk != null) {
                     ForgeTeam chunkTeam = chunk.getTeam();
 
@@ -95,7 +87,6 @@ public class MessageJourneyMapUpdate extends MessageToClient {
 
     @Override
     public void readData(DataIn data) {
-
         teams = new Short2ObjectOpenHashMap<>();
         for (ClientClaimedChunks.Team team : data.readCollection(ClientClaimedChunks.Team.DESERIALIZER)) {
             teams.put(team.uid, team);

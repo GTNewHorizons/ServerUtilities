@@ -46,7 +46,7 @@ public class AuroraMinecraftHandler {
     public void onPageEvent(AuroraPageEvent event) {
 
         if (event.checkPath("modlist", "*")) {
-            HashSet<String> set = new HashSet<>(Arrays.asList(AuroraConfig.general.modlist_excluded_mods));
+            HashSet<String> set = new HashSet<>(Arrays.asList(AuroraConfig.modlist_excluded_mods));
 
             if (!set.contains(event.getSplitUri()[1])) {
                 ModContainer modContainer = Loader.instance().getIndexedModList().get(event.getSplitUri()[1]);
@@ -56,7 +56,7 @@ public class AuroraMinecraftHandler {
                 }
             }
         } else if (event.checkPath("modlist")) {
-            event.returnPage(new ModListPage(new HashSet<>(Arrays.asList(AuroraConfig.general.modlist_excluded_mods))));
+            event.returnPage(new ModListPage(new HashSet<>(Arrays.asList(AuroraConfig.modlist_excluded_mods))));
         } else if (event.checkPath("minecraft", "online_players")) {
             event.returnPage(new PlayerListTable(event.getAuroraServer().getServer()));
         } else if (event.checkPath("minecraft", "online_players.json")) {
