@@ -14,7 +14,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesCommon;
+import serverutils.ServerUtilitiesLeaderboards;
 import serverutils.data.Leaderboard;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.data.ForgePlayer;
@@ -30,7 +30,7 @@ public class CmdLeaderboard extends CmdBase {
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
         if (args.length == 1) {
-            return matchFromIterable(args, ServerUtilitiesCommon.LEADERBOARDS.keySet());
+            return matchFromIterable(args, ServerUtilitiesLeaderboards.LEADERBOARDS.keySet());
         }
 
         return super.addTabCompletionOptions(sender, args);
@@ -46,7 +46,7 @@ public class CmdLeaderboard extends CmdBase {
                             StringUtils.color(ServerUtilities.lang(sender, "click_here"), EnumChatFormatting.GOLD)));
             boolean first = true;
 
-            for (Leaderboard leaderboard : ServerUtilitiesCommon.LEADERBOARDS.values()) {
+            for (Leaderboard leaderboard : ServerUtilitiesLeaderboards.LEADERBOARDS.values()) {
                 if (first) {
                     first = false;
                 } else {
@@ -61,8 +61,8 @@ public class CmdLeaderboard extends CmdBase {
             }
 
             sender.addChatMessage(component);
-        } else if (ServerUtilitiesCommon.LEADERBOARDS.get(new ResourceLocation(args[0])) != null) {
-            Leaderboard leaderboard = ServerUtilitiesCommon.LEADERBOARDS.get(new ResourceLocation(args[0]));
+        } else if (ServerUtilitiesLeaderboards.LEADERBOARDS.get(new ResourceLocation(args[0])) != null) {
+            Leaderboard leaderboard = ServerUtilitiesLeaderboards.LEADERBOARDS.get(new ResourceLocation(args[0]));
             sender.addChatMessage(leaderboard.getTitle().createCopy().appendText(":"));
 
             ForgePlayer p0 = sender instanceof EntityPlayerMP ? Universe.get().getPlayer(sender) : null;

@@ -7,7 +7,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 
-import serverutils.ServerUtilitiesCommon;
+import serverutils.ServerUtilitiesLeaderboards;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.Leaderboard;
 import serverutils.lib.net.MessageToServer;
@@ -25,7 +25,7 @@ public class MessageLeaderboardList extends MessageToServer {
     public void onMessage(EntityPlayerMP player) {
         Map<ResourceLocation, IChatComponent> map = new LinkedHashMap<>();
 
-        for (Leaderboard leaderboard : ServerUtilitiesCommon.LEADERBOARDS.values()) {
+        for (Leaderboard leaderboard : ServerUtilitiesLeaderboards.LEADERBOARDS.values()) {
             if (PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.getLeaderboardNode(leaderboard))) {
                 map.put(leaderboard.id, leaderboard.getTitle());
             }
