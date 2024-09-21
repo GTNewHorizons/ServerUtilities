@@ -230,6 +230,10 @@ public class ServerUtilitiesPermissions {
                 DefaultPermissionLevel.ALL,
                 "Allow player to see other teams claims on JourneyMap overlay");
         PermissionAPI.registerNode(RANK_EDIT, DefaultPermissionLevel.OP, "Allow player to edit ranks via Admin Panel");
+        PermissionAPI.registerNode(
+                WARPS_CROSS_DIM,
+                DefaultPermissionLevel.ALL,
+                "Can use /warp to teleport to/from another dimension");
 
         for (Block block : GameData.getBlockRegistry().typeSafeIterable()) {
             String name = formatId(block);
