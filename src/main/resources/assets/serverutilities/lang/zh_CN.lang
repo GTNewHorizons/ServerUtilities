@@ -209,6 +209,7 @@ serverutilities.lang.warps.not_set=未知的传送点：“%s”！
 serverutilities.lang.warps.cooldown=使用传送点传送还需 %s！
 serverutilities.lang.warps.tp=传送至 “%s”！
 serverutilities.lang.warps.no_dp=你只能使用一次 /back！
+serverutilities.lang.warps.cross_dim=你不能传送至其它维度！
 
 # Homes
 serverutilities.lang.homes.set=家“%s”已设置！

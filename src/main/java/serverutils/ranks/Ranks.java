@@ -118,6 +118,7 @@ public class Ranks {
             vRank.setPermission(ServerUtilitiesPermissions.HOMES_WARMUP, "0s");
             vRank.setPermission(ServerUtilitiesPermissions.HOMES_COOLDOWN, "1s");
             vRank.setPermission(ServerUtilitiesPermissions.HOMES_CROSS_DIM, true);
+            vRank.setPermission(ServerUtilitiesPermissions.WARPS_CROSS_DIM, true);
             vRank.setPermission("example.other_permission", true);
             vRank.setPermission("example.permission_with_value", 15);
 
@@ -133,6 +134,7 @@ public class Ranks {
             aRank.setPermission(ServerUtilitiesPermissions.HOMES_WARMUP, "0s");
             aRank.setPermission(ServerUtilitiesPermissions.HOMES_COOLDOWN, "0s");
             aRank.setPermission(ServerUtilitiesPermissions.HOMES_CROSS_DIM, true);
+            aRank.setPermission(ServerUtilitiesPermissions.WARPS_CROSS_DIM, true);
             aRank.setPermission("example.permission_with_value", 100);
 
             if (universe.shouldLoadLatmod()) {

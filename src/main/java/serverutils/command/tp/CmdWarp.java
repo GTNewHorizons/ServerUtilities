@@ -13,12 +13,14 @@ import net.minecraft.util.IChatComponent;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.util.StringJoiner;
+import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.ranks.Rank;
 import serverutils.ranks.Ranks;
@@ -68,6 +70,11 @@ public class CmdWarp extends CmdBase {
 
         ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
         data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.WARP);
+
+        if (player.dimension != p.dim
+                && !PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.WARPS_CROSS_DIM)) {
+            throw ServerUtilities.error(sender, "serverutilities.lang.warps.cross_dim");
+        }
 
         IChatComponent component = ServerUtilities.lang(sender, "serverutilities.lang.warps.tp", args[0]);
         Notification notification = Notification.of(TELEPORT, component);

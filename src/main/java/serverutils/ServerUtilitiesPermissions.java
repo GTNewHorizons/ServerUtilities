@@ -50,6 +50,7 @@ public class ServerUtilitiesPermissions {
     public static final String HOMES_TELEPORT_OTHER = "serverutilities.other_player.homes.teleport";
 
     // Warps //
+    public static final String WARPS_CROSS_DIM = "serverutilities.warps.cross_dim";
     public static final String WARPS_COOLDOWN = "serverutilities.warps.cooldown";
     public static final String WARPS_WARMUP = "serverutilities.warps.warmup";
 

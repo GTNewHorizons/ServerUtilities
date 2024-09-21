@@ -214,6 +214,7 @@ serverutilities.lang.warps.not_set=「%s」は不明なワープ先です！
 serverutilities.lang.warps.cooldown=%sでワープ可能になります！
 serverutilities.lang.warps.tp=「%s」にテレポートしました！
 serverutilities.lang.warps.no_dp=戻ることができるのは一度だけです！
+serverutilities.lang.warps.cross_dim=別のディメンションへはテレポートできません！
 
 # Homes
 serverutilities.lang.homes.set=ホーム「%s」を設定しました！

@@ -468,6 +468,7 @@ serverutilities.lang.warps.cooldown=You can only use warp in %s!
 serverutilities.lang.warps.tp=Teleported to '%s'!
 serverutilities.lang.warps.no_dp=You can only go back once!
 serverutilities.lang.warps.no_pos_found=No position to go back to!
+serverutilities.lang.warps.cross_dim=You can't teleport to another dimension!
 
 # Homes
 serverutilities.lang.homes.set=Home '%s' set!
