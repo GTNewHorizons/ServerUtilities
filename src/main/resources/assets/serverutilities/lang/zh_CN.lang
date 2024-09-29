@@ -51,7 +51,7 @@ cant_use_now_cooldown=现在不能使用！冷却时间：%s
 action_bar=操作栏
 nothing_changed=没有任何更改！
 
-serverutilities.task.cleanup_entity=服务器将在 %d 秒内清除所有 %s
+serverutilities.task.cleanup_entity=服务器将在 %2$d 秒内清除所有 %1$s
 serverutilities.task.cleanup_hostiles=敌对生物
 serverutilities.task.cleanup_passives=被动生物
 serverutilities.task.cleanup_items=掉落物品
