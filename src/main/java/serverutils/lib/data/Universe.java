@@ -240,6 +240,7 @@ public class Universe {
     public void scheduleTask(Task task, boolean condition) {
         if (!condition) return;
         if (task.getNextTime() <= -1) return;
+        task.queueNotifications(this);
         taskQueue.add(task);
     }
 
