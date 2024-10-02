@@ -28,8 +28,6 @@ public abstract class Task {
         this.interval = getTimeType() == TimeType.MILLIS ? ticks.millis() : ticks.ticks();
         this.nextTime = whenToRun + interval;
         this.repeatable = repeatable;
-
-        queueNotifications(Universe.get());
     }
 
     public abstract void execute(Universe universe);
@@ -51,7 +49,7 @@ public abstract class Task {
         queueNotifications(Universe.get());
     }
 
-    private void queueNotifications(Universe universe) {
+    public void queueNotifications(Universe universe) {
         List<NotifyTask> notifications = getNotifications();
         if (notifications == null || notifications.isEmpty()) return;
         getNotifications().forEach(universe::scheduleTask);
