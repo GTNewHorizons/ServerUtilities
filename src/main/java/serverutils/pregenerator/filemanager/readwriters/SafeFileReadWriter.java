@@ -1,6 +1,5 @@
 package serverutils.pregenerator.filemanager.readwriters;
 
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
@@ -8,8 +7,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-public class SafeFileReadWriter extends FileReadWriter
-{
+// TODO : MAKE THIS BOUNCE BETWEEN 2 FILES
+public class SafeFileReadWriter extends FileReadWriter {
+
     private final Path tempFile;
     private RandomAccessFile randomAccessFileTemp;
     private boolean randomAccessFileTempIsClosed = false;
@@ -23,25 +23,19 @@ public class SafeFileReadWriter extends FileReadWriter
         randomAccessFileTemp = new RandomAccessFile(this.tempFile.toFile(), "rw");
     }
 
-    public void writeAndCommitIntAfterIterations(int value) throws IOException
-    {
-        if (writeIteration >= iterationsBetweenWrites)
-        {
+    public void writeAndCommitIntAfterIterations(int value) throws IOException {
+        if (writeIteration >= iterationsBetweenWrites) {
             writeIteration = 0;
             this.writeInt(value);
             this.commit();
-        }
-        else
-        {
+        } else {
             writeIteration++;
         }
     }
 
     @Override
-    public void writeInt(int value) throws IOException
-    {
-        if (this.randomAccessFileTempIsClosed)
-        {
+    public void writeInt(int value) throws IOException {
+        if (this.randomAccessFileTempIsClosed) {
             this.openForWriting();
         }
         randomAccessFileTemp.seek(0);
@@ -75,8 +69,7 @@ public class SafeFileReadWriter extends FileReadWriter
     }
 
     @Override
-    public void openForWriting() throws IOException
-    {
+    public void openForWriting() throws IOException {
         if (randomAccessFileTemp == null || !tempFile.toFile().exists() || randomAccessFileTempIsClosed) {
             randomAccessFileTempIsClosed = false;
             randomAccessFileTemp = new RandomAccessFile(tempFile.toFile(), "rw");

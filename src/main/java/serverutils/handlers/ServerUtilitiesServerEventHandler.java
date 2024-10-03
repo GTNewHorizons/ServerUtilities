@@ -229,8 +229,7 @@ public class ServerUtilitiesServerEventHandler {
                         .onDisconnect(new ChatComponentTranslation("multiplayer.disconnect.idling"));
             }
 
-            if (ChunkLoaderManager.instance.isGenerating())
-            {
+            if (ChunkLoaderManager.instance.isGenerating()) {
                 ChunkLoaderManager.instance.queueChunks(1);
             }
         }

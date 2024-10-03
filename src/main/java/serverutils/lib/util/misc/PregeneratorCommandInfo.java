@@ -1,19 +1,14 @@
 package serverutils.lib.util.misc;
 
-import scala.Int;
+public class PregeneratorCommandInfo {
 
-import java.util.Optional;
-
-public class PregeneratorCommandInfo
-{
     private final double xLoc;
     private final double zLoc;
     private final int radius;
     private final int dimensionID;
     private final int iteration;
 
-    public PregeneratorCommandInfo(double xLoc, double zLoc, int radius, int dimensionID, int iteration)
-    {
+    public PregeneratorCommandInfo(double xLoc, double zLoc, int radius, int dimensionID, int iteration) {
         this.xLoc = xLoc;
         this.zLoc = zLoc;
         this.radius = radius;
@@ -21,8 +16,7 @@ public class PregeneratorCommandInfo
         this.dimensionID = dimensionID;
     }
 
-    public PregeneratorCommandInfo(double xLoc, double zLoc, int radius, int dimensionID)
-    {
+    public PregeneratorCommandInfo(double xLoc, double zLoc, int radius, int dimensionID) {
         this(xLoc, zLoc, radius, dimensionID, -1);
     }
 
@@ -38,13 +32,11 @@ public class PregeneratorCommandInfo
         return radius;
     }
 
-    public int getIteration()
-    {
+    public int getIteration() {
         return this.iteration;
     }
 
-    public int getDimensionID()
-    {
+    public int getDimensionID() {
         return this.dimensionID;
     }
 }
