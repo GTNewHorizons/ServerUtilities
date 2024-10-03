@@ -38,6 +38,7 @@ import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.lib.util.text_components.TextComponentParser;
 import serverutils.net.MessageUpdatePlayTime;
+import serverutils.pregenerator.ChunkLoaderManager;
 import serverutils.ranks.Ranks;
 
 public class ServerUtilitiesServerEventHandler {
@@ -226,6 +227,11 @@ public class ServerUtilitiesServerEventHandler {
             if (playerToKickForAfk != null && playerToKickForAfk.playerNetServerHandler != null) {
                 playerToKickForAfk.playerNetServerHandler
                         .onDisconnect(new ChatComponentTranslation("multiplayer.disconnect.idling"));
+            }
+
+            if (ChunkLoaderManager.instance.isGenerating())
+            {
+                ChunkLoaderManager.instance.queueChunks(1);
             }
         }
     }

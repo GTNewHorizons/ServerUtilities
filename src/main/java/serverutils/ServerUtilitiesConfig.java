@@ -276,6 +276,9 @@ public class ServerUtilitiesConfig {
 
         @Config.DefaultBoolean(true)
         public boolean dump_stats;
+        
+        @Config.DefaultBoolean(true)
+        public boolean pregen;
     }
 
     public static class Backups {
