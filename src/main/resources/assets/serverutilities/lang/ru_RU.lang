@@ -206,8 +206,10 @@ serverutilities.lang.warps.set=Варп '%s' установлен!
 serverutilities.lang.warps.del=Варп '%s' удален!
 serverutilities.lang.warps.not_set=Неизвестный варп: '%s'!
 serverutilities.lang.warps.cooldown=Вы можете использовать варп только в %s!
-вftbutilities.lang.warps.tp=Телепортирован в '%s'!
+serverutilities.lang.warps.tp=Телепортирован в '%s'!
 serverutilities.lang.warps.no_dp=Вы можете вернуться только один раз!
+serverutilities.lang.warps.cross_dim=Вы не можете телепортироваться в другое измерение!
+
 
 # Homes
 serverutilities.lang.homes.set=Дом '%s' установлен!

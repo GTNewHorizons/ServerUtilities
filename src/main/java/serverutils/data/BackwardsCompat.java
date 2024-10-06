@@ -195,6 +195,9 @@ public class BackwardsCompat {
         if (permissionsPlayer.get("cross_dim_homes").getAsBoolean()) {
             player.setPermission(ServerUtilitiesPermissions.HOMES_CROSS_DIM, true);
         }
+        if (permissionsPlayer.get("cross_dim_warp").getAsBoolean()) {
+            player.setPermission(ServerUtilitiesPermissions.WARPS_CROSS_DIM, true);
+        }
 
         JsonObject permissionsAdmin = LATCONFIG.get("permissions_admin").getAsJsonObject();
         admin.setPermission(ServerUtilitiesPermissions.HOMES_MAX, permissionsAdmin.get("max_homes").getAsInt());
@@ -206,6 +209,9 @@ public class BackwardsCompat {
                 permissionsAdmin.get("max_loaded_chunks").getAsInt());
         if (permissionsAdmin.get("cross_dim_homes").getAsBoolean()) {
             admin.setPermission(ServerUtilitiesPermissions.HOMES_CROSS_DIM, true);
+        }
+        if (permissionsAdmin.get("cross_dim_warp").getAsBoolean()) {
+            admin.setPermission(ServerUtilitiesPermissions.WARPS_CROSS_DIM, true);
         }
     }
 
