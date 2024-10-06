@@ -1,11 +1,11 @@
 # Misc
 gamerules=游戏规则
 serverutilities.lang.timer.shutdown=服务器将在%s后关闭
-serverutilities.lang.killed_entities=已杀死 %d 个类型为“%s”的实体
+serverutilities.lang.killed_entities=已杀死 %d 个类型为'%s'的实体
 serverutilities.lang.kickme=你踢出了自己！
 serverutilities.lang.upload_crash=上传崩溃报告
 serverutilities.lang.uploaded_crash=崩溃报告已上传！ %s
-serverutilities.lang.nickname_changed=昵称修改为“%s”
+serverutilities.lang.nickname_changed=昵称修改为'%s'
 serverutilities.lang.nickname_reset=昵称重置
 serverutilities.lang.unmuted=%s已经被取消禁言
 serverutilities.lang.muted=%s已经被禁言
@@ -51,7 +51,7 @@ cant_use_now_cooldown=现在不能使用！冷却时间：%s
 action_bar=操作栏
 nothing_changed=没有任何更改！
 
-serverutilities.task.cleanup_entity=服务器将在 %2$d 秒内清除所有 %1$s
+serverutilities.task.cleanup_entity=服务器将在 %d 秒内清除所有 %s
 serverutilities.task.cleanup_hostiles=敌对生物
 serverutilities.task.cleanup_passives=被动生物
 serverutilities.task.cleanup_items=掉落物品
@@ -173,7 +173,7 @@ serverutilities.debugging.log_events=记录事件
 # Client Config
 serverutilities_client=客户端配置
 serverutilities_client.render_badges=显示徽章
-serverutilities_client.journeymap_overlay=启用旅行地图整合
+serverutilities_client.journeymap_overlay=启用旅行地图联动
 serverutilities_client.scan_items_whitelist=/scan_items 白名单
 serverutilities_client.scan_items_blacklist=/scan_items 黑名单
 serverutilities_client.show_shutdown_timer=显示关机计时器
@@ -291,7 +291,7 @@ sidebar_button.serverutilities.toggle.day.tooltip=设置为白天时间
 sidebar_button.serverutilities.toggle.night=设置为夜晚
 sidebar_button.serverutilities.toggle.night.tooltip=设置为夜晚时间
 sidebar_button.serverutilities.heal=治疗
-sidebar_button.serverutilities.heal.tooltip=将玩家的生命值和饱和度恢复到最大值,同时熄灭玩家身上的火焰
+sidebar_button.serverutilities.heal.tooltip=将玩家的生命值和饱和度恢复到最大值，同时熄灭玩家身上的火焰
 sidebar_button.serverutilities.server_info=服务器信息
 sidebar_button.serverutilities.claimed_chunks=已声明的区块
 sidebar_button.serverutilities.trash_can=垃圾桶
@@ -456,18 +456,18 @@ serverutilities.lang.chunks.upgrade.no_explosions=爆炸被禁用
 serverutilities.lang.chunks.upgrade.no_pvp=盟友 PVP 被禁用
 
 # Warps
-serverutilities.lang.warps.set=传送点“%s”已设置！
-serverutilities.lang.warps.del=传送点“%s”已删除！
-serverutilities.lang.warps.not_set=未知的传送点：“%s”！
+serverutilities.lang.warps.set=传送点'%s'已设置！
+serverutilities.lang.warps.del=传送点'%s'已删除！
+serverutilities.lang.warps.not_set=未知的传送点：'%s'！
 serverutilities.lang.warps.cooldown=使用传送点传送还需 %s！
-serverutilities.lang.warps.tp=传送至 “%s”！
+serverutilities.lang.warps.tp=传送至 '%s'！
 serverutilities.lang.warps.no_dp=你只能使用一次 /back！
 serverutilities.lang.warps.cross_dim=你不能传送至其它维度！
 
 # Homes
-serverutilities.lang.homes.set=家“%s”已设置！
-serverutilities.lang.homes.del=家“%s”已删除！
-serverutilities.lang.homes.not_set=未知的家：“%s”！
+serverutilities.lang.homes.set=家'%s'已设置！
+serverutilities.lang.homes.del=家'%s'已删除！
+serverutilities.lang.homes.not_set=未知的家：'%s'！
 serverutilities.lang.homes.cooldown=使用 home 传送还需 %s！
 serverutilities.lang.homes.cross_dim=你不能传送至其它维度！
 serverutilities.lang.homes.limit=家数量已达到上限！
