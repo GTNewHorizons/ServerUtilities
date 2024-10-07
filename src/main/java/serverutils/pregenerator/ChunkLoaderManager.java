@@ -1,9 +1,13 @@
 package serverutils.pregenerator;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Vector;
 
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import net.minecraft.server.MinecraftServer;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -11,13 +15,15 @@ import org.apache.commons.lang3.tuple.Pair;
 import serverutils.lib.util.misc.PregeneratorCommandInfo;
 import serverutils.pregenerator.filemanager.PregeneratorFileManager;
 
+import static com.gtnewhorizon.gtnhlib.util.CoordinatePacker.pack;
+
 public class ChunkLoaderManager {
 
     public final static ChunkLoaderManager instance = new ChunkLoaderManager();
     private boolean isGenerating = false;
     private int dimensionID;
     private MinecraftServer serverType;
-    private Vector<Pair<Integer, Integer>> chunksToLoad = new Vector<>(1000);
+    private LongArrayList chunksToLoad = new LongArrayList(1000);
     private int totalChunksToLoad;
     private int chunkToLoadIndex;
     private ChunkLoader loader;
@@ -41,26 +47,35 @@ public class ChunkLoaderManager {
 
     public boolean initializeFromPregeneratorFiles(MinecraftServer server, int dimensionToCheck) {
         try {
-            this.fileManager = new PregeneratorFileManager(server);
-            Optional<PregeneratorCommandInfo> commandInfoOptional = this.fileManager.getCommandInfo();
-            if (commandInfoOptional.isPresent()) {
-                PregeneratorCommandInfo commandInfo = commandInfoOptional.get();
-                if (commandInfo.getDimensionID() != dimensionToCheck) {
-                    return false;
-                }
-                findChunksToLoadCircle(commandInfo.getRadius(), commandInfo.getXLoc(), commandInfo.getZLoc());
-                this.totalChunksToLoad = chunksToLoad.size();
-                this.chunkToLoadIndex = commandInfo.getIteration() - 1;
-                this.dimensionID = commandInfo.getDimensionID();
-                if (this.chunkToLoadIndex < chunksToLoad.size()) {
-                    this.chunksToLoad.subList(this.chunkToLoadIndex + 1, chunksToLoad.size()).clear();
-                    this.serverType = server;
-                    this.isGenerating = true;
-                    this.loader = new ChunkLoader(this.fileManager);
-                    return this.fileManager.isReady();
+            Path commandFolderPath = Paths.get("saves")
+                    .resolve(server.getFolderName())
+                    .resolve(PregeneratorFileManager.COMMAND_FOLDER);
+            if (Files.exists(commandFolderPath.resolve(PregeneratorFileManager.COMMAND_FILE)) &&
+                    Files.exists(commandFolderPath.resolve(PregeneratorFileManager.COMMAND_ITERATION)))
+            {
+                this.fileManager = new PregeneratorFileManager(server);
+                Optional<PregeneratorCommandInfo> commandInfoOptional = this.fileManager.getCommandInfo();
+                if (commandInfoOptional.isPresent()) {
+                    PregeneratorCommandInfo commandInfo = commandInfoOptional.get();
+                    if (commandInfo.getDimensionID() != dimensionToCheck) {
+                        return false;
+                    }
+                    findChunksToLoadCircle(commandInfo.getRadius(), commandInfo.getXLoc(), commandInfo.getZLoc());
+                    this.totalChunksToLoad = chunksToLoad.size();
+                    this.chunkToLoadIndex = commandInfo.getIteration() - 1;
+                    this.dimensionID = commandInfo.getDimensionID();
+                    if (this.chunkToLoadIndex < chunksToLoad.size()) {
+                        this.chunksToLoad.subList(this.chunkToLoadIndex + 1, chunksToLoad.size()).clear();
+                        this.serverType = server;
+                        this.isGenerating = true;
+                        this.loader = new ChunkLoader(this.fileManager);
+                        return this.fileManager.isReady();
+                    }
                 }
             }
+            
         } catch (IOException e) {
+            this.reset(true);
             e.printStackTrace();
         }
         return false;
@@ -143,7 +158,7 @@ public class ChunkLoaderManager {
     public void queueChunks(int numChunksToQueue) {
         for (int i = 0; i < numChunksToQueue; i++) {
             if (!chunksToLoad.isEmpty()) {
-                loader.processLoadChunk(this.serverType, this.dimensionID, chunksToLoad.get(chunkToLoadIndex));
+                loader.processLoadChunk(this.serverType, this.dimensionID, chunksToLoad.getLong(chunkToLoadIndex));
                 chunkToLoadIndex--;
             } else {
                 fileManager.closeAndRemoveAllFiles();
@@ -175,7 +190,7 @@ public class ChunkLoaderManager {
     }
 
     private void addChunk(int chunkX, int chunkZ) {
-        chunksToLoad.add(Pair.of(chunkX, chunkZ));
+        chunksToLoad.add(pack(chunkX, 0, chunkZ));
     }
 
     private void addChunksBetween(int xLine, int zMin, int zMax) {

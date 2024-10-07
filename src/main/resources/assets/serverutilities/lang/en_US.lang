@@ -435,7 +435,8 @@ commands.god.usage=/god <player>
 commands.rtp.usage=/rtp
 commands.dump_chunkloaders.usage=/dump_chunkloaders
 commands.dump_permissions.usage=/dump_permissions
-commands.pregen.start.usage=/pregen start <x> <y> <radii>
+commands.pregen.start.server_usage=/pregen start <x> <y> <radius>
+commands.pregen.start.server_client=/pregen start <x> <y> <radius> or /pregen <radius>
 commands.pregen.stop.usage=/pregen stop
 commands.pregen.progress.usage=/pregen progress
 

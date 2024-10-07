@@ -18,6 +18,7 @@ import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunk;
 import serverutils.data.ClaimedChunks;
@@ -103,11 +104,8 @@ public class ServerUtilitiesWorldEventHandler {
             int dimensionId = event.world.provider.dimensionId;
             MinecraftServer server = MinecraftServer.getServer();
             if (!ChunkLoaderManager.instance.isGenerating()
-                    && !ChunkLoaderManager.instance.initializeFromPregeneratorFiles(server, dimensionId)) {
-                ChunkLoaderManager.instance.reset(false);
-                System.out.println("No pregenerator to load for dimension Id: " + dimensionId);
-            } else {
-                System.out.println("Pregenerator loaded and running for dimension Id: " + dimensionId);
+                    && ChunkLoaderManager.instance.initializeFromPregeneratorFiles(server, dimensionId)) {
+                ServerUtilities.LOGGER.info("Pregenerator loaded and running for dimension Id: " + dimensionId);
             }
         }
     }

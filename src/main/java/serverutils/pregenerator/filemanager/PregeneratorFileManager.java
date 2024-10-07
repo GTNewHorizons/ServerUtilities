@@ -16,9 +16,9 @@ public class PregeneratorFileManager {
 
     private final FileReadWriter commandReadWriter;
     private final SafeFileReadWriter iterationReadWriter;
-    private final String COMMAND_FOLDER = "pregenerationFiles";
-    private final String COMMAND_FILE = "fileCommand";
-    private final String COMMAND_ITERATION = "fileIteration";
+    public static final String COMMAND_FOLDER = "pregenerationFiles";
+    public static final String COMMAND_FILE = "fileCommand";
+    public static final String COMMAND_ITERATION = "fileIteration";
 
     public PregeneratorFileManager(MinecraftServer server, double xLoc, double zLoc, int radius, int dimensionID)
             throws IOException {
