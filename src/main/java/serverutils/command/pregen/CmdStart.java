@@ -1,7 +1,6 @@
 package serverutils.command.pregen;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -22,10 +21,10 @@ public class CmdStart extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         checkArgs(sender, args, 1);
-        
+
         int radius;
         double xLoc, zLoc;
-        
+
         if (args.length == 3) {
             xLoc = parseDoubleBounded(sender, args[0], -30000000.0D, 30000000.0D);
             zLoc = parseDoubleBounded(sender, args[1], -30000000.0D, 30000000.0D);
@@ -37,9 +36,7 @@ public class CmdStart extends CmdBase {
                                 "Radii larger than 2000 are not permitted. World sizes will be 100's of gbs"));
                 return;
             }
-        }
-        else
-        {
+        } else {
             xLoc = sender.getPlayerCoordinates().posX;
             zLoc = sender.getPlayerCoordinates().posZ;
 
@@ -54,12 +51,11 @@ public class CmdStart extends CmdBase {
 
         int dimensionID = sender.getEntityWorld().provider.dimensionId;
         PregeneratorCommandInfo commandInfo = new PregeneratorCommandInfo(xLoc, zLoc, radius, dimensionID);
-        
+
         if (!ChunkLoaderManager.instance.isGenerating()) {
             try {
                 sender.addChatMessage(
-                        new ChatComponentText(
-                                "Initializing pregenerator. Check progress with '/pregen progress'."));
+                        new ChatComponentText("Initializing pregenerator. Check progress with '/pregen progress'."));
                 ChunkLoaderManager.instance.initializePregenerator(commandInfo, MinecraftServer.getServer());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -79,30 +75,24 @@ public class CmdStart extends CmdBase {
         if (args.length < i) {
             throw new WrongUsageException(getCommandUsage(sender));
         }
-        
-        if (sender instanceof MinecraftServer)
-        {
-            if (args.length != 3)
-            {
+
+        if (sender instanceof MinecraftServer) {
+            if (args.length != 3) {
                 throw new WrongUsageException(getCommandUsage(sender));
             }
-        }
-        else
-        {
-            if (!(args.length == 1 || args.length == 3) )
-            {
+        } else {
+            if (!(args.length == 1 || args.length == 3)) {
                 throw new WrongUsageException(getCommandUsage(sender));
             }
         }
     }
-    
+
     @Override
     public String getCommandUsage(ICommandSender sender) {
-        if (sender instanceof MinecraftServer)
-        {
+        if (sender instanceof MinecraftServer) {
             return "commands." + ICommandWithParent.getCommandPath(this) + ".usage_server";
         }
-        
+
         return "commands." + ICommandWithParent.getCommandPath(this) + ".usage_client";
     }
 }

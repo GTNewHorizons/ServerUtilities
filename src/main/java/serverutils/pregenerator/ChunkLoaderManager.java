@@ -1,21 +1,18 @@
 package serverutils.pregenerator;
 
+import static com.gtnewhorizon.gtnhlib.util.CoordinatePacker.pack;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.Vector;
 
-import it.unimi.dsi.fastutil.longs.LongArrayList;
 import net.minecraft.server.MinecraftServer;
 
-import org.apache.commons.lang3.tuple.Pair;
-
+import it.unimi.dsi.fastutil.longs.LongArrayList;
 import serverutils.lib.util.misc.PregeneratorCommandInfo;
 import serverutils.pregenerator.filemanager.PregeneratorFileManager;
-
-import static com.gtnewhorizon.gtnhlib.util.CoordinatePacker.pack;
 
 public class ChunkLoaderManager {
 
@@ -47,12 +44,10 @@ public class ChunkLoaderManager {
 
     public boolean initializeFromPregeneratorFiles(MinecraftServer server, int dimensionToCheck) {
         try {
-            Path commandFolderPath = Paths.get("saves")
-                    .resolve(server.getFolderName())
+            Path commandFolderPath = Paths.get("saves").resolve(server.getFolderName())
                     .resolve(PregeneratorFileManager.COMMAND_FOLDER);
-            if (Files.exists(commandFolderPath.resolve(PregeneratorFileManager.COMMAND_FILE)) &&
-                    Files.exists(commandFolderPath.resolve(PregeneratorFileManager.COMMAND_ITERATION)))
-            {
+            if (Files.exists(commandFolderPath.resolve(PregeneratorFileManager.COMMAND_FILE))
+                    && Files.exists(commandFolderPath.resolve(PregeneratorFileManager.COMMAND_ITERATION))) {
                 this.fileManager = new PregeneratorFileManager(server);
                 Optional<PregeneratorCommandInfo> commandInfoOptional = this.fileManager.getCommandInfo();
                 if (commandInfoOptional.isPresent()) {
@@ -73,7 +68,7 @@ public class ChunkLoaderManager {
                     }
                 }
             }
-            
+
         } catch (IOException e) {
             this.reset(true);
             e.printStackTrace();
