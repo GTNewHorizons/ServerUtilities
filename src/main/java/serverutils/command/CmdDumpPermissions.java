@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
@@ -15,6 +15,7 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesCommon;
 import serverutils.data.NodeEntry;
 import serverutils.lib.command.CmdBase;
+import serverutils.lib.command.CommandUtils;
 import serverutils.lib.config.ConfigBoolean;
 import serverutils.lib.config.ConfigDouble;
 import serverutils.lib.config.ConfigInt;
@@ -27,8 +28,7 @@ import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.permission.DefaultPermissionHandler;
 import serverutils.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.util.permission.PermissionAPI;
-import serverutils.ranks.CommandOverride;
-import serverutils.ranks.Ranks;
+import serverutils.ranks.ICommandWithPermission;
 
 public class CmdDumpPermissions extends CmdBase {
 
@@ -36,7 +36,7 @@ public class CmdDumpPermissions extends CmdBase {
         super("dump_permissions", Level.OP_OR_SP);
     }
 
-    private final String[] emptyRow = { "", "", "", "", "", "" };
+    private static final String[] EMPTY_ROW = { "", "", "", "", "", "" };
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
@@ -78,7 +78,7 @@ public class CmdDumpPermissions extends CmdBase {
 
         List<List<String>> export = new ArrayList<>();
         export.add(Arrays.asList("Node", "Description", "Type", "Player default", "OP default", "Variants"));
-        export.add(Arrays.asList(emptyRow));
+        export.add(Arrays.asList(EMPTY_ROW));
 
         for (NodeEntry entry : permNodes) {
             List<String> variants = new ArrayList<>();
@@ -147,30 +147,20 @@ public class CmdDumpPermissions extends CmdBase {
 
         List<List<String>> commandList = new ArrayList<>();
         commandList.add(Arrays.asList("Node", "Command", "Default Permission", "Usage"));
-        commandList.add(Arrays.asList(emptyRow));
+        commandList.add(Arrays.asList(EMPTY_ROW));
 
-        for (CommandOverride commands : Ranks.INSTANCE.commands.values()) {
-            String usageS = commands.getCommandUsage(sender);
-            IChatComponent usage;
-            if (usageS == null || usageS.isEmpty()
-                    || usageS.indexOf('/') != -1
-                    || usageS.indexOf('%') != -1
-                    || usageS.indexOf(' ') != -1) {
-                usage = new ChatComponentText(usageS);
-            } else {
-                usage = new ChatComponentTranslation(usageS);
-            }
-            String defaultPermissionLevel = switch (commands.getRequiredPermissionLevel()) {
-                case 1, 2 -> "OP";
-                case 3, 4 -> "Strong OP";
-                default -> "ALL";
-            };
+        for (ICommand command : CommandUtils.getAllCommands(sender)) {
+            ICommandWithPermission commands = (ICommandWithPermission) command;
+            String node = commands.serverutilities$getPermissionNode();
+            DefaultPermissionLevel defaultPermissionLevel = DefaultPermissionHandler.INSTANCE
+                    .getDefaultPermissionLevel(node);
+            IChatComponent usage = CommandUtils.getTranslatedUsage(command, sender);
 
             commandList.add(
                     Arrays.asList(
-                            commands.node,
+                            node,
                             "/" + commands.getCommandName(),
-                            defaultPermissionLevel,
+                            defaultPermissionLevel.name(),
                             usage.getUnformattedText()));
         }
 
