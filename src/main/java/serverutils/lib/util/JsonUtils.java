@@ -188,7 +188,7 @@ public class JsonUtils {
                 json.addProperty("underlined", style.getUnderlined());
             }
 
-            if (ATHelper.getStriketrough(style) != null) {
+            if (ATHelper.getStrikethrough(style) != null) {
                 json.addProperty("strikethrough", style.getStrikethrough());
             }
 

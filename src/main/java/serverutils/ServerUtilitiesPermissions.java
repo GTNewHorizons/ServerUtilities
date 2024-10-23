@@ -3,6 +3,7 @@ package serverutils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,8 @@ import serverutils.ranks.ServerUtilitiesPermissionHandler;
 public class ServerUtilitiesPermissions {
 
     public static final ServerUtilitiesPermissions INST = new ServerUtilitiesPermissions();
+
+    public static final Set<NodeEntry> earlyPermissions = new HashSet<>();
     // Display //
     public static final String DISPLAY_ADMIN_INFO = "serverutilities.display.admin_info";
 
@@ -131,6 +134,10 @@ public class ServerUtilitiesPermissions {
     }
 
     public static void registerPermissions() {
+        for (NodeEntry entry : earlyPermissions) {
+            PermissionAPI.registerNode(entry.node, entry.level, entry.desc);
+        }
+        earlyPermissions.clear();
         PermissionAPI.registerNode(CHAT_SPEAK, DefaultPermissionLevel.ALL, "Controls if player is muted or not");
         PermissionAPI.registerNode(
                 CHAT_FORMATTING,

@@ -22,42 +22,20 @@ import serverutils.lib.util.JsonUtils;
 import serverutils.lib.util.ServerUtils;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", configSubDirectory = "../serverutilities/")
+@Config.RequiresWorldRestart
 public class ServerUtilitiesConfig {
 
-    @Config.RequiresWorldRestart
     public static final AutoShutdown auto_shutdown = new AutoShutdown();
-
-    @Config.RequiresWorldRestart
     public static final AFK afk = new AFK();
-
-    @Config.RequiresWorldRestart
     public static final Chat chat = new Chat();
-
-    @Config.RequiresWorldRestart
     public static final Commands commands = new Commands();
-
-    @Config.RequiresWorldRestart
     public static final Login login = new Login();
-
-    @Config.RequiresWorldRestart
     public static final RanksConfig ranks = new RanksConfig();
-
-    @Config.RequiresWorldRestart
     public static final WorldConfig world = new WorldConfig();
-
-    @Config.RequiresWorldRestart
     public static final Debugging debugging = new Debugging();
-
-    @Config.RequiresWorldRestart
     public static final Backups backups = new Backups();
-
-    @Config.RequiresWorldRestart
     public static final General general = new General();
-
-    @Config.RequiresWorldRestart
     public static final Teams teams = new Teams();
-
-    @Config.RequiresWorldRestart
     public static final Tasks tasks = new Tasks();
 
     public static class General {
@@ -401,7 +379,7 @@ public class ServerUtilitiesConfig {
 
     public static class RanksConfig {
 
-        @Config.Comment("Enables ranks and adds command.x permissions and allows ranks to control them.")
+        @Config.Comment("Enables Ranks.")
         @Config.DefaultBoolean(true)
         public boolean enabled;
 
@@ -409,9 +387,9 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean override_chat;
 
-        @Config.Comment("Allow to configure commands with ranks. Disable this if you want to use other permission mod for that.")
+        @Config.Comment("Add permissions for commands and allow them to be controlled by ranks.")
         @Config.DefaultBoolean(true)
-        public boolean override_commands;
+        public boolean command_permissions;
     }
 
     public static class WorldConfig {
