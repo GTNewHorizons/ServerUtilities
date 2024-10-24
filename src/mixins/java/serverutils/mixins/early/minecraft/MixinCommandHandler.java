@@ -58,13 +58,13 @@ public abstract class MixinCommandHandler {
         String node = (container == null ? Rank.NODE_COMMAND : (Rank.NODE_COMMAND + '.' + container.getModId())) + "."
                 + command.getCommandName();
         ICommandWithPermission cmd = (ICommandWithPermission) command;
-        cmd.serverutilities$setPermissionNode(node);
+        cmd.serverutilities$setPermissionNode(node.toLowerCase());
         cmd.serverutilities$setModName(container == null ? "Minecraft" : container.getName());
         serverUtilities$registerPermissions(cmd);
     }
 
     @Unique
-    private DefaultPermissionLevel serverUtilities$getDefaultLevel(ICommand command) {
+    private DefaultPermissionLevel serverUtilities$getDefaultLevel(ICommandWithPermission command) {
         if (command instanceof CommandBase cmdBase) {
             return cmdBase.getRequiredPermissionLevel() > 0 ? DefaultPermissionLevel.OP : DefaultPermissionLevel.ALL;
         }
@@ -79,7 +79,7 @@ public abstract class MixinCommandHandler {
         if (command instanceof CommandTreeBase tree) {
             for (ICommand c : tree.getSubCommands()) {
                 ICommandWithPermission child = (ICommandWithPermission) c;
-                child.serverutilities$setPermissionNode(node + '.' + child.getCommandName());
+                child.serverutilities$setPermissionNode(node.toLowerCase() + '.' + c.getCommandName());
                 child.serverutilities$setModName(command.serverutilities$getModName());
                 serverUtilities$registerPermissions(child);
             }

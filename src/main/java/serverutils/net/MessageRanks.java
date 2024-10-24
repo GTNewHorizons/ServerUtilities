@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import net.minecraft.command.ICommand;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
@@ -137,8 +138,8 @@ public class MessageRanks extends MessageToClient {
                         EnumChatFormatting.BLUE + "[" + command.serverutilities$getModName() + "]\n");
                 ConfigBoolean val = new ConfigBoolean(level == DefaultPermissionLevel.ALL);
                 commandPermissions.add(node, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                        .setDisplayName(new ChatComponentTranslation(node))
-                        .setInfo(name.appendSibling(CommandUtils.getTranslatedUsage(command, p.getPlayer())));
+                        .setDisplayName(new ChatComponentTranslation(node)).setInfo(
+                                name.appendSibling(CommandUtils.getTranslatedUsage((ICommand) command, p.getPlayer())));
             }
         }
     }

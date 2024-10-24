@@ -1,10 +1,15 @@
 package serverutils.ranks;
 
-import net.minecraft.command.ICommand;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface ICommandWithPermission extends ICommand {
+public interface ICommandWithPermission {
+
+    Map<String, String> commandOwners = new HashMap<>();
+
+    Map<String, String> commandPermissions = new HashMap<>();
 
     String serverutilities$getPermissionNode();
 
