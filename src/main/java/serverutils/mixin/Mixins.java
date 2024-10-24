@@ -17,8 +17,10 @@ import serverutils.ServerUtilities;
 public enum Mixins {
 
     COMMAND_PERMISSIONS(new Builder("Command Permissions").addTargetedMod(VANILLA).setSide(Side.BOTH)
-            .setPhase(Phase.EARLY).setApplyIf(() -> ranks.enabled && ranks.command_permissions)
-            .addMixinClasses("minecraft.MixinCommandBase", "minecraft.MixinCommandHandler"));
+            .setPhase(Phase.EARLY).setApplyIf(() -> ranks.enabled && ranks.command_permissions).addMixinClasses(
+                    "minecraft.MixinCommandBase",
+                    "minecraft.MixinCommandHandler",
+                    "minecraft.MixinICommand")),;
 
     private final List<String> mixinClasses;
     private final Supplier<Boolean> applyIf;

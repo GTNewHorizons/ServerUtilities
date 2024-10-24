@@ -150,8 +150,8 @@ public class CmdDumpPermissions extends CmdBase {
         commandList.add(Arrays.asList(EMPTY_ROW));
 
         for (ICommand command : CommandUtils.getAllCommands(sender)) {
-            ICommandWithPermission commands = (ICommandWithPermission) command;
-            String node = commands.serverutilities$getPermissionNode();
+            ICommandWithPermission cmd = (ICommandWithPermission) command;
+            String node = cmd.serverutilities$getPermissionNode();
             DefaultPermissionLevel defaultPermissionLevel = DefaultPermissionHandler.INSTANCE
                     .getDefaultPermissionLevel(node);
             IChatComponent usage = CommandUtils.getTranslatedUsage(command, sender);
@@ -159,7 +159,7 @@ public class CmdDumpPermissions extends CmdBase {
             commandList.add(
                     Arrays.asList(
                             node,
-                            "/" + commands.getCommandName(),
+                            "/" + command.getCommandName(),
                             defaultPermissionLevel.name(),
                             usage.getUnformattedText()));
         }
