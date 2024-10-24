@@ -52,7 +52,8 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         BACK(TeleportType.BACK),
         SPAWN(TeleportType.SPAWN),
         TPA(TeleportType.TPA),
-        RTP(TeleportType.RTP);
+        RTP(TeleportType.RTP),
+        VANILLA_TP(TeleportType.VANILLA_TP);
 
         public static final Timer[] VALUES = values();
 

@@ -2,6 +2,7 @@ package serverutils.data;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -35,7 +36,7 @@ public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
     }
 
     private TeleportLog[] getSortedLogs() {
-        TeleportLog[] toSort = Arrays.stream(logs).filter((l) -> l != null).toArray(TeleportLog[]::new);
+        TeleportLog[] toSort = Arrays.stream(logs).filter(Objects::nonNull).toArray(TeleportLog[]::new);
         Arrays.sort(toSort, Collections.reverseOrder());
         return toSort;
     }
@@ -71,9 +72,6 @@ public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
 
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
-        if (nbt == null) {
-            return;
-        }
         for (int i = 0; i < logs.length; i++) {
             logs[i] = new TeleportLog(nbt.getCompoundTag(String.valueOf(i)));
         }
@@ -85,7 +83,7 @@ public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
         builder.append("{");
         for (int i = 0; i < logs.length; i++) {
             final TeleportLog l = logs[i];
-            builder.append(l.teleportType.toString() + ":" + l.getBlockDimPos());
+            builder.append(l.teleportType.toString()).append(":").append(l.getBlockDimPos());
             if (i != logs.length - 1) {
                 builder.append(",");
             }

@@ -63,6 +63,7 @@ public class ServerUtilitiesPermissions {
     public static final String TPA_BACK = "serverutilities.back.tpa";
     public static final String RTP_BACK = "serverutilities.back.rtp";
     public static final String RESPAWN_BACK = "serverutilities.back.respawn";
+    public static final String VANILLA_TP_BACK = "serverutilities.back.tp";
     public static final String BACK_BACK = "serverutilities.back.back";
 
     // Claims //
@@ -228,6 +229,10 @@ public class ServerUtilitiesPermissions {
         PermissionAPI
                 .registerNode(RTP_BACK, DefaultPermissionLevel.OP, "Allow player back to last time where /rtp is used");
         PermissionAPI.registerNode(RESPAWN_BACK, DefaultPermissionLevel.ALL, "Allow player back to last death point");
+        PermissionAPI.registerNode(
+                VANILLA_TP_BACK,
+                DefaultPermissionLevel.OP,
+                "Allow player back to last point where /tp is used");
         PermissionAPI.registerNode(
                 CLAIMS_JOURNEYMAP,
                 DefaultPermissionLevel.ALL,
