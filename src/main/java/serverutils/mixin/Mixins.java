@@ -19,13 +19,9 @@ public enum Mixins {
 
     COMMAND_PERMISSIONS(new Builder("Command Permissions").addTargetedMod(VANILLA).setSide(Side.BOTH)
             .setPhase(Phase.EARLY).setApplyIf(() -> ranks.enabled && ranks.command_permissions)
-            .addMixinClasses("minecraft.MixinCommandBase", "minecraft.MixinCommandHandler")),
+            .addMixinClasses("minecraft.MixinCommandBase", "minecraft.MixinCommandHandler", "minecraft.MixinICommand")),
     VANILLA_TP_BACK_COMPAT(new Builder("/back compat for the vanilla /tp").addTargetedMod(VANILLA).setSide(Side.BOTH)
             .setPhase(Phase.EARLY).setApplyIf(() -> commands.back).addMixinClasses("minecraft.MixinCommandTeleport")),;
-            .setPhase(Phase.EARLY).setApplyIf(() -> ranks.enabled && ranks.command_permissions).addMixinClasses(
-                    "minecraft.MixinCommandBase",
-                    "minecraft.MixinCommandHandler",
-                    "minecraft.MixinICommand")),;
 
     private final List<String> mixinClasses;
     private final Supplier<Boolean> applyIf;
