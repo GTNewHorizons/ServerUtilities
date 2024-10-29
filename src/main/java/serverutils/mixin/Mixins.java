@@ -17,10 +17,10 @@ import serverutils.ServerUtilities;
 public enum Mixins {
 
     COMMAND_PERMISSIONS(new Builder("Command Permissions").addTargetedMod(VANILLA).setSide(Side.BOTH)
-            .setPhase(Phase.EARLY).setApplyIf(() -> ranks.enabled && ranks.command_permissions).addMixinClasses(
-                    "minecraft.MixinCommandBase",
-                    "minecraft.MixinCommandHandler",
-                    "minecraft.MixinICommand")),;
+            .setPhase(Phase.EARLY).setApplyIf(() -> ranks.enabled && ranks.command_permissions)
+            .addMixinClasses("minecraft.MixinCommandBase", "minecraft.MixinCommandHandler", "minecraft.MixinICommand")),
+    REPLACE_TAB_NAMES(new Builder("Replace tab menu names").addTargetedMod(VANILLA).setSide(Side.CLIENT)
+            .setPhase(Phase.EARLY).addMixinClasses("forge.MixinGuiIngameForge")),;
 
     private final List<String> mixinClasses;
     private final Supplier<Boolean> applyIf;

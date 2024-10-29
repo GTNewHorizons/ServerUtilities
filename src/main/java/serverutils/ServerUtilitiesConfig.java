@@ -173,6 +173,10 @@ public class ServerUtilitiesConfig {
         @Config.Comment("Adds ~ to player names that have changed nickname to prevent trolling.")
         @Config.DefaultBoolean(false)
         public boolean add_nickname_tilde;
+
+        @Config.Comment("Replaces player names in the TAB screen with the names used in chat.")
+        @Config.DefaultBoolean(true)
+        public boolean replace_tab_names;
     }
 
     public static class Commands {
