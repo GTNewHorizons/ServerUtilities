@@ -115,40 +115,18 @@ public class GuiSidebar extends GuiButton {
             }
         }
 
-        if (mouseOver != null) {
-            int mx1 = mx + 10;
-            int my1 = Math.max(3, my - 9);
-
-            List<String> list = new ArrayList<>();
-            list.add(StatCollector.translateToLocal(mouseOver.button.getLangKey()));
-
-            if (mouseOver.button.isDisabled()) {
-                list.add(EnumChatFormatting.RED + ClientUtils.getDisabledTip());
-            }
-
-            if (mouseOver.button.getTooltipHandler() != null) {
-                mouseOver.button.getTooltipHandler().accept(list);
-            }
-
-            int tw = 0;
-
-            for (String s : list) {
-                tw = Math.max(tw, font.getStringWidth(s));
-            }
-
-            Color4I.DARK_GRAY.draw(mx1 - 3, my1 - 2, tw + 6, 2 + list.size() * 10);
-
-            for (int i = 0; i < list.size(); i++) {
-                font.drawString(list.get(i), mx1, my1 + i * 10, 0xFFFFFFFF);
-            }
-        }
-
         GlStateManager.color(1F, 1F, 1F, 1F);
         GlStateManager.disableDepth();
         GlStateManager.popMatrix();
         zLevel = 0F;
 
         lastDrawnArea = new Rectangle(xPosition, yPosition, width, height);
+    }
+
+    public void addTooltip(List<String> textLines) {
+        if (mouseOver != null) {
+            mouseOver.addTooltip(textLines);
+        }
     }
 
     @Override
@@ -213,7 +191,7 @@ public class GuiSidebar extends GuiButton {
                         rx++;
                         addedAny = true;
                     }
-                };
+                }
 
                 if (placement != EnumPlacement.GROUPED) {
                     if (ry >= max) {
@@ -285,6 +263,18 @@ public class GuiSidebar extends GuiButton {
             buttonX = x;
             buttonY = y;
             button = b;
+        }
+
+        public void addTooltip(List<String> textLines) {
+            textLines.add(StatCollector.translateToLocal(button.getLangKey()));
+
+            if (button.isDisabled()) {
+                textLines.add(EnumChatFormatting.RED + ClientUtils.getDisabledTip());
+            }
+
+            if (button.getTooltipHandler() != null) {
+                button.getTooltipHandler().accept(textLines);
+            }
         }
     }
 }
