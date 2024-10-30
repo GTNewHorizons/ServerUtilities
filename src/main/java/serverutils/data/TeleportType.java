@@ -1,6 +1,7 @@
 package serverutils.data;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import serverutils.ServerUtilitiesPermissions;
 
@@ -18,27 +19,28 @@ public enum TeleportType {
             ServerUtilitiesPermissions.TPA_COOLDOWN),
     RTP(ServerUtilitiesPermissions.RTP_BACK, ServerUtilitiesPermissions.RTP_WARMUP,
             ServerUtilitiesPermissions.RTP_COOLDOWN),
-    RESPAWN(ServerUtilitiesPermissions.RESPAWN_BACK, null, null);
+    RESPAWN(ServerUtilitiesPermissions.RESPAWN_BACK, null, null),
+    VANILLA_TP(ServerUtilitiesPermissions.VANILLA_TP_BACK, null, null);
 
-    private String permission;
-    private String warmup;
-    private String cooldown;
+    private final String permission;
+    private final String warmup;
+    private final String cooldown;
 
-    TeleportType(String node, @Nullable String warmup, @Nullable String cooldown) {
+    TeleportType(@NotNull String node, @Nullable String warmup, @Nullable String cooldown) {
         this.permission = node;
         this.warmup = warmup;
         this.cooldown = cooldown;
     }
 
-    public String getPermission() {
+    public @NotNull String getPermission() {
         return this.permission;
     }
 
-    public String getWarmupPermission() {
+    public @Nullable String getWarmupPermission() {
         return this.warmup;
     }
 
-    public String getCooldownPermission() {
+    public @Nullable String getCooldownPermission() {
         return this.cooldown;
     }
 }
