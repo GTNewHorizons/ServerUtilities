@@ -4,7 +4,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 
-import serverutils.ServerUtilitiesCommon;
+import serverutils.ServerUtilitiesRegistry;
 import serverutils.lib.data.Action;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
@@ -44,7 +44,7 @@ public class MessageMyTeamAction extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
-        Action a = ServerUtilitiesCommon.TEAM_GUI_ACTIONS.get(action);
+        Action a = ServerUtilitiesRegistry.TEAM_GUI_ACTIONS.get(action);
 
         if (a != null) {
             ForgePlayer p = Universe.get().getPlayer(player);

@@ -12,7 +12,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesCommon;
+import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.NodeEntry;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
@@ -41,7 +41,7 @@ public class CmdDumpPermissions extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
         File permFile = MinecraftServer.getServer().getFile(ServerUtilities.SERVER_FOLDER + "all_permissions.txt");
-        List<NodeEntry> permNodes = new ArrayList<>(ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY);
+        List<NodeEntry> permNodes = new ArrayList<>(ServerUtilitiesPermissions.getPrefixes());
         FileUtils.delete(permFile);
 
         int nodeCount = 0;
@@ -52,7 +52,7 @@ public class CmdDumpPermissions extends CmdBase {
 
             boolean printNode = true;
 
-            for (NodeEntry cprefix : ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY) {
+            for (NodeEntry cprefix : ServerUtilitiesPermissions.getPrefixes()) {
                 if (s.startsWith(cprefix.getNode())) {
                     if (cprefix.level != null && level == cprefix.level && desc.isEmpty()) {
                         printNode = false;
