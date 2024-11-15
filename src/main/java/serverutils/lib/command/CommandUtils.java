@@ -163,16 +163,12 @@ public class CommandUtils {
 
     public static IChatComponent getTranslatedUsage(ICommand command, ICommandSender sender) {
         String usageS = command.getCommandUsage(sender);
-        IChatComponent usage;
-        if (usageS == null || usageS.isEmpty()
-                || usageS.indexOf('/') != -1
-                || usageS.indexOf('%') != -1
-                || usageS.indexOf(' ') != -1) {
-            usage = new ChatComponentText(usageS);
-        } else {
-            usage = new ChatComponentTranslation(usageS);
+        if (usageS == null) usageS = "";
+        if (usageS.isEmpty() || usageS.indexOf('/') != -1 || usageS.indexOf('%') != -1 || usageS.indexOf(' ') != -1) {
+            return new ChatComponentText(usageS);
         }
-        return usage;
+
+        return new ChatComponentTranslation(usageS);
     }
 
     public static Collection<ICommand> getAllCommands(ICommandSender sender) {
