@@ -1,5 +1,8 @@
 package serverutils.lib.icon;
 
+import static com.gtnewhorizon.gtnhlib.client.lwjgl3.MemoryStack.stackPush;
+
+import com.gtnewhorizon.gtnhlib.client.lwjgl3.MemoryStack;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.geom.AffineTransform;
@@ -156,19 +159,21 @@ public class IconRenderer {
             GlStateManager.popMatrix();
 
             try {
-                ByteBuffer buf = BufferUtils.createByteBuffer(size * size * 4);
-                GL11.glReadBuffer(GL11.GL_BACK);
-                GlStateManager.glGetError(); // FIXME: For some reason it throws error here, but it still works. Calling
-                // this to not spam console
-                GL11.glReadPixels(
-                        0,
-                        Minecraft.getMinecraft().displayHeight - size,
-                        size,
-                        size,
-                        GL12.GL_BGRA,
-                        GL11.GL_UNSIGNED_BYTE,
-                        buf);
-                buf.asIntBuffer().get(pixels);
+                try (MemoryStack stack = stackPush()) {
+                    ByteBuffer buf = stack.malloc(size * size * 4);
+                    GL11.glReadBuffer(GL11.GL_BACK);
+                    GlStateManager.glGetError(); // FIXME: For some reason it throws error here, but it still works. Calling
+                    // this to not spam console
+                    GL11.glReadPixels(
+                            0,
+                            Minecraft.getMinecraft().displayHeight - size,
+                            size,
+                            size,
+                            GL12.GL_BGRA,
+                            GL11.GL_UNSIGNED_BYTE,
+                            buf);
+                    buf.asIntBuffer().get(pixels);
+                }
                 img.setRGB(0, 0, size, size, pixels, 0, size);
                 BufferedImage flipped = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g = flipped.createGraphics();
