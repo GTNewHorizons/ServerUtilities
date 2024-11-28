@@ -64,7 +64,6 @@ public class Ranks {
     private Collection<String> permissionNodes;
     public final Map<UUID, PlayerRank> playerRanks;
     private Optional<Rank> defaultPlayerRank, defaultOPRank;
-    public final Map<String, CommandOverride> commands;
     private File ranksFile, playersFile;
 
     public Ranks(Universe u) {
@@ -75,7 +74,6 @@ public class Ranks {
         playerRanks = new LinkedHashMap<>();
         defaultPlayerRank = null;
         defaultOPRank = null;
-        commands = new LinkedHashMap<>();
         ranksFile = null;
         playersFile = null;
     }
@@ -554,7 +552,6 @@ public class Ranks {
                 permissionNodes.add(info.node);
             }
 
-            permissionNodes.addAll(commands.keySet());
             permissionNodes = Arrays.asList(permissionNodes.toArray(StringUtils.EMPTY_ARRAY));
         }
 

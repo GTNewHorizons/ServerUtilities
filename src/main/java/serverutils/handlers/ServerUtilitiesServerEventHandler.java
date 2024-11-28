@@ -30,6 +30,7 @@ import serverutils.events.universe.UniverseClearCacheEvent;
 import serverutils.lib.EnumMessageLocation;
 import serverutils.lib.config.ConfigEnum;
 import serverutils.lib.config.RankConfigAPI;
+import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.ServerUtils;
@@ -39,6 +40,7 @@ import serverutils.lib.util.text_components.Notification;
 import serverutils.lib.util.text_components.TextComponentParser;
 import serverutils.net.MessageUpdatePlayTime;
 import serverutils.pregenerator.ChunkLoaderManager;
+import serverutils.net.MessageUpdateTabName;
 import serverutils.ranks.Ranks;
 
 public class ServerUtilitiesServerEventHandler {
@@ -177,7 +179,8 @@ public class ServerUtilitiesServerEventHandler {
                 }
 
                 if (afkEnabled) {
-                    ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(universe.getPlayer(player));
+                    ForgePlayer forgePlayer = universe.getPlayer(player);
+                    ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(forgePlayer);
                     boolean prevIsAfk = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
                     data.afkTime = System.currentTimeMillis() - player.func_154331_x();
                     boolean isAFK = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
@@ -187,6 +190,10 @@ public class ServerUtilitiesServerEventHandler {
                     }
 
                     if (prevIsAfk != isAFK) {
+                        if (ServerUtilitiesConfig.chat.replace_tab_names) {
+                            new MessageUpdateTabName(forgePlayer).sendToAll();
+                        }
+
                         for (EntityPlayerMP player1 : universe.server.getConfigurationManager().playerEntityList) {
                             EnumMessageLocation location = ServerUtilitiesPlayerData.get(universe.getPlayer(player1))
                                     .getAFKMessageLocation();

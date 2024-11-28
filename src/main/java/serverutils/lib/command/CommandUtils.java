@@ -1,10 +1,11 @@
 package serverutils.lib.command;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.OptionalInt;
-import java.util.Set;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
@@ -25,6 +26,8 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.math.MathUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.permission.PermissionAPI;
+import serverutils.ranks.ICommandWithPermission;
+import serverutils.ranks.Ranks;
 
 public class CommandUtils {
 
@@ -160,28 +163,30 @@ public class CommandUtils {
 
     public static IChatComponent getTranslatedUsage(ICommand command, ICommandSender sender) {
         String usageS = command.getCommandUsage(sender);
-        IChatComponent usage;
-        if (usageS == null || usageS.isEmpty()
-                || usageS.indexOf('/') != -1
-                || usageS.indexOf('%') != -1
-                || usageS.indexOf(' ') != -1) {
-            usage = new ChatComponentText(usageS);
-        } else {
-            usage = new ChatComponentTranslation(usageS);
+        if (usageS == null) usageS = "";
+        if (usageS.isEmpty() || usageS.indexOf('/') != -1 || usageS.indexOf('%') != -1 || usageS.indexOf(' ') != -1) {
+            return new ChatComponentText(usageS);
         }
-        return usage;
+
+        return new ChatComponentTranslation(usageS);
     }
 
-    public static List<ICommand> getAllCommands(ICommandSender sender) {
-        ArrayList<ICommand> commands = new ArrayList<>();
-        Set<String> cmdIds = new HashSet<>();
+    public static Collection<ICommand> getAllCommands(ICommandSender sender) {
+        return new HashSet<>(ServerUtils.getServer().getCommandManager().getPossibleCommands(sender));
+    }
 
-        for (ICommand cmd : ServerUtils.getServer().getCommandManager().getPossibleCommands(sender)) {
-            if (cmdIds.add(cmd.getCommandName())) {
-                commands.add(cmd);
+    public static List<ICommandWithPermission> getPermissionCommands(ICommandSender sender) {
+        if (!Ranks.isActive()) return Collections.emptyList();
+        List<ICommandWithPermission> list = new ArrayList<>();
+        for (ICommand cmd : getAllCommands(sender)) {
+            ICommandWithPermission command = (ICommandWithPermission) cmd;
+            if (command instanceof CommandTreeBase tree) {
+                for (ICommand child : tree.getSubCommands()) {
+                    list.add((ICommandWithPermission) child);
+                }
             }
+            list.add(command);
         }
-
-        return commands;
+        return list;
     }
 }

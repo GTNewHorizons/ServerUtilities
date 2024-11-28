@@ -6,6 +6,7 @@ import java.util.Map;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import cpw.mods.fml.relauncher.Side;
@@ -17,6 +18,7 @@ import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToClient;
 import serverutils.lib.net.NetworkWrapper;
+import serverutils.ranks.ICommandWithPermission;
 
 public class MessageCommandsResponse extends MessageToClient {
 
@@ -41,6 +43,11 @@ public class MessageCommandsResponse extends MessageToClient {
                 builder.append("]");
                 IChatComponent subCommands = new ChatComponentText(builder.toString());
                 usage.appendSibling(subCommands);
+            }
+            if (command instanceof ICommandWithPermission cmd) {
+                usage.appendText("\n").appendSibling(
+                        new ChatComponentText(
+                                ("Added by: " + EnumChatFormatting.GOLD + cmd.serverutilities$getModName())));
             }
             commands.put(command.getCommandName(), usage);
         }

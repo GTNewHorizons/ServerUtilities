@@ -4,9 +4,6 @@ import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.ITextureObject;
-import net.minecraft.client.renderer.texture.SimpleTexture;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 
 import com.google.common.base.Objects;
@@ -14,7 +11,6 @@ import com.google.common.base.Objects;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.ServerUtilities;
-import serverutils.lib.client.GlStateManager;
 import serverutils.lib.client.IPixelBuffer;
 import serverutils.lib.client.PixelBuffer;
 import serverutils.lib.gui.GuiHelper;
@@ -64,15 +60,7 @@ public class ImageIcon extends Icon {
     @Override
     @SideOnly(Side.CLIENT)
     public void bindTexture() {
-        TextureManager manager = Minecraft.getMinecraft().getTextureManager();
-        ITextureObject tex = manager.getTexture(texture);
-
-        if (tex == null) {
-            tex = new SimpleTexture(texture);
-            manager.loadTexture(texture, tex);
-        }
-
-        GlStateManager.bindTexture(tex.getGlTextureId());
+        Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
     }
 
     @Override

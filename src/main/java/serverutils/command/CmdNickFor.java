@@ -5,11 +5,13 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.util.EnumChatFormatting;
 
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.util.StringUtils;
+import serverutils.net.MessageUpdateTabName;
 
 public class CmdNickFor extends CmdBase {
 
@@ -35,6 +37,10 @@ public class CmdNickFor extends CmdBase {
             }
 
             sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.nickname_changed", name));
+        }
+
+        if (ServerUtilitiesConfig.chat.replace_tab_names) {
+            new MessageUpdateTabName(player).sendToAll();
         }
     }
 }

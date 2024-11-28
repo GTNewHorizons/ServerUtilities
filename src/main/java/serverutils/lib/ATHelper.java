@@ -1,12 +1,9 @@
 package serverutils.lib;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.command.CommandHandler;
-import net.minecraft.command.ICommand;
 import net.minecraft.event.ClickEvent;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.inventory.Container;
@@ -29,11 +26,6 @@ public final class ATHelper {
         return formatting.formattingCode;
     }
 
-    @SuppressWarnings("unchecked")
-    public static Set<ICommand> getCommandSet(CommandHandler handler) {
-        return handler.commandSet;
-    }
-
     public static boolean areCommandsAllowedForAll(ServerConfigurationManager ServerConfigurationManager) {
         return ServerConfigurationManager.commandsAllowedForAll;
     }
@@ -49,7 +41,7 @@ public final class ATHelper {
     }
 
     @Nullable
-    public static Boolean getStriketrough(ChatStyle style) {
+    public static Boolean getStrikethrough(ChatStyle style) {
         return style.strikethrough;
     }
 

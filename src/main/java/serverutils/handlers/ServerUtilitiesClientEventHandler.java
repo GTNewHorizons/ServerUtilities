@@ -7,6 +7,7 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -60,6 +61,8 @@ public class ServerUtilitiesClientEventHandler {
     private static Temp currentNotification;
     public static boolean shouldRenderIcons = false;
     public static long shutdownTime = 0L;
+
+    private static final List<String> sidebarButtonTooltip = new ArrayList<>();
 
     public static void readSyncData(NBTTagCompound nbt) {
         shutdownTime = System.currentTimeMillis() + nbt.getLong("ShutdownTime");
@@ -279,6 +282,23 @@ public class ServerUtilitiesClientEventHandler {
                 }
                 ClientUtils.RUN_LATER.clear();
             }
+        }
+    }
+
+    /**
+     * Renders sidebar button tooltips outside of {@link GuiSidebar#drawButton} so that other screen elements don't draw
+     * over it.
+     */
+    @SubscribeEvent
+    public void onGuiScreenDraw(final GuiScreenEvent.DrawScreenEvent.Post event) {
+        if (ClientUtils.areButtonsVisible(event.gui)) {
+            event.gui.buttonList.forEach((GuiButton button) -> {
+                if (button instanceof GuiSidebar sidebar) {
+                    sidebarButtonTooltip.clear();
+                    sidebar.addTooltip(sidebarButtonTooltip);
+                    event.gui.func_146283_a(sidebarButtonTooltip, event.mouseX, event.mouseY);
+                }
+            });
         }
     }
 
