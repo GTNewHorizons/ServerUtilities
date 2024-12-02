@@ -24,7 +24,6 @@ public class ChunkLoader {
 
         ChunkProviderServer cps = server.worldServerForDimension(dimensionId).theChunkProviderServer;
         cps.loadChunk(x, z, () -> {
-            ChunkLoaderManager.instance.removeChunkFromList();
             this.fileManager.saveIteration(ChunkLoaderManager.instance.getChunkToLoadSize());
             loadIteration++;
             if (loadIteration % 100 == 0) {
