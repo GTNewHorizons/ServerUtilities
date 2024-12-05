@@ -54,7 +54,7 @@ public class CommandListPage extends HTTPWebPage {
         firstRow.th().text("Available command nodes");
         firstRow.th().text("Usage");
 
-        for (ICommandWithPermission cmd : CommandUtils.getPermissionCommands(server)) {
+        for (ICommandWithPermission cmd : CommandUtils.getPermissionCommands()) {
             Tag row = nodeTable.tr();
             row.td().paired("code", cmd.serverutilities$getPermissionNode());
         }
