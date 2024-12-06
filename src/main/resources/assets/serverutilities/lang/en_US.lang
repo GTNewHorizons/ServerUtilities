@@ -513,6 +513,12 @@ cmd.backup_manual_launch=%s launched a manual backup!
 cmd.backup_already_running=Backup in progress!
 cmd.backup_not_running=Backup is not running!
 cmd.backup_size=Current world size: %s, total backups folder size: %s
+serverutilities.gui.backup.title=Restore Backup (%s)
+serverutilities.gui.backup.button=Backups
+serverutilities.gui.backup.restore=Restore
+serverutilities.gui.backup.error=An error occured while restoring backup!
+serverutilities.gui.backup.delete_confirm=Are you sure you want to §c§ldelete§r this backup?
+serverutilities.gui.backup.restore_confirm=Are you sure you want to §a§lrestore§r this backup?
 
 # Gui
 ## Buttons

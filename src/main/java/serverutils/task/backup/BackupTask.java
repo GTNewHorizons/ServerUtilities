@@ -27,20 +27,16 @@ import serverutils.data.ClaimedChunks;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
-import serverutils.lib.util.CommonUtils;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
-import serverutils.lib.util.compression.CommonsCompressor;
 import serverutils.lib.util.compression.ICompress;
-import serverutils.lib.util.compression.LegacyCompressor;
 import serverutils.task.Task;
 
 public class BackupTask extends Task {
 
     public static final Pattern BACKUP_NAME_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
-    private static final boolean useLegacy;
-    public static File backupsFolder;
+    public static final File BACKUP_FOLDER;
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
     private ICommandSender sender;
@@ -48,12 +44,10 @@ public class BackupTask extends Task {
     private boolean post = false;
 
     static {
-        backupsFolder = backups.backup_folder_path.isEmpty() ? new File("/backups/")
-                : new File(backups.backup_folder_path);
-        if (!backupsFolder.exists()) backupsFolder.mkdirs();
+        BACKUP_FOLDER = FileUtils.newFile(
+                backups.backup_folder_path.isEmpty() ? new File("/backups/") : new File(backups.backup_folder_path));
         clearOldBackups();
-        ServerUtilities.LOGGER.info("Backups folder - {}", backupsFolder.getAbsolutePath());
-        useLegacy = !CommonUtils.getClassExists("org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream");
+        ServerUtilities.LOGGER.info("Backups folder - {}", BACKUP_FOLDER.getAbsolutePath());
     }
 
     public BackupTask() {
@@ -105,21 +99,15 @@ public class BackupTask extends Task {
             ServerUtilities.LOGGER.info("An error occurred while turning off auto-save.", ex);
         }
 
-        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
-
         Set<ChunkDimPos> backupChunks = new HashSet<>();
         if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
             backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
+            // noinspection ResultOfMethodCallIgnored
             BACKUP_TEMP_FOLDER.mkdirs();
         }
 
-        ICompress compressor;
-        if (useLegacy) {
-            compressor = new LegacyCompressor();
-        } else {
-            compressor = new CommonsCompressor();
-        }
-
+        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
+        ICompress compressor = ICompress.createCompressor();
         if (backups.use_separate_thread) {
             thread = new ThreadBackup(compressor, worldDir, customName, backupChunks);
             thread.start();
@@ -130,7 +118,7 @@ public class BackupTask extends Task {
     }
 
     public static void clearOldBackups() {
-        File[] files = backupsFolder.listFiles();
+        File[] files = BACKUP_FOLDER.listFiles();
         if (files == null || files.length == 0) return;
 
         List<File> backupFiles = Arrays.stream(files).filter(
