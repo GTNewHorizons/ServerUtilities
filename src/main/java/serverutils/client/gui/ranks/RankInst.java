@@ -19,7 +19,7 @@ public class RankInst extends FinalIDObject {
 
     public static final DataIn.Deserializer<RankInst> DESERIALIZER = data -> {
         RankInst inst = new RankInst(data.readString());
-        inst.parents = data.readCollection(DataIn.STRING);
+        inst.parents = new HashSet<>(data.readCollection(DataIn.STRING));
         inst.player = data.readString();
         inst.group = ConfigGroup.DESERIALIZER.read(data);
         return inst;
