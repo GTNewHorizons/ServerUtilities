@@ -1,5 +1,7 @@
 package serverutils.command;
 
+import java.util.Collections;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.EnumChatFormatting;
@@ -48,7 +50,7 @@ public class CmdNick extends CmdBase {
         }
 
         if (ServerUtilitiesConfig.chat.replace_tab_names) {
-            new MessageUpdateTabName(player).sendToAll();
+            new MessageUpdateTabName(Collections.singleton(player)).sendToAll();
         }
     }
 }
