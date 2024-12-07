@@ -6,10 +6,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Enumeration;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
+import javax.annotation.Nullable;
+
+import net.minecraftforge.common.DimensionManager;
+
 import org.apache.commons.io.IOUtils;
+
+import serverutils.lib.util.FileUtils;
 
 public class LegacyCompressor implements ICompress {
 
@@ -17,14 +27,17 @@ public class LegacyCompressor implements ICompress {
 
     @Override
     public void createOutputStream(File file) throws IOException {
-        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(file));
+        output = new ZipOutputStream(new FileOutputStream(file));
         if (backups.compression_level == 0) {
-            zos.setMethod(ZipOutputStream.STORED);
+            output.setMethod(ZipOutputStream.STORED);
         } else {
-            zos.setLevel(backups.compression_level);
+            output.setLevel(backups.compression_level);
         }
 
-        output = zos;
+        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
+        if (worldDir != null) {
+            output.setComment(worldDir.getName());
+        }
     }
 
     @Override
@@ -35,6 +48,31 @@ public class LegacyCompressor implements ICompress {
             IOUtils.copy(fis, output);
         }
         output.closeEntry();
+    }
+
+    @Override
+    public void extractArchive(File archive, File dest) throws IOException {
+        try (ZipFile zip = new ZipFile(archive)) {
+            Enumeration<? extends ZipEntry> entries = zip.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                InputStream in = zip.getInputStream(entry);
+                File file = FileUtils.newFile(new File(dest, entry.getName()));
+                OutputStream out = new FileOutputStream(file);
+                IOUtils.copy(in, out);
+
+                in.close();
+                out.close();
+            }
+        }
+    }
+
+    @Override
+    public @Nullable String getWorldName(File file) throws IOException {
+        if (file.isDirectory() || !file.getName().endsWith(".zip")) return null;
+        try (ZipFile zipFile = new ZipFile(file)) {
+            return zipFile.getComment();
+        }
     }
 
     @Override

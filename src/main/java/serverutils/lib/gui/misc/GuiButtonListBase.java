@@ -21,7 +21,46 @@ public abstract class GuiButtonListBase extends GuiBase {
     private int borderH, borderV, borderW;
 
     public GuiButtonListBase() {
-        panelButtons = new Panel(this) {
+        panelButtons = createButtonPanel();
+        scrollBar = new PanelScrollBar(this, panelButtons);
+        scrollBar.setCanAlwaysScroll(true);
+        scrollBar.setScrollStep(20);
+
+        searchBox = new TextBox(this) {
+
+            @Override
+            public void onTextChanged() {
+                panelButtons.refreshWidgets();
+            }
+        };
+
+        searchBox.ghostText = I18n.format("gui.search_box");
+        hasSearchBox = false;
+    }
+
+    public void setHasSearchBox(boolean v) {
+        if (hasSearchBox != v) {
+            hasSearchBox = v;
+            refreshWidgets();
+        }
+    }
+
+    public String getFilterText(Widget widget) {
+        return widget.getTitle().toLowerCase();
+    }
+
+    @Override
+    public void addWidgets() {
+        add(panelButtons);
+        add(scrollBar);
+
+        if (hasSearchBox) {
+            add(searchBox);
+        }
+    }
+
+    protected Panel createButtonPanel() {
+        return (Panel) new Panel(GuiButtonListBase.this) {
 
             @Override
             public void add(Widget widget) {
@@ -78,45 +117,7 @@ public abstract class GuiButtonListBase extends GuiBase {
             public void drawBackground(Theme theme, int x, int y, int w, int h) {
                 theme.drawPanelBackground(x, y, w, h);
             }
-        };
-
-        panelButtons.setPosAndSize(9, 9, 0, 146);
-
-        scrollBar = new PanelScrollBar(this, panelButtons);
-        scrollBar.setCanAlwaysScroll(true);
-        scrollBar.setScrollStep(20);
-
-        searchBox = new TextBox(this) {
-
-            @Override
-            public void onTextChanged() {
-                panelButtons.refreshWidgets();
-            }
-        };
-
-        searchBox.ghostText = I18n.format("gui.search_box");
-        hasSearchBox = false;
-    }
-
-    public void setHasSearchBox(boolean v) {
-        if (hasSearchBox != v) {
-            hasSearchBox = v;
-            refreshWidgets();
-        }
-    }
-
-    public String getFilterText(Widget widget) {
-        return widget.getTitle().toLowerCase();
-    }
-
-    @Override
-    public void addWidgets() {
-        add(panelButtons);
-        add(scrollBar);
-
-        if (hasSearchBox) {
-            add(searchBox);
-        }
+        }.setPosAndSize(9, 9, 0, 146);
     }
 
     @Override
