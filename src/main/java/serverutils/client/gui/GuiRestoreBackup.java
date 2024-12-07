@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -18,11 +20,13 @@ import net.minecraftforge.client.event.GuiScreenEvent;
 
 import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 
+import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.ReflectionHelper;
 import cpw.mods.fml.relauncher.Side;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
@@ -45,8 +49,8 @@ import serverutils.task.backup.BackupTask;
 public class GuiRestoreBackup extends GuiButtonListBase {
 
     private static final Set<File> allBackupFiles = new ObjectOpenHashSet<>();
-    private static Object2ObjectMap<String, Set<File>> worldBackups;
-    private final Set<File> backupFiles;
+    private static Object2ObjectMap<String, List<File>> worldBackups;
+    private final List<File> backupFiles;
     private final String title;
     private final Button backButton, recreateWorldButton;
     private final String worldName;
@@ -55,6 +59,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         this.worldName = worldName;
         this.backupFiles = worldBackups.get(worldName);
         this.title = StatCollector.translateToLocalFormatted("serverutilities.gui.backup.title", worldName);
+        backupFiles.sort(Comparator.comparing(File::lastModified).reversed());
         backButton = new SimpleTextButton(this, StatCollector.translateToLocal("gui.cancel"), GuiIcons.CANCEL) {
 
             @Override
@@ -84,7 +89,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         };
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unchecked")
     public static void onGuiInit(GuiScreenEvent.InitGuiEvent.Post event) {
         if (!ServerUtilitiesConfig.backups.enable_backups) return;
@@ -131,7 +136,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
             try {
                 String worldName = compressor.getWorldName(file);
                 if (worldName == null) continue;
-                worldBackups.computeIfAbsent(worldName, k -> new ObjectOpenHashSet<>()).add(file);
+                worldBackups.computeIfAbsent(worldName, k -> new ObjectArrayList<>()).add(file);
             } catch (IOException ignored) {}
         }
     }
