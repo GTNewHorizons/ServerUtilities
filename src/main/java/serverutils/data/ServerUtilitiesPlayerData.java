@@ -36,6 +36,8 @@ import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 import serverutils.lib.util.text_components.TextComponentParser;
+import serverutils.net.MessageUpdateTabName;
+import serverutils.ranks.Ranks;
 import serverutils.task.Task;
 import serverutils.task.TeleportTask;
 
@@ -215,13 +217,20 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         cachedNameForChat = null;
         if (player.isFake()) return;
         EntityPlayerMP p = player.getNullablePlayer();
+        if (p == null) return;
 
-        if (p != null) {
-            p.refreshDisplayName();
+        p.refreshDisplayName();
+        if (ServerUtilitiesConfig.chat.replace_tab_names) {
+            getNameForChat();
         }
     }
 
-    public IChatComponent getNameForChat(EntityPlayerMP playerMP) {
+    public IChatComponent getNameForChat() {
+        EntityPlayerMP playerMP = player.getNullablePlayer();
+        if (playerMP == null) {
+            return new ChatComponentText("");
+        }
+
         if (ServerUtils.isFake(playerMP)) {
             return new ChatComponentText(player.getName());
         }
@@ -230,18 +239,22 @@ public class ServerUtilitiesPlayerData extends PlayerData {
             return cachedNameForChat.createCopy();
         }
 
-        String text = player.getRankConfig(ServerUtilitiesPermissions.CHAT_NAME_FORMAT).getString();
+        if (Ranks.isActive() && ServerUtilitiesConfig.ranks.override_chat) {
+            String text = player.getRankConfig(ServerUtilitiesPermissions.CHAT_NAME_FORMAT).getString();
 
-        try {
-            cachedNameForChat = TextComponentParser
-                    .parse(text, ServerUtilitiesCommon.chatFormattingSubstituteFunction(player));
-        } catch (Exception ex) {
-            String s = "Error parsing " + text + ": " + ex.getLocalizedMessage();
-            ServerUtilities.LOGGER.error(s);
-            cachedNameForChat = new ChatComponentText("BrokenFormatting");
-            cachedNameForChat.getChatStyle().setColor(EnumChatFormatting.RED);
-            cachedNameForChat.getChatStyle()
-                    .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(s)));
+            try {
+                cachedNameForChat = TextComponentParser
+                        .parse(text, ServerUtilitiesCommon.chatFormattingSubstituteFunction(player));
+            } catch (Exception ex) {
+                String s = "Error parsing " + text + ": " + ex.getLocalizedMessage();
+                ServerUtilities.LOGGER.error(s);
+                cachedNameForChat = new ChatComponentText("BrokenFormatting");
+                cachedNameForChat.getChatStyle().setColor(EnumChatFormatting.RED);
+                cachedNameForChat.getChatStyle()
+                        .setChatHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(s)));
+            }
+        } else {
+            cachedNameForChat = new ChatComponentText(player.getDisplayNameString());
         }
 
         if (ServerUtilitiesConfig.teams.force_team_prefix || showTeamPrefix) {
@@ -254,6 +267,11 @@ public class ServerUtilitiesPlayerData extends PlayerData {
             IChatComponent rec = new ChatComponentText("\u25A0 ");
             rec.getChatStyle().setColor(EnumChatFormatting.RED);
             cachedNameForChat = new ChatComponentText("").appendSibling(rec).appendSibling(cachedNameForChat);
+        }
+
+        if (ServerUtilitiesConfig.chat.replace_tab_names
+                && !cachedNameForChat.getUnformattedText().equals(player.getName())) {
+            new MessageUpdateTabName(player, cachedNameForChat).sendToAll();
         }
 
         cachedNameForChat.appendText(" ");

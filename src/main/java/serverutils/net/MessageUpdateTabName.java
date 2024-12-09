@@ -10,8 +10,6 @@ import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiPlayerInfo;
 import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
@@ -25,7 +23,6 @@ import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToClient;
 import serverutils.lib.net.NetworkWrapper;
-import serverutils.ranks.Ranks;
 
 public class MessageUpdateTabName extends MessageToClient {
 
@@ -35,19 +32,16 @@ public class MessageUpdateTabName extends MessageToClient {
 
     public MessageUpdateTabName(Collection<ForgePlayer> players) {
         for (ForgePlayer player : players) {
-            EntityPlayerMP playerMP = player.getPlayer();
-            String name = playerMP.getCommandSenderName();
             ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(player);
             boolean afk = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
-            IChatComponent displayComponent;
-            if (Ranks.isActive()) {
-                displayComponent = data.getNameForChat(playerMP);
-            } else {
-                displayComponent = new ChatComponentText(playerMP.getDisplayName());
-            }
-
-            entries.add(new TabNameEntry(name, displayComponent, afk));
+            entries.add(new TabNameEntry(player.getName(), data.getNameForChat(), afk));
         }
+    }
+
+    public MessageUpdateTabName(ForgePlayer player, IChatComponent displayName) {
+        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(player);
+        boolean afk = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
+        entries.add(new TabNameEntry(player.getName(), displayName, afk));
     }
 
     @Override

@@ -1,7 +1,5 @@
 package serverutils.handlers;
 
-import java.util.Collections;
-
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -93,7 +91,6 @@ public class ServerUtilitiesPlayerEventHandler {
         }
 
         if (ServerUtilitiesConfig.chat.replace_tab_names) {
-            new MessageUpdateTabName(Collections.singleton(event.getPlayer())).sendToAll();
             new MessageUpdateTabName(Universe.get().getOnlinePlayers()).sendTo(player);
         }
 
