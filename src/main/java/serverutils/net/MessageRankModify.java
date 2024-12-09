@@ -2,7 +2,9 @@ package serverutils.net;
 
 import static serverutils.ServerUtilitiesPermissions.RANK_EDIT;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentText;
@@ -86,12 +88,14 @@ public class MessageRankModify extends MessageToServer {
         }
 
         if (ServerUtilitiesConfig.chat.replace_tab_names && updateNames) {
+            List<ForgePlayer> toUpdate = new ArrayList<>();
             for (PlayerRank playerRank : Ranks.INSTANCE.playerRanks.values()) {
                 if (!playerRank.getParents().contains(rank)) continue;
                 ForgePlayer fp = Universe.get().getPlayer(playerRank.profile);
                 if (fp == null || !fp.isOnline()) continue;
-                new MessageUpdateTabName(fp).sendToAll();
+                toUpdate.add(fp);
             }
+            new MessageUpdateTabName(toUpdate).sendToAll();
         }
     }
 }
