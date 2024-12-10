@@ -79,7 +79,7 @@ public class ServerUtilitiesServerEventHandler {
 
         IChatComponent main = new ChatComponentText("");
         ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(Universe.get().getPlayer(player));
-        main.appendSibling(data.getNameForChat(player));
+        main.appendSibling(data.getNameForChat());
 
         String message = event.message.trim();
 
