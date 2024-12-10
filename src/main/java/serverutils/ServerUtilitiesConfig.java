@@ -271,14 +271,17 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Time between backups in hours. \n1.0 - backups every hour 6.0 - backups every 6 hours 0.5 - backups every 30 minutes.")
         @Config.DefaultDouble(0.5)
+        @Config.RangeDouble(min = 0)
         public double backup_timer;
 
         @Config.Comment("Number of backup files to keep before deleting old ones.")
         @Config.DefaultInt(12)
+        @Config.RangeInt(min = 1)
         public int backups_to_keep;
 
-        @Config.Comment("How much the backup file will be compressed. 1 - best speed 9 - smallest file size.")
+        @Config.Comment("How much the backup file will be compressed. 0 - uncompressed, 1 - best speed, 9 - smallest file size.")
         @Config.DefaultInt(1)
+        @Config.RangeInt(min = 0, max = 9)
         public int compression_level;
 
         @Config.Comment("Path to backups folder.")
@@ -305,6 +308,7 @@ public class ServerUtilitiesConfig {
                 Max size of backup folder in GB. If total folder size exceeds this value it will delete old backups until the size is under.
                 0 = Disabled and backups_to_keep will be used instead.""")
         @Config.DefaultInt(0)
+        @Config.RangeInt(min = 0)
         public int max_folder_size;
 
         @Config.Comment("Delete backups that have a custom name set through /backup start <name>")

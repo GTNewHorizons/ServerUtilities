@@ -1,13 +1,15 @@
 package serverutils.net;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiPlayerInfo;
 import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
@@ -21,26 +23,25 @@ import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToClient;
 import serverutils.lib.net.NetworkWrapper;
-import serverutils.ranks.Ranks;
 
 public class MessageUpdateTabName extends MessageToClient {
 
-    private String name;
-    private IChatComponent displayComponent;
-    private boolean afk;
+    private Collection<TabNameEntry> entries = new ArrayList<>();
 
     public MessageUpdateTabName() {}
 
-    public MessageUpdateTabName(ForgePlayer player) {
-        EntityPlayerMP playerMP = player.getPlayer();
-        name = playerMP.getCommandSenderName();
-        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(player);
-        afk = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
-        if (Ranks.isActive()) {
-            displayComponent = data.getNameForChat(playerMP);
-        } else {
-            displayComponent = new ChatComponentText(playerMP.getDisplayName());
+    public MessageUpdateTabName(Collection<ForgePlayer> players) {
+        for (ForgePlayer player : players) {
+            ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(player);
+            boolean afk = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
+            entries.add(new TabNameEntry(player.getName(), data.getNameForChat(), afk));
         }
+    }
+
+    public MessageUpdateTabName(ForgePlayer player, IChatComponent displayName) {
+        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(player);
+        boolean afk = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
+        entries.add(new TabNameEntry(player.getName(), displayName, afk));
     }
 
     @Override
@@ -50,16 +51,12 @@ public class MessageUpdateTabName extends MessageToClient {
 
     @Override
     public void writeData(DataOut data) {
-        data.writeString(name);
-        data.writeTextComponent(displayComponent);
-        data.writeBoolean(afk);
+        data.writeCollection(entries, TabNameEntry.SERIALIZER);
     }
 
     @Override
     public void readData(DataIn data) {
-        name = data.readString();
-        displayComponent = data.readTextComponent();
-        afk = data.readBoolean();
+        entries = data.readCollection(TabNameEntry.DESERIALIZER);
     }
 
     @Override
@@ -71,23 +68,51 @@ public class MessageUpdateTabName extends MessageToClient {
         // noinspection unchecked
         Map<String, GuiPlayerInfo> infoMap = (Map<String, GuiPlayerInfo>) handler.playerInfoMap;
         List<GuiPlayerInfo> infoList = handler.playerInfoList;
-        GuiPlayerInfo info = infoMap.get(name);
-        if (info == null) return;
 
-        String displayName = displayComponent.getFormattedText().replaceAll("[<>]", "");
+        for (TabNameEntry entry : entries) {
+            String name = entry.name;
+            GuiPlayerInfo info = infoMap.get(name);
+            if (info == null || entry.displayComponent == null) return;
 
-        if (afk) {
-            displayName = EnumChatFormatting.GRAY + "[AFK] " + EnumChatFormatting.RESET + displayName;
+            String displayName = entry.displayComponent.getFormattedText().replaceAll("[<>]", "");
+
+            if (entry.afk) {
+                displayName = EnumChatFormatting.GRAY + "[AFK] " + EnumChatFormatting.RESET + displayName;
+            }
+
+            if (info instanceof GuiPlayerInfoWrapper wrapper) {
+                wrapper.displayName = displayName;
+            } else {
+                infoMap.remove(name);
+                infoList.remove(info);
+                GuiPlayerInfoWrapper newInfo = new GuiPlayerInfoWrapper(info, displayName);
+                infoMap.put(name, newInfo);
+                infoList.add(newInfo);
+            }
+        }
+    }
+
+    private static class TabNameEntry {
+
+        private final String name;
+        private final IChatComponent displayComponent;
+        private final boolean afk;
+
+        public TabNameEntry(String name, @Nullable IChatComponent displayComponent, boolean afk) {
+            this.name = name;
+            this.displayComponent = displayComponent;
+            this.afk = afk;
         }
 
-        if (info instanceof GuiPlayerInfoWrapper wrapper) {
-            wrapper.displayName = displayName;
-        } else {
-            infoMap.remove(name);
-            infoList.remove(info);
-            GuiPlayerInfoWrapper newInfo = new GuiPlayerInfoWrapper(info, displayName);
-            infoMap.put(name, newInfo);
-            infoList.add(newInfo);
-        }
+        public static final DataOut.Serializer<TabNameEntry> SERIALIZER = (data, entry) -> {
+            data.writeString(entry.name);
+            data.writeTextComponent(entry.displayComponent);
+            data.writeBoolean(entry.afk);
+        };
+
+        public static final DataIn.Deserializer<TabNameEntry> DESERIALIZER = data -> new TabNameEntry(
+                data.readString(),
+                data.readTextComponent(),
+                data.readBoolean());
     }
 }

@@ -76,7 +76,7 @@ public class ThreadBackup extends Thread {
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
 
-            dstFile = FileUtils.newFile(new File(BackupTask.backupsFolder, outName));
+            dstFile = FileUtils.newFile(new File(BackupTask.BACKUP_FOLDER, outName));
             try (compressor) {
                 compressor.createOutputStream(dstFile);
                 if (!chunks.isEmpty() && backups.only_backup_claimed_chunks) {
@@ -90,7 +90,7 @@ public class ThreadBackup extends Thread {
                 ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
 
                 if (backups.display_file_size) {
-                    String sizeT = FileUtils.getSizeString(BackupTask.backupsFolder);
+                    String sizeT = FileUtils.getSizeString(BackupTask.BACKUP_FOLDER);
                     ServerUtilitiesNotifications.backupNotification(
                             BACKUP_END2,
                             "cmd.backup_end_2",

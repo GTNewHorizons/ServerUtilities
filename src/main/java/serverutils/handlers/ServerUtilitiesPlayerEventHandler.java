@@ -91,7 +91,7 @@ public class ServerUtilitiesPlayerEventHandler {
         }
 
         if (ServerUtilitiesConfig.chat.replace_tab_names) {
-            new MessageUpdateTabName(event.getPlayer()).sendToAll();
+            new MessageUpdateTabName(Universe.get().getOnlinePlayers()).sendTo(player);
         }
 
         BackupTask.hadPlayer = true;

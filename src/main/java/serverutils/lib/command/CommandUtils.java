@@ -20,6 +20,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.DimensionManager;
 
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
@@ -175,10 +176,10 @@ public class CommandUtils {
         return new HashSet<>(ServerUtils.getServer().getCommandManager().getPossibleCommands(sender));
     }
 
-    public static List<ICommandWithPermission> getPermissionCommands(ICommandSender sender) {
-        if (!Ranks.isActive()) return Collections.emptyList();
+    public static List<ICommandWithPermission> getPermissionCommands() {
+        if (!Ranks.isActive() || !ServerUtilitiesConfig.ranks.command_permissions) return Collections.emptyList();
         List<ICommandWithPermission> list = new ArrayList<>();
-        for (ICommand cmd : getAllCommands(sender)) {
+        for (ICommand cmd : ServerUtils.getServer().getCommandManager().getCommands().values()) {
             ICommandWithPermission command = (ICommandWithPermission) cmd;
             if (command instanceof CommandTreeBase tree) {
                 for (ICommand child : tree.getSubCommands()) {

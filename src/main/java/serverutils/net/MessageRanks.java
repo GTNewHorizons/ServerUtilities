@@ -131,7 +131,7 @@ public class MessageRanks extends MessageToClient {
 
         if (commandPermissions == null) {
             commandPermissions = ConfigGroup.newGroup("");
-            for (ICommandWithPermission command : CommandUtils.getPermissionCommands(p.getPlayer())) {
+            for (ICommandWithPermission command : CommandUtils.getPermissionCommands()) {
                 String node = command.serverutilities$getPermissionNode();
                 DefaultPermissionLevel level = DefaultPermissionHandler.INSTANCE.getDefaultPermissionLevel(node);
                 IChatComponent name = new ChatComponentText(

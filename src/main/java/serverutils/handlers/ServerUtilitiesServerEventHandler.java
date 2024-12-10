@@ -1,5 +1,6 @@
 package serverutils.handlers;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -79,7 +80,7 @@ public class ServerUtilitiesServerEventHandler {
 
         IChatComponent main = new ChatComponentText("");
         ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(Universe.get().getPlayer(player));
-        main.appendSibling(data.getNameForChat(player));
+        main.appendSibling(data.getNameForChat());
 
         String message = event.message.trim();
 
@@ -191,7 +192,7 @@ public class ServerUtilitiesServerEventHandler {
 
                     if (prevIsAfk != isAFK) {
                         if (ServerUtilitiesConfig.chat.replace_tab_names) {
-                            new MessageUpdateTabName(forgePlayer).sendToAll();
+                            new MessageUpdateTabName(Collections.singleton(forgePlayer)).sendToAll();
                         }
 
                         for (EntityPlayerMP player1 : universe.server.getConfigurationManager().playerEntityList) {
