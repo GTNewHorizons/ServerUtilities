@@ -1,13 +1,13 @@
 package serverutils.lib.command;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import net.minecraft.command.CommandHelp;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.util.StatCollector;
 
 public class CmdTreeHelp extends CommandHelp {
 
@@ -32,8 +32,13 @@ public class CmdTreeHelp extends CommandHelp {
             }
         }
 
-        Collections.sort(list);
+        list.sort(null);
         return list;
+    }
+
+    @Override
+    public String getCommandUsage(ICommandSender sender) {
+        return StatCollector.translateToLocal(parent.getCommandUsage(sender)) + " help";
     }
 
     @Override

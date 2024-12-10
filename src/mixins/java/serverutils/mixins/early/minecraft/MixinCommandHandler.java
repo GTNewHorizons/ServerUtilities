@@ -1,5 +1,8 @@
 package serverutils.mixins.early.minecraft;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
@@ -31,6 +34,9 @@ import serverutils.ranks.Ranks;
 @Mixin(CommandHandler.class)
 public abstract class MixinCommandHandler {
 
+    @Unique
+    private static final Matcher PERMISSION_REPLACE_MATCHER = Pattern.compile("[^a-zA-Z0-9._]").matcher("");
+
     @ModifyExpressionValue(
             method = { "getPossibleCommands(Lnet/minecraft/command/ICommandSender;)Ljava/util/List;",
                     "executeCommand" },
@@ -58,7 +64,7 @@ public abstract class MixinCommandHandler {
         String node = (container == null ? Rank.NODE_COMMAND : (Rank.NODE_COMMAND + '.' + container.getModId())) + "."
                 + command.getCommandName();
         ICommandWithPermission cmd = (ICommandWithPermission) command;
-        cmd.serverutilities$setPermissionNode(node.toLowerCase());
+        cmd.serverutilities$setPermissionNode(PERMISSION_REPLACE_MATCHER.reset(node.toLowerCase()).replaceAll("_"));
         cmd.serverutilities$setModName(container == null ? "Minecraft" : container.getName());
         serverUtilities$registerPermissions(cmd);
     }
