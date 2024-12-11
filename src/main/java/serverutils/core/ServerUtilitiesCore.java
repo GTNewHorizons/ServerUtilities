@@ -10,6 +10,7 @@ import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import serverutils.ServerUtilitiesConfig;
+import serverutils.aurora.AuroraConfig;
 import serverutils.mixin.Mixins;
 
 public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
@@ -17,6 +18,7 @@ public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader
     static {
         try {
             ConfigurationManager.registerConfig(ServerUtilitiesConfig.class);
+            ConfigurationManager.registerConfig(AuroraConfig.class);
         } catch (ConfigException e) {
             throw new RuntimeException(e);
         }

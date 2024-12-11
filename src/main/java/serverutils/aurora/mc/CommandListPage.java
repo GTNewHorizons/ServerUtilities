@@ -35,7 +35,7 @@ public class CommandListPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return AuroraConfig.command_list_page;
+        return AuroraConfig.pages.command_list_page;
     }
 
     @Override
