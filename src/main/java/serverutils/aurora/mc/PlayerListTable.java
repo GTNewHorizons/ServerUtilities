@@ -28,7 +28,7 @@ public class PlayerListTable extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return AuroraConfig.player_list_table;
+        return AuroraConfig.pages.player_list_table;
     }
 
     @Override

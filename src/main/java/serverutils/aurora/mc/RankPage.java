@@ -29,7 +29,7 @@ public class RankPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return AuroraConfig.player_rank_page;
+        return AuroraConfig.pages.player_rank_page;
     }
 
     @Override

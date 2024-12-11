@@ -50,7 +50,7 @@ public class PermissionListPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return AuroraConfig.permission_list_page;
+        return AuroraConfig.pages.permission_list_page;
     }
 
     @Override

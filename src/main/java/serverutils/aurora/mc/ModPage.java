@@ -26,7 +26,7 @@ public class ModPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return AuroraConfig.modlist_page;
+        return AuroraConfig.pages.modlist_page;
     }
 
     @Override
