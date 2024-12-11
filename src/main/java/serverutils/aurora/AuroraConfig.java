@@ -1,6 +1,7 @@
 package serverutils.aurora;
 
 import com.gtnewhorizon.gtnhlib.config.Config;
+
 import serverutils.ServerUtilities;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", filename = "aurora", configSubDirectory = "../serverutilities/")
@@ -10,6 +11,7 @@ public class AuroraConfig {
     public static final Pages pages = new Pages();
 
     public static class General {
+
         @Config.Comment("Enable the localhost server")
         @Config.DefaultBoolean(false)
         public boolean enable;
