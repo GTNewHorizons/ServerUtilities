@@ -17,9 +17,13 @@ import javax.annotation.Nullable;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
 
+import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
@@ -37,6 +41,7 @@ public class BackupTask extends Task {
     public static final Pattern BACKUP_NAME_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
     public static final File BACKUP_FOLDER;
+    private static final Int2BooleanMap dimSaveStates = new Int2BooleanArrayMap();
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
     private ICommandSender sender;
@@ -85,20 +90,29 @@ public class BackupTask extends Task {
             if (!hasOnlinePlayers(server) && !hadPlayer) return;
             hadPlayer = false;
         }
-        ServerUtilitiesNotifications.backupNotification(BACKUP_START, "cmd.backup_start");
 
+        dimSaveStates.clear();
         try {
             for (int i = 0; i < server.worldServers.length; ++i) {
-                if (server.worldServers[i] != null) {
-                    WorldServer worldserver = server.worldServers[i];
-                    worldserver.levelSaving = true;
-                    worldserver.saveAllChunks(true, null);
+                WorldServer world = server.worldServers[i];
+                if (world != null) {
+                    dimSaveStates.put(i, world.levelSaving);
+                    world.saveAllChunks(true, null);
+                    world.levelSaving = true;
                 }
             }
         } catch (Exception ex) {
-            ServerUtilities.LOGGER.info("An error occurred while turning off auto-save.", ex);
+            ServerUtils.notifyChat(
+                    server,
+                    null,
+                    new ChatComponentText(
+                            EnumChatFormatting.RED + "An error occurred while preparing backup. " + ex.getMessage()));
+            ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", ex);
+            return;
         }
 
+        server.getConfigurationManager().saveAllPlayerData();
+        ServerUtilitiesNotifications.backupNotification(BACKUP_START, "cmd.backup_start");
         Set<ChunkDimPos> backupChunks = new HashSet<>();
         if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
             backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
@@ -177,12 +191,14 @@ public class BackupTask extends Task {
             MinecraftServer server = ServerUtils.getServer();
 
             for (int i = 0; i < server.worldServers.length; ++i) {
-                if (server.worldServers[i] != null) {
-                    WorldServer worldserver = server.worldServers[i];
-
-                    if (worldserver.levelSaving) {
-                        worldserver.levelSaving = false;
+                WorldServer world = server.worldServers[i];
+                if (world != null) {
+                    if (dimSaveStates.containsKey(i)) {
+                        world.levelSaving = dimSaveStates.get(i);
+                    } else {
+                        world.levelSaving = false;
                     }
+
                 }
             }
         } catch (Exception ex) {
