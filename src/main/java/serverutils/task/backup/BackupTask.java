@@ -49,8 +49,9 @@ public class BackupTask extends Task {
     private boolean post = false;
 
     static {
-        BACKUP_FOLDER = FileUtils.newFile(
-                backups.backup_folder_path.isEmpty() ? new File("/backups/") : new File(backups.backup_folder_path));
+        BACKUP_FOLDER = backups.backup_folder_path.isEmpty() ? new File("/backups/")
+                : new File(backups.backup_folder_path);
+        if (!BACKUP_FOLDER.exists()) BACKUP_FOLDER.mkdirs();
         clearOldBackups();
         ServerUtilities.LOGGER.info("Backups folder - {}", BACKUP_FOLDER.getAbsolutePath());
     }
