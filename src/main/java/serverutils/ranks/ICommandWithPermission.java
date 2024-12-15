@@ -3,6 +3,8 @@ package serverutils.ranks;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.minecraft.entity.player.EntityPlayerMP;
+
 import org.jetbrains.annotations.NotNull;
 
 public interface ICommandWithPermission {
@@ -18,4 +20,6 @@ public interface ICommandWithPermission {
     String serverutilities$getModName();
 
     void serverutilities$setModName(@NotNull String modName);
+
+    boolean serverutilities$hasPermission(EntityPlayerMP player);
 }
