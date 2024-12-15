@@ -13,8 +13,10 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
+
+import serverutils.ranks.ICommandWithPermission;
 
 /**
  * Base class for commands that has subcommands.
@@ -108,14 +110,14 @@ public abstract class CommandTreeBase extends CommandBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         if (args.length < 1) {
-            String subCommandsString = getAvailableSubCommandsString(MinecraftServer.getServer(), sender);
+            String subCommandsString = getAvailableSubCommandsString(sender);
             sender.addChatMessage(
                     new ChatComponentTranslation("commands.tree_base.available_subcommands", subCommandsString));
         } else {
             ICommand cmd = getSubCommand(args[0]);
 
             if (cmd == null) {
-                String subCommandsString = getAvailableSubCommandsString(MinecraftServer.getServer(), sender);
+                String subCommandsString = getAvailableSubCommandsString(sender);
                 throw new CommandException(
                         "commands.tree_base.invalid_cmd.list_subcommands",
                         args[0],
@@ -128,13 +130,21 @@ public abstract class CommandTreeBase extends CommandBase {
         }
     }
 
-    private String getAvailableSubCommandsString(MinecraftServer server, ICommandSender sender) {
+    private String getAvailableSubCommandsString(ICommandSender sender) {
         Collection<String> availableCommands = new ArrayList<>();
         for (ICommand command : getSubCommands()) {
-            if (command.canCommandSenderUseCommand(sender)) {
+            if (canUseSubcommand(sender, command)) {
                 availableCommands.add(command.getCommandName());
             }
         }
         return CommandBase.joinNiceStringFromCollection(availableCommands);
+    }
+
+    private boolean canUseSubcommand(ICommandSender sender, ICommand command) {
+        if (command instanceof ICommandWithPermission permCmd && sender instanceof EntityPlayerMP player) {
+            return permCmd.serverutilities$hasPermission(player);
+        }
+
+        return command.canCommandSenderUseCommand(sender);
     }
 }

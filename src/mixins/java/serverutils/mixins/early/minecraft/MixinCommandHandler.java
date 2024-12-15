@@ -21,7 +21,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.LoaderState;
 import cpw.mods.fml.common.ModContainer;
-import cpw.mods.fml.common.eventhandler.Event;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.NodeEntry;
 import serverutils.lib.command.CommandTreeBase;
@@ -29,7 +28,6 @@ import serverutils.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.ranks.ICommandWithPermission;
 import serverutils.ranks.Rank;
-import serverutils.ranks.Ranks;
 
 @Mixin(CommandHandler.class)
 public abstract class MixinCommandHandler {
@@ -38,24 +36,31 @@ public abstract class MixinCommandHandler {
     private static final Matcher PERMISSION_REPLACE_MATCHER = Pattern.compile("[^a-zA-Z0-9._]").matcher("");
 
     @ModifyExpressionValue(
-            method = { "getPossibleCommands(Lnet/minecraft/command/ICommandSender;)Ljava/util/List;",
-                    "executeCommand" },
+            method = "getPossibleCommands(Lnet/minecraft/command/ICommandSender;)Ljava/util/List;",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/command/ICommand;canCommandSenderUseCommand(Lnet/minecraft/command/ICommandSender;)Z"))
     private boolean serverutilities$checkPermission(boolean original, @Local(argsOnly = true) ICommandSender sender,
             @Local ICommand command) {
-        if (sender instanceof EntityPlayerMP player) {
-            Event.Result result = Ranks.INSTANCE.getPermissionResult(
-                    player,
-                    ((ICommandWithPermission) command).serverutilities$getPermissionNode(),
-                    true);
+        if (!(sender instanceof EntityPlayerMP player)) return original;
+        return ((ICommandWithPermission) command).serverutilities$hasPermission(player);
+    }
 
-            if (result != Event.Result.DEFAULT) {
-                return result == Event.Result.ALLOW;
-            }
+    @ModifyExpressionValue(
+            method = "executeCommand",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/command/ICommand;canCommandSenderUseCommand(Lnet/minecraft/command/ICommandSender;)Z"))
+    private boolean serverutilities$checkPermissionExecute(boolean original,
+            @Local(argsOnly = true) ICommandSender sender, @Local ICommand command, @Local String[] args) {
+        if (!(sender instanceof EntityPlayerMP player)) return original;
+
+        if (command instanceof CommandTreeBase treeCmd && args.length >= 1) {
+            ICommand subCommand = treeCmd.getSubCommand(args[0]);
+            if (subCommand != null) command = subCommand;
         }
-        return original;
+
+        return ((ICommandWithPermission) command).serverutilities$hasPermission(player);
     }
 
     @Inject(method = "registerCommand", at = @At(value = "HEAD"))

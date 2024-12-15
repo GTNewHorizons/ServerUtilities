@@ -154,7 +154,7 @@ public class ServerUtilitiesCommon {
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesUniverseData.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPermissions.INST);
         FMLCommonHandler.instance().bus().register(ServerUtilitiesServerEventHandler.INST);
-        if (AuroraConfig.enable) {
+        if (AuroraConfig.general.enable) {
             MinecraftForge.EVENT_BUS.register(AuroraMinecraftHandler.INST);
             FMLCommonHandler.instance().bus().register(AuroraMinecraftHandler.INST);
         }
@@ -259,7 +259,7 @@ public class ServerUtilitiesCommon {
     public void onServerStarting(FMLServerStartingEvent event) {
         ServerUtilitiesCommands.registerCommands(event);
 
-        if (AuroraConfig.enable) {
+        if (AuroraConfig.general.enable) {
             Aurora.start(event.getServer());
         }
     }
