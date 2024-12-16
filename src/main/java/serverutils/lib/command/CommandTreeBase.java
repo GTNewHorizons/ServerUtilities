@@ -77,7 +77,7 @@ public abstract class CommandTreeBase extends CommandBase {
             List<String> keys = new ArrayList<>();
 
             for (ICommand c : getSubCommands()) {
-                if (c.canCommandSenderUseCommand(sender)) {
+                if (canUseSubcommand(sender, c)) {
                     keys.add(c.getCommandName());
                 }
             }
@@ -122,7 +122,7 @@ public abstract class CommandTreeBase extends CommandBase {
                         "commands.tree_base.invalid_cmd.list_subcommands",
                         args[0],
                         subCommandsString);
-            } else if (!cmd.canCommandSenderUseCommand(sender)) {
+            } else if (!canUseSubcommand(sender, cmd)) {
                 throw new CommandException("commands.generic.permission");
             } else {
                 cmd.processCommand(sender, shiftArgs(args));
