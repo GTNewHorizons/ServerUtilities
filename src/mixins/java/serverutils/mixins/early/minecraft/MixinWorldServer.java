@@ -121,11 +121,12 @@ public abstract class MixinWorldServer extends World {
     }
 
     public List<EntityPlayer> getListWithoutAFK(List<EntityPlayer> list) {
+        long notificationTimer = ServerUtilitiesConfig.afk.getNotificationTimer();
         return list.stream()
                 .filter(
                         (EntityPlayer entity) -> ServerUtilitiesPlayerData
                                 .get(Universe.get().getPlayer((EntityPlayerMP) entity)).afkTime
-                                >= ServerUtilitiesConfig.afk.getNotificationTimer())
+                                >= notificationTimer)
                 .collect(Collectors.toList());
     }
 }
