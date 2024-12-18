@@ -65,11 +65,13 @@ public abstract class MixinWorldServer extends World {
             this.allPlayersSleeping = false;
             ci.cancel(/* /r/nosleep, vanilla behaviour */);
         } else {
+            EntityPlayer theSleeper = null;
             sleepingPlayers.clear();
             int cap = (int) Math.ceil(getListWithoutAFK(this.playerEntities).size() * percent * 0.01f);
             for (EntityPlayer player : this.playerEntities) {
                 if (player.isPlayerSleeping()) {
                     sleepingPlayers.add(player);
+                    theSleeper = player;
                     if (sleepingPlayers.size() >= cap) {
                         this.allPlayersSleeping = true;
                         break;
@@ -77,13 +79,13 @@ public abstract class MixinWorldServer extends World {
                 }
             }
 
-            if (!sleepingPlayers.isEmpty() && cap > 0) {
+            if (!sleepingPlayers.isEmpty() && cap > 0 && theSleeper != null) {
                 for (EntityPlayer player : this.playerEntities) {
                     String percentString = String.format("%d", (sleepingPlayers.size() * 100) / cap);
                     player.addChatMessage(
                             new ChatComponentTranslation(
                                     "serverutilities.world.players_sleeping",
-                                    player.getDisplayName(),
+                                    theSleeper.getDisplayName(),
                                     sleepingPlayers.size(),
                                     cap,
                                     percentString));
