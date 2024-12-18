@@ -125,8 +125,7 @@ public abstract class MixinWorldServer extends World {
         return list.stream()
                 .filter(
                         (EntityPlayer entity) -> ServerUtilitiesPlayerData
-                                .get(Universe.get().getPlayer((EntityPlayerMP) entity)).afkTime
-                                >= notificationTimer)
+                                .get(Universe.get().getPlayer((EntityPlayerMP) entity)).afkTime >= notificationTimer)
                 .collect(Collectors.toList());
     }
 }
