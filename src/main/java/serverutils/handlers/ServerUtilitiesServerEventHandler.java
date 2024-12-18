@@ -68,7 +68,7 @@ public class ServerUtilitiesServerEventHandler {
             if (!event.world.isRemote && !event.world.getGameRules().hasRule("playersSleepingPercentage")) {
                 event.world.getGameRules().addGameRule(
                         "playersSleepingPercentage",
-                        ServerUtilitiesConfig.world.default_player_sleeping_percentage);
+                        Integer.toString(ServerUtilitiesConfig.world.player_sleeping_percentage));
             }
         }
     }

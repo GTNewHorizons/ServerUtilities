@@ -545,12 +545,14 @@ public class ServerUtilitiesConfig {
         public boolean show_playtime;
 
         @Config.Comment("Enabled Player Sleeping Percentage to skip night. Use the gamerule playersSleepingPercentage to set the percentage.")
-        @Config.DefaultBoolean(false)
+        @Config.DefaultBoolean(true)
+        @Config.ModDetectedDefault(coremod = "EtFuturumEarlyMixins", value = "false")
         public boolean enable_player_sleeping_percentage;
 
-        @Config.Comment("Default Player Sleeping Percentage")
-        @Config.DefaultString("50")
-        public String default_player_sleeping_percentage;
+        @Config.Comment("Default Player Sleeping. This is only what the gamerule is initially set to, not the active value that is used.")
+        @Config.DefaultInt(50)
+        @Config.RangeInt(min = 0, max = 100)
+        public int player_sleeping_percentage;
 
         @Config.Ignore
         private List<DisabledItem> disabledItems = null;
