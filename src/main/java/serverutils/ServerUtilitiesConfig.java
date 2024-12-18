@@ -544,6 +544,14 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(false)
         public boolean show_playtime;
 
+        @Config.Comment("Enabled Player Sleeping Percentage to skip night. Use the gamerule playersSleepingPercentage to set the percentage.")
+        @Config.DefaultBoolean(true)
+        public boolean enable_player_sleeping_percentage;
+
+        @Config.Comment("Default Player Sleeping Percentage")
+        @Config.DefaultString("50")
+        public String default_player_sleeping_percentage;
+
         @Config.Ignore
         private List<DisabledItem> disabledItems = null;
 

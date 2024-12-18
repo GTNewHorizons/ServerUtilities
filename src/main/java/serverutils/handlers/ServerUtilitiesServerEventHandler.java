@@ -14,6 +14,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.ServerChatEvent;
+import net.minecraftforge.event.world.WorldEvent;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -58,6 +59,17 @@ public class ServerUtilitiesServerEventHandler {
     public void onCacheCleared(UniverseClearCacheEvent event) {
         if (Ranks.INSTANCE != null) {
             Ranks.INSTANCE.clearCache();
+        }
+    }
+
+    @SubscribeEvent
+    public void loadWorldEvent(WorldEvent.Load event) {
+        if (ServerUtilitiesConfig.world.enable_player_sleeping_percentage) {
+            if (!event.world.isRemote && !event.world.getGameRules().hasRule("playersSleepingPercentage")) {
+                event.world.getGameRules().addGameRule(
+                        "playersSleepingPercentage",
+                        ServerUtilitiesConfig.world.default_player_sleeping_percentage);
+            }
         }
     }
 

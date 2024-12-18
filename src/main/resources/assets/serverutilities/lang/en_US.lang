@@ -134,6 +134,8 @@ serverutilities.world.forced_spawn_dimension_time=Forced Spawn Dimension Time
 serverutilities.world.forced_spawn_dimension_weather=Forced Spawn Dimension Weather
 serverutilities.world.disable_player_suffocation_damage=Disable Player Suffocation Damage
 serverutilities.world.show_playtime=Show Playtime in Top-Left Corner
+serverutilities.world.players_sleeping=§f%s§6 is now sleeping. %s/%s (%s%%)
+serverutiltiies.world.skip_night=§6Wakey, wakey, rise and shine... Good Morning everyone!
 
 serverutilities.world.logging=Logging
 serverutilities.world.logging.include_creative_players=Include Creative Players
