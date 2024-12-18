@@ -546,7 +546,7 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Enabled Player Sleeping Percentage to skip night. Use the gamerule playersSleepingPercentage to set the percentage.")
         @Config.DefaultBoolean(true)
-        @Config.ModDetectedDefault(coremod = "EtFuturumEarlyMixins", value = "false")
+        @Config.ModDetectedDefault(coremod = "ganymedes01.etfuturum.mixinplugin.EtFuturumEarlyMixins", value = "false")
         public boolean enable_player_sleeping_percentage;
 
         @Config.Comment("Default Player Sleeping. This is only what the gamerule is initially set to, not the active value that is used.")
