@@ -3,8 +3,10 @@ package serverutils.mixins.early.minecraft;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
@@ -23,6 +25,10 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+
+import serverutils.ServerUtilitiesConfig;
+import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.lib.data.Universe;
 
 @Mixin(WorldServer.class)
 public abstract class MixinWorldServer extends World {
@@ -59,7 +65,7 @@ public abstract class MixinWorldServer extends World {
             ci.cancel(/* /r/nosleep, vanilla behaviour */);
         } else {
             sleepingPlayers.clear();
-            int cap = (int) Math.ceil(this.playerEntities.size() * percent * 0.01f);
+            int cap = (int) Math.ceil(getListWithoutAFK(this.playerEntities).size() * percent * 0.01f);
             for (EntityPlayer player : this.playerEntities) {
                 if (player.isPlayerSleeping()) {
                     sleepingPlayers.add(player);
@@ -112,5 +118,14 @@ public abstract class MixinWorldServer extends World {
         if (percent > 0 && percent < 100) {
             player.addChatMessage(new ChatComponentTranslation("serverutiltiies.world.skip_night"));
         }
+    }
+
+    public List<EntityPlayer> getListWithoutAFK(List<EntityPlayer> list) {
+        return list.stream()
+                .filter(
+                        (EntityPlayer entity) -> ServerUtilitiesPlayerData
+                                .get(Universe.get().getPlayer((EntityPlayerMP) entity)).afkTime
+                                >= ServerUtilitiesConfig.afk.getNotificationTimer())
+                .collect(Collectors.toList());
     }
 }
