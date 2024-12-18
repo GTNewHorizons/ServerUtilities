@@ -49,7 +49,8 @@ public abstract class MixinWorldServer extends World {
     public MixinWorldServer(ISaveHandler p_i45368_1_, String p_i45368_2_, WorldProvider p_i45368_3_,
             WorldSettings p_i45368_4_, Profiler p_i45368_5_) {
         super(p_i45368_1_, p_i45368_2_, p_i45368_3_, p_i45368_4_, p_i45368_5_);
-        throw new ArithmeticException("2 + 2 = 5 ???");
+        throw new RuntimeException(
+                "Server Utilities player sleeping percentage broke in a huge way. This error should never happen");
     }
 
     @Inject(method = "<init>", at = @At("RETURN"))
@@ -58,7 +59,7 @@ public abstract class MixinWorldServer extends World {
     }
 
     @Inject(method = "updateAllPlayersSleepingFlag", at = @At("HEAD"), cancellable = true)
-    public void hhheheheheeh(CallbackInfo ci) {
+    public void serverutilities$handlePlayersSleepingPercentage(CallbackInfo ci) {
         percent = Integer.parseInt(this.getGameRules().getGameRuleStringValue("playersSleepingPercentage"));
         if (percent > 100) {
             this.allPlayersSleeping = false;
@@ -98,7 +99,7 @@ public abstract class MixinWorldServer extends World {
                     value = "FIELD",
                     target = "Lnet/minecraft/world/WorldServer;playerEntities:Ljava/util/List;",
                     opcode = Opcodes.GETFIELD))
-    public List<EntityPlayer> baited(WorldServer instance) {
+    public List<EntityPlayer> serverutilities$speedup1(WorldServer instance) {
         return sleepingPlayers.isEmpty() ? this.playerEntities : sleepingPlayers;
     }
 
@@ -106,7 +107,7 @@ public abstract class MixinWorldServer extends World {
             method = "areAllPlayersAsleep",
             at = @At(value = "INVOKE", target = "Ljava/util/List;iterator()Ljava/util/Iterator;"),
             cancellable = true)
-    public void turbofast(CallbackInfoReturnable<Boolean> ctx) {
+    public void serverutilities$speedup2(CallbackInfoReturnable<Boolean> ctx) {
         if (percent < 1) ctx.setReturnValue(true);
     }
 
@@ -114,7 +115,7 @@ public abstract class MixinWorldServer extends World {
             method = "wakeAllPlayers",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/EntityPlayer;wakeUpPlayer(ZZZ)V"),
             locals = LocalCapture.CAPTURE_FAILHARD)
-    public void broadcast(CallbackInfo ctx, Iterator iterator, EntityPlayer player) {
+    public void serverutilities$broadcast(CallbackInfo ctx, Iterator iterator, EntityPlayer player) {
         if (percent > 0 && percent < 100) {
             player.addChatMessage(new ChatComponentTranslation("serverutiltiies.world.skip_night"));
         }
@@ -125,8 +126,7 @@ public abstract class MixinWorldServer extends World {
         return list.stream()
                 .filter(
                         (EntityPlayer entity) -> ServerUtilitiesPlayerData
-                                .get(Universe.get().getPlayer((EntityPlayerMP) entity)).afkTime
-                                >= notificationTimer)
+                                .get(Universe.get().getPlayer((EntityPlayerMP) entity)).afkTime >= notificationTimer)
                 .collect(Collectors.toList());
     }
 }
