@@ -212,7 +212,12 @@ public class GuiEditNBT extends GuiBase {
             if (set) {
                 switch (nbt.getId()) {
                     case Constants.NBT.TAG_BYTE:
+                        nbt = new NBTTagByte((byte) Math.max(Byte.MIN_VALUE, Math.min(Byte.MAX_VALUE, value.getInt())));
+                        break;
                     case Constants.NBT.TAG_SHORT:
+                        nbt = new NBTTagShort(
+                                (short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, value.getInt())));
+                        break;
                     case Constants.NBT.TAG_INT:
                         nbt = new NBTTagInt(value.getInt());
                         break;
@@ -220,6 +225,8 @@ public class GuiEditNBT extends GuiBase {
                         nbt = new NBTTagLong(Long.parseLong(value.getString()));
                         break;
                     case Constants.NBT.TAG_FLOAT:
+                        nbt = new NBTTagFloat((float) value.getDouble());
+                        break;
                     case Constants.NBT.TAG_DOUBLE:
                     case Constants.NBT.TAG_ANY_NUMERIC:
                         nbt = new NBTTagDouble(value.getDouble());
