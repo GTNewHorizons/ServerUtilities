@@ -19,7 +19,6 @@ import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.math.TeleporterDimPos;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.StringUtils;
-import serverutils.lib.util.text_components.Notification;
 
 public class TeleportTask extends Task {
 
@@ -50,8 +49,7 @@ public class TeleportTask extends Task {
     @Override
     public void execute(Universe universe) {
         if (!startPos.equalsPos(new BlockDimPos(player)) || startHP > player.getHealth()) {
-            player.addChatMessage(
-                    StringUtils.color(ServerUtilities.lang(player, "stand_still_failed"), EnumChatFormatting.RED));
+            player.addChatMessage(StringUtils.color("serverutilities.lang.warps.cancelled", EnumChatFormatting.RED));
         } else if (secondsLeft <= 1) {
             TeleporterDimPos teleporter = pos.apply(player);
             if (teleporter != null) {
@@ -78,13 +76,11 @@ public class TeleportTask extends Task {
         } else {
             secondsLeft -= 1;
             setNextTime(System.currentTimeMillis() + Ticks.SECOND.millis());
-            universe.scheduleTask(this);
-
             IChatComponent component = StringUtils.color(
-                    ServerUtilities.lang(player, "stand_still", startSeconds).appendText(" [" + secondsLeft + "]"),
+                    ServerUtilities.lang("stand_still", startSeconds).appendText(" [" + secondsLeft + "]"),
                     EnumChatFormatting.GOLD);
-
-            Notification.of(TELEPORT_WARMUP, component).setVanilla(true).send(player.mcServer, player);
+            TELEPORT_WARMUP.createNotification(component).setVanilla(true).send(player);
+            universe.scheduleTask(this);
         }
     }
 }

@@ -15,7 +15,6 @@ import net.minecraft.util.ResourceLocation;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
-import serverutils.ServerUtilitiesNotifications;
 import serverutils.events.IReloadHandler;
 import serverutils.events.ServerReloadEvent;
 import serverutils.lib.EnumReloadType;
@@ -66,7 +65,7 @@ public class ServerUtilitiesAPI {
 
         if (type == EnumReloadType.RELOAD_COMMAND) {
             for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
-                Notification notification = Notification.of(ServerUtilitiesNotifications.RELOAD_SERVER);
+                Notification notification = Notification.of("reload_server");
                 notification.addLine(ServerUtilities.lang(player, "serverutilities.lang.reload_server", millis));
 
                 if (event.isClientReloadRequired()) {
@@ -93,7 +92,7 @@ public class ServerUtilitiesAPI {
 
                 notification.setImportant(true);
                 notification.setTimer(Ticks.SECOND.x(7));
-                notification.send(universe.server, player);
+                notification.send(player);
             }
         }
         reload(universe.server);

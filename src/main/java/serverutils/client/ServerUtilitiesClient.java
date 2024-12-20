@@ -43,7 +43,6 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
     public static KeyBinding KEY_NBT, KEY_TRASH;
     public static final String KEY_CATEGORY = "key.categories.serverutilities";
     public static final String CLIENT_FOLDER = ServerUtilities.MOD_ID + "/client/";
-
     static {
         try {
             ConfigurationManager.registerConfig(ServerUtilitiesClientConfig.class);
@@ -73,6 +72,7 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
     @Override
     public void postInit(FMLPostInitializationEvent event) {
         super.postInit(event);
+        NotificationHandler.loadNotifications();
 
         for (Map.Entry<String, String> entry : ServerUtilitiesCommon.KAOMOJIS.entrySet()) {
             ClientCommandHandler.instance.registerCommand(new CommandKaomoji(entry.getKey(), entry.getValue()));

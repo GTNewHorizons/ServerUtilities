@@ -1,5 +1,7 @@
 package serverutils.lib.command;
 
+import static serverutils.ServerUtilitiesNotifications.CONFIG_CHANGED;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -9,14 +11,12 @@ import net.minecraft.entity.player.EntityPlayerMP;
 
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
-import serverutils.ServerUtilitiesNotifications;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.ConfigValue;
 import serverutils.lib.config.ConfigValueInstance;
 import serverutils.lib.config.IConfigCallback;
 import serverutils.lib.data.ServerUtilitiesAPI;
 import serverutils.lib.util.StringUtils;
-import serverutils.lib.util.text_components.Notification;
 
 public abstract class CmdEditConfigBase extends CmdBase {
 
@@ -89,20 +89,16 @@ public abstract class CmdEditConfigBase extends CmdBase {
             }
 
             if (ServerUtilitiesConfig.debugging.log_config_editing) {
-                ServerUtilities.LOGGER.info("Setting " + instance.getPath() + " to " + valueString);
+                ServerUtilities.LOGGER.info("Setting {} to {}", instance.getPath(), valueString);
             }
 
             instance.getValue().setValueFromString(sender, valueString, false);
             getCallback(sender).onConfigSaved(group, sender);
-            Notification
-                    .of(
-                            ServerUtilitiesNotifications.CONFIG_CHANGED,
-                            ServerUtilities.lang(
-                                    sender,
-                                    "serverutilities.lang.config_command.set",
-                                    instance.getDisplayName(),
-                                    group.getValue(args[0]).toString()))
-                    .send(getCommandSenderAsPlayer(sender).mcServer, getCommandSenderAsPlayer(sender));
+            CONFIG_CHANGED.send(
+                    getCommandSenderAsPlayer(sender),
+                    "serverutilities.lang.config_command.set",
+                    instance.getDisplayName(),
+                    group.getValue(args[0]).toString());
         }
 
         sender.addChatMessage(instance.getValue().getStringForGUI());

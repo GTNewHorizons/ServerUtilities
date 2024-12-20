@@ -1,6 +1,7 @@
 package serverutils.task;
 
 import static serverutils.ServerUtilitiesConfig.tasks;
+import static serverutils.ServerUtilitiesNotifications.CLEANUP;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,6 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.StringUtils;
-import serverutils.lib.util.text_components.Notification;
 
 public class CleanupTask extends Task {
 
@@ -57,25 +57,22 @@ public class CleanupTask extends Task {
                 }
             }
         }
-        Notification.of(
-                "removed_entities",
-                new ChatComponentText(
-                        StatCollector.translateToLocalFormatted("serverutilities.task.cleanup_removed", removed)))
-                .sendToAll(universe.server);
+
+        CLEANUP.sendAll("serverutilities.task.cleanup_removed", removed);
     }
 
     @Override
     public List<NotifyTask> getNotifications() {
         List<NotifyTask> notifications = new ArrayList<>();
         if (tasks.cleanup.silent) return notifications;
-
-        Notification notification = Notification.of("cleanup_30", getNotificationString(30));
-        NotifyTask task = new NotifyTask(nextTime - Ticks.SECOND.x(30).millis(), notification);
-        notifications.add(task);
-
-        notification = Notification.of("cleanup_60", getNotificationString(60));
-        task = new NotifyTask(nextTime - Ticks.SECOND.x(60).millis(), notification);
-        notifications.add(task);
+        notifications.add(
+                new NotifyTask(
+                        nextTime - Ticks.SECOND.x(30).millis(),
+                        CLEANUP.createNotification(getNotificationString(30))));
+        notifications.add(
+                new NotifyTask(
+                        nextTime - Ticks.SECOND.x(60).millis(),
+                        CLEANUP.createNotification(getNotificationString(60))));
         return notifications;
     }
 

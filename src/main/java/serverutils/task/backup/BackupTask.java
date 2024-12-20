@@ -1,7 +1,7 @@
 package serverutils.task.backup;
 
 import static serverutils.ServerUtilitiesConfig.backups;
-import static serverutils.ServerUtilitiesNotifications.BACKUP_START;
+import static serverutils.ServerUtilitiesNotifications.BACKUP;
 import static serverutils.lib.util.FileUtils.SizeUnit;
 
 import java.io.File;
@@ -26,13 +26,13 @@ import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
-import serverutils.ServerUtilitiesNotifications;
 import serverutils.data.ClaimedChunks;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
+import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.task.Task;
 
@@ -113,7 +113,7 @@ public class BackupTask extends Task {
         }
 
         server.getConfigurationManager().saveAllPlayerData();
-        ServerUtilitiesNotifications.backupNotification(BACKUP_START, "cmd.backup_start");
+        BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
         Set<ChunkDimPos> backupChunks = new HashSet<>();
         if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
             backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());

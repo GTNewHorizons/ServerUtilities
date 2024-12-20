@@ -25,9 +25,9 @@ public class NotifyTask extends Task {
     @Override
     public void execute(Universe universe) {
         if (player == null) {
-            notification.sendToAll(universe.server);
+            notification.sendToAll();
         } else {
-            notification.send(universe.server, player);
+            notification.send(player);
         }
     }
 }

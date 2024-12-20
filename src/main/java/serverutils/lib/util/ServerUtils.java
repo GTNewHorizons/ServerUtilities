@@ -13,7 +13,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentText;
@@ -30,9 +29,8 @@ import net.minecraftforge.common.util.FakePlayer;
 import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.network.NetworkRegistry;
 import crazypants.enderio.machine.farm.FakeFarmPlayer;
-import serverutils.handlers.ServerUtilitiesClientEventHandler;
+import serverutils.client.NotificationHandler;
 import serverutils.lib.OtherMods;
 import serverutils.net.MessageNotification;
 
@@ -66,15 +64,6 @@ public class ServerUtils {
             case 1 -> new ChatComponentTranslation("serverutilities.world.dimension.end");
             default -> new ChatComponentText("dim_" + dim);
         };
-    }
-
-    public static boolean isVanillaClient(ICommandSender sender) {
-        if (sender instanceof EntityPlayerMP) {
-            NetHandlerPlayServer connection = ((EntityPlayerMP) sender).playerNetServerHandler;
-            return connection != null && connection.netManager.channel().attr(NetworkRegistry.MOD_CONTAINER) == null;
-        }
-
-        return false;
     }
 
     public static boolean isFake(EntityPlayerMP player) {
@@ -168,13 +157,13 @@ public class ServerUtils {
         notifyChat(server, null, new ChatComponentText(message));
     }
 
-    public static void notify(MinecraftServer server, @Nullable EntityPlayer player, IChatComponent notification) {
+    public static void notify(@Nullable EntityPlayer player, IChatComponent notification) {
         if (player == null) {
             new MessageNotification(notification).sendToAll();
         } else if (player instanceof EntityPlayerMP playerMP) {
             new MessageNotification(notification).sendTo(playerMP);
         } else if (player instanceof EntityClientPlayerMP) {
-            ServerUtilitiesClientEventHandler.INST.onNotify(notification);
+            NotificationHandler.onNotify(notification);
         }
     }
 

@@ -1,54 +1,74 @@
 package serverutils;
 
+import static serverutils.lib.EnumMessageLocation.ACTION_BAR;
+import static serverutils.lib.EnumMessageLocation.CHAT;
+
+import javax.annotation.Nullable;
+
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 
 import serverutils.data.ClaimedChunk;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.lib.EnumMessageLocation;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.math.ChunkDimPos;
-import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 
-public class ServerUtilitiesNotifications {
+public enum ServerUtilitiesNotifications {
 
-    public static final ResourceLocation CHUNK_MODIFIED = new ResourceLocation(
-            ServerUtilities.MOD_ID,
-            "chunk_modified");
-    public static final ResourceLocation CHUNK_CHANGED = new ResourceLocation(ServerUtilities.MOD_ID, "chunk_changed");
-    public static final ResourceLocation CHUNK_CANT_CLAIM = new ResourceLocation(
-            ServerUtilities.MOD_ID,
-            "cant_claim_chunk");
-    public static final ResourceLocation UNCLAIMED_ALL = new ResourceLocation(ServerUtilities.MOD_ID, "unclaimed_all");
-    public static final String TELEPORT = "teleport";
-    public static final ResourceLocation TELEPORT_WARMUP = new ResourceLocation(
-            ServerUtilities.MOD_ID,
-            "teleport_warmup");
-    public static final ResourceLocation RELOAD_SERVER = new ResourceLocation(ServerUtilities.MOD_ID, "reload_server");
-    public static final ResourceLocation BACKUP_START = new ResourceLocation(ServerUtilities.MOD_ID, "backup_start");
-    public static final ResourceLocation BACKUP_END1 = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end1");
-    public static final ResourceLocation BACKUP_END2 = new ResourceLocation(ServerUtilities.MOD_ID, "backup_end2");
-    public static final ResourceLocation CONFIG_CHANGED = new ResourceLocation(
-            ServerUtilities.MOD_ID,
-            "config_changed");
-    public static final String RESTART_TIMER_ID = "restart_timer";
+    CHUNK_MODIFIED("chunk_modified", ACTION_BAR),
+    CHUNK_CHANGED("chunk_changed", ACTION_BAR),
+    CANT_MODIFY_CHUNK("cant_modify_chunk", ACTION_BAR),
+    TELEPORT("teleport", ACTION_BAR),
+    TELEPORT_WARMUP("teleport_warmup", ACTION_BAR),
+    BACKUP("backup", ACTION_BAR),
+    CONFIG_CHANGED("config_changed", ACTION_BAR),
+    RESTART_TIMER("restart_timer", ACTION_BAR),
+    CLEANUP("cleanup", ACTION_BAR),
+    PLAYER_AFK("player_afk", CHAT);
 
-    public static final Notification NO_TEAM = Notification.of(
-            new ResourceLocation(ServerUtilities.MOD_ID, "no_team"),
-            new ChatComponentTranslation("serverutilities.lang.team.error.no_team")).setError();
+    public static final ServerUtilitiesNotifications[] VALUES = values();
 
-    public static void sendCantModifyChunk(MinecraftServer server, EntityPlayerMP player) {
-        Notification
-                .of(
-                        new ResourceLocation(ServerUtilities.MOD_ID, "cant_modify_chunk"),
-                        ServerUtilities.lang(player, "serverutilities.lang.chunks.cant_modify_chunk"))
-                .setError().send(server, player);
+    private final String id;
+    private final String desc;
+    private EnumMessageLocation location;
+
+    ServerUtilitiesNotifications(String id, EnumMessageLocation defaultLocation) {
+        this.id = id;
+        this.desc = StatCollector.translateToLocal(ServerUtilities.MOD_ID + ".notifications." + id + ".desc");
+        this.location = defaultLocation;
+    }
+
+    public Notification createNotification(IChatComponent component) {
+        return Notification.of(id, component);
+    }
+
+    public Notification createNotification(String key, Object... args) {
+        return createNotification(ServerUtilities.lang(key, args));
+    }
+
+    public void send(EntityPlayer player, String key, Object... args) {
+        createNotification(key, args).send(player);
+    }
+
+    public void send(EntityPlayer player, IChatComponent component) {
+        createNotification(component).send(player);
+    }
+
+    public void sendAll(String key, Object... args) {
+        createNotification(key, args).sendToAll();
+    }
+
+    public void sendAll(IChatComponent component) {
+        createNotification(component).sendToAll();
     }
 
     public static void updateChunkMessage(EntityPlayerMP player, ChunkDimPos pos) {
@@ -68,29 +88,43 @@ public class ServerUtilitiesNotifications {
             }
 
             if (team != null) {
-                Notification notification = Notification.of(CHUNK_CHANGED, team.getTitle());
+                Notification notification = CHUNK_CHANGED.createNotification(team.getTitle());
 
                 if (!team.getDesc().isEmpty()) {
                     notification.addLine(StringUtils.italic(new ChatComponentText(team.getDesc()), true));
                 }
 
-                notification.send(player.mcServer, player);
+                notification.send(player);
             } else {
-                Notification.of(
-                        CHUNK_CHANGED,
-                        StringUtils.color(
-                                ServerUtilities.lang(player, "serverutilities.lang.chunks.wilderness"),
-                                EnumChatFormatting.DARK_GREEN))
-                        .send(player.mcServer, player);
+                CHUNK_CHANGED.send(
+                        player,
+                        StringUtils.color("serverutilities.lang.chunks.wilderness", EnumChatFormatting.DARK_GREEN));
             }
         }
     }
 
-    public static void backupNotification(ResourceLocation id, String key, Object... args) {
-        if (!ServerUtilitiesConfig.backups.silent_backup) {
-            Notification
-                    .of(id, StringUtils.color(ServerUtilities.lang(null, key, args), EnumChatFormatting.LIGHT_PURPLE))
-                    .send(ServerUtils.getServer(), null);
+    public String getId() {
+        return id;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setLocation(EnumMessageLocation enabled) {
+        this.location = enabled;
+    }
+
+    public EnumMessageLocation getLocation() {
+        return location;
+    }
+
+    public static @Nullable ServerUtilitiesNotifications getFromId(ResourceLocation id) {
+        for (ServerUtilitiesNotifications n : VALUES) {
+            if (n.id.equalsIgnoreCase(id.getResourcePath())) {
+                return n;
+            }
         }
+        return null;
     }
 }

@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
 import org.apache.logging.log4j.LogManager;
@@ -24,7 +25,6 @@ import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkCheckHandler;
 import cpw.mods.fml.relauncher.Side;
 import serverutils.lib.command.CommandUtils;
-import serverutils.lib.util.SidedUtils;
 
 @Mod(
         modid = ServerUtilities.MOD_ID,
@@ -49,7 +49,11 @@ public class ServerUtilities {
     public static ServerUtilitiesCommon PROXY;
 
     public static IChatComponent lang(@Nullable ICommandSender sender, String key, Object... args) {
-        return SidedUtils.lang(sender, MOD_ID, key, args);
+        return lang(key, args);
+    }
+
+    public static IChatComponent lang(String key, Object... args) {
+        return new ChatComponentTranslation(key, args);
     }
 
     public static CommandException error(@Nullable ICommandSender sender, String key, Object... args) {

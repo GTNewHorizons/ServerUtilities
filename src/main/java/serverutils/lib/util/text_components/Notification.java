@@ -3,7 +3,6 @@ package serverutils.lib.util.text_components;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -89,14 +88,18 @@ public class Notification extends ChatComponentText {
         return this;
     }
 
+    @Override
     public int hashCode() {
         return id.hashCode();
     }
 
+    @Override
     public boolean equals(Object o) {
-        return o == this || (o instanceof Notification notification && notification.getId().equals(getId()));
+        return o == this || (o instanceof Notification notification
+                && notification.getId().toString().equals(getId().toString()));
     }
 
+    @Override
     public String toString() {
         return "Notification{" + StringJoiner.with(", ").joinObjects(
                 "id=" + id,
@@ -142,11 +145,11 @@ public class Notification extends ChatComponentText {
         return new Notification(this);
     }
 
-    public void sendToAll(MinecraftServer server) {
-        send(server, null);
+    public void sendToAll() {
+        send(null);
     }
 
-    public void send(MinecraftServer server, @Nullable EntityPlayer player) {
-        ServerUtils.notify(server, player, this);
+    public void send(@Nullable EntityPlayer player) {
+        ServerUtils.notify(player, this);
     }
 }

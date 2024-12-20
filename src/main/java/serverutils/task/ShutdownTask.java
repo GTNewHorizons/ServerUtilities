@@ -1,15 +1,12 @@
 package serverutils.task;
 
-import static serverutils.ServerUtilitiesNotifications.RESTART_TIMER_ID;
+import static serverutils.ServerUtilitiesNotifications.RESTART_TIMER;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.util.StatCollector;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import serverutils.ServerUtilities;
@@ -80,14 +77,11 @@ public class ShutdownTask extends Task {
                     Ticks.SECOND.x(5), Ticks.SECOND.x(4), Ticks.SECOND.x(3), Ticks.SECOND.x(2), Ticks.SECOND.x(1) };
 
             for (Ticks t : ticks) {
-                IChatComponent component = StringUtils.color(
-                        new ChatComponentText(
-                                StatCollector.translateToLocalFormatted(
-                                        "serverutilities.lang.timer.shutdown",
-                                        t.toTimeString())),
-                        EnumChatFormatting.LIGHT_PURPLE);
-
-                Notification notification = Notification.of(RESTART_TIMER_ID, component);
+                Notification notification = RESTART_TIMER.createNotification(
+                        StringUtils.color(
+                                "serverutilities.lang.timer.shutdown",
+                                EnumChatFormatting.LIGHT_PURPLE,
+                                t.toTimeString()));
                 NotifyTask task = new NotifyTask(shutdownTime - t.millis(), notification);
                 notifications.add(task);
             }
