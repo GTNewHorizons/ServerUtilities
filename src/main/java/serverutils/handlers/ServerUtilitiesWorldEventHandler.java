@@ -18,11 +18,13 @@ import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunk;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.lib.math.ChunkDimPos;
+import serverutils.pregenerator.ChunkLoaderManager;
 
 public class ServerUtilitiesWorldEventHandler {
 
@@ -92,6 +94,28 @@ public class ServerUtilitiesWorldEventHandler {
                     new ChunkDimPos(pos.chunkPosX, pos.chunkPosY, pos.chunkPosZ, world.provider.dimensionId),
                     func)) {
                 event.getAffectedBlocks().add(pos);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onWorldLoad(WorldEvent.Load event) {
+        if (!event.world.isRemote) {
+            int dimensionId = event.world.provider.dimensionId;
+            MinecraftServer server = MinecraftServer.getServer();
+            if (!ChunkLoaderManager.instance.isGenerating()
+                    && ChunkLoaderManager.instance.initializeFromPregeneratorFiles(server, dimensionId)) {
+                ServerUtilities.LOGGER.info("Pregenerator loaded and running for dimension Id: " + dimensionId);
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onWorldUnload(WorldEvent.Unload event) {
+        if (!event.world.isRemote) {
+            if (event.world.provider.dimensionId == ChunkLoaderManager.instance.getDimensionID()
+                    && ChunkLoaderManager.instance.isGenerating()) {
+                ChunkLoaderManager.instance.reset(false);
             }
         }
     }
