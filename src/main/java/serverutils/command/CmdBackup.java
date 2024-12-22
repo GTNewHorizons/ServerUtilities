@@ -29,8 +29,7 @@ public class CmdBackup extends CmdTreeBase {
             BackupTask task = new BackupTask(sender, args.length == 0 ? "" : args[0]);
             if (BackupTask.thread == null) {
                 task.execute(Universe.get());
-                sender.addChatMessage(
-                        ServerUtilities.lang(null, "cmd.backup_manual_launch", sender.getCommandSenderName()));
+                sender.addChatMessage(ServerUtilities.lang("cmd.backup_manual_launch", sender.getCommandSenderName()));
             } else {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
             }
