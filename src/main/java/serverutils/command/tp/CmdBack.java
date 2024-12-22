@@ -1,5 +1,7 @@
 package serverutils.command.tp;
 
+import static serverutils.data.TeleportType.BACK;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -41,7 +43,7 @@ public class CmdBack extends CmdBase {
             throw ServerUtilities.error(sender, "serverutilities.lang.warps.no_pos_found");
         }
 
-        data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.BACK);
+        data.checkTeleportCooldown(sender, BACK);
 
         Task task = new Task() {
 
@@ -55,6 +57,6 @@ public class CmdBack extends CmdBase {
             }
         };
 
-        ServerUtilitiesPlayerData.Timer.BACK.teleport(player, playerMP -> lastTeleportLog.teleporter(), task);
+        data.teleport(lastTeleportLog.teleporter(), BACK, task);
     }
 }

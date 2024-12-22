@@ -193,6 +193,32 @@ serverutilities_client.sidebar_placement=Sidebar Placement
 serverutilities_client.notification_location=Notification Location
 serverutilities_client.show_dotted_lines=Show Dotted Line On Loaded Chunks
 
+# Notification Config
+serverutilities.notifications.config=Notification Config
+serverutilities.notifications.last_received=Last received notification:
+serverutilities.notifications.chunk_modified=Chunk Modified
+serverutilities.notifications.chunk_modified.desc=Notifies when claiming/loading a chunk
+serverutilities.notifications.chunk_changed=Chunk Changed
+serverutilities.notifications.chunk_changed.desc=Notifies when a entering a claimed chunk
+serverutilities.notifications.cant_modify_chunk=Can't Modify Chunk
+serverutilities.notifications.cant_modify_chunk.desc=Notifies when unable to modify a chunk
+serverutilities.notifications.teleport=Teleport
+serverutilities.notifications.teleport.desc=Notifies when teleporting to homes/warps
+serverutilities.notifications.teleport_warmup=Teleport Warmup
+serverutilities.notifications.teleport_warmup.desc=Counts down until teleport is complete
+serverutilities.notifications.backup=Backup
+serverutilities.notifications.backup.desc=Notifies when a backup is started/stopped
+serverutilities.notifications.config_changed=Config Changed
+serverutilities.notifications.config_changed.desc=Notifies when configs are changed via commands
+serverutilities.notifications.restart_timer=Restart Timer
+serverutilities.notifications.restart_timer.desc=Notifies when server is about to restart
+serverutilities.notifications.cleanup=Cleanup
+serverutilities.notifications.cleanup.desc=Notifies when entity cleanup is about to start or finish
+serverutilities.notifications.player_afk=Player AFK
+serverutilities.notifications.player_afk.desc=Notifies when a player goes AFK
+
+
+
 # Rank Config
 permission.serverutilities.badge=Badge
 permission.serverutilities.badge.tooltip=Badge (icon on chest). Must be an URL
@@ -473,6 +499,8 @@ serverutilities.lang.warps.tp=Teleported to '%s'!
 serverutilities.lang.warps.no_dp=You can only go back once!
 serverutilities.lang.warps.no_pos_found=No position to go back to!
 serverutilities.lang.warps.cross_dim=You can't teleport to another dimension!
+serverutilities.lang.warps.warmup=Please, stand still for %d seconds [%d].
+serverutilities.lang.warps.cancelled=You moved! Teleport cancelled.
 
 # Homes
 serverutilities.lang.homes.set=Home '%s' set!

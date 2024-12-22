@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import serverutils.ServerUtilities;
 import serverutils.lib.io.Bits;
 
 public class StringUtils {
@@ -474,6 +475,12 @@ public class StringUtils {
     }
 
     public static IChatComponent color(IChatComponent component, @Nullable EnumChatFormatting color) {
+        component.getChatStyle().setColor(color);
+        return component;
+    }
+
+    public static IChatComponent color(String key, @Nullable EnumChatFormatting color, Object... args) {
+        IChatComponent component = ServerUtilities.lang(key, args);
         component.getChatStyle().setColor(color);
         return component;
     }

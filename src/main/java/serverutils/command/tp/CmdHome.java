@@ -17,13 +17,13 @@ import net.minecraft.util.IChatComponent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.data.TeleportType;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
-import serverutils.lib.util.text_components.Notification;
 import serverutils.task.NotifyTask;
 import serverutils.task.Task;
 
@@ -113,10 +113,8 @@ public class CmdHome extends CmdBase {
             throw ServerUtilities.error(sender, "serverutilities.lang.homes.cross_dim");
         }
 
-        IChatComponent component = ServerUtilities.lang(sender, "serverutilities.lang.warps.tp", args[0]);
-        Notification notification = Notification.of(TELEPORT, component);
-        Task task = new NotifyTask(-1, player, notification);
-        data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.HOME);
-        ServerUtilitiesPlayerData.Timer.HOME.teleport(player, playerMP -> pos.teleporter(), task);
+        Task task = new NotifyTask(-1, player, TELEPORT.createNotification("serverutilities.lang.warps.tp", args[0]));
+        data.checkTeleportCooldown(sender, TeleportType.HOME);
+        data.teleport(pos.teleporter(), TeleportType.HOME, task);
     }
 }
