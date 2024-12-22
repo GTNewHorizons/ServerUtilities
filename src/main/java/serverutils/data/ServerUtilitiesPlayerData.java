@@ -4,7 +4,6 @@ import static serverutils.ServerUtilitiesNotifications.TELEPORT_WARMUP;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
@@ -45,45 +44,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
     public static final String TAG_MUTED = "muted";
     public static final String TAG_LAST_CHUNK = "serveru_lchunk";
 
-    public enum Timer {
-
-        HOME(TeleportType.HOME),
-        WARP(TeleportType.WARP),
-        BACK(TeleportType.BACK),
-        SPAWN(TeleportType.SPAWN),
-        TPA(TeleportType.TPA),
-        RTP(TeleportType.RTP),
-        VANILLA_TP(TeleportType.VANILLA_TP);
-
-        public static final Timer[] VALUES = values();
-
-        private final String cooldown;
-        private final String warmup;
-        private final TeleportType teleportType;
-
-        Timer(TeleportType teleportType) {
-            this.teleportType = teleportType;
-            this.cooldown = teleportType.getCooldownPermission();
-            this.warmup = teleportType.getWarmupPermission();
-        }
-
-        public void teleport(EntityPlayerMP player, Function<EntityPlayerMP, TeleporterDimPos> pos,
-                @Nullable Task extraTask) {
-            Universe universe = Universe.get();
-            int seconds = (int) RankConfigAPI.get(player, warmup).getTimer().seconds();
-
-            if (seconds > 0) {
-                IChatComponent component = StringUtils.color(
-                        ServerUtilities.lang("stand_still", seconds).appendText(" [" + seconds + "]"),
-                        EnumChatFormatting.GOLD);
-                TELEPORT_WARMUP.createNotification(component).setVanilla(true).send(player);
-                universe.scheduleTask(new TeleportTask(teleportType, player, this, seconds, pos, extraTask));
-            } else {
-                new TeleportTask(teleportType, player, this, 0, pos, extraTask).execute(universe);
-            }
-        }
-    }
-
     public static ServerUtilitiesPlayerData get(ForgePlayer player) {
         return player.getData().get(ServerUtilities.MOD_ID);
     }
@@ -97,7 +57,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
     private IChatComponent cachedNameForChat;
 
     private BlockDimPos lastSafePos;
-    public final long[] lastTeleport;
     public final BlockDimPosStorage homes;
     private final TeleportTracker teleportTracker;
 
@@ -105,7 +64,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         super(player);
         homes = new BlockDimPosStorage();
         tpaRequestsFrom = new HashSet<>();
-        lastTeleport = new long[Timer.VALUES.length];
         teleportTracker = new TeleportTracker();
     }
 
@@ -191,10 +149,13 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         return lastSafePos;
     }
 
-    public void checkTeleportCooldown(ICommandSender sender, Timer timer) throws CommandException {
-        long cooldown = lastTeleport[timer.ordinal()] + player.getRankConfig(timer.cooldown).getTimer().millis()
-                - System.currentTimeMillis();
+    public void checkTeleportCooldown(ICommandSender sender, TeleportType teleportType) throws CommandException {
+        String cooldownPermission = teleportType.getCooldownPermission();
+        if (cooldownPermission == null) return;
 
+        long cooldown = teleportTracker.getLastTeleportTime(teleportType)
+                + player.getRankConfig(cooldownPermission).getTimer().millis()
+                - System.currentTimeMillis();
         if (cooldown > 0) {
             throw ServerUtilities.error(sender, "cant_use_now_cooldown", StringUtils.getTimeString(cooldown));
         }
@@ -264,6 +225,24 @@ public class ServerUtilitiesPlayerData extends PlayerData {
 
         cachedNameForChat.appendText(" ");
         return cachedNameForChat.createCopy();
+    }
+
+    public void teleport(TeleporterDimPos pos, TeleportType teleportType, @Nullable Task extraTask) {
+        EntityPlayerMP player = this.player.getPlayer();
+        Universe universe = Universe.get();
+        String warmup = teleportType.getWarmupPermission();
+        int seconds = warmup == null ? 0 : (int) RankConfigAPI.get(player, warmup).getTimer().seconds();
+
+        if (seconds > 0) {
+            IChatComponent component = StringUtils.color(
+                    ServerUtilities.lang(player, "stand_still", seconds).appendText(" [" + seconds + "]"),
+                    EnumChatFormatting.GOLD);
+            TELEPORT_WARMUP.createNotification(component).setVanilla(true).send(player);
+
+            universe.scheduleTask(new TeleportTask(teleportType, player, seconds, pos, extraTask));
+        } else {
+            new TeleportTask(teleportType, player, 0, pos, extraTask).execute(universe);
+        }
     }
 
     public TeleportLog getLastTeleportLog() {

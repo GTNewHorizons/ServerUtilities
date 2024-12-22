@@ -17,6 +17,7 @@ import net.minecraft.util.IChatComponent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.data.TeleportType;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
@@ -113,7 +114,7 @@ public class CmdHome extends CmdBase {
         }
 
         Task task = new NotifyTask(-1, player, TELEPORT.createNotification("serverutilities.lang.warps.tp", args[0]));
-        data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.HOME);
-        ServerUtilitiesPlayerData.Timer.HOME.teleport(player, playerMP -> pos.teleporter(), task);
+        data.checkTeleportCooldown(sender, TeleportType.HOME);
+        data.teleport(pos.teleporter(), TeleportType.HOME, task);
     }
 }

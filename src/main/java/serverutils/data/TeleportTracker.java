@@ -56,6 +56,11 @@ public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
         return logs[0];
     }
 
+    public long getLastTeleportTime(TeleportType teleportType) {
+        TeleportLog log = logs[teleportType.ordinal()];
+        return log == null ? -1 : log.getCreatedAt();
+    }
+
     public void clearLog(TeleportType teleportType) {
         logs[teleportType.ordinal()] = null;
     }
@@ -73,7 +78,10 @@ public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
         for (int i = 0; i < logs.length; i++) {
-            logs[i] = new TeleportLog(nbt.getCompoundTag(String.valueOf(i)));
+            String key = String.valueOf(i);
+            if (nbt.hasKey(key)) {
+                logs[i] = new TeleportLog(nbt.getCompoundTag(key));
+            }
         }
     }
 
