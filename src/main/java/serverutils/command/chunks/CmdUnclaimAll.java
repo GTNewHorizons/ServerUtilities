@@ -1,5 +1,7 @@
 package serverutils.command.chunks;
 
+import static serverutils.ServerUtilitiesNotifications.CHUNK_MODIFIED;
+
 import java.util.List;
 import java.util.OptionalInt;
 
@@ -8,13 +10,11 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ClaimedChunks;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
-import serverutils.lib.util.text_components.Notification;
 
 public class CmdUnclaimAll extends CmdBase {
 
@@ -48,11 +48,7 @@ public class CmdUnclaimAll extends CmdBase {
         if (p.hasTeam()) {
             OptionalInt dimension = CommandUtils.parseDimension(sender, args, 0);
             ClaimedChunks.instance.unclaimAllChunks(p, p.team, dimension);
-            Notification
-                    .of(
-                            ServerUtilitiesNotifications.UNCLAIMED_ALL,
-                            ServerUtilities.lang(sender, "serverutilities.lang.chunks.unclaimed_all"))
-                    .send(player.mcServer, player);
+            CHUNK_MODIFIED.send(player, "serverutilities.lang.chunks.unclaimed_all");
         } else {
             throw ServerUtilities.error(sender, "serverutilities.lang.team.error.no_team");
         }

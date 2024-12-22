@@ -11,6 +11,7 @@ import net.minecraft.util.IChatComponent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.data.TeleportType;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.math.TeleporterDimPos;
@@ -72,8 +73,6 @@ public class CmdTPAccept extends CmdBase {
                                 otherName,
                                 selfName)));
         other.player.getPlayer().addChatMessage(component);
-
-        ServerUtilitiesPlayerData.Timer.TPA
-                .teleport(other.player.getPlayer(), playerMP -> TeleporterDimPos.of(selfPlayer), null);
+        other.teleport(TeleporterDimPos.of(selfPlayer), TeleportType.TPA, null);
     }
 }

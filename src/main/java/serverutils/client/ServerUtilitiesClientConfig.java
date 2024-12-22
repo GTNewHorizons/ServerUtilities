@@ -36,14 +36,6 @@ public class ServerUtilitiesClientConfig {
     @Config.DefaultEnum("GROUPED")
     public static EnumPlacement sidebar_placement;
 
-    @Config.Comment("""
-            SCREEN: Receive notifications as normal above the hotbar.
-            CHAT: Convert all non-important notifications to chat messages.
-            DISABLED: Disable non-important notifications entirely.""")
-    @Config.LangKey("serverutilities_client.notification_location")
-    @Config.DefaultEnum("SCREEN")
-    public static EnumNotificationLocation notifications;
-
     @Config.Comment("Draw dotted lines on loaded chunks to improve noticeability.")
     @Config.LangKey("serverutilities_client.show_dotted_lines")
     @Config.DefaultBoolean(true)

@@ -1,5 +1,7 @@
 package serverutils.handlers;
 
+import static serverutils.ServerUtilitiesNotifications.PLAYER_AFK;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -11,7 +13,6 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -29,7 +30,6 @@ import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.events.universe.UniverseClearCacheEvent;
-import serverutils.lib.EnumMessageLocation;
 import serverutils.lib.config.ConfigEnum;
 import serverutils.lib.config.RankConfigAPI;
 import serverutils.lib.data.ForgePlayer;
@@ -38,7 +38,6 @@ import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.permission.PermissionAPI;
-import serverutils.lib.util.text_components.Notification;
 import serverutils.lib.util.text_components.TextComponentParser;
 import serverutils.net.MessageUpdatePlayTime;
 import serverutils.net.MessageUpdateTabName;
@@ -47,7 +46,6 @@ import serverutils.ranks.Ranks;
 public class ServerUtilitiesServerEventHandler {
 
     public static final ServerUtilitiesServerEventHandler INST = new ServerUtilitiesServerEventHandler();
-    private static final ResourceLocation AFK_ID = new ResourceLocation(ServerUtilities.MOD_ID, "afk");
     private static final Pattern STRIKETHROUGH_PATTERN = Pattern.compile("~~(.+?)~~");
     private static final String STRIKETHROUGH_REPLACE = "&m$1&m";
     private static final Pattern BOLD_PATTERN = Pattern.compile("\\*\\*(.+?)\\*\\*|__(.+?)__");
@@ -206,26 +204,12 @@ public class ServerUtilitiesServerEventHandler {
                             new MessageUpdateTabName(Collections.singleton(forgePlayer)).sendToAll();
                         }
 
-                        for (EntityPlayerMP player1 : universe.server.getConfigurationManager().playerEntityList) {
-                            EnumMessageLocation location = ServerUtilitiesPlayerData.get(universe.getPlayer(player1))
-                                    .getAFKMessageLocation();
-
-                            if (location != EnumMessageLocation.OFF) {
-                                IChatComponent component = ServerUtilities.lang(
-                                        player1,
+                        PLAYER_AFK.sendAll(
+                                StringUtils.color(
                                         isAFK ? "permission.serverutilities.afk.timer.is_afk"
                                                 : "permission.serverutilities.afk.timer.isnt_afk",
-                                        player.getDisplayName());
-                                component.getChatStyle().setColor(EnumChatFormatting.GRAY);
-
-                                if (location == EnumMessageLocation.CHAT) {
-                                    player1.addChatMessage(component);
-                                } else {
-                                    Notification.of(AFK_ID, component).send(universe.server, player1);
-                                }
-                            }
-                        }
-
+                                        EnumChatFormatting.GRAY,
+                                        player.getDisplayName()));
                         ServerUtilities.LOGGER
                                 .info("{}{}", player.getDisplayName(), isAFK ? " is now AFK" : " is no longer AFK");
 
