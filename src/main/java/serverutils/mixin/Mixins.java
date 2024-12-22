@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import cpw.mods.fml.relauncher.FMLLaunchHandler;
-import serverutils.ServerUtilities;
+import serverutils.core.ServerUtilitiesCore;
 
 public enum Mixins {
 
@@ -60,7 +60,7 @@ public enum Mixins {
                 }
             }
         }
-        ServerUtilities.LOGGER.info("Not loading the following EARLY mixins: {}", notLoading);
+        ServerUtilitiesCore.LOGGER.info("Not loading the following EARLY mixins: {}", notLoading);
         return mixins;
     }
 
@@ -76,7 +76,7 @@ public enum Mixins {
                 }
             }
         }
-        ServerUtilities.LOGGER.info("Not loading the following LATE mixins: {}", notLoading.toString());
+        ServerUtilitiesCore.LOGGER.info("Not loading the following LATE mixins: {}", notLoading.toString());
         return mixins;
     }
 

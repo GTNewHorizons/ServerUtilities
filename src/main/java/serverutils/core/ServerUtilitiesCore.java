@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.gtnewhorizon.gtnhlib.config.ConfigException;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
@@ -14,6 +17,8 @@ import serverutils.aurora.AuroraConfig;
 import serverutils.mixin.Mixins;
 
 public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
+
+    public static final Logger LOGGER = LogManager.getLogger(ServerUtilitiesCore.class);
 
     static {
         try {
