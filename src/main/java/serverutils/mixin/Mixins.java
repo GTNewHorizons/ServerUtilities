@@ -1,7 +1,6 @@
 package serverutils.mixin;
 
-import static serverutils.ServerUtilitiesConfig.commands;
-import static serverutils.ServerUtilitiesConfig.ranks;
+import static serverutils.ServerUtilitiesConfig.*;
 import static serverutils.mixin.TargetedMod.VANILLA;
 
 import java.util.ArrayList;
@@ -23,7 +22,10 @@ public enum Mixins {
     REPLACE_TAB_NAMES(new Builder("Replace tab menu names").addTargetedMod(VANILLA).setSide(Side.CLIENT)
             .setPhase(Phase.EARLY).addMixinClasses("forge.MixinGuiIngameForge")),
     VANILLA_TP_BACK_COMPAT(new Builder("/back compat for the vanilla /tp").addTargetedMod(VANILLA).setSide(Side.BOTH)
-            .setPhase(Phase.EARLY).setApplyIf(() -> commands.back).addMixinClasses("minecraft.MixinCommandTeleport")),;
+            .setPhase(Phase.EARLY).setApplyIf(() -> commands.back).addMixinClasses("minecraft.MixinCommandTeleport")),
+    PLAYERS_SLEEPING_PERCENTAGE(new Builder("Player Sleeping Percentage").addTargetedMod(VANILLA).setSide(Side.BOTH)
+            .setPhase(Phase.EARLY).setApplyIf(() -> world.enable_player_sleeping_percentage)
+            .addMixinClasses("minecraft.MixinWorldServer"));
 
     private final List<String> mixinClasses;
     private final Supplier<Boolean> applyIf;
