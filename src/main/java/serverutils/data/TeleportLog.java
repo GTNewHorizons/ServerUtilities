@@ -17,7 +17,7 @@ public class TeleportLog implements INBTSerializable<NBTTagCompound>, Comparable
     private static final String NBT_KEY_TELEPORT_TYPE = "teleport_type";
     private static final String NBT_KEY_CREATED_AT = "created_at";
 
-    private static Comparator<TeleportLog> comparator = Comparator
+    private static final Comparator<TeleportLog> comparator = Comparator
             .comparing((log) -> log == null ? null : log.getCreatedAt(), Comparator.nullsFirst(Long::compareTo));
 
     public TeleportType teleportType;
@@ -55,6 +55,7 @@ public class TeleportLog implements INBTSerializable<NBTTagCompound>, Comparable
         posZ = nbt.getInteger(NBT_KEY_Z);
         dimension = nbt.getInteger(NBT_KEY_DIMENSION);
         teleportType = nbt.getInteger(NBT_KEY_TELEPORT_TYPE);
+        this.createdAt = nbt.getLong(NBT_KEY_CREATED_AT);
         this.from = new BlockDimPos(posX, posY, posZ, dimension);
         this.teleportType = TeleportType.values()[teleportType];
     }

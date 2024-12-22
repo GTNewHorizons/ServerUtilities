@@ -10,6 +10,7 @@ import net.minecraft.util.IChatComponent;
 
 import serverutils.ServerUtilities;
 import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.data.TeleportType;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.Universe;
@@ -33,7 +34,7 @@ public class CmdTPA extends CmdBase {
         checkArgs(sender, args, 1);
         ServerUtilitiesPlayerData self = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(sender));
 
-        self.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.TPA);
+        self.checkTeleportCooldown(sender, TeleportType.TPA);
 
         ServerUtilitiesPlayerData other = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(sender, args[0]));
 
