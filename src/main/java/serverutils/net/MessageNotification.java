@@ -4,7 +4,7 @@ import net.minecraft.util.IChatComponent;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.handlers.ServerUtilitiesClientEventHandler;
+import serverutils.client.NotificationHandler;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToClient;
@@ -38,6 +38,6 @@ public class MessageNotification extends MessageToClient {
     @Override
     @SideOnly(Side.CLIENT)
     public void onMessage() {
-        ServerUtilitiesClientEventHandler.INST.onNotify(notification);
+        NotificationHandler.onNotify(notification);
     }
 }

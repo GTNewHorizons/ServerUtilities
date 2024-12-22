@@ -22,7 +22,6 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
-import serverutils.lib.EnumMessageLocation;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.RankConfigAPI;
 import serverutils.lib.data.ForgePlayer;
@@ -33,7 +32,6 @@ import serverutils.lib.math.TeleporterDimPos;
 import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
-import serverutils.lib.util.text_components.Notification;
 import serverutils.lib.util.text_components.TextComponentParser;
 import serverutils.net.MessageUpdateTabName;
 import serverutils.ranks.Ranks;
@@ -53,7 +51,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
     private boolean enablePVP = true;
     private boolean showTeamPrefix = false;
     private String nickname = "";
-    private EnumMessageLocation afkMesageLocation = EnumMessageLocation.CHAT;
 
     public final Collection<ForgePlayer> tpaRequestsFrom;
     public long afkTime;
@@ -83,7 +80,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         nbt.setTag("Homes", homes.serializeNBT());
         nbt.setTag("TeleportTracker", teleportTracker.serializeNBT());
         nbt.setString("Nickname", nickname);
-        nbt.setString("AFK", EnumMessageLocation.NAME_MAP.getName(afkMesageLocation));
         return nbt;
     }
 
@@ -95,7 +91,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         teleportTracker.deserializeNBT(nbt.getCompoundTag("TeleportTracker"));
         setLastDeath(BlockDimPos.fromIntArray(nbt.getIntArray("LastDeath")), 0);
         nickname = nbt.getString("Nickname");
-        afkMesageLocation = EnumMessageLocation.NAME_MAP.get(nbt.getString("AFK"));
     }
 
     public void addConfig(ConfigGroup main) {
@@ -107,8 +102,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         config.addString("nickname", () -> nickname, v -> nickname = v, "").setCanEdit(
                 ServerUtilitiesConfig.commands.nick
                         && player.hasPermission(ServerUtilitiesPermissions.CHAT_NICKNAME_SET));
-        config.addEnum("afk", () -> afkMesageLocation, v -> afkMesageLocation = v, EnumMessageLocation.NAME_MAP)
-                .setExcluded(!ServerUtilitiesConfig.afk.isEnabled(player.team.universe.server));
         IChatComponent info = new ChatComponentTranslation(
                 "player_config.serverutilities.show_team_prefix.info",
                 player.team.getTitle());
@@ -128,10 +121,6 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         nickname = name.equals(player.getName()) ? "" : name;
         player.markDirty();
         clearCache();
-    }
-
-    public EnumMessageLocation getAFKMessageLocation() {
-        return afkMesageLocation;
     }
 
     public void setLastDeath(@Nullable BlockDimPos pos) {
@@ -248,7 +237,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
             IChatComponent component = StringUtils.color(
                     ServerUtilities.lang(player, "stand_still", seconds).appendText(" [" + seconds + "]"),
                     EnumChatFormatting.GOLD);
-            Notification.of(TELEPORT_WARMUP, component).setVanilla(true).send(player.mcServer, player);
+            TELEPORT_WARMUP.createNotification(component).setVanilla(true).send(player);
 
             universe.scheduleTask(new TeleportTask(teleportType, player, seconds, pos, extraTask));
         } else {

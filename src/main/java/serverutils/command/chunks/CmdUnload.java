@@ -1,5 +1,8 @@
 package serverutils.command.chunks;
 
+import static serverutils.ServerUtilitiesNotifications.CANT_MODIFY_CHUNK;
+import static serverutils.ServerUtilitiesNotifications.CHUNK_MODIFIED;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -12,7 +15,6 @@ import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.math.ChunkDimPos;
-import serverutils.lib.util.text_components.Notification;
 
 public class CmdUnload extends CmdBase {
 
@@ -33,14 +35,11 @@ public class CmdUnload extends CmdBase {
 
         if (ClaimedChunks.instance.canPlayerModify(p, pos, ServerUtilitiesPermissions.CLAIMS_OTHER_UNLOAD)
                 && ClaimedChunks.instance.unloadChunk(p, pos)) {
-            Notification
-                    .of(
-                            ServerUtilitiesNotifications.CHUNK_MODIFIED,
-                            ServerUtilities.lang(player, "serverutilities.lang.chunks.chunk_unloaded"))
-                    .send(player.mcServer, player);
+            CHUNK_MODIFIED.send(player, "serverutilities.lang.chunks.chunk_unloaded");
             ServerUtilitiesNotifications.updateChunkMessage(player, pos);
         } else {
-            ServerUtilitiesNotifications.sendCantModifyChunk(player.mcServer, player);
+            CANT_MODIFY_CHUNK.createNotification("serverutilities.lang.chunks.cant_modify_chunk").setError()
+                    .send(player);
         }
     }
 }
