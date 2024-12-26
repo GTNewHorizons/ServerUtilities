@@ -465,6 +465,9 @@ commands.god.usage=/god <player>
 commands.rtp.usage=/rtp
 commands.dump_chunkloaders.usage=/dump_chunkloaders
 commands.dump_permissions.usage=/dump_permissions
+commands.vanish.usage=/vanish [send_connect_message|true/false]
+commands.vanish.off=You are no longer hidden!
+commands.vanish.on=Poof! You are now hidden!
 
 # Chunks
 serverutilities.lang.chunks.cant_modify_chunk=Can't modify this chunk!
