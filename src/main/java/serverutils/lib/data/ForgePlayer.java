@@ -429,4 +429,10 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
         markDirty();
         new ForgePlayerConfigSavedEvent(this, group, sender).post();
     }
+
+    public boolean isVanished() {
+        EntityPlayerMP player = getNullablePlayer();
+        if (player == null) return false;
+        return ServerUtils.isVanished(player);
+    }
 }
