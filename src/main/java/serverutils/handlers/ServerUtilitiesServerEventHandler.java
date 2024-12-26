@@ -39,8 +39,8 @@ import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.lib.util.text_components.TextComponentParser;
 import serverutils.net.MessageUpdatePlayTime;
-import serverutils.pregenerator.ChunkLoaderManager;
 import serverutils.net.MessageUpdateTabName;
+import serverutils.pregenerator.ChunkLoaderManager;
 import serverutils.ranks.Ranks;
 
 public class ServerUtilitiesServerEventHandler {
