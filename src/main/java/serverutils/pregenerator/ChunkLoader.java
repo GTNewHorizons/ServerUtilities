@@ -18,13 +18,12 @@ public class ChunkLoader {
         this.fileManager = fileManager;
     }
 
-    public void processLoadChunk(MinecraftServer server, int dimensionId, Long chunk) {
+    public void processLoadChunk(MinecraftServer server, int dimensionId, long chunk) {
         int x = unpackX(chunk);
         int z = unpackZ(chunk);
 
         ChunkProviderServer cps = server.worldServerForDimension(dimensionId).theChunkProviderServer;
         cps.loadChunk(x, z, () -> {
-            ChunkLoaderManager.instance.removeChunkFromList();
             this.fileManager.saveIteration(ChunkLoaderManager.instance.getChunkToLoadSize());
             loadIteration++;
             if (loadIteration % 100 == 0) {
