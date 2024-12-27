@@ -6,6 +6,7 @@ import static serverutils.ServerUtilitiesConfig.debugging;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.command.chunks.CmdChunks;
+import serverutils.command.pregen.CmdPregen;
 import serverutils.command.ranks.CmdRanks;
 import serverutils.command.team.CmdTeam;
 import serverutils.command.tp.CmdBack;
@@ -148,6 +149,9 @@ public class ServerUtilitiesCommands {
         }
         if (commands.vanish) {
             event.registerServerCommand(new CmdVanish());
+        }
+        if (ServerUtilitiesConfig.commands.pregen) {
+            event.registerServerCommand(new CmdPregen());
         }
     }
 }

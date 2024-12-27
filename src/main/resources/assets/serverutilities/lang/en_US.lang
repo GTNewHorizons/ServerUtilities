@@ -468,6 +468,10 @@ commands.dump_permissions.usage=/dump_permissions
 commands.vanish.usage=/vanish [send_connect_message|true/false]
 commands.vanish.off=You are no longer hidden!
 commands.vanish.on=Poof! You are now hidden!
+commands.pregen.start.usage_server=/pregen start <x> <y> <radius>
+commands.pregen.start.usage_client=/pregen start <x> <y> <radius> or /pregen <radius>
+commands.pregen.stop.usage=/pregen stop
+commands.pregen.progress.usage=/pregen progress
 
 # Chunks
 serverutilities.lang.chunks.cant_modify_chunk=Can't modify this chunk!

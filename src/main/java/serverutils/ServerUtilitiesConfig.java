@@ -261,6 +261,9 @@ public class ServerUtilitiesConfig {
 
         @Config.DefaultBoolean(true)
         public boolean vanish;
+        
+        @Config.DefaultBoolean(true)
+        public boolean pregen;
     }
 
     public static class Backups {
