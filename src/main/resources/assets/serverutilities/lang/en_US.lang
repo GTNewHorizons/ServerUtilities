@@ -289,8 +289,6 @@ player_config.vanish.collision=Collision
 player_config.vanish.sendconnectionmsg=Send connection message
 player_config.vanish.containerreadonly=Read-only Containers
 player_config.vanish.itemdropping=Item Dropping
-
-
 player_config.vanish.interaction.tooltip=Toggles block placing/breaking & Entity interactions while vanished
 player_config.vanish.chat.tooltip=Toggles chatting while vanished
 player_config.vanish.collision.tooltip=Toggles collisions with entities while vanished
@@ -495,6 +493,9 @@ commands.vanish.damage_other.usage=/vanish damage_other
 commands.vanish.send_connection_msg.usage=/vanish send_connection_msg
 commands.vanish.container_read_only.usage=/vanish container_read_only
 commands.vanish.item_dropping.usage=/vanish item_dropping
+commands.vanish.check.usage=/vanish check
+commands.vanish.check.true=You are currently vanished!
+commands.vanish.check.false=You are §sNOT§r vanished!
 commands.vanish.off=You are no longer hidden!
 commands.vanish.on=Poof! You are now hidden!
 commands.vanish.interact=Interacting while vanished

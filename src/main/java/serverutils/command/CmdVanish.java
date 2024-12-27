@@ -24,6 +24,7 @@ import serverutils.lib.command.CmdTreeHelp;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.NBTUtils;
+import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 
 public class CmdVanish extends CmdTreeBase {
@@ -31,6 +32,7 @@ public class CmdVanish extends CmdTreeBase {
     public CmdVanish() {
         super("vanish");
         addSubcommand(new CmdVanishToggle());
+        addSubcommand(new CmdVanishCheck());
         addSubcommand(new CmdSimple("fakequit", Level.OP, (sender) -> sendConnectionMessage(sender, true)));
         addSubcommand(new CmdSimple("fakejoin", Level.OP, (sender) -> sendConnectionMessage(sender, false)));
         for (VanishData.DataType type : VanishData.DataType.values()) {
@@ -71,6 +73,23 @@ public class CmdVanish extends CmdTreeBase {
                 player.capabilities.disableDamage = false;
                 player.addChatMessage(new ChatComponentTranslation("commands.vanish.off"));
                 updateVanishStatus(player, false);
+            }
+        }
+    }
+
+    public static class CmdVanishCheck extends CmdBase {
+
+        public CmdVanishCheck() {
+            super("check", Level.OP);
+        }
+
+        @Override
+        public void processCommand(ICommandSender sender, String[] args) {
+            if (!(sender instanceof EntityPlayerMP player)) return;
+            if (ServerUtils.isVanished(player)) {
+                player.addChatMessage(new ChatComponentTranslation("commands.vanish.check.true"));
+            } else {
+                player.addChatMessage(new ChatComponentTranslation("commands.vanish.check.false"));
             }
         }
     }
