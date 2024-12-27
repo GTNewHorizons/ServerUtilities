@@ -24,14 +24,17 @@ public enum Mixins {
             .setPhase(Phase.EARLY).addMixinClasses("forge.MixinGuiIngameForge")),
     VANILLA_TP_BACK_COMPAT(new Builder("/back compat for the vanilla /tp").addTargetedMod(VANILLA).setSide(Side.BOTH)
             .setPhase(Phase.EARLY).setApplyIf(() -> commands.back).addMixinClasses("minecraft.MixinCommandTeleport")),
-    VANISH(new Builder("/vanish command").addTargetedMod(VANILLA).setSide(Side.SERVER).setPhase(Phase.EARLY)
+    VANISH(new Builder("/vanish command").addTargetedMod(VANILLA).setSide(Side.BOTH).setPhase(Phase.EARLY)
             .setApplyIf(() -> commands.vanish).addMixinClasses(
-                    "minecraft.vanish.MixinEntity",
                     "minecraft.vanish.MixinServerConfigurationManager",
                     "minecraft.vanish.MixinMinecraftServer",
                     "minecraft.vanish.MixinEntityTrackerEntry",
                     "minecraft.vanish.MixinNetHandlerPlayServer",
-                    "minecraft.vanish.MixinCommandListPlayers")),;
+                    "minecraft.vanish.MixinCommandListPlayers",
+                    "minecraft.vanish.MixinEntityPlayer",
+                    "minecraft.vanish.MixinEntityPlayerMP",
+                    "minecraft.vanish.MixinWorld",
+                    "minecraft.vanish.MixinItemInWorldManager")),;
 
     private final List<String> mixinClasses;
     private final Supplier<Boolean> applyIf;
