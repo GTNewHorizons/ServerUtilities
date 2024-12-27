@@ -37,7 +37,7 @@ public enum Mixins {
                     "minecraft.vanish.MixinWorld",
                     "minecraft.vanish.MixinItemInWorldManager")),
     HIDE_VANISHED_FROM_DETECTOR(new Builder("Hide vanished players from the RandomThings online detector")
-            .addTargetedMod(RANDOMTHINGS).setSide(Side.BOTH).setPhase(Phase.LATE).setApplyIf(() -> commands.vanish)
+            .addTargetedMod(RANDOMTHINGS).setSide(Side.SERVER).setPhase(Phase.LATE).setApplyIf(() -> commands.vanish)
             .addMixinClasses("randomthings.MixinWorldUtils")),;
 
     private final List<String> mixinClasses;
