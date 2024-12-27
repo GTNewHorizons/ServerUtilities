@@ -446,6 +446,10 @@ commands.team.join.usage=/team join <team>
 commands.team.status.usage=/team status <player> [set_status]
 commands.team.status.set=Status for %s set to %s
 commands.team.status.cant_set=Status can't be set!
+commands.team.status_for.usage=/team status_for <team> <player> [set_status]
+commands.team.status.invalid=Couldn't find status %s! Available statuses: %s
+commands.team.status.success=Status for %s in team %s set to %s
+commands.team.status.failed=Failed to set status %s for %s in team %s
 commands.team.msg.usage=/team msg <message...>
 commands.team.delete.usage=/team delete <team>
 commands.team.request_invite.usage=/team request_invite <team>
@@ -463,6 +467,10 @@ commands.god.usage=/god <player>
 commands.rtp.usage=/rtp
 commands.dump_chunkloaders.usage=/dump_chunkloaders
 commands.dump_permissions.usage=/dump_permissions
+commands.pregen.start.usage_server=/pregen start <x> <y> <radius>
+commands.pregen.start.usage_client=/pregen start <x> <y> <radius> or /pregen <radius>
+commands.pregen.stop.usage=/pregen stop
+commands.pregen.progress.usage=/pregen progress
 
 # Chunks
 serverutilities.lang.chunks.cant_modify_chunk=Can't modify this chunk!

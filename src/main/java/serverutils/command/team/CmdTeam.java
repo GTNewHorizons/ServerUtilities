@@ -14,6 +14,7 @@ public class CmdTeam extends CmdTreeBase {
         addSubcommand(new CmdKick());
         addSubcommand(new CmdJoin());
         addSubcommand(new CmdStatus());
+        addSubcommand(new CmdStatusFor());
         addSubcommand(new CmdRequestInvite());
         addSubcommand(new CmdDelete());
         addSubcommand(new CmdCreateServerTeam());
