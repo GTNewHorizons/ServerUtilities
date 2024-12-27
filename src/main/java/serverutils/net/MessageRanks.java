@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import net.minecraft.command.ICommand;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
@@ -15,7 +16,6 @@ import net.minecraft.util.IChatComponent;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.client.gui.ranks.GuiRanks;
 import serverutils.client.gui.ranks.RankInst;
@@ -36,7 +36,7 @@ import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.permission.DefaultPermissionHandler;
 import serverutils.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.util.permission.PermissionAPI;
-import serverutils.ranks.CommandOverride;
+import serverutils.ranks.ICommandWithPermission;
 import serverutils.ranks.PlayerRank;
 import serverutils.ranks.Rank;
 import serverutils.ranks.Ranks;
@@ -64,18 +64,8 @@ public class MessageRanks extends MessageToClient {
                 String permissionNode = entry.node;
                 ConfigValue val = rank.getPermissionValue(permissionNode);
                 ConfigValue defaultValue = RankConfigAPI.getConfigValue(permissionNode, false);
-
-                if (ServerUtilitiesConfig.ranks.override_commands && permissionNode.startsWith("command.")) {
-                    CommandOverride cmd = Ranks.INSTANCE.commands.get(permissionNode);
-                    if (cmd == null) continue;
-                    defaultValue = new ConfigBoolean(cmd.getRequiredPermissionLevel() == 0);
-                    group.add(permissionNode, val, defaultValue, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                            .setDisplayName(new ChatComponentTranslation(permissionNode))
-                            .setInfo(CommandUtils.getTranslatedUsage(cmd, p.getPlayer()));
-                } else {
-                    group.add(permissionNode, val, defaultValue, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                            .setDisplayName(new ChatComponentTranslation(permissionNode));
-                }
+                group.add(permissionNode, val, defaultValue, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
+                        .setDisplayName(new ChatComponentTranslation(permissionNode));
             }
 
             inst.group = group;
@@ -114,12 +104,15 @@ public class MessageRanks extends MessageToClient {
                         .setDisplayName(new ChatComponentTranslation(info.node));
             }
 
+            Collection<NodeEntry> prefixesToSkip = ServerUtilitiesPermissions.getPrefixesExcluding(LEADERBOARD_PREFIX);
+
             for (String node : PermissionAPI.getPermissionHandler().getRegisteredNodes()) {
                 DefaultPermissionLevel level = DefaultPermissionHandler.INSTANCE.getDefaultPermissionLevel(node);
                 String desc = PermissionAPI.getPermissionHandler().getNodeDescription(node);
                 boolean printNode = true;
 
-                for (NodeEntry cprefix : ServerUtilitiesPermissions.getPrefixesExcluding(LEADERBOARD_PREFIX)) {
+                if (node.startsWith(Rank.NODE_COMMAND)) continue;
+                for (NodeEntry cprefix : prefixesToSkip) {
                     if (node.startsWith(cprefix.getNode())) {
                         if (cprefix.level != null && level == cprefix.level && desc.isEmpty()) {
                             printNode = false;
@@ -138,15 +131,15 @@ public class MessageRanks extends MessageToClient {
 
         if (commandPermissions == null) {
             commandPermissions = ConfigGroup.newGroup("");
-            if (ServerUtilitiesConfig.ranks.override_commands) {
-                for (CommandOverride command : Ranks.INSTANCE.commands.values()) {
-                    String commandNode = command.node;
-                    ConfigBoolean val = new ConfigBoolean(command.getRequiredPermissionLevel() == 0);
-
-                    commandPermissions.add(commandNode, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                            .setDisplayName(new ChatComponentTranslation(commandNode))
-                            .setInfo(CommandUtils.getTranslatedUsage(command, p.getPlayer()));
-                }
+            for (ICommandWithPermission command : CommandUtils.getPermissionCommands()) {
+                String node = command.serverutilities$getPermissionNode();
+                DefaultPermissionLevel level = DefaultPermissionHandler.INSTANCE.getDefaultPermissionLevel(node);
+                IChatComponent name = new ChatComponentText(
+                        EnumChatFormatting.BLUE + "[" + command.serverutilities$getModName() + "]\n");
+                ConfigBoolean val = new ConfigBoolean(level == DefaultPermissionLevel.ALL);
+                commandPermissions.add(node, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
+                        .setDisplayName(new ChatComponentTranslation(node)).setInfo(
+                                name.appendSibling(CommandUtils.getTranslatedUsage((ICommand) command, p.getPlayer())));
             }
         }
     }

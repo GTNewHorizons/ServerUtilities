@@ -2,6 +2,7 @@ package serverutils.data;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -35,7 +36,7 @@ public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
     }
 
     private TeleportLog[] getSortedLogs() {
-        TeleportLog[] toSort = Arrays.stream(logs).filter((l) -> l != null).toArray(TeleportLog[]::new);
+        TeleportLog[] toSort = Arrays.stream(logs).filter(Objects::nonNull).toArray(TeleportLog[]::new);
         Arrays.sort(toSort, Collections.reverseOrder());
         return toSort;
     }
@@ -55,6 +56,11 @@ public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
         return logs[0];
     }
 
+    public long getLastTeleportTime(TeleportType teleportType) {
+        TeleportLog log = logs[teleportType.ordinal()];
+        return log == null ? -1 : log.getCreatedAt();
+    }
+
     public void clearLog(TeleportType teleportType) {
         logs[teleportType.ordinal()] = null;
     }
@@ -71,11 +77,11 @@ public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
 
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
-        if (nbt == null) {
-            return;
-        }
         for (int i = 0; i < logs.length; i++) {
-            logs[i] = new TeleportLog(nbt.getCompoundTag(String.valueOf(i)));
+            String key = String.valueOf(i);
+            if (nbt.hasKey(key)) {
+                logs[i] = new TeleportLog(nbt.getCompoundTag(key));
+            }
         }
     }
 
@@ -85,7 +91,7 @@ public class TeleportTracker implements INBTSerializable<NBTTagCompound> {
         builder.append("{");
         for (int i = 0; i < logs.length; i++) {
             final TeleportLog l = logs[i];
-            builder.append(l.teleportType.toString() + ":" + l.getBlockDimPos());
+            builder.append(l.teleportType.toString()).append(":").append(l.getBlockDimPos());
             if (i != logs.length - 1) {
                 builder.append(",");
             }

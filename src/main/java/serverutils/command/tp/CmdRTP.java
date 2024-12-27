@@ -16,6 +16,7 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.data.TeleportType;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.math.ChunkDimPos;
@@ -34,14 +35,12 @@ public class CmdRTP extends CmdBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
         ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
-        data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.RTP);
-        ServerUtilitiesPlayerData.Timer.RTP.teleport(
+        data.checkTeleportCooldown(sender, TeleportType.RTP);
+        TeleporterDimPos pos = findBlockPos(
+                player.mcServer.worldServerForDimension(ServerUtilitiesConfig.world.spawn_dimension),
                 player,
-                playerMP -> findBlockPos(
-                        playerMP.mcServer.worldServerForDimension(ServerUtilitiesConfig.world.spawn_dimension),
-                        player,
-                        0),
-                null);
+                0);
+        data.teleport(pos, TeleportType.RTP, null);
     }
 
     private TeleporterDimPos findBlockPos(World world, EntityPlayerMP player, int depth) {

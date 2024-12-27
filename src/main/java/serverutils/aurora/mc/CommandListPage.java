@@ -7,8 +7,8 @@ import serverutils.aurora.PageType;
 import serverutils.aurora.page.HTTPWebPage;
 import serverutils.aurora.tag.Style;
 import serverutils.aurora.tag.Tag;
-import serverutils.ranks.CommandOverride;
-import serverutils.ranks.Ranks;
+import serverutils.lib.command.CommandUtils;
+import serverutils.ranks.ICommandWithPermission;
 
 public class CommandListPage extends HTTPWebPage {
 
@@ -35,7 +35,7 @@ public class CommandListPage extends HTTPWebPage {
 
     @Override
     public PageType getPageType() {
-        return AuroraConfig.command_list_page;
+        return AuroraConfig.pages.command_list_page;
     }
 
     @Override
@@ -54,9 +54,9 @@ public class CommandListPage extends HTTPWebPage {
         firstRow.th().text("Available command nodes");
         firstRow.th().text("Usage");
 
-        for (CommandOverride c : Ranks.INSTANCE.commands.values()) {
+        for (ICommandWithPermission cmd : CommandUtils.getPermissionCommands()) {
             Tag row = nodeTable.tr();
-            row.td().paired("code", c.node);
+            row.td().paired("code", cmd.serverutilities$getPermissionNode());
         }
     }
 }

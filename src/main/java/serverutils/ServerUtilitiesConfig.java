@@ -22,42 +22,20 @@ import serverutils.lib.util.JsonUtils;
 import serverutils.lib.util.ServerUtils;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", configSubDirectory = "../serverutilities/")
+@Config.RequiresWorldRestart
 public class ServerUtilitiesConfig {
 
-    @Config.RequiresWorldRestart
     public static final AutoShutdown auto_shutdown = new AutoShutdown();
-
-    @Config.RequiresWorldRestart
     public static final AFK afk = new AFK();
-
-    @Config.RequiresWorldRestart
     public static final Chat chat = new Chat();
-
-    @Config.RequiresWorldRestart
     public static final Commands commands = new Commands();
-
-    @Config.RequiresWorldRestart
     public static final Login login = new Login();
-
-    @Config.RequiresWorldRestart
     public static final RanksConfig ranks = new RanksConfig();
-
-    @Config.RequiresWorldRestart
     public static final WorldConfig world = new WorldConfig();
-
-    @Config.RequiresWorldRestart
     public static final Debugging debugging = new Debugging();
-
-    @Config.RequiresWorldRestart
     public static final Backups backups = new Backups();
-
-    @Config.RequiresWorldRestart
     public static final General general = new General();
-
-    @Config.RequiresWorldRestart
     public static final Teams teams = new Teams();
-
-    @Config.RequiresWorldRestart
     public static final Tasks tasks = new Tasks();
 
     public static class General {
@@ -195,6 +173,10 @@ public class ServerUtilitiesConfig {
         @Config.Comment("Adds ~ to player names that have changed nickname to prevent trolling.")
         @Config.DefaultBoolean(false)
         public boolean add_nickname_tilde;
+
+        @Config.Comment("Replaces player names in the TAB screen with the names used in chat.")
+        @Config.DefaultBoolean(true)
+        public boolean replace_tab_names;
     }
 
     public static class Commands {
@@ -276,6 +258,9 @@ public class ServerUtilitiesConfig {
 
         @Config.DefaultBoolean(true)
         public boolean dump_stats;
+
+        @Config.DefaultBoolean(true)
+        public boolean pregen;
     }
 
     public static class Backups {
@@ -286,14 +271,17 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Time between backups in hours. \n1.0 - backups every hour 6.0 - backups every 6 hours 0.5 - backups every 30 minutes.")
         @Config.DefaultDouble(0.5)
+        @Config.RangeDouble(min = 0)
         public double backup_timer;
 
         @Config.Comment("Number of backup files to keep before deleting old ones.")
         @Config.DefaultInt(12)
+        @Config.RangeInt(min = 1)
         public int backups_to_keep;
 
-        @Config.Comment("How much the backup file will be compressed. 1 - best speed 9 - smallest file size.")
+        @Config.Comment("How much the backup file will be compressed. 0 - uncompressed, 1 - best speed, 9 - smallest file size.")
         @Config.DefaultInt(1)
+        @Config.RangeInt(min = 0, max = 9)
         public int compression_level;
 
         @Config.Comment("Path to backups folder.")
@@ -320,6 +308,7 @@ public class ServerUtilitiesConfig {
                 Max size of backup folder in GB. If total folder size exceeds this value it will delete old backups until the size is under.
                 0 = Disabled and backups_to_keep will be used instead.""")
         @Config.DefaultInt(0)
+        @Config.RangeInt(min = 0)
         public int max_folder_size;
 
         @Config.Comment("Delete backups that have a custom name set through /backup start <name>")
@@ -401,7 +390,7 @@ public class ServerUtilitiesConfig {
 
     public static class RanksConfig {
 
-        @Config.Comment("Enables ranks and adds command.x permissions and allows ranks to control them.")
+        @Config.Comment("Enables Ranks.")
         @Config.DefaultBoolean(true)
         public boolean enabled;
 
@@ -409,9 +398,9 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean override_chat;
 
-        @Config.Comment("Allow to configure commands with ranks. Disable this if you want to use other permission mod for that.")
+        @Config.Comment("Add permissions for commands and allow them to be controlled by ranks.")
         @Config.DefaultBoolean(true)
-        public boolean override_commands;
+        public boolean command_permissions;
     }
 
     public static class WorldConfig {

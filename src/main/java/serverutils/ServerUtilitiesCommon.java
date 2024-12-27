@@ -6,18 +6,14 @@ import static serverutils.ServerUtilitiesConfig.ranks;
 import static serverutils.ServerUtilitiesConfig.tasks;
 import static serverutils.ServerUtilitiesConfig.world;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
-import net.minecraft.command.ICommand;
-import net.minecraft.command.ServerCommandManager;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
@@ -27,12 +23,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
-import com.gtnewhorizon.gtnhlib.config.ConfigException;
-import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
-
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -55,7 +47,6 @@ import serverutils.handlers.ServerUtilitiesPlayerEventHandler;
 import serverutils.handlers.ServerUtilitiesRegistryEventHandler;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.handlers.ServerUtilitiesWorldEventHandler;
-import serverutils.lib.ATHelper;
 import serverutils.lib.EnumReloadType;
 import serverutils.lib.OtherMods;
 import serverutils.lib.config.ConfigBoolean;
@@ -90,14 +81,10 @@ import serverutils.lib.gui.GuiIcons;
 import serverutils.lib.icon.Color4I;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.net.MessageToClient;
-import serverutils.lib.util.CommonUtils;
 import serverutils.lib.util.InvUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.ServerUtilitiesNetHandler;
-import serverutils.ranks.CommandOverride;
-import serverutils.ranks.Rank;
-import serverutils.ranks.Ranks;
 import serverutils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.task.CleanupTask;
 import serverutils.task.DecayTask;
@@ -134,14 +121,6 @@ public class ServerUtilitiesCommon {
         }
     }
 
-    static {
-        try {
-            ConfigurationManager.registerConfig(ServerUtilitiesConfig.class);
-        } catch (ConfigException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public void preInit(FMLPreInitializationEvent event) {
         if ((Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
             ServerUtilities.LOGGER.info("Loading ServerUtilities in development environment");
@@ -175,7 +154,7 @@ public class ServerUtilitiesCommon {
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesUniverseData.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPermissions.INST);
         FMLCommonHandler.instance().bus().register(ServerUtilitiesServerEventHandler.INST);
-        if (AuroraConfig.enable) {
+        if (AuroraConfig.general.enable) {
             MinecraftForge.EVENT_BUS.register(AuroraMinecraftHandler.INST);
             FMLCommonHandler.instance().bus().register(AuroraMinecraftHandler.INST);
         }
@@ -280,7 +259,7 @@ public class ServerUtilitiesCommon {
     public void onServerStarting(FMLServerStartingEvent event) {
         ServerUtilitiesCommands.registerCommands(event);
 
-        if (AuroraConfig.enable) {
+        if (AuroraConfig.general.enable) {
             Aurora.start(event.getServer());
         }
     }
@@ -288,50 +267,6 @@ public class ServerUtilitiesCommon {
     public void onServerStarted(FMLServerStartedEvent event) {
         Universe.onServerStarted(event);
         registerTasks();
-
-        if (Ranks.isActive()) {
-            Ranks.INSTANCE.commands.clear();
-
-            boolean bukkitLoaded = CommonUtils.getClassExists("thermos.ThermosRemapper")
-                    || CommonUtils.getClassExists("org.ultramine.server.UltraminePlugin")
-                    || CommonUtils.getClassExists("org.bukkit.World");
-
-            if (bukkitLoaded) {
-                ServerUtilities.LOGGER.warn(
-                        "Thermos/Ultramine detected, command overriding has been disabled. If there are any issues with Server Utilities ranks or permissions, please test them without those mods!");
-            }
-
-            if (!ranks.override_commands || bukkitLoaded) {
-                return;
-            }
-
-            ServerCommandManager manager = (ServerCommandManager) Ranks.INSTANCE.universe.server.getCommandManager();
-            List<ICommand> commands = new ArrayList<>(ATHelper.getCommandSet(manager));
-            ATHelper.getCommandSet(manager).clear();
-            manager.getCommands().clear();
-
-            for (ICommand command : commands) {
-                ModContainer container = CommonUtils.getModContainerForClass(command.getClass());
-                manager.registerCommand(
-                        CommandOverride.create(
-                                command,
-                                container == null ? Rank.NODE_COMMAND
-                                        : (Rank.NODE_COMMAND + '.' + container.getModId()),
-                                container));
-            }
-
-            List<CommandOverride> ocommands = new ArrayList<>(Ranks.INSTANCE.commands.values());
-            ocommands.sort((o1, o2) -> {
-                int i = Boolean.compare(o1.modContainer != null, o2.modContainer != null);
-                return i == 0 ? o1.node.compareTo(o2.node) : i;
-            });
-
-            for (CommandOverride c : ocommands) {
-                Ranks.INSTANCE.commands.put(c.node, c);
-            }
-
-            ServerUtilities.LOGGER.info("Overridden {} commands", manager.getCommands().size());
-        }
     }
 
     public void onServerStopping(FMLServerStoppingEvent event) {

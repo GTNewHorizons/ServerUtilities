@@ -1,5 +1,8 @@
 package serverutils.command.chunks;
 
+import static serverutils.ServerUtilitiesNotifications.CANT_MODIFY_CHUNK;
+import static serverutils.ServerUtilitiesNotifications.CHUNK_MODIFIED;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +22,6 @@ import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.ChunkDimPos;
-import serverutils.lib.util.text_components.Notification;
 
 public class CmdClaimAs extends CmdBase {
 
@@ -81,24 +83,18 @@ public class CmdClaimAs extends CmdBase {
                 if (x == 0 && z == 0) {
                     switch (result) {
                         case SUCCESS:
-                            Notification
-                                    .of(
-                                            ServerUtilitiesNotifications.CHUNK_MODIFIED,
-                                            ServerUtilities.lang(player, "serverutilities.lang.chunks.chunk_claimed"))
-                                    .send(player.mcServer, player);
-                            ServerUtilitiesNotifications.updateChunkMessage(player, pos1);
+                            CHUNK_MODIFIED.send(player, "serverutilities.lang.chunks.chunk_claimed");
+                            ServerUtilitiesNotifications.updateChunkMessage(player, pos);
                             break;
                         case DIMENSION_BLOCKED:
-                            Notification
-                                    .of(
-                                            ServerUtilitiesNotifications.CHUNK_CANT_CLAIM,
-                                            ServerUtilities.lang(
-                                                    player,
-                                                    "serverutilities.lang.chunks.claiming_not_enabled_dim"))
-                                    .setError().send(player.mcServer, player);
+                            CANT_MODIFY_CHUNK.createNotification("serverutilities.lang.chunks.claiming_not_enabled_dim")
+                                    .setError().send(player);
+                            break;
+                        case NO_POWER:
                             break;
                         default:
-                            ServerUtilitiesNotifications.sendCantModifyChunk(player.mcServer, player);
+                            CANT_MODIFY_CHUNK.createNotification("serverutilities.lang.chunks.cant_modify_chunk")
+                                    .setError().send(player);
                             break;
                     }
                 }

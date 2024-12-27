@@ -49,28 +49,28 @@ public class MessageRankModify extends MessageToServer {
     @Override
     public void onMessage(EntityPlayerMP player) {
         if (!PermissionAPI.hasPermission(player, RANK_EDIT)) return;
-        boolean shouldSave = false;
         Rank rank = Ranks.INSTANCE.getRank(inst.getId());
         if (rank == null) {
             player.addChatMessage(new ChatComponentText("Rank: " + inst.getId() + " not found"));
             return;
         }
 
+        boolean shouldSave = false;
         for (ConfigValueInstance value : inst.group.getValues()) {
-            if (rank.setPermission(value.getId(), value.getValue()) != null) {
-                shouldSave = true;
-            }
+            Rank.Entry entry = rank.setPermission(value.getId(), value.getValue());
+            if (entry == null) continue;
+            shouldSave = true;
         }
 
         for (String removed : removedEntries) {
-            if (rank.setPermission(removed, "") != null) {
-                shouldSave = true;
-            }
+            Rank.Entry entry = rank.setPermission(removed, "");
+            if (entry == null) continue;
+            shouldSave = true;
+
         }
 
         if (shouldSave) {
             Ranks.INSTANCE.save();
         }
     }
-
 }

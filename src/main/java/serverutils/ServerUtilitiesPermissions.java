@@ -3,6 +3,7 @@ package serverutils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,8 @@ import serverutils.ranks.ServerUtilitiesPermissionHandler;
 public class ServerUtilitiesPermissions {
 
     public static final ServerUtilitiesPermissions INST = new ServerUtilitiesPermissions();
+
+    public static final Set<NodeEntry> earlyPermissions = new HashSet<>();
     // Display //
     public static final String DISPLAY_ADMIN_INFO = "serverutilities.display.admin_info";
 
@@ -60,6 +63,7 @@ public class ServerUtilitiesPermissions {
     public static final String TPA_BACK = "serverutilities.back.tpa";
     public static final String RTP_BACK = "serverutilities.back.rtp";
     public static final String RESPAWN_BACK = "serverutilities.back.respawn";
+    public static final String VANILLA_TP_BACK = "serverutilities.back.tp";
     public static final String BACK_BACK = "serverutilities.back.back";
 
     // Claims //
@@ -131,6 +135,10 @@ public class ServerUtilitiesPermissions {
     }
 
     public static void registerPermissions() {
+        for (NodeEntry entry : earlyPermissions) {
+            PermissionAPI.registerNode(entry.node, entry.level, entry.desc);
+        }
+        earlyPermissions.clear();
         PermissionAPI.registerNode(CHAT_SPEAK, DefaultPermissionLevel.ALL, "Controls if player is muted or not");
         PermissionAPI.registerNode(
                 CHAT_FORMATTING,
@@ -221,6 +229,10 @@ public class ServerUtilitiesPermissions {
         PermissionAPI
                 .registerNode(RTP_BACK, DefaultPermissionLevel.OP, "Allow player back to last time where /rtp is used");
         PermissionAPI.registerNode(RESPAWN_BACK, DefaultPermissionLevel.ALL, "Allow player back to last death point");
+        PermissionAPI.registerNode(
+                VANILLA_TP_BACK,
+                DefaultPermissionLevel.OP,
+                "Allow player back to last point where /tp is used");
         PermissionAPI.registerNode(
                 CLAIMS_JOURNEYMAP,
                 DefaultPermissionLevel.ALL,

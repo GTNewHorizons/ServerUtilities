@@ -5,11 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
-import net.minecraft.client.resources.I18n;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
@@ -20,10 +15,7 @@ public class SidedUtils {
     public static UUID UNIVERSE_UUID_CLIENT = null;
     public static boolean trashCan = false, teams = false, chunkClaiming = false;
 
-    public static IChatComponent lang(@Nullable ICommandSender sender, String mod, String key, Object... args) {
-        if (ServerUtils.isVanillaClient(sender)) {
-            return new ChatComponentText(I18n.format(key, args));
-        }
+    public static IChatComponent lang(String key, Object... args) {
         return new ChatComponentTranslation(key, args);
     }
 

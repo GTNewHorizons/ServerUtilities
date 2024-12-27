@@ -5,12 +5,15 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
 
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.data.TeleportType;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.math.BlockDimPos;
+import serverutils.lib.math.TeleporterDimPos;
 
 public class CmdSpawn extends CmdBase {
 
@@ -22,16 +25,18 @@ public class CmdSpawn extends CmdBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
         ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
-        data.checkTeleportCooldown(sender, ServerUtilitiesPlayerData.Timer.SPAWN);
-        ServerUtilitiesPlayerData.Timer.SPAWN.teleport(player, playerMP -> {
-            World w = playerMP.mcServer.worldServerForDimension(ServerUtilitiesConfig.world.spawn_dimension);
-            ChunkCoordinates spawnpoint = w.getSpawnPoint();
+        data.checkTeleportCooldown(sender, TeleportType.SPAWN);
+        data.teleport(getSpawnTeleporter(), TeleportType.SPAWN, null);
+    }
 
-            while (w.getBlock(spawnpoint.posX, spawnpoint.posY, spawnpoint.posZ).isNormalCube()) {
-                spawnpoint.posY += 2;
-            }
+    private TeleporterDimPos getSpawnTeleporter() {
+        World w = DimensionManager.getWorld(ServerUtilitiesConfig.world.spawn_dimension);
+        ChunkCoordinates spawnpoint = w.getSpawnPoint();
 
-            return new BlockDimPos(spawnpoint, ServerUtilitiesConfig.world.spawn_dimension).teleporter();
-        }, null);
+        while (w.getBlock(spawnpoint.posX, spawnpoint.posY, spawnpoint.posZ).isNormalCube()) {
+            spawnpoint.posY += 2;
+        }
+
+        return new BlockDimPos(spawnpoint, ServerUtilitiesConfig.world.spawn_dimension).teleporter();
     }
 }

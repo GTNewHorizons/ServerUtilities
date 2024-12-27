@@ -15,7 +15,6 @@ import serverutils.data.ClaimedChunks;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
-import serverutils.lib.util.text_components.Notification;
 
 public class CmdUnloadAll extends CmdBase {
 
@@ -53,11 +52,7 @@ public class CmdUnloadAll extends CmdBase {
                 chunk.setLoaded(false);
             }
 
-            Notification
-                    .of(
-                            ServerUtilitiesNotifications.UNCLAIMED_ALL,
-                            ServerUtilities.lang(sender, "serverutilities.lang.chunks.unloaded_all"))
-                    .send(player.mcServer, player);
+            ServerUtilitiesNotifications.CHUNK_MODIFIED.send(player, "serverutilities.lang.chunks.unloaded_all");
         } else {
             throw ServerUtilities.error(sender, "serverutilities.lang.team.error.no_team");
         }

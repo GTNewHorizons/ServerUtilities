@@ -1,8 +1,7 @@
 package serverutils.task.backup;
 
 import static serverutils.ServerUtilitiesConfig.backups;
-import static serverutils.ServerUtilitiesNotifications.BACKUP_END1;
-import static serverutils.ServerUtilitiesNotifications.BACKUP_END2;
+import static serverutils.ServerUtilitiesNotifications.BACKUP;
 import static serverutils.task.backup.BackupTask.BACKUP_TEMP_FOLDER;
 
 import java.io.DataInputStream;
@@ -18,7 +17,6 @@ import java.util.Set;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.storage.RegionFile;
 import net.minecraft.world.chunk.storage.RegionFileCache;
@@ -35,7 +33,6 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
-import serverutils.ServerUtilitiesNotifications;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
@@ -76,7 +73,7 @@ public class ThreadBackup extends Thread {
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
 
-            dstFile = FileUtils.newFile(new File(BackupTask.backupsFolder, outName));
+            dstFile = FileUtils.newFile(new File(BackupTask.BACKUP_FOLDER, outName));
             try (compressor) {
                 compressor.createOutputStream(dstFile);
                 if (!chunks.isEmpty() && backups.only_backup_claimed_chunks) {
@@ -90,21 +87,23 @@ public class ThreadBackup extends Thread {
                 ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
 
                 if (backups.display_file_size) {
-                    String sizeT = FileUtils.getSizeString(BackupTask.backupsFolder);
-                    ServerUtilitiesNotifications.backupNotification(
-                            BACKUP_END2,
-                            "cmd.backup_end_2",
-                            getDoneTime(start),
-                            (backupSize.equals(sizeT) ? backupSize : (backupSize + " | " + sizeT)));
+                    String sizeT = FileUtils.getSizeString(BackupTask.BACKUP_FOLDER);
+                    BACKUP.sendAll(
+                            StringUtils.color(
+                                    "cmd.backup_end_2",
+                                    EnumChatFormatting.LIGHT_PURPLE,
+                                    getDoneTime(start),
+                                    (backupSize.equals(sizeT) ? backupSize : (backupSize + " | " + sizeT))));
                 } else {
-                    ServerUtilitiesNotifications
-                            .backupNotification(BACKUP_END1, "cmd.backup_end_1", getDoneTime(start));
+                    BACKUP.sendAll(
+                            StringUtils.color("cmd.backup_end_1", EnumChatFormatting.LIGHT_PURPLE, getDoneTime(start)));
                 }
             }
         } catch (Exception e) {
-            IChatComponent c = StringUtils
-                    .color(ServerUtilities.lang(null, "cmd.backup_fail", e), EnumChatFormatting.RED);
-            ServerUtils.notifyChat(ServerUtils.getServer(), null, c);
+            ServerUtils.notifyChat(
+                    ServerUtils.getServer(),
+                    null,
+                    StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, e.getMessage()));
             ServerUtilities.LOGGER.error("Error while backing up", e);
 
             if (dstFile != null) FileUtils.delete(dstFile);
