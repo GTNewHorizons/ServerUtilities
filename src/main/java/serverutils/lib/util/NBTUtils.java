@@ -226,4 +226,8 @@ public class NBTUtils {
 
         return tag;
     }
+
+    public static boolean getBooleanOrTrue(NBTTagCompound nbt, String key) {
+        return !nbt.hasKey(key) || nbt.getBoolean(key);
+    }
 }

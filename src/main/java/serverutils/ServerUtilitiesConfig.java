@@ -260,6 +260,9 @@ public class ServerUtilitiesConfig {
         public boolean dump_stats;
 
         @Config.DefaultBoolean(true)
+        public boolean vanish;
+
+        @Config.DefaultBoolean(true)
         public boolean pregen;
     }
 
