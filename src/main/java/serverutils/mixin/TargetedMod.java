@@ -2,7 +2,8 @@ package serverutils.mixin;
 
 public enum TargetedMod {
 
-    VANILLA("Minecraft", null);
+    VANILLA("Minecraft", null),
+    RANDOMTHINGS("RandomThings", null, "RandomThings"),;
 
     /** The "name" in the @Mod annotation */
     public final String modName;
