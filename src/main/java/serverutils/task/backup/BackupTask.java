@@ -140,22 +140,22 @@ public class BackupTask extends Task {
                 file -> backups.delete_custom_name_backups || BACKUP_NAME_PATTERN.matcher(file.getName()).matches())
                 .sorted(Comparator.comparingLong(File::lastModified)).collect(Collectors.toList());
 
-        int maxGb = backups.max_folder_size;
-        if (maxGb > 0) {
-            long currentSize = backupFiles.stream().mapToLong(file -> FileUtils.getSize(file, SizeUnit.GB)).sum();
-            if (currentSize <= maxGb) return;
-            deleteOldBackups(backupFiles, currentSize, maxGb);
+        long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
+        if (maxSize > 0) {
+            long currentSize = backupFiles.stream().mapToLong(FileUtils::getSize).sum();
+            if (currentSize <= maxSize) return;
+            deleteOldBackups(backupFiles, currentSize, maxSize);
 
         } else if (backupFiles.size() > backups.backups_to_keep) {
             deleteExcessBackups(backupFiles);
         }
     }
 
-    private static void deleteOldBackups(List<File> backupFiles, long currentSize, int maxGb) {
+    private static void deleteOldBackups(List<File> backupFiles, long currentSize, long maxSize) {
         int deleted = 0;
         for (File file : backupFiles) {
-            if (currentSize <= maxGb) break;
-            currentSize -= FileUtils.getSize(file, SizeUnit.GB);
+            if (currentSize <= maxSize) break;
+            currentSize -= FileUtils.getSize(file);
             ServerUtilities.LOGGER.info("Deleting old backup: {}", file.getPath());
             FileUtils.delete(file);
             deleted++;
