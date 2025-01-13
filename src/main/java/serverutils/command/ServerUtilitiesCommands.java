@@ -3,6 +3,7 @@ package serverutils.command;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.command.chunks.CmdChunks;
+import serverutils.command.pausewhenempty.CmdPauseWhenEmpty;
 import serverutils.command.pregen.CmdPregen;
 import serverutils.command.ranks.CmdRanks;
 import serverutils.command.team.CmdTeam;
@@ -34,6 +35,10 @@ public class ServerUtilitiesCommands {
 
             if (ServerUtilitiesConfig.auto_shutdown.enabled) {
                 event.registerServerCommand(new CmdShutdownTime());
+            }
+
+            if (ServerUtilitiesConfig.general.enable_pause_when_empty_property) {
+                event.registerServerCommand(new CmdPauseWhenEmpty());
             }
         }
 
