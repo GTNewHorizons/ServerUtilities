@@ -596,6 +596,12 @@ serverutilities.gui.backup.error=An error occured while restoring backup!
 serverutilities.gui.backup.delete_confirm=Are you sure you want to §c§ldelete§r this backup?
 serverutilities.gui.backup.restore_confirm=Are you sure you want to §a§lrestore§r this backup?
 
+# Pause When Empty
+cmd.pause_when_empty_updated=Server property 'pause-when-empty-seconds' set to %d
+cmd.pause_when_empty_oneshot='pause-when-empty-seconds' temporarily set to %d until next resume. Set to -1 to disable one shot
+commands.pause_when_empty.set.usage=/pause_when_empty set <seconds> (0 to disable)
+commands.pause_when_empty.oneshot.usage=/pause_when_empty oneshot <seconds> (old value is applied on the next resume; 0 to disable pausing; -1 to disable the oneshot)
+
 # Gui
 ## Buttons
 gui.accept=Accept
