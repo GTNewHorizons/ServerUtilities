@@ -1,6 +1,7 @@
 package serverutils.mixin;
 
 import static serverutils.ServerUtilitiesConfig.commands;
+import static serverutils.ServerUtilitiesConfig.general;
 import static serverutils.ServerUtilitiesConfig.ranks;
 import static serverutils.mixin.TargetedMod.RANDOMTHINGS;
 import static serverutils.mixin.TargetedMod.VANILLA;
@@ -38,7 +39,13 @@ public enum Mixins {
                     "minecraft.vanish.MixinItemInWorldManager")),
     HIDE_VANISHED_FROM_DETECTOR(new Builder("Hide vanished players from the RandomThings online detector")
             .addTargetedMod(RANDOMTHINGS).setSide(Side.SERVER).setPhase(Phase.LATE).setApplyIf(() -> commands.vanish)
-            .addMixinClasses("randomthings.MixinWorldUtils")),;
+            .addMixinClasses("randomthings.MixinWorldUtils")),
+    PAUSE_WHEN_EMPTY(new Builder("Pauses the server when empty after X seconds; Servers Only").setPhase(Phase.EARLY)
+            .setSide(Side.SERVER).addTargetedMod(TargetedMod.VANILLA)
+            .addMixinClasses(
+                    "minecraft.MixinMinecraftServer_PauseWhenEmpty",
+                    "minecraft.MixinDedicatedServer_PauseWhenEmpty")
+            .setApplyIf(() -> general.enable_pause_when_empty_property)),;
 
     private final List<String> mixinClasses;
     private final Supplier<Boolean> applyIf;

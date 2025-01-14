@@ -44,6 +44,10 @@ public class ServerUtilitiesConfig {
                 + "If set to DEFAULT, it will only merge on singleplayer worlds.")
         @Config.DefaultEnum("TRUE")
         public EnumTristate merge_offline_mode_players;
+
+        @Config.Comment({ "Backports 1.20's 'pause-when-empty-seconds' server property", "Default value: 0 (off)" })
+        @Config.DefaultBoolean(true)
+        public boolean enable_pause_when_empty_property;
     }
 
     public static class Teams {
