@@ -23,6 +23,12 @@ public enum Mixins {
             .setPhase(Phase.EARLY).addMixinClasses("forge.MixinGuiIngameForge")),
     VANILLA_TP_BACK_COMPAT(new Builder("/back compat for the vanilla /tp").addTargetedMod(VANILLA).setSide(Side.BOTH)
             .setPhase(Phase.EARLY).setApplyIf(() -> commands.back).addMixinClasses("minecraft.MixinCommandTeleport")),
+    PAUSE_WHEN_EMPTY(new Builder("Pauses the server when empty after X seconds; Servers Only").setPhase(Phase.EARLY)
+            .setSide(Side.SERVER).addTargetedMod(TargetedMod.VANILLA)
+            .addMixinClasses(
+                    "minecraft.MixinMinecraftServer_PauseWhenEmpty",
+                    "minecraft.MixinDedicatedServer_PauseWhenEmpty")
+            .setApplyIf(() -> general.enable_pause_when_empty_property)),
     PLAYERS_SLEEPING_PERCENTAGE(new Builder("Player Sleeping Percentage").addTargetedMod(VANILLA).setSide(Side.BOTH)
             .setPhase(Phase.EARLY).setApplyIf(() -> world.enable_player_sleeping_percentage)
             .addMixinClasses("minecraft.MixinWorldServer"));
