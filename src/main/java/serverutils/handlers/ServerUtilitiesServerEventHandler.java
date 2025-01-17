@@ -193,15 +193,16 @@ public class ServerUtilitiesServerEventHandler {
                             new MessageUpdateTabName(Collections.singleton(forgePlayer)).sendToAll();
                         }
 
-                        PLAYER_AFK.sendAll(
-                                StringUtils.color(
-                                        isAFK ? "permission.serverutilities.afk.timer.is_afk"
-                                                : "permission.serverutilities.afk.timer.isnt_afk",
-                                        EnumChatFormatting.GRAY,
-                                        player.getDisplayName()));
+                        if (!forgePlayer.isVanished()) {
+                            PLAYER_AFK.sendAll(
+                                    StringUtils.color(
+                                            isAFK ? "permission.serverutilities.afk.timer.is_afk"
+                                                    : "permission.serverutilities.afk.timer.isnt_afk",
+                                            EnumChatFormatting.GRAY,
+                                            player.getDisplayName()));
+                        }
                         ServerUtilities.LOGGER
                                 .info("{}{}", player.getDisplayName(), isAFK ? " is now AFK" : " is no longer AFK");
-
                     }
 
                     if (playerToKickForAfk == null) {

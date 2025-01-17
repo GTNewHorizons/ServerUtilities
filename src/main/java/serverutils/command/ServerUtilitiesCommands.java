@@ -1,5 +1,8 @@
 package serverutils.command;
 
+import static serverutils.ServerUtilitiesConfig.commands;
+import static serverutils.ServerUtilitiesConfig.debugging;
+
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.command.chunks.CmdChunks;
@@ -26,7 +29,7 @@ public class ServerUtilitiesCommands {
         event.registerServerCommand(new CmdMySettings());
         event.registerServerCommand(new CmdTeam());
 
-        if (ServerUtilitiesConfig.commands.reload) {
+        if (commands.reload) {
             event.registerServerCommand(new CmdReload());
         }
 
@@ -42,112 +45,115 @@ public class ServerUtilitiesCommands {
             }
         }
 
-        if (ServerUtilitiesConfig.commands.inv) {
+        if (commands.inv) {
             event.registerServerCommand(new CmdInv());
         }
 
-        if (ServerUtilitiesConfig.commands.warp) {
+        if (commands.warp) {
             event.registerServerCommand(new CmdWarp());
             event.registerServerCommand(new CmdSetWarp());
             event.registerServerCommand(new CmdDelWarp());
         }
 
-        if (ServerUtilitiesConfig.commands.home) {
+        if (commands.home) {
             event.registerServerCommand(new CmdHome());
             event.registerServerCommand(new CmdSetHome());
             event.registerServerCommand(new CmdDelHome());
         }
 
-        if (ServerUtilitiesConfig.commands.tpl) {
+        if (commands.tpl) {
             event.registerServerCommand(new CmdTplast());
         }
 
-        if (ServerUtilitiesConfig.commands.trash_can) {
+        if (commands.trash_can) {
             event.registerServerCommand(new CmdTrashCan());
         }
 
-        if (ServerUtilitiesConfig.commands.back) {
+        if (commands.back) {
             event.registerServerCommand(new CmdBack());
         }
 
-        if (ServerUtilitiesConfig.commands.spawn) {
+        if (commands.spawn) {
             event.registerServerCommand(new CmdSpawn());
         }
 
-        if (ServerUtilitiesConfig.commands.chunks) {
+        if (commands.chunks) {
             event.registerServerCommand(new CmdChunks());
         }
 
-        if (ServerUtilitiesConfig.commands.kickme) {
+        if (commands.kickme) {
             event.registerServerCommand(new CmdKickme());
         }
 
-        if (ServerUtilitiesConfig.commands.ranks) {
+        if (commands.ranks) {
             event.registerServerCommand(new CmdRanks());
         }
 
-        if (ServerUtilitiesConfig.commands.heal) {
+        if (commands.heal) {
             event.registerServerCommand(new CmdHeal());
         }
 
-        if (ServerUtilitiesConfig.commands.killall) {
+        if (commands.killall) {
             event.registerServerCommand(new CmdKillall());
         }
 
-        if (ServerUtilitiesConfig.commands.nbtedit) {
+        if (commands.nbtedit) {
             event.registerServerCommand(new CmdEditNBT());
         }
 
-        if (ServerUtilitiesConfig.commands.fly) {
+        if (commands.fly) {
             event.registerServerCommand(new CmdFly());
         }
 
-        if (ServerUtilitiesConfig.commands.leaderboard) {
+        if (commands.leaderboard) {
             event.registerServerCommand(new CmdLeaderboard());
         }
 
-        if (ServerUtilitiesConfig.commands.dump_chunkloaders) {
+        if (commands.dump_chunkloaders) {
             event.registerServerCommand(new CmdDumpChunkloaders());
         }
 
-        if (ServerUtilitiesConfig.commands.tpa) {
+        if (commands.tpa) {
             event.registerServerCommand(new CmdTPA());
             event.registerServerCommand(new CmdTPAccept());
         }
 
-        if (ServerUtilitiesConfig.commands.nick) {
+        if (commands.nick) {
             event.registerServerCommand(new CmdNick());
             event.registerServerCommand(new CmdNickFor());
         }
 
-        if (ServerUtilitiesConfig.commands.mute) {
+        if (commands.mute) {
             event.registerServerCommand(new CmdMute());
             event.registerServerCommand(new CmdUnmute());
         }
 
-        if (ServerUtilitiesConfig.commands.backup) {
+        if (commands.backup) {
             event.registerServerCommand(new CmdBackup());
         }
 
-        if (ServerUtilitiesConfig.commands.rtp) {
+        if (commands.rtp) {
             event.registerServerCommand(new CmdRTP());
         }
 
-        if (ServerUtilitiesConfig.commands.god) {
+        if (commands.god) {
             event.registerServerCommand(new CmdGod());
         }
 
-        if (ServerUtilitiesConfig.commands.rec) {
+        if (commands.rec) {
             event.registerServerCommand(new CmdRec());
         }
-        if (ServerUtilitiesConfig.commands.dump_permissions) {
+        if (commands.dump_permissions) {
             event.registerServerCommand(new CmdDumpPermissions());
         }
-        if (ServerUtilitiesConfig.debugging.special_commands) {
+        if (debugging.special_commands) {
             event.registerServerCommand(new CmdAddFakePlayer());
         }
-        if (ServerUtilitiesConfig.commands.dump_stats) {
+        if (commands.dump_stats) {
             event.registerServerCommand(new CmdDumpStats());
+        }
+        if (commands.vanish) {
+            event.registerServerCommand(new CmdVanish());
         }
         if (ServerUtilitiesConfig.commands.pregen) {
             event.registerServerCommand(new CmdPregen());

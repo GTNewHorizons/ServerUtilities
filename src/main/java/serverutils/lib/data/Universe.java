@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -31,6 +32,7 @@ import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.BackwardsCompat;
@@ -74,6 +76,10 @@ public class Universe {
         return INSTANCE;
     }
 
+    public static @Nullable Universe getNullable() {
+        return INSTANCE;
+    }
+
     // Event handlers start //
 
     public static void onServerAboutToStart(FMLServerAboutToStartEvent event) {
@@ -108,7 +114,7 @@ public class Universe {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (loaded() && event.player instanceof EntityPlayerMP playerMP && !ServerUtils.isFake(playerMP)) {
             LOGGED_IN_PLAYERS.add(playerMP.getUniqueID());
@@ -123,6 +129,7 @@ public class Universe {
             ForgePlayer p = INSTANCE.getPlayer(playerMP.getGameProfile());
 
             if (p != null) {
+                vanishedPlayers.remove(p);
                 p.onLoggedOut(playerMP);
             }
         }
@@ -190,8 +197,9 @@ public class Universe {
     public final MinecraftServer server;
     public WorldServer world;
     public final Map<UUID, ForgePlayer> players;
+    public final Set<ForgePlayer> vanishedPlayers;
     private final Map<String, ForgeTeam> teams;
-    private final HashMap<Short, ForgeTeam> teamMap;
+    private final Map<Short, ForgeTeam> teamMap;
     private final ForgeTeam noneTeam;
     private UUID uuid;
     private boolean needsSaving;
@@ -209,6 +217,7 @@ public class Universe {
         server = s;
         ticks = Ticks.NO_TICKS;
         players = new HashMap<>();
+        vanishedPlayers = new ObjectOpenHashSet<>();
         teams = new HashMap<>();
         teamMap = new HashMap<>();
         noneTeam = new ForgeTeam(this, (short) 0, "", TeamType.NONE);
@@ -497,12 +506,21 @@ public class Universe {
                 markDirty();
             }
 
+            if (ServerUtils.isVanished(player)) {
+                vanishedPlayers.add(p);
+                player.capabilities.disableDamage = true;
+            }
+
             p.onLoggedIn(player, this, false);
         }
     }
 
     public Collection<ForgePlayer> getPlayers() {
         return players.values();
+    }
+
+    public Collection<ForgePlayer> getVanishedPlayers() {
+        return vanishedPlayers;
     }
 
     @Nullable
