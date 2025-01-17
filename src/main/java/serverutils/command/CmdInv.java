@@ -4,11 +4,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.common.util.Constants;
 
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
@@ -16,7 +21,8 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.command.CmdTreeHelp;
-import serverutils.lib.command.CommandUtils;
+import serverutils.lib.data.ForgePlayer;
+import serverutils.lib.data.Universe;
 
 public class CmdInv extends CmdTreeBase {
 
@@ -27,21 +33,44 @@ public class CmdInv extends CmdTreeBase {
         }
 
         @Override
-        public List<String> getCommandAliases() {
-            return Collections.singletonList("edit");
+        public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
+            if (args.length == 1) {
+                return Universe.get().getPlayers().stream().map(ForgePlayer::getName).collect(Collectors.toList());
+            }
+            return super.addTabCompletionOptions(sender, args);
         }
 
         @Override
-        public boolean isUsernameIndex(String[] args, int index) {
-            return index == 0;
+        public List<String> getCommandAliases() {
+            return Collections.singletonList("edit");
         }
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) throws CommandException {
             checkArgs(sender, args, 1);
             EntityPlayerMP self = getCommandSenderAsPlayer(sender);
-            EntityPlayerMP other = CommandUtils.getForgePlayer(sender, args[0]).getCommandPlayer(sender);
-            self.displayGUIChest(new InvSeeInventory(other.inventory, other));
+            ForgePlayer other = Universe.get().getPlayer(args[0]);
+
+            if (other == null || other.isFake() || other.getPlayerNBT() == null) {
+                throw new CommandException("commands.generic.player.notFound", args[0]);
+            }
+
+            if (other.isOnline()) {
+                self.displayGUIChest(new InvSeeInventory(other.getPlayer().inventory, other.getPlayer()));
+            } else {
+                NBTTagCompound tag = other.getPlayerNBT();
+                InventoryPlayer playerInv = new InventoryPlayer(null);
+                playerInv.readFromNBT(tag.getTagList("Inventory", Constants.NBT.TAG_COMPOUND));
+                InvSeeInventory invSee = new InvSeeInventory(playerInv, null);
+                invSee.setSaveCallback(inv -> {
+                    InventoryPlayer invPlayer = inv.getPlayerInv();
+                    NBTTagList invTag = new NBTTagList();
+                    invPlayer.writeToNBT(invTag);
+                    tag.setTag("Inventory", invTag);
+                    other.setPlayerNBT(tag);
+                });
+                self.displayGUIChest(invSee);
+            }
         }
     }
 
