@@ -1,11 +1,13 @@
 package serverutils.command;
 
 import java.lang.reflect.Method;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 
@@ -20,6 +22,8 @@ public class InvSeeInventory implements IInventory {
     private final EntityPlayerMP player;
     private final IInventory baubles;
     private static Method getBaubles = null;
+    public boolean hasChanged;
+    private Consumer<InvSeeInventory> saveCallback;
 
     public InvSeeInventory(IInventory inv, @Nullable EntityPlayerMP ep) {
         inventory = inv;
@@ -81,7 +85,11 @@ public class InvSeeInventory implements IInventory {
     }
 
     @Override
-    public void closeInventory() {}
+    public void closeInventory() {
+        if (hasChanged && saveCallback != null) {
+            saveCallback.accept(this);
+        }
+    }
 
     @Override
     public ItemStack getStackInSlotOnClosing(int index) {
@@ -105,6 +113,7 @@ public class InvSeeInventory implements IInventory {
 
     @Override
     public void markDirty() {
+        hasChanged = true;
         inventory.markDirty();
 
         if (player != null) {
@@ -113,10 +122,6 @@ public class InvSeeInventory implements IInventory {
         if (baubles != null) {
             baubles.markDirty();
         }
-    }
-
-    public boolean isUsableByPlayer(EntityPlayer player) {
-        return true;
     }
 
     @Override
@@ -129,6 +134,14 @@ public class InvSeeInventory implements IInventory {
     public void clear() {
         InvUtils.clear(inventory);
         InvUtils.clear(baubles);
+    }
+
+    public void setSaveCallback(Consumer<InvSeeInventory> callback) {
+        saveCallback = callback;
+    }
+
+    public InventoryPlayer getPlayerInv() {
+        return (InventoryPlayer) inventory;
     }
 
     public static IInventory getBaubles(EntityPlayer player) {
