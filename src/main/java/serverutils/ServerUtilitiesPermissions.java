@@ -123,6 +123,7 @@ public class ServerUtilitiesPermissions {
     public static final String TPA_CROSS_DIM = "serverutilities.tpa.cross_dim";
     public static final String AFK_TIMER = "serverutilities.afk.timer";
     public static final String HEAL_OTHER = "serverutilities.other_player.heal";
+    public static final String SEE_VANISH = "serverutilities.vanish.see";
 
     public static final String CLAIMS_JOURNEYMAP = "serverutilities.journeymap.enable";
     public static final String CLAIMS_JOURNEYMAP_OTHER = "serverutilities.journeymap.other";
@@ -246,6 +247,7 @@ public class ServerUtilitiesPermissions {
                 WARPS_CROSS_DIM,
                 DefaultPermissionLevel.ALL,
                 "Can use /warp to teleport to/from another dimension");
+        PermissionAPI.registerNode(SEE_VANISH, DefaultPermissionLevel.OP, "Allow to see vanished players");
 
         for (Block block : GameData.getBlockRegistry().typeSafeIterable()) {
             String name = formatId(block);
