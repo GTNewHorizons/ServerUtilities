@@ -232,6 +232,6 @@ public class FileUtils {
     }
 
     public static String getRelativePath(File dir, File file) {
-        return dir.getName() + File.separator + file.getAbsolutePath().substring(dir.getAbsolutePath().length() + 1);
+        return file.getAbsolutePath().substring(dir.getAbsolutePath().length() + 1);
     }
 }

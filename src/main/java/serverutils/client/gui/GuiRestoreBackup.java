@@ -1,8 +1,13 @@
 package serverutils.client.gui;
 
+import static serverutils.ServerUtilitiesConfig.backups;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.FileSystems;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -197,6 +202,40 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         }
     }
 
+    private void renameAdditionalFiles() {
+        for (String pattern : backups.additional_backup_files) {
+            pattern = pattern.replace("$WORLDNAME", worldName);
+            String cleaned_pattern = pattern.replace("*", "");
+
+            String rootFolder = String.valueOf(Paths.get(cleaned_pattern).getName(0));
+
+            File original = new File(rootFolder);
+            if (original.isDirectory()) {
+                File copy = new File(rootFolder + "_old");
+                while (copy.exists()) {
+                    copy = new File(copy.getName() + "_old");
+                }
+                original.renameTo(copy); // Rename original and don't change that again
+
+                try {
+                    org.apache.commons.io.FileUtils.copyDirectory(copy, original);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // Delete all matching files from directory, so we can cleanly restore the backup
+                List<File> fileCandidates = FileUtils.listTree(original);
+                PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+
+                for (File file : fileCandidates) {
+                    if (matcher.matches(file.toPath())) {
+                        file.delete();
+                    }
+                }
+            }
+        }
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void loadBackup(File file) {
         openYesNo(StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm"), "", () -> {
@@ -208,10 +247,12 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                 saveCopy = new File(savesDir, saveCopy.getName() + "_old");
             }
 
+            renameAdditionalFiles();
+
             worldDir.renameTo(saveCopy);
 
             try (ICompress compressor = ICompress.createCompressor()) {
-                compressor.extractArchive(file, savesDir);
+                compressor.extractArchive(file);
                 closeGui();
             } catch (Exception e) {
                 ServerUtilities.LOGGER.error("Failed to restore backup", e);

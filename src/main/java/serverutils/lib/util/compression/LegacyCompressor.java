@@ -51,13 +51,13 @@ public class LegacyCompressor implements ICompress {
     }
 
     @Override
-    public void extractArchive(File archive, File dest) throws IOException {
+    public void extractArchive(File archive) throws IOException {
         try (ZipFile zip = new ZipFile(archive)) {
             Enumeration<? extends ZipEntry> entries = zip.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 InputStream in = zip.getInputStream(entry);
-                File file = FileUtils.newFile(new File(dest, entry.getName()));
+                File file = FileUtils.newFile(new File(entry.getName()));
                 OutputStream out = new FileOutputStream(file);
                 IOUtils.copy(in, out);
 
