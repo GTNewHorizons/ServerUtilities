@@ -659,6 +659,13 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
     }
 
     public long getLastActivity() {
+        if (lastActivity == 0) {
+            long latestActivity = 0;
+            for (ForgePlayer player : getMembers()) {
+                latestActivity = Math.max(player.getLastTimeSeen(), latestActivity);
+            }
+            lastActivity = System.currentTimeMillis() - Ticks.get(universe.ticks.ticks() - latestActivity).millis();
+        }
         return lastActivity;
     }
 
