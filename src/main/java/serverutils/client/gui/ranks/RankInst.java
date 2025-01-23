@@ -1,7 +1,7 @@
 package serverutils.client.gui.ranks;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.io.DataIn;
@@ -19,19 +19,19 @@ public class RankInst extends FinalIDObject {
 
     public static final DataIn.Deserializer<RankInst> DESERIALIZER = data -> {
         RankInst inst = new RankInst(data.readString());
-        inst.parents = new HashSet<>(data.readCollection(DataIn.STRING));
+        inst.parents = new ArrayList<>(data.readCollection(DataIn.STRING));
         inst.player = data.readString();
         inst.group = ConfigGroup.DESERIALIZER.read(data);
         return inst;
     };
 
-    public Collection<String> parents;
+    public List<String> parents;
     public ConfigGroup group;
     public String player;
 
     public RankInst(String id) {
         super(id);
-        parents = new HashSet<>();
+        parents = new ArrayList<>();
         group = ConfigGroup.newGroup("");
         player = "";
     }
