@@ -49,9 +49,9 @@ public class CmdTPAccept extends CmdBase {
                 && !other.player.hasPermission(ServerUtilitiesPermissions.TPA_CROSS_DIM)) {
             other.player.getPlayer().addChatMessage(
                     StringUtils.color(
-                            ServerUtilities.lang(other.player.getPlayer(), "serverutilities.lang.homes.cross_dim"),
+                            ServerUtilities.lang(other.player.getPlayer(), "serverutilities.lang.warps.cross_dim"),
                             EnumChatFormatting.RED));
-            throw ServerUtilities.error(sender, "serverutilities.lang.homes.cross_dim", otherName);
+            throw ServerUtilities.error(sender, "serverutilities.lang.warps.cross_dim", otherName);
         }
 
         self.tpaRequestsFrom.remove(other.player);
