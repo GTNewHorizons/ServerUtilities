@@ -5,7 +5,7 @@ import static serverutils.ServerUtilitiesPermissions.LEADERBOARD_PREFIX;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import net.minecraft.command.ICommand;
@@ -16,6 +16,7 @@ import net.minecraft.util.IChatComponent;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import it.unimi.dsi.fastutil.ints.IntComparators;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.client.gui.ranks.GuiRanks;
 import serverutils.client.gui.ranks.RankInst;
@@ -70,7 +71,7 @@ public class MessageRanks extends MessageToClient {
 
             inst.group = group;
 
-            Collection<String> parents = new HashSet<>();
+            List<String> parents = new ArrayList<>();
             for (Rank rs : rank.getParents()) {
                 parents.add(rs.getId());
             }
@@ -90,7 +91,10 @@ public class MessageRanks extends MessageToClient {
             inst.player = player.getName();
 
             PlayerRank pRank = r.getPlayerRank(player.getProfile());
-            for (Rank rank : pRank.getActualParents()) {
+            List<Rank> sortedParents = new ArrayList<>(pRank.getActualParents());
+            sortedParents
+                    .sort((r1, r2) -> IntComparators.OPPOSITE_COMPARATOR.compare(r1.getPriority(), r2.getPriority()));
+            for (Rank rank : sortedParents) {
                 inst.parents.add(rank.getId());
             }
 
