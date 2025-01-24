@@ -2,8 +2,8 @@ package serverutils.client.gui.ranks;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.StatCollector;
 
 import serverutils.lib.gui.Button;
@@ -23,20 +23,20 @@ public class GuiPlayerRanks extends GuiButtonListBase {
     private class PlayerEntry extends Button implements Comparable<PlayerEntry> {
 
         private final String username;
-        private final String ranks;
+        private final String allRanks;
+        private final String highestRank;
         private final RankInst playerRank;
 
         public PlayerEntry(Panel panel, String u, RankInst r) {
             super(panel);
             username = u;
             playerRank = r;
-            List<String> sortedParents = r.parents.stream().sorted(String::compareToIgnoreCase)
-                    .collect(Collectors.toList());
-            ranks = getRanksAsString(sortedParents);
+            allRanks = getRanksAsString(r.parents);
+            highestRank = r.parents.isEmpty() ? "No assigned rank" : StringUtils.firstUppercase(r.parents.get(0));
 
             Theme theme = getTheme();
             usernameSize = Math.max(usernameSize, theme.getStringWidth(username) + 8);
-            valueSize = Math.max(valueSize, theme.getStringWidth(ranks) + 8);
+            valueSize = Math.max(valueSize, theme.getStringWidth(highestRank) + 8);
 
             setSize(usernameSize + valueSize, 14);
         }
@@ -62,7 +62,11 @@ public class GuiPlayerRanks extends GuiButtonListBase {
         }
 
         @Override
-        public void addMouseOverText(List<String> list) {}
+        public void addMouseOverText(List<String> list) {
+            if (playerRank.parents.size() <= 1) return;
+            list.add("All assigned ranks:");
+            list.addAll(Minecraft.getMinecraft().fontRenderer.listFormattedStringToWidth(allRanks, 200));
+        }
 
         @Override
         public void draw(Theme theme, int x, int y, int w, int h) {
@@ -73,7 +77,7 @@ public class GuiPlayerRanks extends GuiButtonListBase {
             theme.drawString(username, x + 4, textY, Theme.SHADOW);
 
             theme.drawButton(x + usernameSize, y, valueSize, h, type);
-            theme.drawString(ranks, x + usernameSize + 4, textY, Theme.SHADOW);
+            theme.drawString(highestRank, x + usernameSize + 4, textY, Theme.SHADOW);
         }
 
         @Override
