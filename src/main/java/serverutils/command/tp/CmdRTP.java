@@ -1,5 +1,7 @@
 package serverutils.command.tp;
 
+import static serverutils.ServerUtilitiesConfig.world;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,6 +16,7 @@ import net.minecraft.world.biome.BiomeGenBase;
 
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
+import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.TeleportType;
@@ -21,6 +24,7 @@ import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.TeleporterDimPos;
+import serverutils.lib.util.permission.PermissionAPI;
 
 public class CmdRTP extends CmdBase {
 
@@ -34,6 +38,10 @@ public class CmdRTP extends CmdBase {
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         EntityPlayerMP player = getCommandSenderAsPlayer(sender);
+        if (player.dimension != world.spawn_dimension
+                && !PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.RTP_CROSS_DIM)) {
+            throw ServerUtilities.error(sender, "serverutilities.lang.warps.cross_dim");
+        }
         ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
         data.checkTeleportCooldown(sender, TeleportType.RTP);
         TeleporterDimPos pos = findBlockPos(

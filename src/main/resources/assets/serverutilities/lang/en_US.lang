@@ -511,7 +511,6 @@ serverutilities.lang.homes.set=Home '%s' set!
 serverutilities.lang.homes.del=Home '%s' deleted!
 serverutilities.lang.homes.not_set=Unknown Home: '%s'!
 serverutilities.lang.homes.cooldown=You can only use home in %s!
-serverutilities.lang.homes.cross_dim=You can't teleport to another dimension!
 serverutilities.lang.homes.limit=You can't set any more home locations!
 serverutilities.lang.homes.spectator=Exit spectator mode first!
 
