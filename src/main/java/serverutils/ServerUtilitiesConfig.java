@@ -295,6 +295,13 @@ public class ServerUtilitiesConfig {
         @Config.DefaultString("./backups/")
         public String backup_folder_path;
 
+        @Config.Comment("List of additional paths to include in backup. Use * and ** as wildcards, and $WORLDNAME for the save name")
+        @Config.DefaultStringList({ "journeymap/data/sp/$WORLDNAME/**", "TCNodeTracker/$WORLDNAME/**",
+                "saves/NEI/global/**", "saves/NEI/local/$WORLDNAME/**", "visualprospecting/client/*/$WORLDNAME_*/**",
+                "visualprospecting/server/$WORLDNAME_*/**", "visualprospecting/veintypesLUT", "schematics/**",
+                "blueprints/**" })
+        public String[] additional_backup_files;
+
         @Config.Comment("Run backup in a separated thread (recommended)")
         @Config.DefaultBoolean(true)
         public boolean use_separate_thread;

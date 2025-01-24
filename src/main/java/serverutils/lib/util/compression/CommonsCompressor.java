@@ -56,13 +56,13 @@ public class CommonsCompressor implements ICompress {
     }
 
     @Override
-    public void extractArchive(File archive, File dest) throws IOException {
+    public void extractArchive(File archive) throws IOException {
         try (ZipFile zip = new ZipFile(archive)) {
             Enumeration<ZipArchiveEntry> entries = zip.getEntries();
             while (entries.hasMoreElements()) {
                 ZipArchiveEntry entry = entries.nextElement();
                 InputStream in = zip.getInputStream(entry);
-                File file = FileUtils.newFile(new File(dest, entry.getName()));
+                File file = FileUtils.newFile(new File(entry.getName()));
                 OutputStream out = new FileOutputStream(file);
                 IOUtils.copy(in, out);
 
