@@ -9,6 +9,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -72,13 +73,24 @@ public class ThreadBackup extends Thread {
 
         for (String pattern : backups.additional_backup_files) {
             pattern = pattern.replace("$WORLDNAME", saveName);
-            String cleaned_pattern = pattern.replace("*", "");
 
-            String rootFolder = String.valueOf(Paths.get(cleaned_pattern).getName(0));
-            List<File> fileCandidates = FileUtils.listTree(new File(rootFolder));
+            int firstWildcardIndex = pattern.indexOf('*');
+            if (firstWildcardIndex == -1)
+            {
+                files.addAll(FileUtils.listTree(new File(pattern)));
+                continue;
+            }
+
+            Path rootFolder =  Paths.get(pattern.substring(0, firstWildcardIndex));
+
+            // If wildcard was not at the start of a directory, get the parent
+            if (firstWildcardIndex != 0 && (pattern.charAt(firstWildcardIndex-1) != '/'))
+            {
+                rootFolder = rootFolder.getParent();
+            }
 
             PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-
+            List<File> fileCandidates = FileUtils.listTree(rootFolder.toFile());
             for (File file : fileCandidates) {
                 if (matcher.matches(file.toPath())) {
                     files.add(file);
