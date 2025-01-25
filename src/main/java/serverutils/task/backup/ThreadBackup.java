@@ -75,17 +75,15 @@ public class ThreadBackup extends Thread {
             pattern = pattern.replace("$WORLDNAME", saveName);
 
             int firstWildcardIndex = pattern.indexOf('*');
-            if (firstWildcardIndex == -1)
-            {
+            if (firstWildcardIndex == -1) {
                 files.addAll(FileUtils.listTree(new File(pattern)));
                 continue;
             }
 
-            Path rootFolder =  Paths.get(pattern.substring(0, firstWildcardIndex));
+            Path rootFolder = Paths.get(pattern.substring(0, firstWildcardIndex));
 
             // If wildcard was not at the start of a directory, get the parent
-            if (firstWildcardIndex != 0 && (pattern.charAt(firstWildcardIndex-1) != '/'))
-            {
+            if (firstWildcardIndex != 0 && (pattern.charAt(firstWildcardIndex - 1) != '/')) {
                 rootFolder = rootFolder.getParent();
             }
 
