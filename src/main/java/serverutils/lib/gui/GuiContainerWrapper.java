@@ -16,9 +16,9 @@ import serverutils.lib.util.misc.MouseButton;
 
 public class GuiContainerWrapper extends GuiContainer implements IGuiWrapper {
 
-    private GuiBase wrappedGui;
+    private final GuiBase wrappedGui;
     private boolean drawSlots = true;
-    private List<String> tempTextList = new ArrayList<>();
+    private final List<String> tempTextList = new ArrayList<>();
 
     public GuiContainerWrapper(GuiBase g, Container c) {
         super(c);
@@ -46,7 +46,7 @@ public class GuiContainerWrapper extends GuiContainer implements IGuiWrapper {
     }
 
     @Override
-    protected final void mouseClicked(int mouseX, int mouseY, int button) {
+    protected void mouseClicked(int mouseX, int mouseY, int button) {
         wrappedGui.updateMouseOver(mouseX, mouseY);
 
         if (button == MouseButton.BACK.id) {
