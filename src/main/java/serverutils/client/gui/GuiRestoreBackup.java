@@ -189,7 +189,14 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                             StatCollector.translateToLocal("serverutilities.gui.backup.restore"),
                             GuiIcons.ACCEPT,
                             file,
-                            this::loadBackup));
+                            this::loadBackupWorld));
+            container.addSubButton(
+                    new BackupEntryButton(
+                            panel,
+                            StatCollector.translateToLocal("serverutilities.gui.backup.restore_global"),
+                            GuiIcons.ACCEPT,
+                            file,
+                            this::loadBackupGlobal));
             container.addSubButton(
                     new BackupEntryButton(
                             panel,
@@ -236,9 +243,20 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         }
     }
 
+    private void loadBackupWorld(File file) {
+        openYesNo(StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm"), StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"), () -> {
+            loadBackup(file, false);
+        });
+    }
+
+    private void loadBackupGlobal(File file) {
+        openYesNo(StatCollector.translateToLocal("serverutilities.gui.backup.restore_global_confirm"), StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"), () -> {
+            loadBackup(file, true);
+        });
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void loadBackup(File file) {
-        openYesNo(StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm"), "", () -> {
+    private void loadBackup(File file, boolean includeGlobal) {
             File savesDir = new File("saves/");
             File worldDir = new File(savesDir, worldName);
             File saveCopy = new File(savesDir, worldName + "_old");
@@ -263,7 +281,6 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                                 StatCollector.translateToLocal("serverutilities.gui.backup.error"),
                                 EnumChatFormatting.RED + e.getMessage()));
             }
-        });
     }
 
     private void deleteBackup(File file) {
