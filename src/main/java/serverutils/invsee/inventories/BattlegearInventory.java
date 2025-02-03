@@ -72,6 +72,7 @@ public class BattlegearInventory implements IModdedInventory {
 
     @Override
     public void saveInventory(ForgePlayer player, IInventory inventory) {
+        if (player.isOnline()) return;
         // this is a little weird, but it can overwrite main inventory changes if we don't do this
         NBTTagCompound tag = player.getPlayerNBT();
         InventoryPlayer playerInv = new InventoryPlayer(null);
