@@ -275,14 +275,16 @@ public class GuiRestoreBackup extends GuiButtonListBase {
             saveCopy = new File(savesDir, saveCopy.getName() + "_old");
         }
 
-        File previousRoot = new File("backups/old_global_data/");
-        previousRoot = new File(previousRoot, DATE_FORMAT.format(Calendar.getInstance().getTime()));
-        renameAdditionalFiles(previousRoot, includeGlobal);
-
         worldDir.renameTo(saveCopy);
 
         try (ICompress compressor = ICompress.createCompressor()) {
-            compressor.extractArchive(file, includeGlobal);
+            boolean isOldBackup = compressor.isOldBackup(file);
+            if (!isOldBackup) {
+                File previousRoot = new File("backups/old_global_data/");
+                previousRoot = new File(previousRoot, DATE_FORMAT.format(Calendar.getInstance().getTime()));
+                renameAdditionalFiles(previousRoot, includeGlobal);
+            }
+            compressor.extractArchive(file, includeGlobal, isOldBackup);
             closeGui();
         } catch (Exception e) {
             ServerUtilities.LOGGER.error("Failed to restore backup", e);

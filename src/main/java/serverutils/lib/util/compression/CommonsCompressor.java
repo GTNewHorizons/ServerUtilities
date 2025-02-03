@@ -74,14 +74,30 @@ public class CommonsCompressor implements ICompress {
     }
 
     @Override
-    public void extractArchive(File archive, boolean includeGlobal) throws IOException {
-
+    public boolean isOldBackup(File archive) throws IOException {
         try (ZipFile zip = new ZipFile(archive)) {
+            boolean isOldBackup = true;
             Enumeration<ZipArchiveEntry> entries = zip.getEntries();
             while (entries.hasMoreElements()) {
                 ZipArchiveEntry entry = entries.nextElement();
+                if (entry.getName().replace('\\', '/').startsWith("saves/")) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 
-                File file = new File(entry.getName());
+    @Override
+    public void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup) throws IOException {
+
+        try (ZipFile zip = new ZipFile(archive)) {
+            Enumeration<ZipArchiveEntry> entries = zip.getEntries();
+            String prefix = isOldBackup ? "saves/" : "";
+            while (entries.hasMoreElements()) {
+                ZipArchiveEntry entry = entries.nextElement();
+
+                File file = new File(prefix + entry.getName());
                 if (shouldExtract(file, includeGlobal)) {
                     file = FileUtils.newFile(file);
                     InputStream in = zip.getInputStream(entry);
