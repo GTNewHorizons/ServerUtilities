@@ -261,7 +261,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     private void loadBackupGlobal(File file) {
         openYesNo(
                 StatCollector.translateToLocal("serverutilities.gui.backup.restore_global_confirm"),
-                StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"),
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_global_confirm_desc"),
                 () -> { loadBackup(file, true); });
     }
 
