@@ -15,7 +15,9 @@ public interface ICompress extends AutoCloseable {
 
     void addFileToArchive(File file, String name) throws IOException;
 
-    void extractArchive(File archive) throws IOException;
+    void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup) throws IOException;
+
+    boolean isOldBackup(File archive) throws IOException;
 
     @Nullable
     String getWorldName(File file) throws IOException;

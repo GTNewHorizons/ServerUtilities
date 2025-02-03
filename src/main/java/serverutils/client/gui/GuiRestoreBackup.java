@@ -6,12 +6,12 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.function.Consumer;
 
 import net.minecraft.client.Minecraft;
@@ -53,6 +53,7 @@ import serverutils.task.backup.BackupTask;
 @EventBusSubscriber(side = Side.CLIENT)
 public class GuiRestoreBackup extends GuiButtonListBase {
 
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private static final Set<File> allBackupFiles = new ObjectOpenHashSet<>();
     private static Object2ObjectMap<String, List<File>> worldBackups;
     private final List<File> backupFiles;
@@ -189,7 +190,14 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                             StatCollector.translateToLocal("serverutilities.gui.backup.restore"),
                             GuiIcons.ACCEPT,
                             file,
-                            this::loadBackup));
+                            this::loadBackupWorld));
+            container.addSubButton(
+                    new BackupEntryButton(
+                            panel,
+                            StatCollector.translateToLocal("serverutilities.gui.backup.restore_global"),
+                            GuiIcons.ACCEPT,
+                            file,
+                            this::loadBackupGlobal));
             container.addSubButton(
                     new BackupEntryButton(
                             panel,
@@ -202,68 +210,91 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         }
     }
 
-    private void renameAdditionalFiles() {
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private void renameAdditionalFiles(File previousRoot, boolean includeGlobal) {
         for (String pattern : backups.additional_backup_files) {
+            if (!pattern.contains("$WORLDNAME") && !includeGlobal) {
+                continue;
+            }
             pattern = pattern.replace("$WORLDNAME", worldName);
-            String cleaned_pattern = pattern.replace("*", "");
 
-            String rootFolder = String.valueOf(Paths.get(cleaned_pattern).getName(0));
+            // Gather list of all old files
+            List<File> previousFiles;
+            int firstWildcardIndex = pattern.indexOf('*');
+            if (firstWildcardIndex == -1) {
+                previousFiles = FileUtils.listTree(new File(pattern));
+            } else {
+                Path rootFolder = Paths.get(pattern.substring(0, firstWildcardIndex));
 
-            File original = new File(rootFolder);
-            if (original.isDirectory()) {
-                File copy = new File(rootFolder + "_old");
-                while (copy.exists()) {
-                    copy = new File(copy.getName() + "_old");
-                }
-                original.renameTo(copy); // Rename original and don't change that again
-
-                try {
-                    org.apache.commons.io.FileUtils.copyDirectory(copy, original);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                // If wildcard was not at the start of a directory, get the parent
+                if (firstWildcardIndex != 0 && (pattern.charAt(firstWildcardIndex - 1) != '/')) {
+                    rootFolder = rootFolder.getParent();
                 }
 
-                // Delete all matching files from directory, so we can cleanly restore the backup
-                List<File> fileCandidates = FileUtils.listTree(original);
                 PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-
+                List<File> fileCandidates = FileUtils.listTree(rootFolder.toFile());
+                previousFiles = new ArrayList<>();
                 for (File file : fileCandidates) {
                     if (matcher.matches(file.toPath())) {
-                        file.delete();
+                        previousFiles.add(file);
                     }
                 }
+            }
+
+            // Move all old files into backup
+            for (File file : previousFiles) {
+                String pathRelative = FileUtils.getRelativePath(new File(""), file);
+                File destFile = new File(previousRoot, pathRelative);
+                destFile.getParentFile().mkdirs();
+                file.renameTo(destFile);
             }
         }
     }
 
+    private void loadBackupWorld(File file) {
+        openYesNo(
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm"),
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"),
+                () -> { loadBackup(file, false); });
+    }
+
+    private void loadBackupGlobal(File file) {
+        openYesNo(
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_global_confirm"),
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_global_confirm_desc"),
+                () -> { loadBackup(file, true); });
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void loadBackup(File file) {
-        openYesNo(StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm"), "", () -> {
-            File savesDir = new File("saves/");
-            File worldDir = new File(savesDir, worldName);
-            File saveCopy = new File(savesDir, worldName + "_old");
+    private void loadBackup(File file, boolean includeGlobal) {
+        File savesDir = new File("saves/");
+        File worldDir = new File(savesDir, worldName);
+        File saveCopy = new File(savesDir, worldName + "_old");
 
-            while (saveCopy.exists()) {
-                saveCopy = new File(savesDir, saveCopy.getName() + "_old");
+        while (saveCopy.exists()) {
+            saveCopy = new File(savesDir, saveCopy.getName() + "_old");
+        }
+
+        worldDir.renameTo(saveCopy);
+
+        try (ICompress compressor = ICompress.createCompressor()) {
+            boolean isOldBackup = compressor.isOldBackup(file);
+            if (!isOldBackup) {
+                File previousRoot = new File("backups/old_global_data/");
+                previousRoot = new File(previousRoot, DATE_FORMAT.format(Calendar.getInstance().getTime()));
+                renameAdditionalFiles(previousRoot, includeGlobal);
             }
-
-            renameAdditionalFiles();
-
-            worldDir.renameTo(saveCopy);
-
-            try (ICompress compressor = ICompress.createCompressor()) {
-                compressor.extractArchive(file);
-                closeGui();
-            } catch (Exception e) {
-                ServerUtilities.LOGGER.error("Failed to restore backup", e);
-                FileUtils.delete(worldDir);
-                saveCopy.renameTo(worldDir);
-                Minecraft.getMinecraft().displayGuiScreen(
-                        new GuiErrorScreen(
-                                StatCollector.translateToLocal("serverutilities.gui.backup.error"),
-                                EnumChatFormatting.RED + e.getMessage()));
-            }
-        });
+            compressor.extractArchive(file, includeGlobal, isOldBackup);
+            closeGui();
+        } catch (Exception e) {
+            ServerUtilities.LOGGER.error("Failed to restore backup", e);
+            FileUtils.delete(worldDir);
+            saveCopy.renameTo(worldDir);
+            Minecraft.getMinecraft().displayGuiScreen(
+                    new GuiErrorScreen(
+                            StatCollector.translateToLocal("serverutilities.gui.backup.error"),
+                            EnumChatFormatting.RED + e.getMessage()));
+        }
     }
 
     private void deleteBackup(File file) {
