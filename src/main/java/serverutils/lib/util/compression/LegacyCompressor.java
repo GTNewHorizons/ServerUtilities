@@ -51,7 +51,7 @@ public class LegacyCompressor implements ICompress {
     }
 
     @Override
-    public void extractArchive(File archive) throws IOException {
+    public void extractArchive(File archive, boolean includeGlobal) throws IOException {
         try (ZipFile zip = new ZipFile(archive)) {
             Enumeration<? extends ZipEntry> entries = zip.entries();
             while (entries.hasMoreElements()) {

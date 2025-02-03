@@ -8,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.PathMatcher;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 
@@ -55,19 +57,40 @@ public class CommonsCompressor implements ICompress {
         output.closeArchiveEntry();
     }
 
+    private static boolean shouldExtract(File file, boolean includeGlobal) {
+        if (includeGlobal) {
+            return true;
+        }
+        for (String pattern : backups.additional_backup_files) {
+            if (pattern.contains("$WORLDNAME")) {
+                continue;
+            }
+            PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+            if (matcher.matches(file.toPath())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
-    public void extractArchive(File archive) throws IOException {
+    public void extractArchive(File archive, boolean includeGlobal) throws IOException {
+
         try (ZipFile zip = new ZipFile(archive)) {
             Enumeration<ZipArchiveEntry> entries = zip.getEntries();
             while (entries.hasMoreElements()) {
                 ZipArchiveEntry entry = entries.nextElement();
-                InputStream in = zip.getInputStream(entry);
-                File file = FileUtils.newFile(new File(entry.getName()));
-                OutputStream out = new FileOutputStream(file);
-                IOUtils.copy(in, out);
 
-                in.close();
-                out.close();
+                File file = new File(entry.getName());
+                if (shouldExtract(file, includeGlobal)) {
+                    file = FileUtils.newFile(file);
+                    InputStream in = zip.getInputStream(entry);
+                    OutputStream out = new FileOutputStream(file);
+                    IOUtils.copy(in, out);
+
+                    in.close();
+                    out.close();
+                }
             }
         }
     }
