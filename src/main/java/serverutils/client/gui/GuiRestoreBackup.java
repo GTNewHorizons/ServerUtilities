@@ -244,43 +244,45 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     }
 
     private void loadBackupWorld(File file) {
-        openYesNo(StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm"), StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"), () -> {
-            loadBackup(file, false);
-        });
+        openYesNo(
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm"),
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"),
+                () -> { loadBackup(file, false); });
     }
 
     private void loadBackupGlobal(File file) {
-        openYesNo(StatCollector.translateToLocal("serverutilities.gui.backup.restore_global_confirm"), StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"), () -> {
-            loadBackup(file, true);
-        });
+        openYesNo(
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_global_confirm"),
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"),
+                () -> { loadBackup(file, true); });
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void loadBackup(File file, boolean includeGlobal) {
-            File savesDir = new File("saves/");
-            File worldDir = new File(savesDir, worldName);
-            File saveCopy = new File(savesDir, worldName + "_old");
+        File savesDir = new File("saves/");
+        File worldDir = new File(savesDir, worldName);
+        File saveCopy = new File(savesDir, worldName + "_old");
 
-            while (saveCopy.exists()) {
-                saveCopy = new File(savesDir, saveCopy.getName() + "_old");
-            }
+        while (saveCopy.exists()) {
+            saveCopy = new File(savesDir, saveCopy.getName() + "_old");
+        }
 
-            renameAdditionalFiles();
+        renameAdditionalFiles();
 
-            worldDir.renameTo(saveCopy);
+        worldDir.renameTo(saveCopy);
 
-            try (ICompress compressor = ICompress.createCompressor()) {
-                compressor.extractArchive(file);
-                closeGui();
-            } catch (Exception e) {
-                ServerUtilities.LOGGER.error("Failed to restore backup", e);
-                FileUtils.delete(worldDir);
-                saveCopy.renameTo(worldDir);
-                Minecraft.getMinecraft().displayGuiScreen(
-                        new GuiErrorScreen(
-                                StatCollector.translateToLocal("serverutilities.gui.backup.error"),
-                                EnumChatFormatting.RED + e.getMessage()));
-            }
+        try (ICompress compressor = ICompress.createCompressor()) {
+            compressor.extractArchive(file);
+            closeGui();
+        } catch (Exception e) {
+            ServerUtilities.LOGGER.error("Failed to restore backup", e);
+            FileUtils.delete(worldDir);
+            saveCopy.renameTo(worldDir);
+            Minecraft.getMinecraft().displayGuiScreen(
+                    new GuiErrorScreen(
+                            StatCollector.translateToLocal("serverutilities.gui.backup.error"),
+                            EnumChatFormatting.RED + e.getMessage()));
+        }
     }
 
     private void deleteBackup(File file) {
