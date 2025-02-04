@@ -1,5 +1,7 @@
 package serverutils.invsee.inventories;
 
+import static micdoodle8.mods.galacticraft.core.entities.player.GCPlayerStats.GC_PLAYER_PROP;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
@@ -22,8 +24,6 @@ import serverutils.lib.icon.Icon;
 import serverutils.lib.icon.ImageIcon;
 import serverutils.lib.icon.ItemIcon;
 import serverutils.lib.icon.PartIcon;
-
-import static micdoodle8.mods.galacticraft.core.entities.player.GCPlayerStats.GC_PLAYER_PROP;
 
 public class GalacticraftInventory implements IModdedInventory {
 
