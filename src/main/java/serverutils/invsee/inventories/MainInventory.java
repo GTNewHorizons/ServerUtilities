@@ -1,6 +1,7 @@
 package serverutils.invsee.inventories;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
@@ -24,7 +25,7 @@ import serverutils.lib.icon.ItemIcon;
 public class MainInventory implements IModdedInventory {
 
     @Override
-    public @NotNull IInventory loadOnlineInventory(EntityPlayer player) {
+    public @NotNull IInventory loadOnlineInventory(EntityPlayerMP player) {
         return player.inventory;
     }
 

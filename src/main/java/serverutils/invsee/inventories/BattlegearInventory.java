@@ -4,6 +4,7 @@ import static mods.battlegear2.api.core.IInventoryPlayerBattle.OFFSET;
 import static mods.battlegear2.api.core.IInventoryPlayerBattle.WEAPON_SETS;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -33,7 +34,7 @@ public class BattlegearInventory implements IModdedInventory {
             new ResourceLocation(Battlegear.MODID, "textures/items/bg-icon.png"));
 
     @Override
-    public @NotNull IInventory loadOnlineInventory(EntityPlayer player) {
+    public @NotNull IInventory loadOnlineInventory(EntityPlayerMP player) {
         return player.inventory;
     }
 

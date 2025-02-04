@@ -3,6 +3,7 @@ package serverutils.invsee.inventories;
 import java.io.File;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.nbt.NBTTagCompound;
@@ -47,7 +48,7 @@ public class BaublesInventory implements IModdedInventory {
     }
 
     @Override
-    public @NotNull IInventory loadOnlineInventory(EntityPlayer player) {
+    public @NotNull IInventory loadOnlineInventory(EntityPlayerMP player) {
         return BaublesApi.getBaubles(player);
     }
 

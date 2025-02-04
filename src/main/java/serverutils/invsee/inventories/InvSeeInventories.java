@@ -11,7 +11,8 @@ public enum InvSeeInventories {
 
     MAIN(null, MainInventory.class),
     BAUBLES("Baubles", BaublesInventory.class),
-    BATTLE_GEAR("battlegear2", BattlegearInventory.class);
+    BATTLE_GEAR("battlegear2", BattlegearInventory.class),
+    GALACTICRAFT("GalacticraftCore", GalacticraftInventory.class),;
 
     public static final InvSeeInventories[] VALUES = values();
 
