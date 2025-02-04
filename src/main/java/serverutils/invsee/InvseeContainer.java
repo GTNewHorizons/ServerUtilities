@@ -20,20 +20,21 @@ import org.jetbrains.annotations.Nullable;
 import serverutils.invsee.inventories.IModdedInventory;
 import serverutils.invsee.inventories.InvSeeInventories;
 import serverutils.lib.data.ForgePlayer;
+import serverutils.lib.gui.ContainerBase;
 
-public class InvseeContainer extends Container {
+public class InvseeContainer extends ContainerBase {
 
     private final Map<InvSeeInventories, IInventory> inventories;
-    private final EntityPlayer viewingPlayer;
     private final ForgePlayer otherPlayer;
     private final Map<InvSeeInventories, List<Slot>> moddedInventorySlots = new HashMap<>();
     private final Set<InvSeeInventories> modifiedInventories = new HashSet<>();
     private InvSeeInventories activeInventory;
+    private int playerSlotStart;
 
     public InvseeContainer(Map<InvSeeInventories, IInventory> moddedInventories, EntityPlayer player,
             @Nullable ForgePlayer otherPlayer) {
+        super(player);
         this.inventories = moddedInventories;
-        this.viewingPlayer = player;
         this.otherPlayer = otherPlayer;
 
         for (Map.Entry<InvSeeInventories, IInventory> entry : moddedInventories.entrySet()) {
@@ -67,17 +68,8 @@ public class InvseeContainer extends Container {
             addSlotToContainer(slot);
         }
 
-        for (int j = 0; j < 3; ++j) {
-            for (int k = 0; k < 9; ++k) {
-                this.addSlotToContainer(
-                        new Slot(viewingPlayer.inventory, k + j * 9 + 9, 8 + k * 18, 103 - 18 + j * 18));
-            }
-        }
-
-        for (int j = 0; j < 9; ++j) {
-            this.addSlotToContainer(new Slot(viewingPlayer.inventory, j, 8 + j * 18, 161 - 18));
-        }
-
+        playerSlotStart = inventorySlots.size();
+        addPlayerSlots(8, 85);
         detectAndSendChanges();
     }
 
@@ -94,17 +86,17 @@ public class InvseeContainer extends Container {
     }
 
     @Override
-    public boolean canInteractWith(EntityPlayer player) {
-        return true;
+    public int getNonPlayerSlots() {
+        return playerSlotStart;
     }
 
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
 
-        if (!viewingPlayer.worldObj.isRemote && otherPlayer != null && otherPlayer.isOnline()) {
+        if (!player.worldObj.isRemote && otherPlayer != null && otherPlayer.isOnline()) {
             Container container = otherPlayer.getPlayer().openContainer;
-            if (!container.crafters.contains((EntityPlayerMP) viewingPlayer)) {
+            if (!container.crafters.contains((EntityPlayerMP) player)) {
                 container.detectAndSendChanges();
             }
         }
