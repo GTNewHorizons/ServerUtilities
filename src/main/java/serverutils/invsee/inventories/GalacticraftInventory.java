@@ -102,6 +102,7 @@ public class GalacticraftInventory implements IModdedInventory {
 
     @Override
     public void saveInventory(ForgePlayer player, IInventory inventory) {
+        if (player.isOnline()) return;
         NBTTagCompound tag = player.getPlayerNBT();
         NBTTagCompound gcStats = tag.getCompoundTag(GC_PLAYER_PROP);
         NBTTagList invList = new NBTTagList();
