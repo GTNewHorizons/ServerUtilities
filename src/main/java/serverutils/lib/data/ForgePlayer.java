@@ -387,6 +387,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
             }
         }
 
+        cachedPlayerNBT = nbt;
         markDirty();
     }
 
