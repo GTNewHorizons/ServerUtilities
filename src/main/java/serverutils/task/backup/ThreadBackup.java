@@ -8,6 +8,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -64,12 +68,42 @@ public class ThreadBackup extends Thread {
         isDone = true;
     }
 
+    private static void addBaseFolderFiles(List<File> files, File saveFile) {
+        String saveName = saveFile.getName();
+
+        for (String pattern : backups.additional_backup_files) {
+            pattern = pattern.replace("$WORLDNAME", saveName);
+
+            int firstWildcardIndex = pattern.indexOf('*');
+            if (firstWildcardIndex == -1) {
+                files.addAll(FileUtils.listTree(new File(pattern)));
+                continue;
+            }
+
+            Path rootFolder = Paths.get(pattern.substring(0, firstWildcardIndex));
+
+            // If wildcard was not at the start of a directory, get the parent
+            if (firstWildcardIndex != 0 && (pattern.charAt(firstWildcardIndex - 1) != '/')) {
+                rootFolder = rootFolder.getParent();
+            }
+
+            PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+            List<File> fileCandidates = FileUtils.listTree(rootFolder.toFile());
+            for (File file : fileCandidates) {
+                if (matcher.matches(file.toPath())) {
+                    files.add(file);
+                }
+            }
+        }
+    }
+
     public static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks) {
         String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         File dstFile = null;
         try {
             List<File> files = FileUtils.listTree(src);
+            addBaseFolderFiles(files, src);
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
 
@@ -77,9 +111,9 @@ public class ThreadBackup extends Thread {
             try (compressor) {
                 compressor.createOutputStream(dstFile);
                 if (!chunks.isEmpty() && backups.only_backup_claimed_chunks) {
-                    backupRegions(src, files, chunks, compressor);
+                    backupRegions(files, chunks, compressor);
                 } else {
-                    compressFiles(src, files, compressor);
+                    compressFiles(files, compressor);
                 }
 
                 String backupSize = FileUtils.getSizeString(dstFile);
@@ -124,11 +158,11 @@ public class ThreadBackup extends Thread {
         }
     }
 
-    private static void compressFiles(File sourceDir, List<File> files, ICompress compressor) throws IOException {
+    private static void compressFiles(List<File> files, ICompress compressor) throws IOException {
         int allFiles = files.size();
         for (int i = 0; i < allFiles; i++) {
             File file = files.get(i);
-            compressFile(FileUtils.getRelativePath(sourceDir, file), file, compressor, i, allFiles);
+            compressFile(FileUtils.getRelativePath(new File(""), file), file, compressor, i, allFiles);
         }
     }
 
@@ -138,8 +172,8 @@ public class ThreadBackup extends Thread {
         compressor.addFileToArchive(file, entryName);
     }
 
-    private static void backupRegions(File sourceFolder, List<File> files, Set<ChunkDimPos> chunksToBackup,
-            ICompress compressor) throws IOException {
+    private static void backupRegions(List<File> files, Set<ChunkDimPos> chunksToBackup, ICompress compressor)
+            throws IOException {
         Object2ObjectMap<File, ObjectSet<ChunkDimPos>> dimRegionClaims = mapClaimsToRegionFile(chunksToBackup);
         files.removeIf(f -> f.getName().endsWith(".mca"));
 
@@ -167,14 +201,14 @@ public class ThreadBackup extends Thread {
 
             tempRegion.close();
             if (hasData) {
-                compressFile(FileUtils.getRelativePath(sourceFolder, file), tempFile, compressor, index++, totalFiles);
+                compressFile(FileUtils.getRelativePath(new File(""), file), tempFile, compressor, index++, totalFiles);
             }
 
             FileUtils.delete(tempFile);
         }
 
         for (File file : files) {
-            compressFile(FileUtils.getRelativePath(sourceFolder, file), file, compressor, index++, totalFiles);
+            compressFile(FileUtils.getRelativePath(new File(""), file), file, compressor, index++, totalFiles);
         }
 
         ServerUtilities.LOGGER.info("Backed up {} regions containing {} claimed chunks", regionFiles, savedChunks);
