@@ -72,7 +72,7 @@ public class CmdInv extends CmdTreeBase {
             }
 
             self.getNextWindowId();
-            new MessageInvseeContainer(other, inventories.keySet(), self.currentWindowId).sendTo(self);
+            new MessageInvseeContainer(other, inventories, self.currentWindowId).sendTo(self);
             self.openContainer = new InvseeContainer(inventories, self, other);
             self.openContainer.windowId = self.currentWindowId;
             self.openContainer.addCraftingToCrafters(self);

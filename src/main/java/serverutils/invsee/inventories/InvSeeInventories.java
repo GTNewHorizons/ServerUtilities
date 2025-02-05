@@ -10,8 +10,11 @@ import cpw.mods.fml.common.Loader;
 public enum InvSeeInventories {
 
     MAIN(null, MainInventory.class),
+    ENDER_CHEST(null, EnderInventory.class),
+    ADVENTURE_BACKPACK("adventurebackpack", AdventureBackpackInv.class),
     BAUBLES("Baubles", BaublesInventory.class),
     BATTLE_GEAR("battlegear2", BattlegearInventory.class),
+    BACKPACK("Backpack", MinecraftBackpackInv.class),
     GALACTICRAFT("GalacticraftCore", GalacticraftInventory.class),
     TINKERS_CONSTRUCT("TConstruct", TiCInventory.class),;
 

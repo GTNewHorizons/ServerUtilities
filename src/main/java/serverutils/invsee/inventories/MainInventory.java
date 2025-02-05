@@ -24,8 +24,10 @@ import serverutils.lib.icon.ItemIcon;
 
 public class MainInventory implements IModdedInventory {
 
+    private static final Icon CHEST_ICON = ItemIcon.getItemIcon(Blocks.chest);
+
     @Override
-    public @NotNull IInventory loadOnlineInventory(EntityPlayerMP player) {
+    public @Nullable IInventory loadOnlineInventory(EntityPlayerMP player) {
         return player.inventory;
     }
 
@@ -38,13 +40,13 @@ public class MainInventory implements IModdedInventory {
     }
 
     @Override
-    public @NotNull IInventory createInventory(EntityPlayer player) {
+    public @NotNull IInventory createInventory(EntityPlayer player, int size) {
         return new InventoryPlayer(player);
     }
 
     @Override
     public @NotNull Icon getButtonIcon() {
-        return ItemIcon.getItemIcon(Blocks.chest);
+        return CHEST_ICON;
     }
 
     @Override

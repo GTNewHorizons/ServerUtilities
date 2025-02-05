@@ -43,7 +43,7 @@ public class TiCInventory implements IModdedInventory {
     }
 
     @Override
-    public @NotNull IInventory loadOnlineInventory(EntityPlayerMP player) {
+    public @Nullable IInventory loadOnlineInventory(EntityPlayerMP player) {
         CombinedInventory combined = new CombinedInventory();
         TPlayerStats stats = TPlayerStats.get(player);
         combined.addInventories(stats.knapsack, stats.armor);
@@ -63,7 +63,7 @@ public class TiCInventory implements IModdedInventory {
     }
 
     @Override
-    public @NotNull IInventory createInventory(EntityPlayer player) {
+    public @NotNull IInventory createInventory(EntityPlayer player, int size) {
         CombinedInventory combined = new CombinedInventory();
         KnapsackInventory knapsack = new KnapsackInventory();
         ArmorExtended armor = new ArmorExtended();

@@ -48,7 +48,7 @@ public class GalacticraftInventory implements IModdedInventory {
     }
 
     @Override
-    public @NotNull IInventory loadOnlineInventory(EntityPlayerMP player) {
+    public @Nullable IInventory loadOnlineInventory(EntityPlayerMP player) {
         return GCPlayerStats.get(player).extendedInventory;
     }
 
@@ -61,7 +61,7 @@ public class GalacticraftInventory implements IModdedInventory {
     }
 
     @Override
-    public @NotNull IInventory createInventory(EntityPlayer player) {
+    public @NotNull IInventory createInventory(EntityPlayer player, int size) {
         return new InventoryExtended();
     }
 

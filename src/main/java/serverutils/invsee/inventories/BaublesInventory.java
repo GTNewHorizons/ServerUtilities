@@ -48,7 +48,7 @@ public class BaublesInventory implements IModdedInventory {
     }
 
     @Override
-    public @NotNull IInventory loadOnlineInventory(EntityPlayerMP player) {
+    public @Nullable IInventory loadOnlineInventory(EntityPlayerMP player) {
         return BaublesApi.getBaubles(player);
     }
 
@@ -71,7 +71,7 @@ public class BaublesInventory implements IModdedInventory {
     }
 
     @Override
-    public @NotNull IInventory createInventory(EntityPlayer player) {
+    public @NotNull IInventory createInventory(EntityPlayer player, int size) {
         return new InventoryBaubles(player);
     }
 

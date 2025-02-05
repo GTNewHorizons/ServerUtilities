@@ -34,7 +34,7 @@ public class BattlegearInventory implements IModdedInventory {
             new ResourceLocation(Battlegear.MODID, "textures/items/bg-icon.png"));
 
     @Override
-    public @NotNull IInventory loadOnlineInventory(EntityPlayerMP player) {
+    public @Nullable IInventory loadOnlineInventory(EntityPlayerMP player) {
         return player.inventory;
     }
 
@@ -44,7 +44,7 @@ public class BattlegearInventory implements IModdedInventory {
     }
 
     @Override
-    public @NotNull IInventory createInventory(EntityPlayer player) {
+    public @NotNull IInventory createInventory(EntityPlayer player, int size) {
         return new InventoryPlayer(player);
     }
 

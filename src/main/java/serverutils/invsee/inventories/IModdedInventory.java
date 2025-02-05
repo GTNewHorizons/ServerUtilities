@@ -13,14 +13,14 @@ import serverutils.lib.icon.Icon;
 
 public interface IModdedInventory {
 
-    @NotNull
+    @Nullable
     IInventory loadOnlineInventory(EntityPlayerMP player);
 
     @Nullable
     IInventory loadOfflineInventory(ForgePlayer player);
 
     @NotNull
-    IInventory createInventory(EntityPlayer player);
+    IInventory createInventory(EntityPlayer player, int size);
 
     @NotNull
     Icon getButtonIcon();
