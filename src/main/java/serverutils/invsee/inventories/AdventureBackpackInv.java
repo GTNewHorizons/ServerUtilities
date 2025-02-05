@@ -24,7 +24,7 @@ import serverutils.lib.icon.ItemIcon;
 public class AdventureBackpackInv implements IModdedInventory {
 
     private static final Icon BACKPACK_ICON = ItemIcon
-            .getItemIcon(BackpackUtils.createBackpackStack(BackpackTypes.COOKIE));
+            .getItemIcon(BackpackUtils.createBackpackStack(BackpackTypes.RAINBOW));
     private static final String WEARABLE_TAG = "wearable";
 
     @Override
