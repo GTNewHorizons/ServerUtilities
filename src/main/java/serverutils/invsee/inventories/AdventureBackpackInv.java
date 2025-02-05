@@ -23,12 +23,9 @@ import serverutils.lib.icon.ItemIcon;
 
 public class AdventureBackpackInv implements IModdedInventory {
 
-    private static final Icon BACKPACK_ICON;
+    private static final Icon BACKPACK_ICON = ItemIcon
+            .getItemIcon(BackpackUtils.createBackpackStack(BackpackTypes.COOKIE));
     private static final String WEARABLE_TAG = "wearable";
-
-    static {
-        BACKPACK_ICON = ItemIcon.getItemIcon(BackpackUtils.createBackpackStack(BackpackTypes.COOKIE));
-    }
 
     @Override
     public @Nullable IInventory loadOnlineInventory(EntityPlayerMP player) {
