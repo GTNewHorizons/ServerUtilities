@@ -51,8 +51,19 @@ public class GuiInvseeContainer extends GuiBase {
     }
 
     @Override
+    public int getY() {
+        return super.getY() + 20;
+    }
+
+    @Override
     public void alignWidgets() {
-        textField.setText(inventoryName).setPos(28, -13);
+        int textY = -13;
+        textField.setText(inventoryName);
+        if (textField.text.length > 1) {
+            textY -= 3 * textField.text.length;
+        }
+        textField.setPos(28, textY);
+
         int highestSlot = container.getHighestSlot();
         int lowestSlot = container.getLowestSlot();
         topY = wrapper.guiTop + highestSlot;
@@ -85,7 +96,7 @@ public class GuiInvseeContainer extends GuiBase {
         for (int i = 0; i < container.inventorySlots.size(); i++) {
             Slot slot = container.inventorySlots.get(i);
             theme.drawContainerSlot(x + slot.xDisplayPosition, y + slot.yDisplayPosition, 16, 16);
-            if (i >= container.getNonPlayerSlots()) continue;
+            if (i >= container.getNonPlayerSlots() || slot.getHasStack()) continue;
             Icon overlay = container.getActiveInventory().getInventory().getSlotOverlay(slot);
             if (overlay != null) {
                 overlay.draw(x + slot.xDisplayPosition, y + slot.yDisplayPosition, 16, 16);
@@ -101,7 +112,7 @@ public class GuiInvseeContainer extends GuiBase {
             public int getY() {
                 return topY + posY;
             }
-        }.setColor(Color4I.DARK_GRAY).setScale(0.9f).setMaxWidth(165));
+        }.setColor(Color4I.DARK_GRAY).setScale(0.9f).setMaxWidth(165).setSpacing(8));
         for (InvSeeInventories inventory : inventories.keySet()) {
             IModdedInventory moddedInv = inventory.getInventory();
             add(
