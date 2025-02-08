@@ -2,27 +2,32 @@ package serverutils.command;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraftforge.common.util.Constants;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
 import serverutils.ServerUtilitiesConfig;
+import serverutils.invsee.InvseeContainer;
+import serverutils.invsee.inventories.IModdedInventory;
+import serverutils.invsee.inventories.InvSeeInventories;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.command.CmdTreeHelp;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
+import serverutils.net.MessageInvseeContainer;
 
 public class CmdInv extends CmdTreeBase {
 
@@ -35,7 +40,8 @@ public class CmdInv extends CmdTreeBase {
         @Override
         public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
             if (args.length == 1) {
-                return Universe.get().getPlayers().stream().map(ForgePlayer::getName).collect(Collectors.toList());
+                return Universe.get().getPlayers().stream().map(ForgePlayer::getName)
+                        .filter(e -> StringUtils.startsWithIgnoreCase(e, args[0])).collect(Collectors.toList());
             }
             return super.addTabCompletionOptions(sender, args);
         }
@@ -55,22 +61,21 @@ public class CmdInv extends CmdTreeBase {
                 throw new CommandException("commands.generic.player.notFound", args[0]);
             }
 
-            if (other.isOnline()) {
-                self.displayGUIChest(new InvSeeInventory(other.getPlayer().inventory, other.getPlayer()));
-            } else {
-                NBTTagCompound tag = other.getPlayerNBT();
-                InventoryPlayer playerInv = new InventoryPlayer(null);
-                playerInv.readFromNBT(tag.getTagList("Inventory", Constants.NBT.TAG_COMPOUND));
-                InvSeeInventory invSee = new InvSeeInventory(playerInv, null);
-                invSee.setSaveCallback(inv -> {
-                    InventoryPlayer invPlayer = inv.getPlayerInv();
-                    NBTTagList invTag = new NBTTagList();
-                    invPlayer.writeToNBT(invTag);
-                    tag.setTag("Inventory", invTag);
-                    other.setPlayerNBT(tag);
-                });
-                self.displayGUIChest(invSee);
+            Map<InvSeeInventories, IInventory> inventories = new LinkedHashMap<>();
+            for (InvSeeInventories inv : InvSeeInventories.getActiveInventories()) {
+                IModdedInventory modInv = inv.getInventory();
+                IInventory inventory = other.isOnline() ? modInv.loadOnlineInventory(other.getPlayer())
+                        : modInv.loadOfflineInventory(other);
+                if (inventory != null) {
+                    inventories.put(inv, inventory);
+                }
             }
+
+            self.getNextWindowId();
+            new MessageInvseeContainer(other, inventories, self.currentWindowId).sendTo(self);
+            self.openContainer = new InvseeContainer(inventories, self, other);
+            self.openContainer.windowId = self.currentWindowId;
+            self.openContainer.addCraftingToCrafters(self);
         }
     }
 
