@@ -285,7 +285,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         try (ICompress compressor = ICompress.createCompressor()) {
             boolean isOldBackup = compressor.isOldBackup(file);
             if (!isOldBackup) {
-                File previousRoot = new File("backups/old_global_data/");
+                File previousRoot = new File("backups_before_restore/");
                 previousRoot = new File(previousRoot, DATE_FORMAT.format(Calendar.getInstance().getTime()));
                 renameAdditionalFiles(previousRoot, includeGlobal);
             }
