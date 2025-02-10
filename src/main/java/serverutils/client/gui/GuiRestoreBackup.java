@@ -248,7 +248,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
             // Move all old files into backup
             for (File file : previousFiles) {
-                String pathRelative = FileUtils.getRelativePath(new File(""), file);
+                String pathRelative = FileUtils.getRelativePath(file);
                 File destFile = new File(previousRoot, pathRelative);
                 destFile.getParentFile().mkdirs();
                 file.renameTo(destFile);

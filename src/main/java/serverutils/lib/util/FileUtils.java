@@ -11,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -231,7 +233,8 @@ public class FileUtils {
         }
     }
 
-    public static String getRelativePath(File dir, File file) {
-        return file.getAbsolutePath().substring(dir.getAbsolutePath().length() + 1);
+    public static String getRelativePath(File file) {
+        Path filePath = file.toPath().toAbsolutePath();
+        return Paths.get("").toAbsolutePath().relativize(filePath).toString().replace('\\', '/');
     }
 }
