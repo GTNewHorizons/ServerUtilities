@@ -1,5 +1,7 @@
 package serverutils.handlers;
 
+import static journeymap.client.data.AllData.Key.player;
+
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -22,6 +24,8 @@ import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.world.BlockEvent;
+
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -47,21 +51,19 @@ import serverutils.lib.util.InvUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.permission.PermissionAPI;
-import serverutils.net.MessageSyncData;
 import serverutils.net.MessageUpdateTabName;
 import serverutils.task.backup.BackupTask;
 
+@EventBusSubscriber
 public class ServerUtilitiesPlayerEventHandler {
 
-    public static final ServerUtilitiesPlayerEventHandler INST = new ServerUtilitiesPlayerEventHandler();
-
     @SubscribeEvent
-    public void registerPlayerData(ForgePlayerDataEvent event) {
+    public static void registerPlayerData(ForgePlayerDataEvent event) {
         event.register(new ServerUtilitiesPlayerData(event.getPlayer()));
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void onPlayerLoggedIn(ForgePlayerLoggedInEvent event) {
+    public static void onPlayerLoggedIn(ForgePlayerLoggedInEvent event) {
         EntityPlayerMP player = event.getPlayer().getPlayer();
 
         if (ServerUtils.isFirstLogin(player, "serverutilities_starting_items")) {
@@ -98,7 +100,7 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent
-    public void onPlayerLoggedOut(ForgePlayerLoggedOutEvent event) {
+    public static void onPlayerLoggedOut(ForgePlayerLoggedOutEvent event) {
         EntityPlayerMP player = event.getPlayer().getPlayer();
 
         if (ClaimedChunks.isActive()) {
@@ -109,17 +111,17 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent
-    public void onPlayerClone(PlayerEvent.Clone event) {
+    public static void onPlayerClone(PlayerEvent.Clone event) {
         event.entityPlayer.getEntityData().removeTag(ServerUtilitiesPlayerData.TAG_LAST_CHUNK);
     }
 
     @SubscribeEvent
-    public void getPlayerSettings(ForgePlayerConfigEvent event) {
+    public static void getPlayerSettings(ForgePlayerConfigEvent event) {
         ServerUtilitiesPlayerData.get(event.getPlayer()).addConfig(event.getConfig());
     }
 
     @SubscribeEvent
-    public void onDeath(LivingDeathEvent event) {
+    public static void onDeath(LivingDeathEvent event) {
         EntityLivingBase entity = event.entityLiving;
         if (entity instanceof EntityPlayerMP entityPlayerMP) {
             ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(Universe.get().getPlayer(entityPlayerMP));
@@ -128,7 +130,7 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
-    public void onChunkChanged(EntityEvent.EnteringChunk event) {
+    public static void onChunkChanged(EntityEvent.EnteringChunk event) {
         if (event.entity.worldObj.isRemote || !(event.entity instanceof EntityPlayerMP player) || !Universe.loaded()) {
             return;
         }
@@ -146,7 +148,7 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent
-    public void onEntityDamage(LivingAttackEvent event) {
+    public static void onEntityDamage(LivingAttackEvent event) {
         if (ServerUtilitiesConfig.world.disable_player_suffocation_damage && event.entity instanceof EntityPlayer
                 && (event.source == DamageSource.inWall)) {
             event.setCanceled(true);
@@ -154,7 +156,7 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onEntityAttacked(AttackEntityEvent event) {
+    public static void onEntityAttacked(AttackEntityEvent event) {
         if (!ClaimedChunks.canAttackEntity(event.entityPlayer, event.target)) {
             InvUtils.forceUpdate(event.entityPlayer);
             event.setCanceled(true);
@@ -162,7 +164,7 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onPlayerInteraction(PlayerInteractEvent event) {
+    public static void onPlayerInteraction(PlayerInteractEvent event) {
         EntityPlayer player = event.entityPlayer;
         boolean cancelled = false;
 
@@ -206,14 +208,14 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onBlockBreak(BlockEvent.BreakEvent event) {
+    public static void onBlockBreak(BlockEvent.BreakEvent event) {
         if (ClaimedChunks.blockBlockEditing(event.getPlayer(), event.x, event.y, event.z, 0)) {
             event.setCanceled(true);
         }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onBlockPlace(BlockEvent.PlaceEvent event) {
+    public static void onBlockPlace(BlockEvent.PlaceEvent event) {
         if (ClaimedChunks.blockBlockEditing(event.player, event.x, event.y, event.z, 0)) {
             InvUtils.forceUpdate(event.player);
             event.setCanceled(true);
@@ -221,7 +223,7 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.LOW)
-    public void onNameFormat(PlayerEvent.NameFormat event) {
+    public static void onNameFormat(PlayerEvent.NameFormat event) {
         if (!(event.entityPlayer instanceof EntityPlayerMP player) || ServerUtils.isFake(player)) return;
         if (ServerUtilitiesConfig.commands.nick && Universe.loaded()) {
             ForgePlayer p = Universe.get().getPlayer(player.getGameProfile());
@@ -250,19 +252,11 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.player.ticksExisted % 5 == 2 && event.player instanceof EntityPlayerMP player) {
-            byte opState = player.getEntityData().getByte("ServerLibOP");
-            byte newOpState = ServerUtils.isOP(player) ? (byte) 2 : (byte) 1;
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (!(event.player instanceof EntityPlayerMP player) || event.phase != TickEvent.Phase.START) return;
 
-            if (opState != newOpState) {
-                player.getEntityData().setByte("ServerLibOP", newOpState);
-                Universe.get().clearCache();
-                ForgePlayer forgePlayer = Universe.get().getPlayer(player.getGameProfile());
-                if (forgePlayer != null) {
-                    new MessageSyncData(false, player, forgePlayer).sendTo(player);
-                }
-            }
+        if (!player.capabilities.disableDamage && ServerUtils.isVanished(player)) {
+            player.capabilities.disableDamage = true;
         }
     }
 
@@ -286,7 +280,7 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent
-    public void onBlockBreakLog(BlockEvent.BreakEvent event) {
+    public static void onBlockBreakLog(BlockEvent.BreakEvent event) {
         if (!(event.getPlayer() instanceof EntityPlayerMP playerMP)) return;
 
         if (ServerUtilitiesConfig.world.logging.block_broken && ServerUtilitiesConfig.world.logging.log(playerMP)) {
@@ -301,7 +295,7 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent
-    public void onBlockPlaceLog(BlockEvent.PlaceEvent event) {
+    public static void onBlockPlaceLog(BlockEvent.PlaceEvent event) {
         if (!(event.player instanceof EntityPlayerMP playerMP)) return;
 
         if (ServerUtilitiesConfig.world.logging.block_placed && ServerUtilitiesConfig.world.logging.log(playerMP)) {
@@ -316,7 +310,7 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent
-    public void onRightClickItemLog(PlayerInteractEvent event) {
+    public static void onRightClickItemLog(PlayerInteractEvent event) {
         if (event.action != PlayerInteractEvent.Action.RIGHT_CLICK_AIR) return;
         if (!(event.entityPlayer instanceof EntityPlayerMP playerMP)) return;
 
@@ -333,7 +327,7 @@ public class ServerUtilitiesPlayerEventHandler {
     }
 
     @SubscribeEvent
-    public void onEntityAttackedLog(AttackEntityEvent event) {
+    public static void onEntityAttackedLog(AttackEntityEvent event) {
         if (!(event.entityPlayer instanceof EntityPlayerMP playerMP)) return;
         Entity target = event.target;
         if (ServerUtilitiesConfig.world.logging.entity_attacked && ServerUtilitiesConfig.world.logging.log(playerMP)) {
