@@ -248,7 +248,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
             // Move all old files into backup
             for (File file : previousFiles) {
-                String pathRelative = FileUtils.getRelativePath(new File(""), file);
+                String pathRelative = FileUtils.getRelativePath(file);
                 File destFile = new File(previousRoot, pathRelative);
                 destFile.getParentFile().mkdirs();
                 file.renameTo(destFile);
@@ -285,7 +285,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         try (ICompress compressor = ICompress.createCompressor()) {
             boolean isOldBackup = compressor.isOldBackup(file);
             if (!isOldBackup) {
-                File previousRoot = new File("backups/old_global_data/");
+                File previousRoot = new File("backups_before_restore/");
                 previousRoot = new File(previousRoot, DATE_FORMAT.format(Calendar.getInstance().getTime()));
                 renameAdditionalFiles(previousRoot, includeGlobal);
             }

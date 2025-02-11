@@ -162,7 +162,7 @@ public class ThreadBackup extends Thread {
         int allFiles = files.size();
         for (int i = 0; i < allFiles; i++) {
             File file = files.get(i);
-            compressFile(FileUtils.getRelativePath(new File(""), file), file, compressor, i, allFiles);
+            compressFile(FileUtils.getRelativePath(file), file, compressor, i, allFiles);
         }
     }
 
@@ -201,14 +201,14 @@ public class ThreadBackup extends Thread {
 
             tempRegion.close();
             if (hasData) {
-                compressFile(FileUtils.getRelativePath(new File(""), file), tempFile, compressor, index++, totalFiles);
+                compressFile(FileUtils.getRelativePath(file), tempFile, compressor, index++, totalFiles);
             }
 
             FileUtils.delete(tempFile);
         }
 
         for (File file : files) {
-            compressFile(FileUtils.getRelativePath(new File(""), file), file, compressor, index++, totalFiles);
+            compressFile(FileUtils.getRelativePath(file), file, compressor, index++, totalFiles);
         }
 
         ServerUtilities.LOGGER.info("Backed up {} regions containing {} claimed chunks", regionFiles, savedChunks);
