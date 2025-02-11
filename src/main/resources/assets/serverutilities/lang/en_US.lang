@@ -591,9 +591,13 @@ cmd.backup_size=Current world size: %s, total backups folder size: %s
 serverutilities.gui.backup.title=Restore Backup (%s)
 serverutilities.gui.backup.button=Backups
 serverutilities.gui.backup.restore=Restore
+serverutilities.gui.backup.restore_global=Restore (with global data)
 serverutilities.gui.backup.error=An error occured while restoring backup!
 serverutilities.gui.backup.delete_confirm=Are you sure you want to §c§ldelete§r this backup?
 serverutilities.gui.backup.restore_confirm=Are you sure you want to §a§lrestore§r this backup?
+serverutilities.gui.backup.restore_global_confirm=Are you sure you want to §a§lrestore (global)§r this backup?
+serverutilities.gui.backup.restore_confirm_desc=This will also restore global world related data. The previous data will be moved into ".minecraft/backups_before_restore"
+serverutilities.gui.backup.restore_global_confirm_desc=This will also restore global world related data, and will overwrite global settings with those included in the backup. The previous data will be moved into ".minecraft/backups_before_restore"
 
 # Pause When Empty
 cmd.pause_when_empty_updated=Server property 'pause-when-empty-seconds' set to %d
