@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.INpc;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.passive.IAnimals;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
@@ -29,7 +29,10 @@ public class CleanupTask extends Task {
 
     private static final Predicate<Entity> ENTITY_PREDICATE = entity -> {
         ServerUtilitiesConfig.Tasks.Cleanup config = tasks.cleanup;
-        if (entity instanceof EntityPlayer) return false;
+        if (entity instanceof EntityLiving living && living.isNoDespawnRequired()) {
+            return false;
+        }
+
         if ((entity instanceof IAnimals && !(entity instanceof IMob)) || entity instanceof INpc) {
             return config.passives;
         }
