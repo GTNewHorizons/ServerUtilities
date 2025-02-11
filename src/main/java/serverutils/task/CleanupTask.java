@@ -5,7 +5,6 @@ import static serverutils.ServerUtilitiesNotifications.CLEANUP;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -27,24 +26,6 @@ import serverutils.lib.util.StringUtils;
 
 public class CleanupTask extends Task {
 
-    private static final Predicate<Entity> ENTITY_PREDICATE = entity -> {
-        ServerUtilitiesConfig.Tasks.Cleanup config = tasks.cleanup;
-        if (entity instanceof EntityLiving living && living.isNoDespawnRequired()) {
-            return false;
-        }
-
-        if ((entity instanceof IAnimals && !(entity instanceof IMob)) || entity instanceof INpc) {
-            return config.passives;
-        }
-        if (entity instanceof IMob) {
-            return config.hostiles;
-        }
-        if (entity instanceof EntityItem) {
-            return config.items;
-        }
-        return config.experience && entity instanceof EntityXPOrb;
-    };
-
     public CleanupTask() {
         super(Ticks.HOUR.x(tasks.cleanup.interval));
     }
@@ -54,7 +35,7 @@ public class CleanupTask extends Task {
         int removed = 0;
         for (World world : universe.server.worldServers) {
             for (Entity entity : new ArrayList<>(world.loadedEntityList)) {
-                if (ENTITY_PREDICATE.test(entity)) {
+                if (shouldDespawn(entity)) {
                     entity.setDead();
                     removed++;
                 }
@@ -110,5 +91,23 @@ public class CleanupTask extends Task {
                 seconds);
 
         return StringUtils.color(new ChatComponentText(finalString), EnumChatFormatting.LIGHT_PURPLE);
+    }
+
+    private static boolean shouldDespawn(Entity entity) {
+        ServerUtilitiesConfig.Tasks.Cleanup config = tasks.cleanup;
+        if (entity instanceof EntityLiving living && living.isNoDespawnRequired()) {
+            return false;
+        }
+
+        if ((entity instanceof IAnimals && !(entity instanceof IMob)) || entity instanceof INpc) {
+            return config.passives;
+        }
+        if (entity instanceof IMob) {
+            return config.hostiles;
+        }
+        if (entity instanceof EntityItem) {
+            return config.items;
+        }
+        return config.experience && entity instanceof EntityXPOrb;
     }
 }
