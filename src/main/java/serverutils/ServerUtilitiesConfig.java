@@ -8,6 +8,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.oredict.OreDictionary;
 
 import com.gtnewhorizon.gtnhlib.config.Config;
@@ -15,10 +16,8 @@ import com.gtnewhorizon.gtnhlib.config.Config;
 import cpw.mods.fml.common.registry.GameData;
 import serverutils.data.ClaimedChunks;
 import serverutils.lib.config.EnumTristate;
-import serverutils.lib.io.DataReader;
 import serverutils.lib.item.ItemStackSerializer;
 import serverutils.lib.math.Ticks;
-import serverutils.lib.util.JsonUtils;
 import serverutils.lib.util.ServerUtils;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", configSubDirectory = "../serverutilities/")
@@ -344,7 +343,7 @@ public class ServerUtilitiesConfig {
         public boolean enable_starting_items;
 
         @Config.Comment("Message of the day. This will be displayed when player joins the server.")
-        @Config.DefaultStringList({ "\"Hello player!\"" })
+        @Config.DefaultStringList("Hello player!")
         public String[] motd;
 
         @Config.Comment("Items to give player when they first join the server.\nFormat: '{id:\"ID\",Count:X,Damage:X,tag:{}}', Use /print_item to get NBT of item in your hand.")
@@ -364,11 +363,7 @@ public class ServerUtilitiesConfig {
 
                 if (enable_motd) {
                     for (String s : motd) {
-                        IChatComponent t = JsonUtils.deserializeTextComponent(DataReader.get(s).safeJson());
-
-                        if (t != null) {
-                            motdComponents.add(t);
-                        }
+                        motdComponents.add(ForgeHooks.newChatWithLinks(s));
                     }
                 }
             }
