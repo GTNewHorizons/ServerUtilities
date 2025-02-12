@@ -63,9 +63,7 @@ public abstract class ContainerBase extends Container {
 
         if (slot != null && slot.getHasStack()) {
             ItemStack stack1 = slot.getStack();
-            if (stack1 != null) {
-                stack = stack1.copy();
-            }
+            stack = stack1.copy();
 
             if (index < nonPlayerSlots) {
                 if (!mergeItemStack(stack1, nonPlayerSlots, inventorySlots.size(), true)) {
@@ -75,7 +73,7 @@ public abstract class ContainerBase extends Container {
                 return InvUtils.EMPTY_STACK;
             }
 
-            if (stack1 == null) {
+            if (stack1.stackSize == 0) {
                 slot.putStack(InvUtils.EMPTY_STACK);
             } else {
                 slot.onSlotChanged();
