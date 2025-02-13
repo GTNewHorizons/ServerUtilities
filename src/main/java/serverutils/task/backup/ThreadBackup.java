@@ -236,6 +236,7 @@ public class ThreadBackup extends Thread {
 
             for (File file : regions) {
                 int[] coords = getRegionCoords(file);
+                if (coords == null) continue;
                 long key = CoordinatePacker.pack(coords[0], 0, coords[1]);
                 ObjectSet<ChunkDimPos> claims = regionClaims.get(key);
                 if (claims == null) {
@@ -250,14 +251,17 @@ public class ThreadBackup extends Thread {
         return regionFilesToBackup;
     }
 
-    private static int[] getRegionCoords(File f) {
-        String fileName = f.getName();
-        int firstDot = fileName.indexOf('.');
-        int secondDot = fileName.indexOf('.', firstDot + 1);
+    private static int[] getRegionCoords(File file) {
+        if (!file.getName().endsWith(".mca")) return null;
 
-        int x = Integer.parseInt(fileName.substring(firstDot + 1, secondDot));
-        int z = Integer.parseInt(fileName.substring(secondDot + 1, fileName.lastIndexOf('.')));
-        return new int[] { x, z };
+        String[] parts = file.getName().split("\\.");
+        try {
+            int x = Integer.parseInt(parts[1]);
+            int z = Integer.parseInt(parts[2]);
+            return new int[] { x, z };
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            return null;
+        }
     }
 
     private static String getDoneTime(long l) {
