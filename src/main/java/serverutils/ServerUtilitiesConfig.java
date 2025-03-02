@@ -45,7 +45,7 @@ public class ServerUtilitiesConfig {
         public EnumTristate merge_offline_mode_players;
 
         @Config.Comment({ "Backports 1.20's 'pause-when-empty-seconds' server property", "Default value: 0 (off)" })
-        @Config.DefaultBoolean(true)
+        @Config.DefaultBoolean(false)
         public boolean enable_pause_when_empty_property;
     }
 
