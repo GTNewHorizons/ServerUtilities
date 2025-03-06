@@ -48,7 +48,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         return player.getData().get(ServerUtilities.MOD_ID);
     }
 
-    public static ServerUtilitiesPlayerData get(EntityPlayerMP player) {
+    public static ServerUtilitiesPlayerData get(ICommandSender player) {
         return get(Universe.get().getPlayer(player));
     }
 
