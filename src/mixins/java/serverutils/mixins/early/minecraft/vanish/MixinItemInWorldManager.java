@@ -54,7 +54,7 @@ public abstract class MixinItemInWorldManager {
             int p_77943_3_, int p_77943_4_, int p_77943_5_, int p_77943_6_, float p_77943_7_, float p_77943_8_,
             float p_77943_9_, Operation<Boolean> original) {
         if (ServerUtils.isVanished(p_77943_1_)) {
-            VanishData data = ServerUtilitiesPlayerData.get((EntityPlayerMP) p_77943_1_).getVanishData();
+            VanishData data = ServerUtilitiesPlayerData.get(p_77943_1_).getVanishData();
             if (!data.interaction) return false;
         }
 

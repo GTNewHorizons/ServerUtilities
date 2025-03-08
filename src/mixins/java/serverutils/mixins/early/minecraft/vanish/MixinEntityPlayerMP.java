@@ -25,7 +25,7 @@ public abstract class MixinEntityPlayerMP extends EntityPlayer {
     @Override
     protected void collideWithEntity(Entity p_82167_1_) {
         if (ServerUtils.isVanished(this)) {
-            VanishData data = ServerUtilitiesPlayerData.get((EntityPlayerMP) (Object) this).getVanishData();
+            VanishData data = ServerUtilitiesPlayerData.get(this).getVanishData();
             if (!data.collision) return;
         }
         super.collideWithEntity(p_82167_1_);
@@ -34,7 +34,7 @@ public abstract class MixinEntityPlayerMP extends EntityPlayer {
     @Override
     public void applyEntityCollision(Entity entityIn) {
         if (ServerUtils.isVanished(this)) {
-            VanishData data = ServerUtilitiesPlayerData.get((EntityPlayerMP) (Object) this).getVanishData();
+            VanishData data = ServerUtilitiesPlayerData.get(this).getVanishData();
             if (!data.collision) return;
         }
         super.applyEntityCollision(entityIn);
@@ -43,7 +43,7 @@ public abstract class MixinEntityPlayerMP extends EntityPlayer {
     @Override
     public boolean doesEntityNotTriggerPressurePlate() {
         if (ServerUtils.isVanished(this)) {
-            VanishData data = ServerUtilitiesPlayerData.get((EntityPlayerMP) (Object) this).getVanishData();
+            VanishData data = ServerUtilitiesPlayerData.get(this).getVanishData();
             return !data.collision;
         }
         return super.doesEntityNotTriggerPressurePlate();

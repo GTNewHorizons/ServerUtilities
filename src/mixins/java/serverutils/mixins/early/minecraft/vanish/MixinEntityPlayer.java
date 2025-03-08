@@ -3,7 +3,6 @@ package serverutils.mixins.early.minecraft.vanish;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.World;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,7 +28,7 @@ public abstract class MixinEntityPlayer extends EntityLivingBase {
                     target = "Lnet/minecraft/entity/Entity;onCollideWithPlayer(Lnet/minecraft/entity/player/EntityPlayer;)V"))
     private boolean serverutilities$noVanishCollision(Entity instance, EntityPlayer entityIn) {
         if (ServerUtils.isVanished(entityIn)) {
-            VanishData data = ServerUtilitiesPlayerData.get((EntityPlayerMP) entityIn).getVanishData();
+            VanishData data = ServerUtilitiesPlayerData.get(entityIn).getVanishData();
             return data.collision;
         }
         return true;
