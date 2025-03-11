@@ -19,6 +19,7 @@ import net.minecraftforge.common.ForgeChunkManager;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.data.ForgeTeam;
+import serverutils.lib.data.TeamType;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.ServerUtils;
 
@@ -168,6 +169,7 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
     }
 
     public boolean canForceChunks(ForgeTeam team) {
-        return !team.getOnlineMembers().isEmpty() || team.anyMemberHasPermission(CHUNKLOADER_LOAD_OFFLINE);
+        return team.type == TeamType.SERVER || !team.getOnlineMembers().isEmpty()
+                || team.anyMemberHasPermission(CHUNKLOADER_LOAD_OFFLINE);
     }
 }
