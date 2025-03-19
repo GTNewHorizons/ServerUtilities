@@ -1,7 +1,6 @@
 package serverutils.command;
 
 import net.minecraft.block.Block;
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
@@ -12,14 +11,14 @@ import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraftforge.common.DimensionManager;
 
 import cpw.mods.fml.common.FMLLog;
+import serverutils.lib.command.CmdBase;
 
-public class CmdSeekBlock extends CommandBase {
+public class CmdSeekBlock extends CmdBase {
 
     private static final int MAX_RESULTS = 100;
 
-    @Override
-    public String getCommandName() {
-        return "seek_block";
+    public CmdSeekBlock() {
+        super("seek_block", Level.OP);
     }
 
     @Override
