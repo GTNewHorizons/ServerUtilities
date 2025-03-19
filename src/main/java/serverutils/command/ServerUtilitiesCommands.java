@@ -143,18 +143,27 @@ public class ServerUtilitiesCommands {
         if (commands.rec) {
             event.registerServerCommand(new CmdRec());
         }
+
         if (commands.dump_permissions) {
             event.registerServerCommand(new CmdDumpPermissions());
         }
+
         if (debugging.special_commands) {
             event.registerServerCommand(new CmdAddFakePlayer());
         }
+
         if (commands.dump_stats) {
             event.registerServerCommand(new CmdDumpStats());
         }
+
         if (commands.vanish) {
             event.registerServerCommand(new CmdVanish());
         }
+
+        if (commands.seek_block) {
+            event.registerServerCommand(new CmdSeekBlock());
+        }
+
         if (ServerUtilitiesConfig.commands.pregen) {
             event.registerServerCommand(new CmdPregen());
         }
