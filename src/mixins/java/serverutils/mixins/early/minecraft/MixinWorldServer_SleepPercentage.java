@@ -31,7 +31,7 @@ import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.lib.data.Universe;
 
 @Mixin(WorldServer.class)
-public abstract class MixinWorldServer extends World {
+public abstract class MixinWorldServer_SleepPercentage extends World {
 
     @Shadow
     private boolean allPlayersSleeping;
@@ -46,7 +46,7 @@ public abstract class MixinWorldServer extends World {
      * We need to access this.playerEntities from the superclass, so we're extending World, and need this fake
      * constructor to make Java happy
      **/
-    public MixinWorldServer(ISaveHandler p_i45368_1_, String p_i45368_2_, WorldProvider p_i45368_3_,
+    public MixinWorldServer_SleepPercentage(ISaveHandler p_i45368_1_, String p_i45368_2_, WorldProvider p_i45368_3_,
             WorldSettings p_i45368_4_, Profiler p_i45368_5_) {
         super(p_i45368_1_, p_i45368_2_, p_i45368_3_, p_i45368_4_, p_i45368_5_);
         throw new RuntimeException(
