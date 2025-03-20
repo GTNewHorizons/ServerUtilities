@@ -23,6 +23,8 @@ public class ServerUtilitiesNetHandler {
         GENERAL.register(new MessageCommandsResponse());
         GENERAL.register(new MessageCommandsRequest());
         GENERAL.register(new MessageUpdateTabName());
+        GENERAL.register(new MessageInvseeContainer());
+        GENERAL.register(new MessageInvseeSwitch());
 
         CLAIMS.register(new MessageClaimedChunksRequest());
         CLAIMS.register(new MessageClaimedChunksUpdate());

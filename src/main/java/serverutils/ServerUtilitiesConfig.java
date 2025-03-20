@@ -8,6 +8,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.IChatComponent;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.oredict.OreDictionary;
 
 import com.gtnewhorizon.gtnhlib.config.Config;
@@ -15,10 +16,8 @@ import com.gtnewhorizon.gtnhlib.config.Config;
 import cpw.mods.fml.common.registry.GameData;
 import serverutils.data.ClaimedChunks;
 import serverutils.lib.config.EnumTristate;
-import serverutils.lib.io.DataReader;
 import serverutils.lib.item.ItemStackSerializer;
 import serverutils.lib.math.Ticks;
-import serverutils.lib.util.JsonUtils;
 import serverutils.lib.util.ServerUtils;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", configSubDirectory = "../serverutilities/")
@@ -264,6 +263,9 @@ public class ServerUtilitiesConfig {
         public boolean dump_stats;
 
         @Config.DefaultBoolean(true)
+        public boolean vanish;
+
+        @Config.DefaultBoolean(true)
         public boolean pregen;
     }
 
@@ -291,6 +293,10 @@ public class ServerUtilitiesConfig {
         @Config.Comment("Path to backups folder.")
         @Config.DefaultString("./backups/")
         public String backup_folder_path;
+
+        @Config.Comment("List of additional paths to include in backup. Use / as directory separator! Use * as wildcard, and $WORLDNAME for the save name. If specifying a folder, the path should end with \"/**\" to match all subfolders and files.")
+        @Config.DefaultStringList({ "saves/NEI/global/**", "saves/NEI/local/$WORLDNAME/**" })
+        public String[] additional_backup_files;
 
         @Config.Comment("Run backup in a separated thread (recommended)")
         @Config.DefaultBoolean(true)
@@ -337,7 +343,7 @@ public class ServerUtilitiesConfig {
         public boolean enable_starting_items;
 
         @Config.Comment("Message of the day. This will be displayed when player joins the server.")
-        @Config.DefaultStringList({ "\"Hello player!\"" })
+        @Config.DefaultStringList("Hello player!")
         public String[] motd;
 
         @Config.Comment("Items to give player when they first join the server.\nFormat: '{id:\"ID\",Count:X,Damage:X,tag:{}}', Use /print_item to get NBT of item in your hand.")
@@ -357,11 +363,7 @@ public class ServerUtilitiesConfig {
 
                 if (enable_motd) {
                     for (String s : motd) {
-                        IChatComponent t = JsonUtils.deserializeTextComponent(DataReader.get(s).safeJson());
-
-                        if (t != null) {
-                            motdComponents.add(t);
-                        }
+                        motdComponents.add(ForgeHooks.newChatWithLinks(s));
                     }
                 }
             }

@@ -184,4 +184,9 @@ public class ServerUtils {
         MinecraftServer ms = getServer();
         return ms.worldServers[0];
     }
+
+    public static boolean isVanished(Entity entity) {
+        if (!(entity instanceof EntityPlayerMP player)) return false;
+        return NBTUtils.getPersistedData(player, true).getBoolean("vanish");
+    }
 }

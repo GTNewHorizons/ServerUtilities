@@ -1,6 +1,9 @@
 package serverutils.mixin;
 
-import static serverutils.ServerUtilitiesConfig.*;
+import static serverutils.ServerUtilitiesConfig.commands;
+import static serverutils.ServerUtilitiesConfig.general;
+import static serverutils.ServerUtilitiesConfig.ranks;
+import static serverutils.mixin.TargetedMod.RANDOMTHINGS;
 import static serverutils.mixin.TargetedMod.VANILLA;
 
 import java.util.ArrayList;
@@ -23,6 +26,20 @@ public enum Mixins {
             .setPhase(Phase.EARLY).addMixinClasses("forge.MixinGuiIngameForge")),
     VANILLA_TP_BACK_COMPAT(new Builder("/back compat for the vanilla /tp").addTargetedMod(VANILLA).setSide(Side.BOTH)
             .setPhase(Phase.EARLY).setApplyIf(() -> commands.back).addMixinClasses("minecraft.MixinCommandTeleport")),
+    VANISH(new Builder("/vanish command").addTargetedMod(VANILLA).setSide(Side.SERVER).setPhase(Phase.EARLY)
+            .setApplyIf(() -> commands.vanish).addMixinClasses(
+                    "minecraft.vanish.MixinServerConfigurationManager",
+                    "minecraft.vanish.MixinMinecraftServer",
+                    "minecraft.vanish.MixinEntityTrackerEntry",
+                    "minecraft.vanish.MixinNetHandlerPlayServer",
+                    "minecraft.vanish.MixinCommandListPlayers",
+                    "minecraft.vanish.MixinEntityPlayer",
+                    "minecraft.vanish.MixinEntityPlayerMP",
+                    "minecraft.vanish.MixinWorld",
+                    "minecraft.vanish.MixinItemInWorldManager")),
+    HIDE_VANISHED_FROM_DETECTOR(new Builder("Hide vanished players from the RandomThings online detector")
+            .addTargetedMod(RANDOMTHINGS).setSide(Side.SERVER).setPhase(Phase.LATE).setApplyIf(() -> commands.vanish)
+            .addMixinClasses("randomthings.MixinWorldUtils")),
     PAUSE_WHEN_EMPTY(new Builder("Pauses the server when empty after X seconds; Servers Only").setPhase(Phase.EARLY)
             .setSide(Side.SERVER).addTargetedMod(TargetedMod.VANILLA)
             .addMixinClasses(

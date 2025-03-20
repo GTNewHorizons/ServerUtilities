@@ -99,8 +99,7 @@ public class CmdHome extends CmdBase {
         }
 
         ForgePlayer p = CommandUtils.getSelfOrOther(sender, args, 1, ServerUtilitiesPermissions.HOMES_TELEPORT_OTHER);
-        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(p);
-        BlockDimPos pos = data.homes.get(args[0]);
+        BlockDimPos pos = ServerUtilitiesPlayerData.get(p).homes.get(args[0]);
 
         if (pos == null) {
             throw ServerUtilities.error(sender, "serverutilities.lang.homes.not_set", args[0]);
@@ -114,6 +113,7 @@ public class CmdHome extends CmdBase {
         }
 
         Task task = new NotifyTask(-1, player, TELEPORT.createNotification("serverutilities.lang.warps.tp", args[0]));
+        ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(sender);
         data.checkTeleportCooldown(sender, TeleportType.HOME);
         data.teleport(pos.teleporter(), TeleportType.HOME, task);
     }

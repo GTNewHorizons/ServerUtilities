@@ -80,9 +80,9 @@ public class ServerUtilitiesPermissions {
     public static final String CLAIMS_ATTACK_ANIMALS = "serverutilities.claims.attack_animals";
     public static final String CLAIM_DECAY_TIMER = "serverutilities.claims.decay";
 
-    public static final HashSet<Block> CLAIMS_BLOCK_EDIT_WHITELIST = new HashSet<>();
-    public static final HashSet<Block> CLAIMS_BLOCK_INTERACT_WHITELIST = new HashSet<>();
-    public static final HashSet<Item> CLAIMS_ITEM_BLACKLIST = new HashSet<>();
+    public static final Set<Block> CLAIMS_BLOCK_EDIT_WHITELIST = new HashSet<>();
+    public static final Set<Block> CLAIMS_BLOCK_INTERACT_WHITELIST = new HashSet<>();
+    public static final Set<Item> CLAIMS_ITEM_BLACKLIST = new HashSet<>();
 
     // Chunkloader //
     public static final String CHUNKLOADER_MAX_CHUNKS = "serverutilities.chunkloader.max_chunks";
@@ -123,6 +123,9 @@ public class ServerUtilitiesPermissions {
     public static final String TPA_CROSS_DIM = "serverutilities.tpa.cross_dim";
     public static final String AFK_TIMER = "serverutilities.afk.timer";
     public static final String HEAL_OTHER = "serverutilities.other_player.heal";
+    public static final String SEE_VANISH = "serverutilities.vanish.see";
+    public static final String SPAWN_CROSS_DIM = "serverutilities.spawn.cross_dim";
+    public static final String RTP_CROSS_DIM = "serverutilities.rtp.cross_dim";
 
     public static final String CLAIMS_JOURNEYMAP = "serverutilities.journeymap.enable";
     public static final String CLAIMS_JOURNEYMAP_OTHER = "serverutilities.journeymap.other";
@@ -246,6 +249,12 @@ public class ServerUtilitiesPermissions {
                 WARPS_CROSS_DIM,
                 DefaultPermissionLevel.ALL,
                 "Can use /warp to teleport to/from another dimension");
+        PermissionAPI.registerNode(SEE_VANISH, DefaultPermissionLevel.OP, "Allow to see vanished players");
+        PermissionAPI.registerNode(
+                SPAWN_CROSS_DIM,
+                DefaultPermissionLevel.ALL,
+                "Can use /spawn to teleport to spawn from another dimension");
+        PermissionAPI.registerNode(RTP_CROSS_DIM, DefaultPermissionLevel.ALL, "Can use /rtp in other dimensions");
 
         for (Block block : GameData.getBlockRegistry().typeSafeIterable()) {
             String name = formatId(block);

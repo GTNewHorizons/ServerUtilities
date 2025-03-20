@@ -48,6 +48,10 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         return player.getData().get(ServerUtilities.MOD_ID);
     }
 
+    public static ServerUtilitiesPlayerData get(ICommandSender player) {
+        return get(Universe.get().getPlayer(player));
+    }
+
     private boolean enablePVP = true;
     private boolean showTeamPrefix = false;
     private String nickname = "";
@@ -59,12 +63,14 @@ public class ServerUtilitiesPlayerData extends PlayerData {
     private BlockDimPos lastSafePos;
     public final BlockDimPosStorage homes;
     private final TeleportTracker teleportTracker;
+    private final VanishData vanishData;
 
     public ServerUtilitiesPlayerData(ForgePlayer player) {
         super(player);
         homes = new BlockDimPosStorage();
         tpaRequestsFrom = new HashSet<>();
         teleportTracker = new TeleportTracker();
+        vanishData = new VanishData();
     }
 
     @Override
@@ -80,6 +86,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         nbt.setTag("Homes", homes.serializeNBT());
         nbt.setTag("TeleportTracker", teleportTracker.serializeNBT());
         nbt.setString("Nickname", nickname);
+        nbt.setTag("VanishData", vanishData.serializeNBT());
         return nbt;
     }
 
@@ -91,6 +98,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
         teleportTracker.deserializeNBT(nbt.getCompoundTag("TeleportTracker"));
         setLastDeath(BlockDimPos.fromIntArray(nbt.getIntArray("LastDeath")), 0);
         nickname = nbt.getString("Nickname");
+        vanishData.deserializeNBT(nbt.getCompoundTag("VanishData"));
     }
 
     public void addConfig(ConfigGroup main) {
@@ -107,6 +115,10 @@ public class ServerUtilitiesPlayerData extends PlayerData {
                 player.team.getTitle());
         config.addBool("show_team_prefix", () -> showTeamPrefix, v -> showTeamPrefix = v, false).setInfo(info)
                 .setExcluded(ServerUtilitiesConfig.teams.force_team_prefix);
+
+        if (player.hasPermission(ServerUtilitiesPermissions.SEE_VANISH)) {
+            vanishData.addConfigs(main);
+        }
     }
 
     public boolean enablePVP() {
@@ -257,5 +269,9 @@ public class ServerUtilitiesPlayerData extends PlayerData {
     public void clearLastTeleport(TeleportType teleportType) {
         teleportTracker.clearLog(teleportType);
         player.markDirty();
+    }
+
+    public VanishData getVanishData() {
+        return vanishData;
     }
 }

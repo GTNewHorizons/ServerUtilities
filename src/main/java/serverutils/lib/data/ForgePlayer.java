@@ -387,6 +387,7 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
             }
         }
 
+        cachedPlayerNBT = nbt;
         markDirty();
     }
 
@@ -428,5 +429,11 @@ public class ForgePlayer implements INBTSerializable<NBTTagCompound>, Comparable
         clearCache();
         markDirty();
         new ForgePlayerConfigSavedEvent(this, group, sender).post();
+    }
+
+    public boolean isVanished() {
+        EntityPlayerMP player = getNullablePlayer();
+        if (player == null) return false;
+        return ServerUtils.isVanished(player);
     }
 }
