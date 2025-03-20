@@ -9,7 +9,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.profiler.Profiler;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
@@ -85,10 +84,7 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
                 }
             }
             // if server is dedicated, or open to lan
-            if (!sleepingPlayers.isEmpty() && cap > 0
-                    && theSleeper != null
-                    && (!mcServer.isSinglePlayer() || (mcServer instanceof IntegratedServer integratedServer
-                            && integratedServer.getPublic()))) {
+            if (!sleepingPlayers.isEmpty() && cap > 0 && theSleeper != null && (!mcServer.isSinglePlayer())) {
                 for (EntityPlayer player : this.playerEntities) {
                     String percentString = String.format("%d", (sleepingPlayers.size() * 100) / cap);
                     player.addChatMessage(
@@ -127,9 +123,7 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/EntityPlayer;wakeUpPlayer(ZZZ)V"),
             locals = LocalCapture.CAPTURE_FAILHARD)
     public void serverutilities$broadcast(CallbackInfo ctx, Iterator iterator, EntityPlayer player) {
-        if (percent > 0 && percent < 100
-                && (!mcServer.isSinglePlayer()
-                        || (mcServer instanceof IntegratedServer integratedServer && integratedServer.getPublic()))) {
+        if (percent > 0 && percent < 100 && (!mcServer.isSinglePlayer())) {
             player.addChatMessage(new ChatComponentTranslation("serverutiltiies.world.skip_night"));
         }
     }
