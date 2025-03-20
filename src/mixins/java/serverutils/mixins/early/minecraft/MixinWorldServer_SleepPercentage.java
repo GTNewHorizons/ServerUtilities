@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.profiler.Profiler;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
@@ -16,6 +18,7 @@ import net.minecraft.world.WorldSettings;
 import net.minecraft.world.storage.ISaveHandler;
 
 import org.objectweb.asm.Opcodes;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -36,6 +39,9 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
     @Shadow
     private boolean allPlayersSleeping;
 
+    @Shadow
+    @Final
+    private MinecraftServer mcServer;
     @Unique
     private int percent;
 
@@ -78,8 +84,11 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
                     }
                 }
             }
-
-            if (!sleepingPlayers.isEmpty() && cap > 0 && theSleeper != null) {
+            // if server is dedicated, or open to lan
+            if (!sleepingPlayers.isEmpty() && cap > 0
+                    && theSleeper != null
+                    && (!mcServer.isSinglePlayer() || (mcServer instanceof IntegratedServer integratedServer
+                            && integratedServer.getPublic()))) {
                 for (EntityPlayer player : this.playerEntities) {
                     String percentString = String.format("%d", (sleepingPlayers.size() * 100) / cap);
                     player.addChatMessage(
@@ -118,7 +127,9 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/EntityPlayer;wakeUpPlayer(ZZZ)V"),
             locals = LocalCapture.CAPTURE_FAILHARD)
     public void serverutilities$broadcast(CallbackInfo ctx, Iterator iterator, EntityPlayer player) {
-        if (percent > 0 && percent < 100) {
+        if (percent > 0 && percent < 100
+                && (!mcServer.isSinglePlayer()
+                        || (mcServer instanceof IntegratedServer integratedServer && integratedServer.getPublic()))) {
             player.addChatMessage(new ChatComponentTranslation("serverutiltiies.world.skip_night"));
         }
     }
