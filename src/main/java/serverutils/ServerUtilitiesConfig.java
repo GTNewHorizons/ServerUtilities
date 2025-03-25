@@ -266,6 +266,9 @@ public class ServerUtilitiesConfig {
         public boolean vanish;
 
         @Config.DefaultBoolean(true)
+        public boolean seek_block;
+
+        @Config.DefaultBoolean(true)
         public boolean pregen;
     }
 
