@@ -67,7 +67,7 @@ public abstract class MixinCommandHandler {
     private void serverutilities$setPermissionNode(ICommand command, CallbackInfoReturnable<ICommand> cir) {
         ModContainer container = Loader.instance().activeModContainer();
         String node = (container == null ? Rank.NODE_COMMAND : (Rank.NODE_COMMAND + '.' + container.getModId())) + "."
-                + command.getCommandName();
+                + command.getCommandName().replaceAll("/", "");
         ICommandWithPermission cmd = (ICommandWithPermission) command;
         cmd.serverutilities$setPermissionNode(PERMISSION_REPLACE_MATCHER.reset(node.toLowerCase()).replaceAll("_"));
         cmd.serverutilities$setModName(container == null ? "Minecraft" : container.getName());
