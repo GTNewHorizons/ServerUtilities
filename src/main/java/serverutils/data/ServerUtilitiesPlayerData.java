@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.event.HoverEvent;
 import net.minecraft.nbt.NBTTagCompound;
@@ -50,6 +51,12 @@ public class ServerUtilitiesPlayerData extends PlayerData {
 
     public static ServerUtilitiesPlayerData get(ICommandSender player) {
         return get(Universe.get().getPlayer(player));
+    }
+
+    @Nullable
+    public static ServerUtilitiesPlayerData getNullable(EntityPlayer player) {
+        ForgePlayer fp = Universe.get().getPlayer(player.getGameProfile());
+        return fp == null ? null : get(fp);
     }
 
     private boolean enablePVP = true;
