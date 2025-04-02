@@ -86,7 +86,7 @@ public class GuiSidebar extends GuiButton {
         yPosition = y;
 
         GlStateManager.pushMatrix();
-        GlStateManager.translate(0, 0, 500);
+        GlStateManager.translate(0, 0, 100);
 
         FontRenderer font = mc.fontRenderer;
 
