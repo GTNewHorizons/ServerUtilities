@@ -62,7 +62,7 @@ public class CmdSeekBlock extends CmdBase {
                     return;
                 }
 
-                parts = new String[] {args[0], "0"};  // Default to meta 0
+                parts = new String[] { args[0], "0" }; // Default to meta 0
             }
 
             int targetBlockID = Integer.parseInt(parts[0]);
@@ -96,7 +96,15 @@ public class CmdSeekBlock extends CmdBase {
                     FMLLog.info(message);
                 }
 
-                final ScanContext context = new ScanContext(world, sender, targetBlockID, targetMeta, dimId, foundCount, override_max_results, metaWildCard);
+                final ScanContext context = new ScanContext(
+                        world,
+                        sender,
+                        targetBlockID,
+                        targetMeta,
+                        dimId,
+                        foundCount,
+                        override_max_results,
+                        metaWildCard);
 
                 for (Chunk chunkObj : chunkProvider.loadedChunks) {
                     foundCount += scanChunk(chunkObj, context);
@@ -133,8 +141,23 @@ public class CmdSeekBlock extends CmdBase {
                     int foundBlockID = Block.getIdFromBlock(block);
                     int foundMeta = context.world.getBlockMetadata(x, y, z);
 
-                    if (foundBlockID == context.targetBlockID && (context.metaWildCard || foundMeta == context.targetMeta)) {
-                        String message = "Found " + foundBlockID + ":" + foundMeta + " in " + DimensionManager.getProvider(context.dimId).getDimensionName() + " (Dim ID: " + context.dimId + ") at " + "(" + x + ", " + y + ", " + z + ")";
+                    if (foundBlockID == context.targetBlockID
+                            && (context.metaWildCard || foundMeta == context.targetMeta)) {
+                        String message = "Found " + foundBlockID
+                                + ":"
+                                + foundMeta
+                                + " in "
+                                + DimensionManager.getProvider(context.dimId).getDimensionName()
+                                + " (Dim ID: "
+                                + context.dimId
+                                + ") at "
+                                + "("
+                                + x
+                                + ", "
+                                + y
+                                + ", "
+                                + z
+                                + ")";
                         FMLLog.info(message);
                         context.sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GOLD + message));
                         count++;
@@ -150,6 +173,7 @@ public class CmdSeekBlock extends CmdBase {
     }
 
     private static class ScanContext {
+
         World world;
         ICommandSender sender;
         int targetBlockID;
@@ -159,7 +183,8 @@ public class CmdSeekBlock extends CmdBase {
         int overrideMaxResults;
         boolean metaWildCard;
 
-        ScanContext(World world, ICommandSender sender, int targetBlockID, int targetMeta, int dimId, int foundCount, int overrideMaxResults, boolean metaWildCard) {
+        ScanContext(World world, ICommandSender sender, int targetBlockID, int targetMeta, int dimId, int foundCount,
+                int overrideMaxResults, boolean metaWildCard) {
             this.world = world;
             this.sender = sender;
             this.targetBlockID = targetBlockID;
