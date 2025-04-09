@@ -38,7 +38,7 @@ public class CmdSeekBlock extends CmdBase {
 
         String[] parts = args[0].split(":");
         if (parts.length != 2) {
-            String message = "Invalid format. Use /seekblock <blockID>:<meta>";
+            String message = "Invalid format. Use /seek_block <blockID>:<meta>";
             sender.addChatMessage(new ChatComponentText(message));
             FMLLog.info(message);
             return;
