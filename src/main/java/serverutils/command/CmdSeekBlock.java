@@ -30,7 +30,7 @@ public class CmdSeekBlock extends CmdBase {
     public void processCommand(ICommandSender sender, String[] args) {
 
         if (args.length != 1) {
-            String message = "Usage: /seekblock <blockID>:<meta>";
+            String message = "Usage: /seek_block <blockID>:<meta>";
             sender.addChatMessage(new ChatComponentText(message));
             FMLLog.info(message);
             return;
