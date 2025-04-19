@@ -155,6 +155,7 @@ public class ClaimedChunks {
 
     public void addChunk(ClaimedChunk chunk) {
         pendingChunks.add(chunk);
+        chunk.getTeam().claimedChunks.add(chunk);
         chunk.getTeam().markDirty();
         markDirty();
     }
@@ -172,13 +173,16 @@ public class ClaimedChunks {
             return Collections.emptySet();
         }
 
-        Set<ClaimedChunk> set = new HashSet<>();
-
-        for (ClaimedChunk chunk : map.values()) {
-            if (!chunk.isInvalid() && team.equalsTeam(chunk.getTeam())
-                    && (!dimension.isPresent() || dimension.getAsInt() == chunk.getPos().dim)) {
-                set.add(chunk);
+        Set<ClaimedChunk> set;
+        if (dimension.isPresent()) {
+            set = new HashSet<>();
+            for (ClaimedChunk chunk : team.claimedChunks) {
+                if (chunk.getPos().dim == dimension.getAsInt()) {
+                    set.add(chunk);
+                }
             }
+        } else {
+            set = new HashSet<>(team.claimedChunks);
         }
 
         if (includePending) {
