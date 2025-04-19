@@ -10,10 +10,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import serverutils.data.IPauseWhenEmpty;
+import serverutils.data.IPauseWhenEmptyServerConfig;
 
 @Mixin(DedicatedServer.class)
-public class MixinDedicatedServer_PauseWhenEmpty implements IPauseWhenEmpty {
+public class MixinDedicatedServer_PauseWhenEmpty implements IPauseWhenEmptyServerConfig {
 
     @Shadow
     private PropertyManager settings;
@@ -21,24 +21,16 @@ public class MixinDedicatedServer_PauseWhenEmpty implements IPauseWhenEmpty {
     @Unique
     private int serverUtilities$pauseWhenEmptySeconds = 0;
 
-    @Unique
-    private int serverUtilities$pauseWhenEmptySecondsOneShot = -1;
-
     @Override
     public int serverUtilities$getPauseWhenEmptySeconds() {
-        return serverUtilities$pauseWhenEmptySecondsOneShot > -1 ? serverUtilities$pauseWhenEmptySecondsOneShot
-                : serverUtilities$pauseWhenEmptySeconds;
+        return serverUtilities$pauseWhenEmptySeconds;
     }
 
     @Override
-    public void serverUtilities$setPauseWhenEmptySeconds(int value, boolean oneshot) {
-        if (oneshot) {
-            serverUtilities$pauseWhenEmptySecondsOneShot = Math.max(value, -1);
-        } else {
-            serverUtilities$pauseWhenEmptySeconds = Math.max(value, 0);
-            settings.setProperty("pause-when-empty-seconds", serverUtilities$pauseWhenEmptySeconds);
-            settings.saveProperties();
-        }
+    public void serverUtilities$setPauseWhenEmptySeconds(int value) {
+        serverUtilities$pauseWhenEmptySeconds = Math.max(value, 0);
+        settings.setProperty("pause-when-empty-seconds", serverUtilities$pauseWhenEmptySeconds);
+        settings.saveProperties();
     }
 
     @Inject(
