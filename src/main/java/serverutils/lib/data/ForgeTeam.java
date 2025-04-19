@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
@@ -27,6 +28,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.util.Constants;
 
 import serverutils.ServerUtilities;
+import serverutils.data.ClaimedChunk;
 import serverutils.events.team.ForgeTeamConfigEvent;
 import serverutils.events.team.ForgeTeamConfigSavedEvent;
 import serverutils.events.team.ForgeTeamDataEvent;
@@ -67,6 +69,7 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
     private Icon cachedIcon;
     public boolean needsSaving;
     private long lastActivity;
+    public final Set<ClaimedChunk> claimedChunks = new HashSet<>();
 
     public ForgeTeam(Universe u, short id, String n, TeamType t) {
         super(n, t.isNone ? 0 : (StringUtils.FLAG_ID_DEFAULTS | StringUtils.FLAG_ID_ALLOW_EMPTY));
