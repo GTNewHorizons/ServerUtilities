@@ -57,11 +57,6 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
                 "Server Utilities player sleeping percentage broke in a huge way. This error should never happen");
     }
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    public void serverutilities$playersSleepingConstructor(CallbackInfo ci) {
-        sleepingPlayers = new ArrayList<>();
-    }
-
     @Inject(method = "updateAllPlayersSleepingFlag", at = @At("HEAD"), cancellable = true)
     public void serverutilities$handlePlayersSleepingPercentage(CallbackInfo ci) {
         percent = Integer.parseInt(this.getGameRules().getGameRuleStringValue("playersSleepingPercentage"));
@@ -70,6 +65,9 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
             ci.cancel(/* /r/nosleep, vanilla behaviour */);
         } else {
             EntityPlayer theSleeper = null;
+            if (sleepingPlayers == null) {
+                sleepingPlayers = new ArrayList<>();
+            }
             sleepingPlayers.clear();
             int cap = (int) Math.ceil(serverutilities$getListWithoutAFK(this.playerEntities).size() * percent * 0.01f);
             for (EntityPlayer player : this.playerEntities) {
