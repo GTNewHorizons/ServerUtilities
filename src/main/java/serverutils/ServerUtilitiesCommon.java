@@ -268,8 +268,11 @@ public class ServerUtilitiesCommon {
     }
 
     public void onServerStopping(FMLServerStoppingEvent event) {
+        Universe universe = Universe.get();
         Universe.onServerStopping(event);
         Aurora.stop();
+        MinecraftForge.EVENT_BUS.unregister(universe);
+        FMLCommonHandler.instance().bus().unregister(universe);
     }
 
     public void registerTasks() {
