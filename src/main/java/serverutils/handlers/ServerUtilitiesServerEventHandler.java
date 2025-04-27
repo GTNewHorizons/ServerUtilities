@@ -1,5 +1,6 @@
 package serverutils.handlers;
 
+import static serverutils.ServerUtilitiesConfig.pregen;
 import static serverutils.ServerUtilitiesNotifications.PLAYER_AFK;
 
 import java.util.Collections;
@@ -235,7 +236,7 @@ public class ServerUtilitiesServerEventHandler {
             }
 
             if (ChunkLoaderManager.instance.isGenerating()) {
-                ChunkLoaderManager.instance.queueChunks(1);
+                ChunkLoaderManager.instance.queueChunks(pregen.chunksPerTick);
             }
         }
     }
