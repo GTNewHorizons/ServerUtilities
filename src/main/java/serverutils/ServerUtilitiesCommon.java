@@ -268,11 +268,12 @@ public class ServerUtilitiesCommon {
     }
 
     public void onServerStopping(FMLServerStoppingEvent event) {
-        Universe universe = Universe.get();
+        // Save the universe since onServerStopping clears the instance variable
+        Universe oldUniverse = Universe.get();
         Universe.onServerStopping(event);
         Aurora.stop();
-        MinecraftForge.EVENT_BUS.unregister(universe);
-        FMLCommonHandler.instance().bus().unregister(universe);
+        MinecraftForge.EVENT_BUS.unregister(oldUniverse);
+        FMLCommonHandler.instance().bus().unregister(oldUniverse);
     }
 
     public void registerTasks() {
