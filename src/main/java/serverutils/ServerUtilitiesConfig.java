@@ -665,7 +665,7 @@ public class ServerUtilitiesConfig {
         @Config.DefaultInt(1)
         public int chunksPerTick;
 
-        @Config.Comment("The maximum time to spend on pregeneration per tick, in milliseconds.")
+        @Config.Comment("The maximum time to spend on pregeneration per tick, in milliseconds. Note that chunk unloading also takes time, and isn't limited by this config!")
         @Config.DefaultFloat(25)
         public float timeLimitMs;
 
