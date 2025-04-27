@@ -36,6 +36,7 @@ public class ServerUtilitiesConfig {
     public static final General general = new General();
     public static final Teams teams = new Teams();
     public static final Tasks tasks = new Tasks();
+    public static final Pregen pregen = new Pregen();
 
     public static class General {
 
@@ -656,5 +657,20 @@ public class ServerUtilitiesConfig {
         }
 
         public final Cleanup cleanup = new Cleanup();
+    }
+
+    public static class Pregen {
+
+        @Config.Comment("When pregeneration is active, queue this many chunks per tick.")
+        @Config.DefaultInt(1)
+        public int chunksPerTick;
+
+        @Config.Comment("The maximum time to spend on pregeneration per tick, in milliseconds. Note that chunk unloading also takes time, and isn't limited by this config!")
+        @Config.DefaultFloat(25)
+        public float timeLimitMs;
+
+        public long timeLimitNanos() {
+            return (long) (timeLimitMs * 1_000_000);
+        }
     }
 }
