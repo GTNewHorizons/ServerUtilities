@@ -494,6 +494,14 @@ public class ServerUtilitiesConfig {
         @Config.DefaultEnum("DEFAULT")
         public EnumTristate enable_explosions;
 
+        @Config.Comment("""
+                Allowed values:
+                DEFAULT = Teams can decide their enderman setting
+                TRUE = Enderman block interactions on for everyone.
+                FALSE = Enderman block interactions disabled for everyone.""")
+        @Config.DefaultEnum("DEFAULT")
+        public EnumTristate enable_endermen;
+
         @Config.Comment("Spawn radius. You must set spawn-protection in server.properties file to 0!")
         @Config.DefaultInt(0)
         public int spawn_radius;

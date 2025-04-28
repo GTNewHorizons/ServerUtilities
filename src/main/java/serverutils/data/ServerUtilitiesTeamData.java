@@ -140,6 +140,7 @@ public class ServerUtilitiesTeamData extends TeamData {
     private EnumTeamStatus attackEntities = EnumTeamStatus.ALLY;
     private EnumTeamStatus useItems = EnumTeamStatus.ALLY;
     private boolean explosions = false;
+    private boolean endermen = false;
     public boolean canForceChunks = false;
     private int cachedMaxClaimChunks, cachedMaxChunkloaderChunks;
     public boolean chunkloadsDecayed;
@@ -157,6 +158,7 @@ public class ServerUtilitiesTeamData extends TeamData {
     public NBTTagCompound serializeNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
         nbt.setBoolean("Explosions", explosions);
+        nbt.setBoolean("Endermen", endermen);
         nbt.setString("EditBlocks", editBlocks.getName());
         nbt.setString("InteractWithBlocks", interactWithBlocks.getName());
         nbt.setString("AttackEntities", attackEntities.getName());
@@ -168,6 +170,7 @@ public class ServerUtilitiesTeamData extends TeamData {
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
         explosions = nbt.getBoolean("Explosions");
+        endermen = nbt.getBoolean("Endermen");
         editBlocks = EnumTeamStatus.NAME_MAP_PERMS.get(nbt.getString("EditBlocks"));
         interactWithBlocks = EnumTeamStatus.NAME_MAP_PERMS.get(nbt.getString("InteractWithBlocks"));
         attackEntities = EnumTeamStatus.NAME_MAP_PERMS.get(nbt.getString("AttackEntities"));
@@ -202,6 +205,8 @@ public class ServerUtilitiesTeamData extends TeamData {
 
         group.addBool("explosions", () -> explosions, v -> explosions = v, false)
                 .setCanEdit(ServerUtilitiesConfig.world.enable_explosions.isDefault());
+        group.addBool("endermen", () -> endermen, v -> endermen = v, false)
+                .setCanEdit(ServerUtilitiesConfig.world.enable_endermen.isDefault());
         group.addEnum("blocks_edit", () -> editBlocks, v -> editBlocks = v, EnumTeamStatus.NAME_MAP_PERMS)
                 .setCanEdit(ServerUtilitiesConfig.teams.grief_protection);
         group.addEnum(
@@ -232,6 +237,10 @@ public class ServerUtilitiesTeamData extends TeamData {
 
     public boolean hasExplosions() {
         return explosions;
+    }
+
+    public boolean forbidsEndermanGriefing() {
+        return !endermen;
     }
 
     public int getMaxClaimChunks() {
