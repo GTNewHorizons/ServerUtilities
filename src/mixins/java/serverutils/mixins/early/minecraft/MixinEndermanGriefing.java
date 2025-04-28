@@ -12,7 +12,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 
-import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunk;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesTeamData;
