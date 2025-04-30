@@ -498,6 +498,7 @@ public class ServerUtilitiesConfig {
         public EnumTristate enable_explosions;
 
         @Config.Comment("""
+                Requires chunk_claiming to be true.
                 Allowed values:
                 DEFAULT = Teams can decide their enderman setting
                 TRUE = Enderman block interactions on for everyone.
