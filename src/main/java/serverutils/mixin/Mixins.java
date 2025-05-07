@@ -52,7 +52,7 @@ public enum Mixins {
             .setPhase(Phase.EARLY).setApplyIf(() -> world.enable_player_sleeping_percentage)
             .addMixinClasses("minecraft.MixinWorldServer_SleepPercentage")),
     ENDERMEN_GRIEFING(new Builder("Disable Endermen Griefing in Claimed Chunks").addTargetedMod(VANILLA)
-            .setSide(Side.BOTH).setPhase(Phase.EARLY).setApplyIf(() -> world.chunk_claiming && mixins.endermen)
+            .setSide(Side.BOTH).setPhase(Phase.EARLY).setApplyIf(() -> mixins.endermen)
             .addMixinClasses("minecraft.MixinEndermanGriefing"));
 
     private final List<String> mixinClasses;

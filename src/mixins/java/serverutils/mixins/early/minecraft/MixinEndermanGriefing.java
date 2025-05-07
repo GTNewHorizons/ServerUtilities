@@ -30,7 +30,7 @@ public abstract class MixinEndermanGriefing extends EntityMob {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;renderAsNormalBlock()Z"))
     private boolean checkEndermanBlockPlace(Block instance, Operation<Boolean> original, @Local(ordinal = 0) int k,
             @Local(ordinal = 1) int i, @Local(ordinal = 2) int j) {
-        if (ServerUtilitiesConfig.world.enable_endermen.isTrue()) {
+        if (!ClaimedChunks.isActive() || ServerUtilitiesConfig.world.enable_endermen.isTrue()) {
             return original.call(instance);
         }
         ClaimedChunk chunk = ClaimedChunks.instance
@@ -55,7 +55,7 @@ public abstract class MixinEndermanGriefing extends EntityMob {
                     target = "Lnet/minecraft/entity/monster/EntityEnderman;getCarriable(Lnet/minecraft/block/Block;)Z"))
     private boolean checkEndermanBlockGrab(Block instance, Operation<Boolean> original, @Local(ordinal = 0) int k,
             @Local(ordinal = 1) int i, @Local(ordinal = 2) int j) {
-        if (ServerUtilitiesConfig.world.enable_endermen.isTrue()) {
+        if (!ClaimedChunks.isActive() || ServerUtilitiesConfig.world.enable_endermen.isTrue()) {
             return original.call(instance);
         }
         ClaimedChunk chunk = ClaimedChunks.instance
