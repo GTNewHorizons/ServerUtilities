@@ -37,6 +37,7 @@ public class ServerUtilitiesConfig {
     public static final Teams teams = new Teams();
     public static final Tasks tasks = new Tasks();
     public static final Pregen pregen = new Pregen();
+    public static final Mixins mixins = new Mixins();
 
     public static class General {
 
@@ -495,7 +496,7 @@ public class ServerUtilitiesConfig {
         public EnumTristate enable_explosions;
 
         @Config.Comment("""
-                Requires chunk_claiming to be true.
+                Requires chunk_claiming and mixins:endermen to be true.
                 Allowed values:
                 DEFAULT = Teams can decide their enderman setting
                 TRUE = Enderman block interactions on for everyone.
@@ -681,5 +682,17 @@ public class ServerUtilitiesConfig {
         public long timeLimitNanos() {
             return (long) (timeLimitMs * 1_000_000);
         }
+    }
+
+    @Config.RequiresMcRestart
+    public static class Mixins {
+
+        @Config.Comment("""
+                Enable the mixins that control enderman behavior. This is required by world:enable_endermen.
+                Allowed values:
+                TRUE = Enable the enderman mixins.
+                FALSE = Disable the enderman mixins.""")
+        @Config.DefaultBoolean(true)
+        public boolean endermen;
     }
 }
