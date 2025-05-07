@@ -2,6 +2,7 @@ package serverutils.mixin;
 
 import static serverutils.ServerUtilitiesConfig.commands;
 import static serverutils.ServerUtilitiesConfig.general;
+import static serverutils.ServerUtilitiesConfig.mixins;
 import static serverutils.ServerUtilitiesConfig.ranks;
 import static serverutils.ServerUtilitiesConfig.world;
 import static serverutils.mixin.TargetedMod.RANDOMTHINGS;
@@ -49,7 +50,10 @@ public enum Mixins {
             .setApplyIf(() -> general.enable_pause_when_empty_property)),
     PLAYERS_SLEEPING_PERCENTAGE(new Builder("Player Sleeping Percentage").addTargetedMod(VANILLA).setSide(Side.BOTH)
             .setPhase(Phase.EARLY).setApplyIf(() -> world.enable_player_sleeping_percentage)
-            .addMixinClasses("minecraft.MixinWorldServer_SleepPercentage"));
+            .addMixinClasses("minecraft.MixinWorldServer_SleepPercentage")),
+    ENDERMEN_GRIEFING(new Builder("Disable Endermen Griefing in Claimed Chunks").addTargetedMod(VANILLA)
+            .setSide(Side.BOTH).setPhase(Phase.EARLY).setApplyIf(() -> mixins.endermen)
+            .addMixinClasses("minecraft.MixinEndermanGriefing"));
 
     private final List<String> mixinClasses;
     private final Supplier<Boolean> applyIf;
