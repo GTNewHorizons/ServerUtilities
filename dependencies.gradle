@@ -4,14 +4,14 @@ dependencies {
 
     api("com.github.GTNewHorizons:GTNHLib:0.6.21:dev")
     compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.7.40-GTNH:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:EnderIO:2.9.8:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:EnderIO:2.9.12:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Random-Things:2.6.1:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Navigator:1.0.15:dev")
     compileOnly('org.jetbrains:annotations:25.0.0')
-    compileOnly('com.github.GTNewHorizons:Baubles-Expanded:2.1.6-GTNH:dev') {transitive = false}
+    compileOnly('com.github.GTNewHorizons:Baubles-Expanded:2.1.7-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:Battlegear2:1.4.2:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:Galacticraft:3.3.5-GTNH:dev') {transitive = false}
-    compileOnly('com.github.GTNewHorizons:TinkersConstruct:1.13.21-GTNH:dev') {transitive = false}
+    compileOnly('com.github.GTNewHorizons:TinkersConstruct:1.13.23-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:AdventureBackpack2:1.3.9-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:Minecraft-Backpack-Mod:2.5.0-GTNH:dev') {transitive = false}
 
