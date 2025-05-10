@@ -2,6 +2,7 @@ package serverutils.mixin;
 
 import static serverutils.ServerUtilitiesConfig.commands;
 import static serverutils.ServerUtilitiesConfig.general;
+import static serverutils.ServerUtilitiesConfig.mixins;
 import static serverutils.ServerUtilitiesConfig.ranks;
 import static serverutils.ServerUtilitiesConfig.world;
 import static serverutils.mixin.TargetedMod.RANDOMTHINGS;
@@ -16,7 +17,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import cpw.mods.fml.relauncher.FMLLaunchHandler;
-import serverutils.ServerUtilitiesConfig;
 import serverutils.core.ServerUtilitiesCore;
 
 public enum Mixins {
@@ -52,8 +52,7 @@ public enum Mixins {
             .setPhase(Phase.EARLY).setApplyIf(() -> world.enable_player_sleeping_percentage)
             .addMixinClasses("minecraft.MixinWorldServer_SleepPercentage")),
     ENDERMEN_GRIEFING(new Builder("Disable Endermen Griefing in Claimed Chunks").addTargetedMod(VANILLA)
-            .setSide(Side.BOTH).setPhase(Phase.EARLY)
-            .setApplyIf(() -> ServerUtilitiesConfig.world.chunk_claiming && !world.enable_endermen.isTrue())
+            .setSide(Side.BOTH).setPhase(Phase.EARLY).setApplyIf(() -> mixins.endermen)
             .addMixinClasses("minecraft.MixinEndermanGriefing"));
 
     private final List<String> mixinClasses;
