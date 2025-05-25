@@ -28,6 +28,7 @@ public final class ClaimedChunk {
     public void setInvalid() {
         if (!invalid) {
             invalid = true;
+            getTeam().claimedChunks.remove(this);
             getTeam().markDirty();
         }
     }

@@ -1,6 +1,8 @@
 package serverutils.pregenerator;
 
 import static com.gtnewhorizon.gtnhlib.util.CoordinatePacker.pack;
+import static java.lang.System.nanoTime;
+import static serverutils.ServerUtilitiesConfig.pregen;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -148,13 +150,15 @@ public class ChunkLoaderManager {
     }
 
     public void queueChunks(int numChunksToQueue) {
+        final long startTime = nanoTime();
         for (int i = 0; i < numChunksToQueue; i++) {
-            if (!chunksToLoad.isEmpty()) {
-                loader.processLoadChunk(this.serverType, this.dimensionID, chunksToLoad.dequeueLastLong());
-            } else {
+            if (chunksToLoad.isEmpty()) {
                 fileManager.closeAndRemoveAllFiles();
                 isGenerating = false;
-            }
+                break;
+            } else if ((nanoTime() - startTime) >= pregen.timeLimitNanos()) break;
+
+            loader.processLoadChunk(this.serverType, this.dimensionID, chunksToLoad.dequeueLastLong());
         }
     }
 

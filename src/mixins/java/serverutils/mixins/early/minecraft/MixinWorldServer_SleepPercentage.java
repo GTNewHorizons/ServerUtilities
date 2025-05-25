@@ -4,6 +4,8 @@ import static serverutils.ServerUtilitiesConfig.afk;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -46,6 +48,9 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
     @Unique
     private List<EntityPlayer> sleepingPlayers;
 
+    @Unique
+    private Set<UUID> previousSleepingPlayers;
+
     /**
      * We need to access this.playerEntities from the superclass, so we're extending World, and need this fake
      * constructor to make Java happy
@@ -57,11 +62,6 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
                 "Server Utilities player sleeping percentage broke in a huge way. This error should never happen");
     }
 
-    @Inject(method = "<init>", at = @At("RETURN"))
-    public void serverutilities$playersSleepingConstructor(CallbackInfo ci) {
-        sleepingPlayers = new ArrayList<>();
-    }
-
     @Inject(method = "updateAllPlayersSleepingFlag", at = @At("HEAD"), cancellable = true)
     public void serverutilities$handlePlayersSleepingPercentage(CallbackInfo ci) {
         percent = Integer.parseInt(this.getGameRules().getGameRuleStringValue("playersSleepingPercentage"));
@@ -70,28 +70,37 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
             ci.cancel(/* /r/nosleep, vanilla behaviour */);
         } else {
             EntityPlayer theSleeper = null;
+            if (sleepingPlayers == null) {
+                sleepingPlayers = new ArrayList<>();
+            }
             sleepingPlayers.clear();
-            int cap = (int) Math.ceil(serverutilities$getListWithoutAFK(this.playerEntities).size() * percent * 0.01f);
+            int playerCountWithoutAFK = serverutilities$getListWithoutAFK(this.playerEntities).size();
+            int cap = (int) Math.ceil(playerCountWithoutAFK * percent * 0.01f);
             for (EntityPlayer player : this.playerEntities) {
                 if (player.isPlayerSleeping()) {
                     sleepingPlayers.add(player);
-                    theSleeper = player;
+                    // to find the player who was the last to sleep
+                    if (!previousSleepingPlayers.contains(player.getUniqueID())) {
+                        theSleeper = player;
+                    }
                     if (sleepingPlayers.size() >= cap) {
                         this.allPlayersSleeping = true;
                         break;
                     }
                 }
             }
+            previousSleepingPlayers = sleepingPlayers.stream().map(EntityPlayer::getUniqueID)
+                    .collect(Collectors.toSet());
             // if server is dedicated, or open to lan
             if (!sleepingPlayers.isEmpty() && cap > 0 && theSleeper != null && (!mcServer.isSinglePlayer())) {
                 for (EntityPlayer player : this.playerEntities) {
-                    String percentString = String.format("%d", (sleepingPlayers.size() * 100) / cap);
+                    String percentString = String.format("%d", (sleepingPlayers.size() * 100) / playerCountWithoutAFK);
                     player.addChatMessage(
                             new ChatComponentTranslation(
                                     "serverutilities.world.players_sleeping",
                                     theSleeper.getDisplayName(),
                                     sleepingPlayers.size(),
-                                    cap,
+                                    playerCountWithoutAFK,
                                     percentString));
                 }
             }

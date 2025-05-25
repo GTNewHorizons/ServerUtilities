@@ -34,6 +34,7 @@ public class ServerUtilitiesUniverseData {
     public static final BlockDimPosStorage WARPS = new BlockDimPosStorage();
     private static final List<String> worldLog = new ArrayList<>();
     private static final List<String> chatLog = new ArrayList<>();
+    private List<ServerUtilitiesTeamData> registeredTeamData = new ArrayList<>();
 
     public static boolean isInSpawn(MinecraftServer server, ChunkDimPos pos) {
         if (pos.dim != 0 || (!server.isDedicatedServer() && !ServerUtilitiesConfig.world.spawn_area_in_sp)) {
@@ -60,7 +61,9 @@ public class ServerUtilitiesUniverseData {
 
     @SubscribeEvent
     public void onCreateServerTeams(UniverseLoadedEvent.CreateServerTeams event) {
-        MinecraftForge.EVENT_BUS.register(new ServerUtilitiesTeamData(event.getUniverse().fakePlayerTeam));
+        ServerUtilitiesTeamData teamData = new ServerUtilitiesTeamData(event.getUniverse().fakePlayerTeam);
+        registeredTeamData.add(teamData);
+        MinecraftForge.EVENT_BUS.register(teamData);
     }
 
     @SubscribeEvent
@@ -189,5 +192,10 @@ public class ServerUtilitiesUniverseData {
             ClaimedChunks.instance = null;
         }
         ServerUtilitiesLoadedChunkManager.INSTANCE.clear();
+        for (ServerUtilitiesTeamData teamData : registeredTeamData) {
+            MinecraftForge.EVENT_BUS.unregister(teamData);
+        }
+        registeredTeamData.clear();
+        Ranks.INSTANCE = null;
     }
 }
