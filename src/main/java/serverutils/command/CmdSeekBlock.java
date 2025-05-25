@@ -10,7 +10,7 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraftforge.common.DimensionManager;
 
-import cpw.mods.fml.common.FMLLog;
+import serverutils.ServerUtilities;
 import serverutils.lib.command.CmdBase;
 
 public class CmdSeekBlock extends CmdBase {
@@ -34,7 +34,7 @@ public class CmdSeekBlock extends CmdBase {
         if (args.length == 0 || args.length > 2) {
             String message = "Usage: " + COMMAND_USAGE;
             sender.addChatMessage(new ChatComponentText(message));
-            FMLLog.info(message);
+            ServerUtilities.LOGGER.info(message);
             return;
         }
 
@@ -45,7 +45,7 @@ public class CmdSeekBlock extends CmdBase {
             } catch (NumberFormatException e) {
                 String message = "Invalid max results value. Must be a number.";
                 sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + message));
-                FMLLog.info(message);
+                ServerUtilities.LOGGER.info(message);
                 return;
             }
         }
@@ -58,7 +58,7 @@ public class CmdSeekBlock extends CmdBase {
                 if (args[0].contains(":")) {
                     String message = "Invalid format. Use " + COMMAND_USAGE;
                     sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + message));
-                    FMLLog.info(message);
+                    ServerUtilities.LOGGER.info(message);
                     return;
                 }
 
@@ -82,7 +82,7 @@ public class CmdSeekBlock extends CmdBase {
                 message = "--- Searching for Block ID " + targetBlockID + ":" + targetMeta + " ---";
             }
             sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + message));
-            FMLLog.info(message);
+            ServerUtilities.LOGGER.info(message);
 
             int foundCount = 0;
             for (int dimId : DimensionManager.getIDs()) {
@@ -93,7 +93,7 @@ public class CmdSeekBlock extends CmdBase {
                 if (!chunkProvider.loadedChunks.isEmpty() || sender instanceof MinecraftServer) {
                     message = "Dimension " + dimId + ":";
                     sender.addChatMessage(new ChatComponentText(EnumChatFormatting.BLUE + message));
-                    FMLLog.info(message);
+                    ServerUtilities.LOGGER.info(message);
                 }
 
                 final ScanContext context = new ScanContext(
@@ -112,7 +112,7 @@ public class CmdSeekBlock extends CmdBase {
                     if (foundCount >= override_max_results) {
                         message = "Search limit reached (" + override_max_results + " results).";
                         sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + message));
-                        FMLLog.info(message);
+                        ServerUtilities.LOGGER.info(message);
                         return;
                     }
                 }
@@ -120,12 +120,12 @@ public class CmdSeekBlock extends CmdBase {
 
             message = "Search complete! Found " + foundCount + " matches.";
             sender.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + message));
-            FMLLog.info(message);
+            ServerUtilities.LOGGER.info(message);
 
         } catch (NumberFormatException e) {
             String message = "Invalid number format.";
             sender.addChatMessage(new ChatComponentText(message));
-            FMLLog.info(message);
+            ServerUtilities.LOGGER.info(message);
         }
     }
 
@@ -158,7 +158,7 @@ public class CmdSeekBlock extends CmdBase {
                                 + ", "
                                 + z
                                 + ")";
-                        FMLLog.info(message);
+                        ServerUtilities.LOGGER.info(message);
                         context.sender.addChatMessage(new ChatComponentText(EnumChatFormatting.GOLD + message));
                         count++;
 
