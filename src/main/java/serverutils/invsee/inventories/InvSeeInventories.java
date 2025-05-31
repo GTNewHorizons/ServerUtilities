@@ -2,6 +2,7 @@ package serverutils.invsee.inventories;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +14,7 @@ public enum InvSeeInventories {
     ENDER_CHEST(null, EnderInventory.class),
     ADVENTURE_BACKPACK("adventurebackpack", AdventureBackpackInv.class),
     BAUBLES("Baubles", BaublesInventory.class),
-    BATTLE_GEAR("battlegear2", BattlegearInventory.class),
+    BATTLE_GEAR("battlegear2", BattlegearInventory.class, InvSeeInventories::battlegearHasAnInventory),
     BACKPACK("Backpack", MinecraftBackpackInv.class),
     GALACTICRAFT("GalacticraftCore", GalacticraftInventory.class),
     TINKERS_CONSTRUCT("TConstruct", TiCInventory.class),;
@@ -31,6 +32,12 @@ public enum InvSeeInventories {
         this.modId = modId;
         this.inventory = inventory;
         this.loaded = modId == null || Loader.isModLoaded(modId);
+    }
+
+    InvSeeInventories(@Nullable String modId, Class<? extends IModdedInventory> inventory, Supplier<Boolean> isLoaded) {
+        this.modId = modId;
+        this.inventory = inventory;
+        this.loaded = isLoaded.get();
     }
 
     public @Nullable IModdedInventory getNullableInventory() {
@@ -65,5 +72,15 @@ public enum InvSeeInventories {
             }
         }
         return inventories;
+    }
+
+    private static boolean battlegearHasAnInventory() {
+        try {
+            // Looking up class the purpose of throwing if it doesn't exist
+            Class.forName("mods.battlegear2.api.core.IInventoryPlayerBattle");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 }
