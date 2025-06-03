@@ -19,12 +19,14 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.WorldEvent;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
@@ -72,7 +74,6 @@ public class Universe {
         if (INSTANCE == null) {
             throw new NullPointerException("ServerUtilities Universe == null!");
         }
-
         return INSTANCE;
     }
 
@@ -84,6 +85,8 @@ public class Universe {
 
     public static void onServerAboutToStart(FMLServerAboutToStartEvent event) {
         INSTANCE = new Universe(event.getServer());
+        MinecraftForge.EVENT_BUS.register(INSTANCE);
+        FMLCommonHandler.instance().bus().register(INSTANCE);
     }
 
     public static void onServerStarted(FMLServerStartedEvent event) {
@@ -99,10 +102,12 @@ public class Universe {
                     player.onLoggedOut(player.getPlayer());
                 }
             }
-
             LOGGED_IN_PLAYERS.clear();
             INSTANCE.save();
             new UniverseClosedEvent(INSTANCE).post();
+            MinecraftForge.EVENT_BUS.unregister(INSTANCE);
+            FMLCommonHandler.instance().bus().unregister(INSTANCE);
+            INSTANCE.cleanup();
             INSTANCE = null;
         }
     }
@@ -194,20 +199,20 @@ public class Universe {
 
     // Event handler end //
 
-    public final MinecraftServer server;
+    public MinecraftServer server;
     public WorldServer world;
-    public final Map<UUID, ForgePlayer> players;
-    public final Set<ForgePlayer> vanishedPlayers;
-    private final Map<String, ForgeTeam> teams;
-    private final Map<Short, ForgeTeam> teamMap;
-    private final ForgeTeam noneTeam;
+    public Map<UUID, ForgePlayer> players;
+    public Set<ForgePlayer> vanishedPlayers;
+    private Map<String, ForgeTeam> teams;
+    private Map<Short, ForgeTeam> teamMap;
+    private ForgeTeam noneTeam;
     private UUID uuid;
     private boolean needsSaving;
     boolean checkSaving;
     public ForgeTeam fakePlayerTeam;
     public FakeForgePlayer fakePlayer;
-    private final List<Task> taskList;
-    private final List<Task> taskQueue;
+    private List<Task> taskList;
+    private List<Task> taskQueue;
     public Ticks ticks;
     private boolean prevCheats = false;
     public File dataFolder;
@@ -228,6 +233,24 @@ public class Universe {
         taskQueue = new ArrayList<>();
     }
 
+    private void cleanup() {
+        server = null;
+        world = null;
+        players = null;
+        vanishedPlayers = null;
+        teams = null;
+        teamMap = null;
+        noneTeam = null;
+        uuid = null;
+        fakePlayerTeam = null;
+        fakePlayer = null;
+        taskList = null;
+        taskQueue = null;
+        ticks = null;
+        dataFolder = null;
+        latModFolder = null;
+    }
+
     public void markDirty() {
         needsSaving = true;
         checkSaving = true;
@@ -238,7 +261,6 @@ public class Universe {
             uuid = UUID.randomUUID();
             markDirty();
         }
-
         return uuid;
     }
 
