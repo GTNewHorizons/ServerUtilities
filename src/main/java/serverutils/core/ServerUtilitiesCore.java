@@ -14,6 +14,7 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.aurora.AuroraConfig;
 import serverutils.mixin.Mixins;
 
+@IFMLLoadingPlugin.MCVersion("1.7.10")
 public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     static {
