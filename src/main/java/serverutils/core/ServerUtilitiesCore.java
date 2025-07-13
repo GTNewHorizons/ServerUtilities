@@ -4,12 +4,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.gtnewhorizon.gtnhlib.config.ConfigException;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
+import com.gtnewhorizon.gtnhmixins.builders.IMixins;
 
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import serverutils.ServerUtilitiesConfig;
@@ -17,8 +15,6 @@ import serverutils.aurora.AuroraConfig;
 import serverutils.mixin.Mixins;
 
 public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
-
-    public static final Logger LOGGER = LogManager.getLogger(ServerUtilitiesCore.class);
 
     static {
         try {
@@ -59,6 +55,6 @@ public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader
 
     @Override
     public List<String> getMixins(Set<String> loadedCoreMods) {
-        return Mixins.getEarlyMixins(loadedCoreMods);
+        return IMixins.getEarlyMixins(Mixins.class, loadedCoreMods);
     }
 }
