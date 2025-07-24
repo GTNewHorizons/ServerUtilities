@@ -8,7 +8,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.net.MessageToClient;
 import serverutils.lib.net.NetworkWrapper;
-import serverutils.lib.util.StringJoiner;
 
 public class MessageEditNBTRequest extends MessageToClient {
 
@@ -34,10 +33,9 @@ public class MessageEditNBTRequest extends MessageToClient {
         if (ray.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK
                 && Minecraft.getMinecraft().theWorld.getTileEntity(ray.get().blockX, ray.get().blockY, ray.get().blockZ)
                         != null) {
-            ClientUtils.execClientCommand(
-                    StringJoiner.with(' ').joinObjects("/nbtedit block", ray.blockX, ray.blockY, ray.blockZ));
+            ClientUtils.execClientCommand(String.format("/nbtedit block %d %d %d", ray.blockX, ray.blockY, ray.blockZ));
         } else if (ray.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && ray.entityHit != null) {
-            ClientUtils.execClientCommand("/nbtedit entity " + ray.entityHit.getEntityId());
+            ClientUtils.execClientCommand(String.format("/nbtedit entity %s", ray.entityHit.getEntityId()));
         } else if (Minecraft.getMinecraft().thePlayer.inventory.getCurrentItem() != null) {
             ClientUtils.execClientCommand("/nbtedit item");
         } else {
