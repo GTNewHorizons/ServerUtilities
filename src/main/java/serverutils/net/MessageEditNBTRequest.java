@@ -28,14 +28,17 @@ public class MessageEditNBTRequest extends MessageToClient {
     @SideOnly(Side.CLIENT)
     public static void editNBT() {
         MovingObjectPosition ray = Minecraft.getMinecraft().objectMouseOver;
-
-        if (ray != null) {
-            if (ray.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                ClientUtils.execClientCommand(
-                        StringJoiner.with(' ').joinObjects("/nbtedit block", ray.blockX, ray.blockY, ray.blockZ));
-            } else if (ray.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && ray.entityHit != null) {
-                ClientUtils.execClientCommand("/nbtedit entity " + ray.entityHit.getEntityId());
-            }
+        if (ray == null) {
+            return;
+        }
+        if (ray.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && Minecraft.getMinecraft().theWorld.getTileEntity(ray.get().blockX, ray.get().blockY, ray.get().blockZ) != null) {
+            ClientUtils.execClientCommand(StringJoiner.with(' ').joinObjects("/nbtedit block", ray.blockX, ray.blockY, ray.blockZ));
+        } else if (ray.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && ray.entityHit != null) {
+            ClientUtils.execClientCommand("/nbtedit entity " + ray.entityHit.getEntityId());
+        } else if (Minecraft.getMinecraft().thePlayer.inventory.getCurrentItem() != null) {
+            ClientUtils.execClientCommand("/nbtedit item");
+        } else {
+            ClientUtils.execClientCommand("/nbtedit me");
         }
     }
 }
