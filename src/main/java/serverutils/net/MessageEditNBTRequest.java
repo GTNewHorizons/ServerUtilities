@@ -31,8 +31,7 @@ public class MessageEditNBTRequest extends MessageToClient {
             return;
         }
         if (ray.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK
-                && Minecraft.getMinecraft().theWorld.getTileEntity(ray.get().blockX, ray.get().blockY, ray.get().blockZ)
-                        != null) {
+                && Minecraft.getMinecraft().theWorld.getTileEntity(ray.blockX, ray.blockY, ray.blockZ) != null) {
             ClientUtils.execClientCommand(String.format("/nbtedit block %d %d %d", ray.blockX, ray.blockY, ray.blockZ));
         } else if (ray.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY && ray.entityHit != null) {
             ClientUtils.execClientCommand(String.format("/nbtedit entity %s", ray.entityHit.getEntityId()));
