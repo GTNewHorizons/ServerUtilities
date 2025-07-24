@@ -623,6 +623,8 @@ public class GuiEditNBT extends GuiBase {
                         nbtMap.setTag(value.getString(), supplier.get());
                         selected.updateChildren(false);
                         panelNbt.refreshWidgets();
+                        panelTopLeft.refreshWidgets();
+                        panelTopRight.refreshWidgets();
                     }
 
                     GuiEditNBT.this.openGui();
@@ -631,6 +633,8 @@ public class GuiEditNBT extends GuiBase {
                 nbtCollection.setTag("-1", supplier.get());
                 selected.updateChildren(false);
                 panelNbt.refreshWidgets();
+                panelTopLeft.refreshWidgets();
+                panelTopRight.refreshWidgets();
             }
         }) {
 
@@ -667,6 +671,7 @@ public class GuiEditNBT extends GuiBase {
                                         selected = selected.parent;
                                         panelNbt.refreshWidgets();
                                         panelTopLeft.refreshWidgets();
+                                        panelTopRight.refreshWidgets();
                                     }
                                 }));
 
@@ -695,6 +700,8 @@ public class GuiEditNBT extends GuiBase {
                                                             parent.updateChildren(false);
                                                             selected = parent.children.get(s);
                                                             panelNbt.refreshWidgets();
+                                                            panelTopLeft.refreshWidgets();
+                                                            panelTopRight.refreshWidgets();
                                                         }
                                                     }
 
