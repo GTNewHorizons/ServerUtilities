@@ -1,5 +1,6 @@
 .gradle
 .settings
+.java-version
 /.idea/
 /.vscode/
 /run/
