@@ -478,7 +478,7 @@ public class GuiEditNBT extends GuiBase {
 
         @Override
         public boolean canCreateNew(int id) {
-            return list.tagCount() == 0 || list.tagList.get(0).getId() == id;
+            return list.tagCount() == 0 || list.getId() == id;
         }
 
         @Override
