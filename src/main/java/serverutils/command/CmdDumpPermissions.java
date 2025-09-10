@@ -151,7 +151,6 @@ public class CmdDumpPermissions extends CmdBase {
 
         for (ICommand command : CommandUtils.getAllCommands(sender)) {
             if (command instanceof ICommandWithPermission cmd) {
-                ICommandWithPermission cmd = (ICommandWithPermission) command;
                 String node = cmd.serverutilities$getPermissionNode();
                 DefaultPermissionLevel defaultPermissionLevel = DefaultPermissionHandler.INSTANCE
                         .getDefaultPermissionLevel(node);
