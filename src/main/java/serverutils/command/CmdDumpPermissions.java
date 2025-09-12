@@ -150,18 +150,19 @@ public class CmdDumpPermissions extends CmdBase {
         commandList.add(Arrays.asList(EMPTY_ROW));
 
         for (ICommand command : CommandUtils.getAllCommands(sender)) {
-            ICommandWithPermission cmd = (ICommandWithPermission) command;
-            String node = cmd.serverutilities$getPermissionNode();
-            DefaultPermissionLevel defaultPermissionLevel = DefaultPermissionHandler.INSTANCE
-                    .getDefaultPermissionLevel(node);
-            IChatComponent usage = CommandUtils.getTranslatedUsage(command, sender);
+            if (command instanceof ICommandWithPermission cmd) {
+                String node = cmd.serverutilities$getPermissionNode();
+                DefaultPermissionLevel defaultPermissionLevel = DefaultPermissionHandler.INSTANCE
+                        .getDefaultPermissionLevel(node);
+                IChatComponent usage = CommandUtils.getTranslatedUsage(command, sender);
 
-            commandList.add(
-                    Arrays.asList(
-                            node,
-                            "/" + command.getCommandName(),
-                            defaultPermissionLevel.name(),
-                            usage.getUnformattedText()));
+                commandList.add(
+                        Arrays.asList(
+                                node,
+                                "/" + command.getCommandName(),
+                                defaultPermissionLevel.name(),
+                                usage.getUnformattedText()));
+            }
         }
 
         int[] cmdMaxLength = new int[4];
