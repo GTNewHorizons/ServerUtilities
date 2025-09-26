@@ -50,7 +50,9 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean enable_pause_when_empty_property;
 
-        @Config.Comment({ "'max-tick-time' property introduced with Minecraft 1.8. Stops the server if a game tick is taking too long to process", "Default value: 0 (off)" })
+        @Config.Comment({
+                "'max-tick-time' property introduced with Minecraft 1.8. Stops the server if a game tick is taking too long to process",
+                "Default value: 0 (off)" })
         @Config.DefaultBoolean(true)
         public boolean enable_max_tick_time_property;
     }
