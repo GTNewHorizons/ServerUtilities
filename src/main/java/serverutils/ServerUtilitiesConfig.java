@@ -49,6 +49,12 @@ public class ServerUtilitiesConfig {
         @Config.Comment({ "Backports 1.20's 'pause-when-empty-seconds' server property", "Default value: 0 (off)" })
         @Config.DefaultBoolean(true)
         public boolean enable_pause_when_empty_property;
+
+        @Config.Comment({
+                "'max-tick-time' property introduced with Minecraft 1.8. Stops the server if a game tick is taking too long to process",
+                "Default value: 0 (off)" })
+        @Config.DefaultBoolean(true)
+        public boolean enable_max_tick_time_property;
     }
 
     public static class Teams {
