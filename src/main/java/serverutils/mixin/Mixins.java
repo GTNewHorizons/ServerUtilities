@@ -56,7 +56,11 @@ public enum Mixins implements IMixins {
     DISABLE_ENDERMEN_GRIEFING(new MixinBuilder("Disable Endermen Griefing in Claimed Chunks")
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> mixins.endermen)
-            .addCommonMixins("minecraft.MixinEndermanGriefing"));
+            .addCommonMixins("minecraft.MixinEndermanGriefing")),
+    BYPASS_PLAYER_LIMIT(new MixinBuilder("Adds permission for bypassing player limit")
+            .setPhase(Phase.EARLY)
+            .setApplyIf(() -> mixins.bypassPlayerLimit)
+            .addCommonMixins("minecraft.MixinNetHandlerLoginServer"));
     // spotless:on
 
     private final MixinBuilder builder;

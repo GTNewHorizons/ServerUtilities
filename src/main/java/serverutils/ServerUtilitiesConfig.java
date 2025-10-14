@@ -697,5 +697,9 @@ public class ServerUtilitiesConfig {
                 FALSE = Disable the enderman mixins.""")
         @Config.DefaultBoolean(true)
         public boolean endermen;
+
+        @Config.Comment("Adds a permission node (serverutilities.bypass_player_limit) that allows for joining while server is full.")
+        @Config.DefaultBoolean(true)
+        public boolean bypassPlayerLimit;
     }
 }
