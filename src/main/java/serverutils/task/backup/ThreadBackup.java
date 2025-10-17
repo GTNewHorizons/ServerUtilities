@@ -181,37 +181,52 @@ public class ThreadBackup extends Thread {
         int savedChunks = 0;
         int regionFiles = dimRegionClaims.size();
         int totalFiles = files.size() + regionFiles;
-        for (Object2ObjectMap.Entry<File, ObjectSet<ChunkDimPos>> entry : dimRegionClaims.object2ObjectEntrySet()) {
-            File file = entry.getKey();
-            File dimensionRoot = file.getParentFile().getParentFile();
-            File tempFile = FileUtils.newFile(new File(BACKUP_TEMP_FOLDER, file.getName()));
-            RegionFile tempRegion = new RegionFile(tempFile);
-            boolean hasData = false;
 
-            for (ChunkDimPos pos : entry.getValue()) {
-                DataInputStream in = RegionFileCache.getChunkInputStream(dimensionRoot, pos.posX, pos.posZ);
-                if (in == null) continue;
-                savedChunks++;
-                hasData = true;
-                NBTTagCompound tag = CompressedStreamTools.read(in);
-                DataOutputStream tempOut = tempRegion.getChunkDataOutputStream(pos.posX & 31, pos.posZ & 31);
-                CompressedStreamTools.write(tag, tempOut);
-                tempOut.close();
+        if (backups.backup_entire_regions_with_claims) {
+            // Backup entire region files that contain claimed chunks
+            for (Object2ObjectMap.Entry<File, ObjectSet<ChunkDimPos>> entry : dimRegionClaims.object2ObjectEntrySet()) {
+                File regionFile = entry.getKey();
+                ObjectSet<ChunkDimPos> claimedChunks = entry.getValue();
+                savedChunks += claimedChunks.size();
+
+                // Backup the entire region file as-is
+                compressFile(FileUtils.getRelativePath(regionFile), regionFile, compressor, index++, totalFiles);
             }
+            ServerUtilities.LOGGER
+                    .info("Backed up {} entire regions containing {} claimed chunks", regionFiles, savedChunks);
+        } else {
+            // Standard behavior: reconstruct temporary region files with only claimed chunks
+            for (Object2ObjectMap.Entry<File, ObjectSet<ChunkDimPos>> entry : dimRegionClaims.object2ObjectEntrySet()) {
+                File file = entry.getKey();
+                File dimensionRoot = file.getParentFile().getParentFile();
+                File tempFile = FileUtils.newFile(new File(BACKUP_TEMP_FOLDER, file.getName()));
+                RegionFile tempRegion = new RegionFile(tempFile);
+                boolean hasData = false;
 
-            tempRegion.close();
-            if (hasData) {
-                compressFile(FileUtils.getRelativePath(file), tempFile, compressor, index++, totalFiles);
+                for (ChunkDimPos pos : entry.getValue()) {
+                    DataInputStream in = RegionFileCache.getChunkInputStream(dimensionRoot, pos.posX, pos.posZ);
+                    if (in == null) continue;
+                    savedChunks++;
+                    hasData = true;
+                    NBTTagCompound tag = CompressedStreamTools.read(in);
+                    DataOutputStream tempOut = tempRegion.getChunkDataOutputStream(pos.posX & 31, pos.posZ & 31);
+                    CompressedStreamTools.write(tag, tempOut);
+                    tempOut.close();
+                }
+
+                tempRegion.close();
+                if (hasData) {
+                    compressFile(FileUtils.getRelativePath(file), tempFile, compressor, index++, totalFiles);
+                }
+
+                FileUtils.delete(tempFile);
             }
-
-            FileUtils.delete(tempFile);
+            ServerUtilities.LOGGER.info("Backed up {} regions containing {} claimed chunks", regionFiles, savedChunks);
         }
 
         for (File file : files) {
             compressFile(FileUtils.getRelativePath(file), file, compressor, index++, totalFiles);
         }
-
-        ServerUtilities.LOGGER.info("Backed up {} regions containing {} claimed chunks", regionFiles, savedChunks);
     }
 
     private static Object2ObjectMap<File, ObjectSet<ChunkDimPos>> mapClaimsToRegionFile(

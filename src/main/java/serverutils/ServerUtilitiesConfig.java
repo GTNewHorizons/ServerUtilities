@@ -341,6 +341,13 @@ public class ServerUtilitiesConfig {
                 Backups will be much faster and smaller, but any unclaimed chunk will be unrecoverable.""")
         @Config.DefaultBoolean(false)
         public boolean only_backup_claimed_chunks;
+
+        @Config.Comment("""
+                Backup entire regions that contain at least one claimed chunk.
+                This backs up complete .mca files instead of reconstructing temporary files with only claimed chunks.
+                Requires only_backup_claimed_chunks to be enabled.""")
+        @Config.DefaultBoolean(false)
+        public boolean backup_entire_regions_with_claims;
     }
 
     public static class Login {
