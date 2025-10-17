@@ -2,6 +2,8 @@ package serverutils.task;
 
 import static serverutils.ServerUtilitiesNotifications.TELEPORT_WARMUP;
 
+import java.util.UUID;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.Entity;
@@ -12,6 +14,7 @@ import net.minecraft.util.IChatComponent;
 import serverutils.ServerUtilities;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.TeleportType;
+import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
 import serverutils.lib.math.TeleporterDimPos;
@@ -20,7 +23,7 @@ import serverutils.lib.util.StringUtils;
 
 public class TeleportTask extends Task {
 
-    private final EntityPlayerMP player;
+    private final UUID playerUUID;
     private final BlockDimPos startPos;
     private final TeleporterDimPos teleporter;
     private final float startHP;
@@ -33,7 +36,7 @@ public class TeleportTask extends Task {
             @Nullable Task task) {
         super(0);
         this.teleportType = teleportType;
-        this.player = player;
+        this.playerUUID = player.getUniqueID();
         this.startPos = new BlockDimPos(player);
         this.startHP = player.getHealth();
         this.teleporter = to;
@@ -44,6 +47,11 @@ public class TeleportTask extends Task {
 
     @Override
     public void execute(Universe universe) {
+        ForgePlayer fPlayer = universe.getPlayer(playerUUID);
+        if (fPlayer == null) return;
+        var player = fPlayer.getNullablePlayer();
+        if (player == null) return;
+
         if (!startPos.equalsPos(new BlockDimPos(player)) || startHP > player.getHealth()) {
             player.addChatMessage(StringUtils.color("serverutilities.lang.warps.cancelled", EnumChatFormatting.RED));
         } else if (secondsLeft <= 1) {
