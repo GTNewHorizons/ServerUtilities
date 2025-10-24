@@ -38,6 +38,7 @@ public class ServerUtilitiesConfig {
     public static final Tasks tasks = new Tasks();
     public static final Pregen pregen = new Pregen();
     public static final Mixins mixins = new Mixins();
+    public static final MOTD motd = new MOTD();
 
     public static class General {
 
@@ -707,5 +708,20 @@ public class ServerUtilitiesConfig {
         @Config.Comment("Adds a permission node (serverutilities.bypass_player_limit) that allows for joining while server is full.")
         @Config.DefaultBoolean(true)
         public boolean bypassPlayerLimit;
+    }
+
+    public static class MOTD {
+
+        @Config.Comment("Enable custom configurable SERVER MOTD with color codes and variables")
+        @Config.DefaultBoolean(false)
+        public boolean enabled;
+
+        @Config.Comment("First line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
+        @Config.DefaultString("§6§lMy Server §r§7| §e{players}§7/§e{maxPlayers} online")
+        public String line1;
+
+        @Config.Comment("Second line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
+        @Config.DefaultString("§aUptime: §f{uptime} §7| §bTPS: §f{tps}")
+        public String line2;
     }
 }
