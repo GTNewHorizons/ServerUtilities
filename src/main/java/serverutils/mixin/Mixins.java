@@ -64,7 +64,11 @@ public enum Mixins implements IMixins {
     BYPASS_PLAYER_LIMIT(new MixinBuilder("Adds permission for bypassing player limit")
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> mixins.bypassPlayerLimit)
-            .addCommonMixins("minecraft.MixinNetHandlerLoginServer"));
+            .addCommonMixins("minecraft.MixinNetHandlerLoginServer")),
+    CUSTOM_MOTD(new MixinBuilder("Custom configurable MOTD with color codes and variables")
+            .setPhase(Phase.EARLY)
+            .setApplyIf(() -> motd.enabled)
+            .addServerMixins("minecraft.MixinMinecraftServer_CustomMotd"));
     // spotless:on
 
     private final MixinBuilder builder;
