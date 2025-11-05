@@ -1,4 +1,4 @@
-package serverutils.handlers;
+package serverutils.lib.util;
 
 import java.text.DecimalFormat;
 
@@ -40,9 +40,7 @@ public class MOTDFormatter {
 
         result = result.replace("{maxPlayers}", String.valueOf(server.getMaxPlayers()));
 
-        if (result.contains("{tps}")) {
-            result = result.replace("{tps}", calculateTPS(server));
-        }
+        result = result.replace("{tps}", calculateTPS(server));
 
         if (result.contains("{memory}")) {
             Runtime runtime = Runtime.getRuntime();
@@ -82,7 +80,7 @@ public class MOTDFormatter {
             return TPS_FORMAT.format(tps);
         } catch (Exception e) {
             // Fallback if calculation fails
-            return "20.0";
+            return "N/A";
         }
     }
 

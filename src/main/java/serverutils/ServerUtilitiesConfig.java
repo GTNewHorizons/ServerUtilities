@@ -717,7 +717,7 @@ public class ServerUtilitiesConfig {
         public boolean enabled;
 
         @Config.Comment("First line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
-        @Config.DefaultString("§6§lMy Server §r§7| §e{players}§7/§e{maxPlayers} online")
+        @Config.DefaultString("§6§lMy Minecraft Server")
         public String line1;
 
         @Config.Comment("Second line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")

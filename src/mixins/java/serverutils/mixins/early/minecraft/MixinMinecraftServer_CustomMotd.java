@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import serverutils.ServerUtilitiesConfig;
-import serverutils.handlers.MOTDFormatter;
+import serverutils.lib.util.MOTDFormatter;
 
 @Mixin(MinecraftServer.class)
 public class MixinMinecraftServer_CustomMotd {
