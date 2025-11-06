@@ -2,11 +2,15 @@ package serverutils.handlers;
 
 import static serverutils.ServerUtilitiesPermissions.RANK_EDIT;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import net.minecraft.init.Items;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.dedicated.DedicatedServer;
-import net.minecraft.server.dedicated.PropertyManager;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ResourceLocation;
@@ -17,7 +21,6 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.events.ServerUtilitiesPreInitRegistryEvent;
-import serverutils.extensions.IDedicatedServerExtensions;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.IConfigCallback;
 import serverutils.lib.data.AdminPanelAction;
@@ -42,11 +45,21 @@ public class ServerUtilitiesRegistryEventHandler {
                 reloadEvent -> Ranks.INSTANCE.reload());
         if (ServerUtilitiesConfig.motd.enabled) {
             registry.registerServerReloadHandler(new ResourceLocation(ServerUtilities.MOD_ID, "motd"), reloadEvent -> {
-                if (MinecraftServer.getServer().isDedicatedServer()) {
-                    DedicatedServer server = (DedicatedServer) MinecraftServer.getServer();
-                    PropertyManager propManager = new PropertyManager(
-                            ((IDedicatedServerExtensions) server).getPropertyManager().getPropertiesFile());
-                    server.setMOTD(propManager.getStringProperty("motd", "A Minecraft Server"));
+                MinecraftServer server = MinecraftServer.getServer();
+                if (server.isDedicatedServer() && !ServerUtilitiesConfig.motd.enabled) {
+                    File serverProps = server.getDataDirectory().toPath().resolve("server.properties").toFile();
+                    if (!serverProps.exists()) {
+                        return false;
+                    }
+                    Properties props = new Properties();
+                    try {
+                        InputStream is = new FileInputStream(serverProps);
+                        props.load(is);
+                        is.close();
+                    } catch (IOException e) {
+                        return false;
+                    }
+                    server.setMOTD(props.getProperty("motd", "My Minecraft Server"));
                 }
                 return true;
             });
