@@ -68,10 +68,7 @@ public enum Mixins implements IMixins {
     CUSTOM_MOTD(new MixinBuilder("Custom configurable MOTD with color codes and variables")
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> motd.enabled)
-            .addServerMixins("minecraft.MixinMinecraftServer_CustomMotd")),
-    DEDICATED_SERVER_EXTENSIONS(new MixinBuilder("Dedicated server API extensions")
-            .setPhase(Phase.EARLY)
-            .addServerMixins("minecraft.MixinDedicatedServerExtensions"));
+            .addServerMixins("minecraft.MixinMinecraftServer_CustomMotd"));
     // spotless:on
 
     private final MixinBuilder builder;
