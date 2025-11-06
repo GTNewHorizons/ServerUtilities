@@ -60,6 +60,8 @@ public class ServerUtilitiesRegistryEventHandler {
                         return false;
                     }
                     server.setMOTD(props.getProperty("motd", "My Minecraft Server"));
+                    IChatComponent motd = new ChatComponentText(server.getMOTD());
+                    server.func_147134_at().func_151315_a(motd);
                 }
                 return true;
             });
