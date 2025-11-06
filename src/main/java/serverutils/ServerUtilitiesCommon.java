@@ -88,6 +88,7 @@ import serverutils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.task.CleanupTask;
 import serverutils.task.DecayTask;
 import serverutils.task.ShutdownTask;
+import serverutils.task.UpdateMOTDTask;
 import serverutils.task.backup.BackupTask;
 
 public class ServerUtilitiesCommon {
@@ -284,6 +285,9 @@ public class ServerUtilitiesCommon {
         if (auto_shutdown.enabled && auto_shutdown.times.length > 0
                 && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
             universe.scheduleTask(new ShutdownTask());
+        }
+        if (motd.enabled) {
+            universe.scheduleTask(new UpdateMOTDTask());
         }
     }
 
