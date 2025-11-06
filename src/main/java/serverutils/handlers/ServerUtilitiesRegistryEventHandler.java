@@ -4,6 +4,9 @@ import static serverutils.ServerUtilitiesPermissions.RANK_EDIT;
 
 import net.minecraft.init.Items;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.dedicated.DedicatedServer;
+import net.minecraft.server.dedicated.PropertyManager;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ResourceLocation;
@@ -14,6 +17,7 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.events.ServerUtilitiesPreInitRegistryEvent;
+import serverutils.extensions.IDedicatedServerExtensions;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.IConfigCallback;
 import serverutils.lib.data.AdminPanelAction;
@@ -36,6 +40,17 @@ public class ServerUtilitiesRegistryEventHandler {
         registry.registerServerReloadHandler(
                 new ResourceLocation(ServerUtilities.MOD_ID, "ranks"),
                 reloadEvent -> Ranks.INSTANCE.reload());
+        if (ServerUtilitiesConfig.motd.enabled) {
+            registry.registerServerReloadHandler(new ResourceLocation(ServerUtilities.MOD_ID, "motd"), reloadEvent -> {
+                if (MinecraftServer.getServer().isDedicatedServer()) {
+                    DedicatedServer server = (DedicatedServer) MinecraftServer.getServer();
+                    PropertyManager propManager = new PropertyManager(
+                            ((IDedicatedServerExtensions) server).getPropertyManager().getPropertiesFile());
+                    server.setMOTD(propManager.getStringProperty("motd", "A Minecraft Server"));
+                }
+                return true;
+            });
+        }
 
         registry.registerSyncData(ServerUtilities.MOD_ID, new ServerUtilitiesSyncData());
 
