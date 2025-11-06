@@ -197,8 +197,8 @@ public abstract class Tag extends TagBase {
     }
 
     public Tag icon(String name) {
-        return img("https://aurora.latvian.dev/icons/" + name + ".png").addClass("icon"); // TODO: Change this to a
-                                                                                          // local image
+        // TODO: Change this to a local image
+        return img("https://aurora.latvian.dev/icons/" + name + ".png").addClass("icon");
     }
 
     public Tag yesNoSpan(boolean value) {
