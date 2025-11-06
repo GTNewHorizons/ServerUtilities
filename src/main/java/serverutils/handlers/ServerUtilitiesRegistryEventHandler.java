@@ -44,10 +44,10 @@ public class ServerUtilitiesRegistryEventHandler {
         registry.registerServerReloadHandler(
                 new ResourceLocation(ServerUtilities.MOD_ID, "ranks"),
                 reloadEvent -> Ranks.INSTANCE.reload());
-        if (ServerUtilitiesConfig.motd.enabled) {
+        if (!ServerUtilitiesConfig.motd.enabled) {
             registry.registerServerReloadHandler(new ResourceLocation(ServerUtilities.MOD_ID, "motd"), reloadEvent -> {
                 MinecraftServer server = MinecraftServer.getServer();
-                if (server.isDedicatedServer() && !ServerUtilitiesConfig.motd.enabled) {
+                if (server.isDedicatedServer()) {
                     File serverProps = server.getDataDirectory().toPath().resolve("server.properties").toFile();
                     if (!serverProps.exists()) {
                         return false;
