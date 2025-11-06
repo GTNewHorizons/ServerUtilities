@@ -387,15 +387,17 @@ public class ServerUtilitiesConfig {
 
         /**
          * Reload the player login message of the day chat components.
+         *
+         * @return {@code true} if the resources were reloaded, {@code false} otherwise.
          */
-        public void reloadMOTD() {
+        public boolean reloadMOTD() {
             ServerUtilities.LOGGER.info("Reloading player login MOTD...");
 
             motdComponents = new ArrayList<IChatComponent>();
 
             if (!enable_motd) {
                 ServerUtilities.LOGGER.debug("Player login MOTD is not enabled, doing nothing!");
-                return;
+                return false;
             } else {
                 ServerUtilities.LOGGER.debug("Player login MOTD is enabled, proceeding!");
             }
@@ -431,6 +433,7 @@ public class ServerUtilitiesConfig {
             } else if (hasMotdConfig) {
                 ServerUtilities.LOGGER.info("Player login MOTD has been sourced from internal configuration");
             }
+            return true;
         }
 
         /**
@@ -440,7 +443,10 @@ public class ServerUtilitiesConfig {
          */
         public List<IChatComponent> getMOTD() {
             if (motdComponents == null) {
-                reloadMOTD();
+                if (!reloadMOTD()) {
+                    // -- Reload failed, parachute!
+                    motdComponents = new ArrayList<IChatComponent>();
+                }
             }
 
             return motdComponents;
