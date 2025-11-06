@@ -2,6 +2,7 @@ package serverutils;
 
 import static serverutils.ServerUtilitiesConfig.auto_shutdown;
 import static serverutils.ServerUtilitiesConfig.backups;
+import static serverutils.ServerUtilitiesConfig.motd;
 import static serverutils.ServerUtilitiesConfig.ranks;
 import static serverutils.ServerUtilitiesConfig.tasks;
 import static serverutils.ServerUtilitiesConfig.world;
@@ -16,6 +17,7 @@ import java.util.function.Function;
 
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -81,6 +83,7 @@ import serverutils.lib.icon.Color4I;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.net.MessageToClient;
 import serverutils.lib.util.InvUtils;
+import serverutils.lib.util.MOTDFormatter;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.ServerUtilitiesNetHandler;
@@ -257,7 +260,12 @@ public class ServerUtilitiesCommon {
 
     public void onServerStarting(FMLServerStartingEvent event) {
         ServerUtilitiesCommands.registerCommands(event);
-
+        // -- Initial MOTD setup
+        if (motd.enabled) {
+            MinecraftServer server = event.getServer();
+            IChatComponent motd = MOTDFormatter.buildMOTD(server);
+            server.func_147134_at().func_151315_a(motd);
+        }
         if (AuroraConfig.general.enable) {
             Aurora.start(event.getServer());
         }
