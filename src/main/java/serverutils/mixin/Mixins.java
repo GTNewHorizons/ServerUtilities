@@ -45,14 +45,14 @@ public enum Mixins implements IMixins {
             .addServerMixins("randomthings.MixinWorldUtils")),
     PAUSE_WHEN_EMPTY(new MixinBuilder("Pauses the server when empty after X seconds; Servers Only")
             .setPhase(Phase.EARLY)
+            .setApplyIf(() -> general.enable_pause_when_empty_property)
             .addServerMixins(
                     "minecraft.MixinMinecraftServer_PauseWhenEmpty",
-                    "minecraft.MixinDedicatedServer_PauseWhenEmpty")
-            .setApplyIf(() -> general.enable_pause_when_empty_property)),
+                    "minecraft.MixinDedicatedServer_PauseWhenEmpty")),
     MAX_TICK_TIME(new MixinBuilder()
             .setPhase(Phase.EARLY)
-            .addServerMixins("minecraft.MixinDedicatedServer_MaxTickTime", "minecraft.MixinMinecraftServer_MaxTickTime")
-            .setApplyIf(() -> general.enable_max_tick_time_property)),
+            .setApplyIf(() -> general.enable_max_tick_time_property)
+            .addServerMixins("minecraft.MixinDedicatedServer_MaxTickTime", "minecraft.MixinMinecraftServer_MaxTickTime")),
     PLAYERS_SLEEPING_PERCENTAGE(new MixinBuilder()
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> world.enable_player_sleeping_percentage)
@@ -68,7 +68,10 @@ public enum Mixins implements IMixins {
     CUSTOM_MOTD(new MixinBuilder("Custom configurable MOTD with color codes and variables")
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> motd.enabled)
-            .addServerMixins("minecraft.MixinMinecraftServer_CustomMotd"));
+            .addServerMixins("minecraft.MixinMinecraftServer_CustomMotd")),
+    DEDICATED_SERVER_EXTENSIONS(new MixinBuilder("Dedicated server API extensions")
+            .setPhase(Phase.EARLY)
+            .addServerMixins("minecraft.MixinDedicatedServerExtensions"));
     // spotless:on
 
     private final MixinBuilder builder;
