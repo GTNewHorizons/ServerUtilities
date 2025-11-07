@@ -413,7 +413,7 @@ public class ServerUtilitiesConfig {
                         List<String> rawLines = Files.readAllLines(motdF);
                         List<String> lines = rawLines.stream().filter((line) -> !line.startsWith(";"))
                                 .collect(Collectors.toList());
-                        if (rawLines.isEmpty()) {
+                        if (rawLines.isEmpty() && motd.length != 0) {
                             ServerUtilities.LOGGER
                                     .warn("Failed to read player login MOTD from external file \"{}\"!", motdFile);
                             ServerUtilities.LOGGER
