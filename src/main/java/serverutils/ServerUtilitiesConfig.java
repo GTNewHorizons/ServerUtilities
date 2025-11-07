@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -408,8 +410,32 @@ public class ServerUtilitiesConfig {
                 Path motdF = FileSystems.getDefault().getPath(motdFile);
                 if (Files.exists(motdF)) {
                     try {
-                        motd = Files.readAllLines(motdF).toArray(motd);
-                        hasMotdConfig = true;
+                        List<String> rawLines = Files.readAllLines(motdF);
+                        List<String> lines = rawLines.stream().filter((line) -> !line.startsWith(";"))
+                                .collect(Collectors.toList());
+                        if (rawLines.isEmpty()) {
+                            ServerUtilities.LOGGER
+                                    .warn("Failed to read player login MOTD from external file \"{}\"!", motdFile);
+                            ServerUtilities.LOGGER
+                                    .warn("File was empty, generating a new one from current \"motd\" value!");
+                            rawLines.addAll(
+                                    Arrays.asList(
+                                            "; Generated player login MOTD file",
+                                            String.format(
+                                                    "; Created from the ServerUtilities \"motd\" on %s",
+                                                    LocalDateTime.now())));
+                            rawLines.addAll(Arrays.asList(motd));
+                            try {
+                                Files.write(motdF, rawLines);
+                            } catch (IOException e) {
+                                ServerUtilities.LOGGER.warn(
+                                        "Failed to write template player login MOTD to external file \"{}\"!",
+                                        motdFile);
+                                ServerUtilities.LOGGER.warn("Encountered exception while writing: {}", e);
+                            }
+                        } else if (!lines.isEmpty()) {
+                            hasMotdConfig = true;
+                        }
                     } catch (IOException e) {
                         ServerUtilities.LOGGER
                                 .warn("Failed to read player login MOTD from external file \"{}\"!", motdFile);
