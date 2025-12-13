@@ -113,7 +113,7 @@ public class GuiToggleCheatsButton extends GuiButton {
     public static void onGuiInit(GuiScreenEvent.InitGuiEvent.Post event) {
         if (event.gui instanceof GuiSelectWorld gui) {
             // Don't add the button if it's too big to fit on the screen
-            if (gui.width / 2 + 160 + 82 > gui.width) return;
+            if (gui.width / 2 + 250 > gui.width) return;
 
             event.buttonList.add(
                     new GuiToggleCheatsButton(
