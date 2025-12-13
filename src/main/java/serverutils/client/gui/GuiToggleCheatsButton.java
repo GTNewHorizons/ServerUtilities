@@ -1,9 +1,10 @@
 package serverutils.client.gui;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.AnvilConverterException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
@@ -14,14 +15,11 @@ import net.minecraft.util.StatCollector;
 import net.minecraft.world.storage.SaveFormatComparator;
 import net.minecraft.world.storage.SaveFormatOld;
 import net.minecraftforge.client.event.GuiScreenEvent;
-
-import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
-
-import cpw.mods.fml.common.eventhandler.EventPriority;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.ServerUtilitiesConfig;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
 @EventBusSubscriber(side = Side.CLIENT)
 public class GuiToggleCheatsButton extends GuiButton {
@@ -113,11 +111,11 @@ public class GuiToggleCheatsButton extends GuiButton {
     public static void onGuiInit(GuiScreenEvent.InitGuiEvent.Post event) {
         if (event.gui instanceof GuiSelectWorld gui) {
             // Don't add the button if it's too big to fit on the screen
-            if (gui.width / 2 + 250 > gui.width) return;
+            if (gui.width / 2 + 248 > gui.width) return;
 
             event.buttonList.add(
                     new GuiToggleCheatsButton(
-                            gui.width / 2 + 164,
+                            gui.width / 2 + 162,
                             gui.height - 28,
                             82,
                             20,
