@@ -121,7 +121,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
             }
 
             // Don't add the button if it's too big to fit on the screen
-            if (event.gui.width / 2 + 2504 > event.gui.width) return;
+            if (event.gui.width / 2 + 250 > event.gui.width) return;
 
             event.buttonList.add(
                     new GuiRestoreButton(
