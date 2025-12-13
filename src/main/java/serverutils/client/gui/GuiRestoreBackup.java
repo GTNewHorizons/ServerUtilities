@@ -125,7 +125,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
             event.buttonList.add(
                     new GuiRestoreButton(
-                            event.gui.width / 2 + 162,
+                            event.gui.width - 90,
                             event.gui.height - 52,
                             82,
                             20,

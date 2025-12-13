@@ -117,7 +117,7 @@ public class GuiToggleCheatsButton extends GuiButton {
 
             event.buttonList.add(
                     new GuiToggleCheatsButton(
-                            gui.width / 2 + 162,
+                            gui.width - 90,
                             gui.height - 28,
                             82,
                             20,
