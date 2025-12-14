@@ -68,7 +68,12 @@ public enum Mixins implements IMixins {
     CUSTOM_MOTD(new MixinBuilder("Custom configurable MOTD with color codes and variables")
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> motd.enabled)
-            .addServerMixins("minecraft.MixinMinecraftServer_CustomMotd"));
+            .addServerMixins("minecraft.MixinMinecraftServer_CustomMotd")),
+    TOGGLE_CHEATS(new MixinBuilder("Helper method for toggling cheats in the world selection menu")
+            .setPhase(Phase.EARLY)
+            .setApplyIf(() -> general.enable_toggle_cheats_button)
+            .addClientMixins("minecraft.AccessorSaveFormatComparator")),
+    ;
     // spotless:on
 
     private final MixinBuilder builder;
