@@ -160,6 +160,9 @@ serverutilities.debugging.log_chunkloading=Log Chunkloading
 serverutilities.general.clientless_mode=Clientless Mode
 serverutilities.general.replace_reload_command=Replace /reload Command
 serverutilities.general.merge_offline_mode_players=Merge Offline Mode Players
+serverutilities.general.toggle_cheats=Toggle Cheats
+serverutilities.general.enable_cheats=Enable Cheats
+serverutilities.general.disable_cheats=Disable Cheats
 
 serverutilities.teams=Teams
 serverutilities.teams.autocreate_sp=Autocreate on Singleplayer
