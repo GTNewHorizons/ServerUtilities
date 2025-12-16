@@ -56,6 +56,10 @@ public class ServerUtilitiesConfig {
                 "Default value: 0 (off)" })
         @Config.DefaultBoolean(true)
         public boolean enable_max_tick_time_property;
+
+        @Config.Comment("Adds a button to toggle cheats to the world selection menu.")
+        @Config.DefaultBoolean(true)
+        public boolean enable_toggle_cheats_button;
     }
 
     public static class Teams {
