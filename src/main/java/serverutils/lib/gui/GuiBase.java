@@ -55,7 +55,7 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
     private boolean refreshWidgets;
     private ScaledResolution screen;
     public boolean fixUnicode;
-    private GuiScreen prevScreen;
+    protected GuiScreen prevScreen;
     public Panel contextMenu = null;
 
     public GuiBase() {
@@ -140,7 +140,6 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
         } else if (prevScreen instanceof GuiChat) {
             return null;
         }
-
         return prevScreen;
     }
 

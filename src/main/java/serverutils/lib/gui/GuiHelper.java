@@ -64,6 +64,10 @@ public class GuiHelper {
 
     public static final GuiBase BLANK_GUI = new GuiBase() {
 
+        {
+            prevScreen = null;
+        }
+
         @Override
         public void addWidgets() {}
 
