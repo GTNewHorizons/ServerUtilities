@@ -486,6 +486,7 @@ commands.add_fake_player.usage=/add_fake_player <uuid> <name>
 commands.god.usage=/god <player>
 commands.rtp.usage=/rtp
 commands.dump_chunkloaders.usage=/dump_chunkloaders
+commands.dump_chunkloaders.unknown_dimension=Couldn't find dimension %d!
 commands.dump_permissions.usage=/dump_permissions
 commands.vanish.usage=/vanish
 commands.vanish.toggle.usage=/vanish toggle <on|off>
