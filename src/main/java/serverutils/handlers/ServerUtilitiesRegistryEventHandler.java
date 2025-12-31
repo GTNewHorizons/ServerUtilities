@@ -36,6 +36,9 @@ public class ServerUtilitiesRegistryEventHandler {
         registry.registerServerReloadHandler(
                 new ResourceLocation(ServerUtilities.MOD_ID, "ranks"),
                 reloadEvent -> Ranks.INSTANCE.reload());
+        registry.registerServerReloadHandler(
+                new ResourceLocation(ServerUtilities.MOD_ID, "login:motd"),
+                reloadEvent -> ServerUtilitiesConfig.login.reloadMOTD());
 
         registry.registerSyncData(ServerUtilities.MOD_ID, new ServerUtilitiesSyncData());
 
