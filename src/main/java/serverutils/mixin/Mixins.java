@@ -52,6 +52,7 @@ public enum Mixins implements IMixins {
     MAX_TICK_TIME(new MixinBuilder()
             .setPhase(Phase.EARLY)
             .addServerMixins("minecraft.MixinDedicatedServer_MaxTickTime", "minecraft.MixinMinecraftServer_MaxTickTime")
+            .addExcludedMod(TargetedMod.ULTRAMINE)
             .setApplyIf(() -> general.enable_max_tick_time_property)),
     PLAYERS_SLEEPING_PERCENTAGE(new MixinBuilder()
             .setPhase(Phase.EARLY)
