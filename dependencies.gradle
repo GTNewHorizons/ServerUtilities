@@ -2,7 +2,7 @@
 
 dependencies {
 
-    api("com.github.GTNewHorizons:GTNHLib:0.8.38:dev")
+    api("com.github.GTNewHorizons:GTNHLib:0.9.0:dev")
     compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.8.48-GTNH:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:EnderIO:2.10.12:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Random-Things:2.7.1:dev") {transitive = false}
@@ -13,7 +13,7 @@ dependencies {
     compileOnly('com.github.GTNewHorizons:Galacticraft:3.4.14-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:TinkersConstruct:1.14.17-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:AdventureBackpack2:1.4.7-GTNH:dev') {transitive = false}
-    compileOnly('com.github.GTNewHorizons:Minecraft-Backpack-Mod:2.6.6-GTNH:dev') {transitive = false}
+    compileOnly('com.github.GTNewHorizons:Minecraft-Backpack-Mod:2.6.7-GTNH:dev') {transitive = false}
 
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.9.15:dev")
 }

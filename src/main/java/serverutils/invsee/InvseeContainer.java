@@ -96,7 +96,7 @@ public class InvseeContainer extends ContainerBase {
 
         if (!player.worldObj.isRemote && otherPlayer != null && otherPlayer.isOnline()) {
             Container container = otherPlayer.getPlayer().openContainer;
-            if (!container.crafters.contains((EntityPlayerMP) player)) {
+            if (!(container instanceof InvseeContainer) && !container.crafters.contains((EntityPlayerMP) player)) {
                 container.detectAndSendChanges();
             }
         }
