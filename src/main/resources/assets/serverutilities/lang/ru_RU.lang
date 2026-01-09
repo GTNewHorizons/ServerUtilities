@@ -290,6 +290,7 @@ commands.leaderboards.usage=/leaderboards [id]
 commands.mute.usage=/mute <player>
 commands.mute.muted=Вы приглушены!
 commands.unmute.usage=/unmute <player>
+commands.dump_chunkloaders.unknown_dimension=Не удается найти измерение %d!
 
 # Client Commands
 commands.shrug.usage=/shrug [text...]
