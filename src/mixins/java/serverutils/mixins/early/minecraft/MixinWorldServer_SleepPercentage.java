@@ -131,7 +131,7 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/EntityPlayer;wakeUpPlayer(ZZZ)V"))
     public void serverutilities$broadcast(CallbackInfo ctx, @Local EntityPlayer player) {
         if (percent > 0 && percent < 100 && (!mcServer.isSinglePlayer())) {
-            player.addChatMessage(new ChatComponentTranslation("serverutiltiies.world.skip_night"));
+            player.addChatMessage(new ChatComponentTranslation("serverutilities.world.skip_night"));
         }
     }
 
