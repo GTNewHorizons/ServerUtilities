@@ -6,7 +6,7 @@ Once loaded, you will find new UI options in your inventory screen:
 
 For single player, loading chunks is the most important, and you can click that icon and then shift-click (and drag) to designate chunks to load. Right click to unload and unclaim.
 
-The ServerUtilities configuration files are found in `.minecraft/serverutilities` and it will migrate from FTBU for you. The most likely thing you want to change is found in `.minecraft/serverutilties/server/ranks.txt` where you can control how many chunks can be loaded. `.minecraft/serverutilities/serverutlities.cfg` is where you can disable backups if you have another backup solution.
+The ServerUtilities configuration files are found in `.minecraft/serverutilities` and it will migrate from FTBU for you. The most likely thing you want to change is found in `.minecraft/serverutilties/server/ranks.txt` where you can control how many chunks can be loaded. `.minecraft/serverutilities/serverutilities.cfg` is where you can disable backups if you have another backup solution.
 
 For server admins, there is much more that ServerUtilities can do, refer to the FTBU documentation for now.
 
