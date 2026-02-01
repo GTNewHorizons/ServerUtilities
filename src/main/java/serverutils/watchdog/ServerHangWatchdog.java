@@ -34,7 +34,19 @@ public class ServerHangWatchdog implements Runnable {
         this.maxTickTime = ((IMaxTickTimeDedicatedServer) server).serverutilities$getMaxTickTime();
     }
 
+    public static void init() {
+        if (MinecraftServer.getServer() instanceof IMaxTickTimeDedicatedServer maxTickTimeDedicatedServer) {
+            if (maxTickTimeDedicatedServer.serverutilities$getMaxTickTime() > 0) {
+                Thread thread1 = new Thread(new ServerHangWatchdog((DedicatedServer) maxTickTimeDedicatedServer));
+                thread1.setName("Server Watchdog");
+                thread1.setDaemon(true);
+                thread1.start();
+            }
+        }
+    }
+
     public void run() {
+        LOGGER.info("Server watchdog thread started with max tick time of {}ms", maxTickTime);
         while (this.server.isServerRunning()) {
             long i = ((IMaxTickTimeMinecraftServer) this.server).serverutilities$getCurrentTime();
             long j = MinecraftServer.getSystemTimeMillis();
