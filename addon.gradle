@@ -1,0 +1,26 @@
+compileJava.options.encoding = "UTF-8"
+
+eclipse {
+    project {
+        file {
+            beforeMerged { gp ->
+                setEclipsePreference(file(".settings/org.eclipse.core.resources.prefs"), "encoding/<project>", compileJava.options.encoding)
+                setEclipsePreference(file(".settings/org.eclipse.jdt.core.prefs"), "org.eclipse.jdt.core.compiler.compliance", "1.8")
+            }
+        }
+    }
+}
+
+project.ext.setProperty = { File file, String key, String value ->
+    def s = file.text.replaceAll("(?ms)(^\\Q${key}\\E\\s*=).*?\$", "")
+    s = s.replaceAll("\n{2,}", "\n")
+    file.text = s + key + "=" + value + "\n"
+}
+
+project.ext.setEclipsePreference = { File preferencesFile, String key, String value ->
+    if (!preferencesFile.exists()) {
+        preferencesFile.parentFile.mkdirs()
+        preferencesFile.write("eclipse.preferences.version=1\n")
+    }
+    setProperty(preferencesFile, key, value)
+}
