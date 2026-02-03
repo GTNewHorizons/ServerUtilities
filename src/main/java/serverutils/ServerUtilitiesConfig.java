@@ -1,7 +1,14 @@
 package serverutils;
 
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -365,9 +372,13 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(false)
         public boolean enable_starting_items;
 
-        @Config.Comment("Message of the day. This will be displayed when player joins the server.")
-        @Config.DefaultStringList("Hello player!")
+        @Config.Comment("Message of the day. This will be displayed when player joins the server. Overrides the \"motdFile\" if it contains any values other than empty strings.")
+        @Config.DefaultStringList({})
         public String[] motd;
+
+        @Config.Comment("Message of the day file. This contents of this file will be displayed when player joins the server.")
+        @Config.DefaultString("")
+        public String motdFile;
 
         @Config.Comment("Items to give player when they first join the server.\nFormat: '{id:\"ID\",Count:X,Damage:X,tag:{}}', Use /print_item to get NBT of item in your hand.")
         @Config.DefaultStringList({
@@ -380,14 +391,91 @@ public class ServerUtilitiesConfig {
         @Config.Ignore
         private List<ItemStack> startingItems = null;
 
+        /**
+         * Reload the player login message of the day chat components.
+         *
+         * @return {@code true} if the resources were reloaded, {@code false} otherwise.
+         */
+        public boolean reloadMOTD() {
+            ServerUtilities.LOGGER.info("Reloading player login MOTD...");
+
+            motdComponents = new ArrayList<IChatComponent>();
+
+            if (!enable_motd) {
+                ServerUtilities.LOGGER.debug("Player login MOTD is not enabled, doing nothing!");
+                return false;
+            } else {
+                ServerUtilities.LOGGER.debug("Player login MOTD is enabled, proceeding!");
+            }
+            boolean hasMotdConfig = !Arrays.stream(motd).allMatch(String::isEmpty);
+            if (!hasMotdConfig && motdFile != null && !motdFile.isEmpty()) {
+                ServerUtilities.LOGGER
+                        .debug("Player login MOTD from external file is enabled, loading \"{}\"!", motdFile);
+                Path motdF = FileSystems.getDefault().getPath(motdFile);
+                if (Files.exists(motdF)) {
+                    try {
+                        List<String> rawLines = Files.readAllLines(motdF);
+                        List<String> lines = rawLines.stream().filter((line) -> !line.startsWith(";"))
+                                .collect(Collectors.toList());
+                        if (rawLines.isEmpty() && motd.length != 0) {
+                            ServerUtilities.LOGGER
+                                    .warn("Failed to read player login MOTD from external file \"{}\"!", motdFile);
+                            ServerUtilities.LOGGER
+                                    .warn("File was empty, generating a new one from current \"motd\" value!");
+                            rawLines.addAll(
+                                    Arrays.asList(
+                                            "; Generated player login MOTD file",
+                                            String.format(
+                                                    "; Created from the ServerUtilities \"motd\" on %s",
+                                                    LocalDateTime.now())));
+                            rawLines.addAll(Arrays.asList(motd));
+                            try {
+                                Files.write(motdF, rawLines);
+                            } catch (IOException e) {
+                                ServerUtilities.LOGGER.warn(
+                                        "Failed to write template player login MOTD to external file \"{}\"!",
+                                        motdFile);
+                                ServerUtilities.LOGGER.warn("Encountered exception while writing: {}", e);
+                            }
+                        } else if (!lines.isEmpty()) {
+                            hasMotdConfig = true;
+                        }
+                    } catch (IOException e) {
+                        ServerUtilities.LOGGER
+                                .warn("Failed to read player login MOTD from external file \"{}\"!", motdFile);
+                        ServerUtilities.LOGGER.warn("Encountered exception while reading: {}", e);
+                    }
+                } else {
+                    ServerUtilities.LOGGER.warn(
+                            "Player login MOTD was asked to be loaded from external file \"{}\" but it was not present on disk!",
+                            motdFile);
+                    ServerUtilities.LOGGER.warn("Falling back to the \"motd\" configuration value!");
+                }
+            }
+            if (hasMotdConfig) {
+                for (String s : motd) {
+                    motdComponents.add(ForgeHooks.newChatWithLinks(s));
+                }
+            }
+            ServerUtilities.LOGGER.info("Successfully reloaded player login MOTD");
+            if (hasMotdConfig && motdFile != null && !motdFile.isEmpty()) {
+                ServerUtilities.LOGGER.info("Player login MOTD has been sourced from external file \"{}\"", motdFile);
+            } else if (hasMotdConfig) {
+                ServerUtilities.LOGGER.info("Player login MOTD has been sourced from internal configuration");
+            }
+            return true;
+        }
+
+        /**
+         * Get the player login message of the day chat components.
+         *
+         * @return The player login message of the day chat components.
+         */
         public List<IChatComponent> getMOTD() {
             if (motdComponents == null) {
-                motdComponents = new ArrayList<>();
-
-                if (enable_motd) {
-                    for (String s : motd) {
-                        motdComponents.add(ForgeHooks.newChatWithLinks(s));
-                    }
+                if (!reloadMOTD()) {
+                    // -- Reload failed, parachute!
+                    motdComponents = new ArrayList<IChatComponent>();
                 }
             }
 
