@@ -1,4 +1,7 @@
-* text eol=lf
+*                       text eol=lf   encoding=utf-8
+*.[bB][aA][tT]          text eol=crlf encoding=utf-8
+*.[cC][mM][dD]          text eol=crlf encoding=utf-8
+*.[pP][sS]1             text eol=crlf encoding=utf-8
 
 *.[jJ][aA][rR]          binary
 
@@ -36,9 +39,5 @@
 *.[oO][tT][fF]          binary
 
 *.[pP][aA][tT][cC][hH]  -text
-
-*.[bB][aA][tT]          text eol=crlf
-*.[cC][mM][dD]          text eol=crlf
-*.[pP][sS]1             text eol=crlf
 
 *[aA][uU][tT][oO][gG][eE][nN][eE][rR][aA][tT][eE][dD]* binary
