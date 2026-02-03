@@ -1,39 +1,95 @@
-.gradle
-.settings
-.java-version
-/.idea/
-/.vscode/
-/run/
-/build/
-/eclipse/
-.classpath
+# Editors #
+## Visual Studio Code ##
+### Workspace Folder ###
+.vscode/*
+
+### Local History ###
+.history/
+
+### Built Visual Studio Code Extensions ###
+*.vsix
+
+## Eclipse ##
 .project
-/bin/
-/config/
-/crash-reports/
-/logs/
-options.txt
-/saves/
-usernamecache.json
-banned-ips.json
-banned-players.json
-eula.txt
-ops.json
-server.properties
-servers.dat
-usercache.json
-whitelist.json
-/out/
-*.iml
-*.ipr
-*.iws
-src/main/resources/mixins.*([!.]).json
-*.bat
-*.DS_Store
-!gradlew.bat
+.classpath
+.settings/
+
+## Vim ##
+### Swap ###
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]*.s[a-rt-v][a-z]
+[._]*.ss[a-gi-z]
+[._]sw[a-p]
+
+### Session ###
+Session.vim
+Sessionx.vim
+
+### Temporary Files ###
+.netrwhist
+*~
+
+### Auto-generated Tag Files ###
+tags
+
+### Undo Persistence ###
+[._]*.un~
+
+## Eclipse ##
+### Core ###
+.classpath
 .factorypath
+.project
+.settings/
+
+# Operating Systems #
+## macOS ##
+*.DS_Store
+
+# Logs #
+*.log*
+
+# Configs #
+## CSpell ##
+.cspell/
+cspell.json
+
+## Gradle ##
 addon.local.gradle
 addon.local.gradle.kts
 addon.late.local.gradle
 addon.late.local.gradle.kts
+
+## jenv ##
+.java-version
+
+# Environment #
+## General ##
+.envrc
+
+## Gradle ##
+user.properties
+
+# Cache #
+## CSpell ##
+.cspellcache
+
+# Artifacts #
+## Gradle ##
+bin/
+build/
+.gradle/
+
+# Debugging #
+## Gradle ##
+run/
+bin/
+
+# Misc. #
+# A.K.A. I don't know what they do so I'm not removing them! #
+*.iml
+*.ipr
+*.iws
+src/main/resources/mixins.*([!.]).json
 layout.json
