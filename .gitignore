@@ -30,6 +30,7 @@ whitelist.json
 src/main/resources/mixins.*([!.]).json
 *.bat
 *.DS_Store
+.env*
 !gradlew.bat
 .factorypath
 addon.local.gradle
