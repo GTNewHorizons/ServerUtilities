@@ -44,7 +44,7 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Merges player profiles, in case player logged in without internet connection/in offline mode server. "
                 + "If set to DEFAULT, it will only merge on singleplayer worlds.")
-        @Config.DefaultEnum("DEFAULT")
+        @Config.DefaultEnum("TRUE")
         public EnumTristate merge_offline_mode_players;
 
         @Config.Comment({ "Backports 1.20's 'pause-when-empty-seconds' server property", "Default value: 0 (off)" })
