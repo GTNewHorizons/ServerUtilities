@@ -602,9 +602,9 @@ public class Universe {
 
         if (player == null
                 && ServerUtilitiesConfig.general.merge_offline_mode_players.get(!server.isDedicatedServer())) {
-            String profileName = profile.getName().toLowerCase();
+            String profileName = profile.getName();
             for (ForgePlayer p : players.values()) {
-                if (p.getName().toLowerCase().equals(profileName)) {
+                if (p.getName().equalsIgnoreCase(profileName)) {
                     player = p;
                     break;
                 }
