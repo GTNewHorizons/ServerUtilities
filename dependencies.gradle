@@ -14,6 +14,7 @@ dependencies {
     compileOnly('com.github.GTNewHorizons:TinkersConstruct:1.14.24-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:AdventureBackpack2:1.4.12-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:Minecraft-Backpack-Mod:2.6.7-GTNH:dev') {transitive = false}
+    compileOnly(rfg.deobf("curse.maven:witchery-69673:2234410")) {transitive = false}
 
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.19.21:dev")
 }

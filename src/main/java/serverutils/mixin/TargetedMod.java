@@ -8,7 +8,8 @@ import com.gtnewhorizon.gtnhmixins.builders.TargetModBuilder;
 public enum TargetedMod implements ITargetMod {
 
     ULTRAMINE(null, null, "org.ultramine.server.UltraminePlugin"),
-    RANDOMTHINGS("RandomThings");
+    RANDOMTHINGS("RandomThings"),
+    WITCHERY(null, "witchery", "com.emoniph.witchery.Witchery");
 
     private final TargetModBuilder builder;
 
