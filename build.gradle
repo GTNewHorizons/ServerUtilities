@@ -1,5 +1,4 @@
-//version: 1707058017
-
 plugins {
+    id 'eclipse'
     id 'com.gtnewhorizons.gtnhconvention'
 }
