@@ -37,34 +37,27 @@ public class Theme {
 
     public static final ImageIcon BACKGROUND_SQUARES = (ImageIcon) Icon
             .getIcon(ServerUtilities.MOD_ID + ":textures/gui/background_squares.png");
-    private static final ImageIcon TEXTURE_BEACON = (ImageIcon) Icon.getIcon("textures/gui/container/beacon.png");
-    private static final ImageIcon TEXTURE_WIDGETS = (ImageIcon) Icon.getIcon("textures/gui/widgets.png");
-    private static final ImageIcon TEXTURE_TABS = (ImageIcon) Icon
-            .getIcon("textures/gui/container/creative_inventory/tabs.png");
-    private static final ImageIcon TEXTURE_ENCHANTING_TABLE = (ImageIcon) Icon
-            .getIcon("textures/gui/container/enchanting_table.png");
+    private static final ImageIcon TEXTURE_SERVERUTILS_WIDGETS = (ImageIcon) Icon
+            .getIcon(ServerUtilities.MOD_ID + ":textures/gui/widgets.png");
 
-    private static final Icon GUI = new PartIcon(TEXTURE_TABS, 0, 97, 28, 28, 4);
+    private static final Icon GUI = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 57, 63, 12, 12, 4);
     private static final Icon GUI_MOUSE_OVER = GUI.withTint(Color4I.rgb(0xAFB6DA));
 
-    private static final Icon BUTTON = new PartIcon(TEXTURE_WIDGETS, 0, 66, 200, 20, 4);
-    private static final Icon BUTTON_MOUSE_OVER = new PartIcon(TEXTURE_WIDGETS, 0, 86, 200, 20, 4);
-    private static final Icon BUTTON_DISABLED = new PartIcon(TEXTURE_WIDGETS, 0, 46, 200, 20, 4);
+    private static final Icon BUTTON = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 0, 0, 200, 20, 4);
+    private static final Icon BUTTON_MOUSE_OVER = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 0, 20, 200, 20, 4);
+    private static final Icon BUTTON_DISABLED = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 0, 40, 200, 20, 4);
 
-    private static final Icon WIDGET = new PartIcon(TEXTURE_BEACON, 0, 219, 22, 22, 6);
-    private static final Icon WIDGET_MOUSE_OVER = new PartIcon(TEXTURE_BEACON, 66, 219, 22, 22, 6);
-    private static final Icon WIDGET_DISABLED = new PartIcon(TEXTURE_BEACON, 44, 219, 22, 22, 6);
+    private static final Icon WIDGET = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 18, 60, 18, 18, 3);
+    private static final Icon WIDGET_MOUSE_OVER = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 36, 60, 18, 18, 3);
+    private static final Icon WIDGET_DISABLED = WIDGET.withTint(Color4I.BLACK.withAlpha(100));
 
-    private static final Icon SLOT = new PartIcon(TEXTURE_BEACON, 35, 136, 18, 18, 3);
+    private static final Icon SLOT = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 18, 78, 18, 18, 3);
     private static final Icon SLOT_MOUSE_OVER = SLOT.combineWith(Color4I.WHITE.withAlpha(33));
 
-    private static final Icon SCROLL_BAR_BG = SLOT;
+    private static final Icon SCROLL_BAR_BG = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 0, 60, 18, 18, 3);
     private static final Icon SCROLL_BAR_BG_DISABLED = SCROLL_BAR_BG.withTint(Color4I.BLACK.withAlpha(100));
 
-    private static final Icon TEXT_BOX = new PartIcon(TEXTURE_ENCHANTING_TABLE, 0, 185, 108, 19, 6);
-
-    private static final Icon TAB_H_UNSELECTED = TEXTURE_TABS.withUV(0, 97, 28, 28, 256, 256);
-    private static final Icon TAB_H_SELECTED = TEXTURE_TABS.withUV(0, 64, 27, 27, 256, 256);
+    private static final Icon TEXT_BOX = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 0, 78, 18, 18, 6);
 
     private final Deque<Boolean> fontUnicode = new ArrayDeque<>();
 
@@ -123,10 +116,6 @@ public class Theme {
 
     public void drawPanelBackground(int x, int y, int w, int h) {
         drawContainerSlot(x, y, w, h);
-    }
-
-    public void drawHorizontalTab(int x, int y, int w, int h, boolean selected) {
-        (selected ? TAB_H_SELECTED : TAB_H_UNSELECTED).draw(x, y, w, h);
     }
 
     public void drawContextMenuBackground(int x, int y, int w, int h) {

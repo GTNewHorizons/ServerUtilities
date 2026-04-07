@@ -321,7 +321,7 @@ public class ServerUtilitiesPlayerEventHandler {
                             "%s clicked %s in air at %s in %s",
                             playerMP.getCommandSenderName(),
                             getHeldItemName(playerMP),
-                            getPos(event.x, event.y, event.z),
+                            getPos((int) playerMP.posX, (int) playerMP.posY, (int) playerMP.posZ),
                             getDim(playerMP)));
         }
     }
