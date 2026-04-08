@@ -10,18 +10,11 @@ dependencies {
     compileOnly('org.jetbrains:annotations:25.0.0')
     compileOnly('com.github.GTNewHorizons:Baubles-Expanded:2.2.11-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:Battlegear2:1.4.3:dev') {transitive = false}
-<<<<<<< master
-    compileOnly('com.github.GTNewHorizons:Galacticraft:3.4.15-GTNH:dev') {transitive = false}
-    compileOnly('com.github.GTNewHorizons:TinkersConstruct:1.14.24-GTNH:dev') {transitive = false}
-    compileOnly('com.github.GTNewHorizons:AdventureBackpack2:1.4.12-GTNH:dev') {transitive = false}
-    compileOnly('com.github.GTNewHorizons:Minecraft-Backpack-Mod:2.6.7-GTNH:dev') {transitive = false}
-    compileOnly(rfg.deobf("curse.maven:witchery-69673:2234410")) {transitive = false}
-=======
     compileOnly('com.github.GTNewHorizons:Galacticraft:3.4.20-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:TinkersConstruct:1.14.46-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:AdventureBackpack2:1.4.18-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:Minecraft-Backpack-Mod:2.6.10-GTNH:dev') {transitive = false}
->>>>>>> master
+    compileOnly(rfg.deobf("curse.maven:witchery-69673:2234410")) {transitive = false}
 
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:waila:1.19.22:dev")
 }
