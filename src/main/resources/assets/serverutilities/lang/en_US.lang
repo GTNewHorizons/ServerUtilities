@@ -511,8 +511,8 @@ commands.vanish.damage_other=Damaging others while vanished
 commands.vanish.send_connection_msg=Send connection message on vanish
 commands.vanish.container_read_only=Container read-only
 commands.vanish.item_dropping=Item dropping while vanished
-commands.pregen.start.usage_server=/pregen start <x> <y> <radius>
-commands.pregen.start.usage_client=/pregen start <x> <y> <radius> or /pregen <radius>
+commands.pregen.start.usage_server=/pregen start <x> <z> <radius>
+commands.pregen.start.usage_client=/pregen start <x> <z> <radius> or /pregen start <radius>
 commands.pregen.stop.usage=/pregen stop
 commands.pregen.progress.usage=/pregen progress
 
