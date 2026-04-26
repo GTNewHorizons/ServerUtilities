@@ -17,6 +17,10 @@ import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.text_components.Notification;
 
+/**
+ * Handles automatic server shutdown with escalating notifications. Notifications at ≤60 seconds are marked as
+ * important, which causes them to display as titles (via TitleAPI) when the TITLE location is available.
+ */
 public class ShutdownTask extends Task {
 
     public static long shutdownTime = 0L;
@@ -82,6 +86,10 @@ public class ShutdownTask extends Task {
                                 "serverutilities.lang.timer.shutdown",
                                 EnumChatFormatting.LIGHT_PURPLE,
                                 t.toTimeString()));
+                // Escalate to title display at ≤60 seconds
+                if (t.millis() <= Ticks.MINUTE.millis()) {
+                    notification.setImportant(true);
+                }
                 NotifyTask task = new NotifyTask(shutdownTime - t.millis(), notification);
                 notifications.add(task);
             }
