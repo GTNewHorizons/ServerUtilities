@@ -585,7 +585,7 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(false)
         public boolean show_playtime;
 
-        @Config.Comment("Enabled Player Sleeping Percentage to skip night. Use the gamerule playersSleepingPercentage to set the percentage.")
+        @Config.Comment("Enabled Player Sleeping Percentage to skip night. Use the gamerule playersSleepingPercentage to set the percentage. This feature automatically adapts to Witchery (Vampire).")
         @Config.DefaultBoolean(true)
         @Config.ModDetectedDefault(coremod = "ganymedes01.etfuturum.mixinplugin.EtFuturumEarlyMixins", value = "false")
         public boolean enable_player_sleeping_percentage;
@@ -594,6 +594,11 @@ public class ServerUtilitiesConfig {
         @Config.DefaultInt(50)
         @Config.RangeInt(min = 0, max = 100)
         public int player_sleeping_percentage;
+
+        @Config.Comment("The percentage of vampires in coffins required to sleep to night.")
+        @Config.DefaultInt(50)
+        @Config.RangeInt(min = 0, max = 100)
+        public int vampire_sleep_percent;
 
         @Config.Ignore
         private List<DisabledItem> disabledItems = null;
