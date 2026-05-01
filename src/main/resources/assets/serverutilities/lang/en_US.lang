@@ -321,6 +321,8 @@ team_config.serverutilities.use_items=Required Level for Using Items
 team_config.serverutilities.explosions=Enable Explosions in Claimed Chunks
 team_config.serverutilities.endermen=Enable Endermen Interacting With Blocks in Claimed Chunks
 team_config.serverutilities.fake_players=Allow Fake Players to Interact With Blocks
+team_config.serverutilities.mob_spawning=Disable Mob Spawns Within Claimed Chunks
+team_config.serverutilities.blocked_creatures=Creature Types To Block Within Claimed Chunks
 
 # Sidebar Buttons
 sidebar_button=Sidebar Buttons
