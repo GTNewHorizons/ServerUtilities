@@ -1,13 +1,17 @@
 package serverutils.data;
 
+import static net.minecraft.entity.EnumCreatureType.creature;
+
 import java.io.File;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraftforge.common.util.Constants;
@@ -24,9 +28,12 @@ import serverutils.events.team.ForgeTeamLoadedEvent;
 import serverutils.events.team.ForgeTeamSavedEvent;
 import serverutils.lib.EnumTeamStatus;
 import serverutils.lib.config.ConfigGroup;
+import serverutils.lib.config.ConfigList;
+import serverutils.lib.config.ConfigStringEnum;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.TeamData;
+import serverutils.lib.enums.EnumCreature;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.NBTUtils;
@@ -141,9 +148,11 @@ public class ServerUtilitiesTeamData extends TeamData {
     private EnumTeamStatus useItems = EnumTeamStatus.ALLY;
     private boolean explosions = false;
     private boolean endermen = false;
+    private boolean mobSpawningDisabled = false;
     public boolean canForceChunks = false;
     private int cachedMaxClaimChunks, cachedMaxChunkloaderChunks;
     public boolean chunkloadsDecayed;
+    public Set<EnumCreature> blockedCreatures = new HashSet<>();
 
     ServerUtilitiesTeamData(ForgeTeam t) {
         super(t);
@@ -164,6 +173,12 @@ public class ServerUtilitiesTeamData extends TeamData {
         nbt.setString("AttackEntities", attackEntities.getName());
         nbt.setString("UseItems", useItems.getName());
         nbt.setBoolean("DecayedChunkloads", chunkloadsDecayed);
+        nbt.setBoolean("MobSpawnsDisabled", mobSpawningDisabled);
+        NBTTagList blockedMobList = new NBTTagList();
+        for (EnumCreature creature : blockedCreatures) {
+            blockedMobList.appendTag(new NBTTagString(creature.name()));
+        }
+        nbt.setTag("BlockedCreatures", blockedMobList);
         return nbt;
     }
 
@@ -176,6 +191,13 @@ public class ServerUtilitiesTeamData extends TeamData {
         attackEntities = EnumTeamStatus.NAME_MAP_PERMS.get(nbt.getString("AttackEntities"));
         useItems = EnumTeamStatus.NAME_MAP_PERMS.get(nbt.getString("UseItems"));
         chunkloadsDecayed = nbt.getBoolean("DecayedChunkloads");
+        mobSpawningDisabled = nbt.getBoolean("MobSpawnsDisabled");
+        NBTTagList blockedMobList = nbt.getTagList("BlockedCreatures", Constants.NBT.TAG_STRING);
+        for (int i = 0; i < blockedMobList.tagCount(); i++) {
+            String name = blockedMobList.getStringTagAt(i);
+            if (name.isEmpty()) continue;
+            blockedCreatures.add(EnumCreature.NAME_MAP.get(name));
+        }
 
         if (ClaimedChunks.isActive() && nbt.hasKey("ClaimedChunks")) {
             team.markDirty();
@@ -207,16 +229,31 @@ public class ServerUtilitiesTeamData extends TeamData {
                 .setCanEdit(ServerUtilitiesConfig.world.enable_explosions.isDefault());
         group.addBool("endermen", () -> endermen, v -> endermen = v, false)
                 .setCanEdit(ServerUtilitiesConfig.world.enable_endermen.isDefault());
+        group.addBool("mob_spawning", () -> mobSpawningDisabled, v -> mobSpawningDisabled = v, false)
+                .setCanEdit(ServerUtilitiesConfig.world.blockMobSpawningInClaims.isDefault());
         group.addEnum("blocks_edit", () -> editBlocks, v -> editBlocks = v, EnumTeamStatus.NAME_MAP_PERMS)
                 .setCanEdit(ServerUtilitiesConfig.teams.grief_protection);
         group.addEnum(
                 "blocks_interact",
                 () -> interactWithBlocks,
                 v -> interactWithBlocks = v,
-                EnumTeamStatus.NAME_MAP_PERMS).setCanEdit(ServerUtilitiesConfig.teams.interaction_protection);;
+                EnumTeamStatus.NAME_MAP_PERMS).setCanEdit(ServerUtilitiesConfig.teams.interaction_protection);
         group.addEnum("attack_entities", () -> attackEntities, v -> attackEntities = v, EnumTeamStatus.NAME_MAP_PERMS);
         group.addEnum("use_items", () -> useItems, v -> useItems = v, EnumTeamStatus.NAME_MAP_PERMS)
                 .setCanEdit(ServerUtilitiesConfig.teams.grief_protection);
+        group.add(
+                "blocked_creatures",
+                new ConfigList.SimpleList<>(
+                        blockedCreatures,
+                        new ConfigStringEnum(
+                                EnumCreature.NAME_MAP.keys,
+                                EnumCreature.NAME_MAP.getName(EnumCreature.MOB)),
+                        creature -> new ConfigStringEnum(
+                                EnumCreature.NAME_MAP.keys,
+                                EnumCreature.NAME_MAP.getName(creature)),
+                        s -> EnumCreature.NAME_MAP.get(s.getString())).setDistinct(true),
+                new ConfigStringEnum(EnumCreature.NAME_MAP.keys, EnumCreature.NAME_MAP.getName(EnumCreature.MOB)))
+                .setHidden(!ServerUtilitiesConfig.world.blockMobSpawningInClaims.isDefault());
     }
 
     public EnumTeamStatus getEditBlocksStatus() {
@@ -241,6 +278,10 @@ public class ServerUtilitiesTeamData extends TeamData {
 
     public boolean forbidsEndermanGriefing() {
         return !endermen;
+    }
+
+    public boolean allowsMobSpawning() {
+        return !mobSpawningDisabled;
     }
 
     public int getMaxClaimChunks() {
