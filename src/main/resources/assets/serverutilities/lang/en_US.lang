@@ -51,6 +51,7 @@ cooldown=Cooldown
 cant_use_now=Can't use that right now!
 cant_use_now_cooldown=Can't use that right now! Cooldown: %s
 action_bar=Action Bar
+title=Title
 nothing_changed=Nothing changed!
 player_must_be_online=Player must be online!
 

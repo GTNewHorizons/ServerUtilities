@@ -52,7 +52,7 @@ public class StringUtils {
 
     private static final Pattern NOT_SNAKE_CASE_PATTERN = Pattern.compile("[^a-z0-9_]");
     private static final Pattern REPEATING_UNDERSCORE_PATTERN = Pattern.compile("_{2,}");
-    private static final Pattern FORMATTING_CODE_PATTERN = Pattern.compile("(?i)[\\&\u00a7]([0-9A-FK-OR])");
+    private static final Pattern FORMATTING_CODE_PATTERN = Pattern.compile("(?i)[\\&\u00a7]([0-9A-FK-ORXGQZV])");
 
     static {
         DOUBLE_FORMATTER_00.setRoundingMode(RoundingMode.DOWN);

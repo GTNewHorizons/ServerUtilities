@@ -25,6 +25,7 @@ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.gtnewhorizon.gtnhlib.client.title.TitleAPI;
 import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -44,6 +45,18 @@ import serverutils.lib.util.text_components.Notification;
 @EventBusSubscriber(side = Side.CLIENT)
 public class NotificationHandler {
 
+    private static final boolean HAS_TITLE_API;
+    static {
+        boolean found;
+        try {
+            Class.forName("com.gtnewhorizon.gtnhlib.client.title.TitleAPI");
+            found = true;
+        } catch (ClassNotFoundException e) {
+            found = false;
+        }
+        HAS_TITLE_API = found;
+    }
+
     private static final Deque<Notification> NOTIFICATIONS = new ArrayDeque<>();
     private static final Map<String, IChatComponent> lastMessages = new HashMap<>();
     private static ConfigGroup notificationConfig;
@@ -59,7 +72,7 @@ public class NotificationHandler {
         ResourceLocation id = notification.getId();
         ServerUtilitiesNotifications notificationType = ServerUtilitiesNotifications.getFromId(id);
         EnumMessageLocation location = (notificationType == null || notification.isImportant())
-                ? EnumMessageLocation.ACTION_BAR
+                ? EnumMessageLocation.TITLE
                 : notificationType.getLocation();
 
         if (location == EnumMessageLocation.OFF) return;
@@ -67,6 +80,15 @@ public class NotificationHandler {
         lastMessages.put(id.getResourcePath(), notification);
         if (location == EnumMessageLocation.CHAT) {
             mc.thePlayer.addChatMessage(component);
+            return;
+        }
+
+        if (location == EnumMessageLocation.TITLE) {
+            if (HAS_TITLE_API) {
+                TitleAPI.setTitle(component);
+            } else {
+                mc.ingameGUI.func_110326_a(component.getFormattedText(), false);
+            }
             return;
         }
 
