@@ -45,7 +45,6 @@ import serverutils.events.ServerReloadEvent;
 import serverutils.events.ServerUtilitiesPreInitRegistryEvent;
 import serverutils.handlers.ServerUtilitiesRegistryEventHandler;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
-import serverutils.handlers.ServerUtilitiesWorldEventHandler;
 import serverutils.lib.EnumReloadType;
 import serverutils.lib.OtherMods;
 import serverutils.lib.config.ConfigBoolean;
@@ -148,7 +147,6 @@ public class ServerUtilitiesCommon {
 
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesRegistryEventHandler.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesServerEventHandler.INST);
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesWorldEventHandler.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesUniverseData.INST);
         MinecraftForge.EVENT_BUS.register(ServerUtilitiesPermissions.INST);
         FMLCommonHandler.instance().bus().register(ServerUtilitiesServerEventHandler.INST);
