@@ -57,13 +57,7 @@ public enum Mixins implements IMixins {
     PLAYERS_SLEEPING_PERCENTAGE(new MixinBuilder()
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> world.enable_player_sleeping_percentage)
-            .addExcludedMod(TargetedMod.WITCHERY)
             .addCommonMixins("minecraft.MixinWorldServer_SleepPercentage")),
-    VAMPIRES_SLEEPING_PERCENTAGE(new MixinBuilder()
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> world.enable_player_sleeping_percentage)
-            .addRequiredMod(TargetedMod.WITCHERY)
-            .addCommonMixins("minecraft.MixinWorldServer_SleepPercentage_Witchery")),
     CANCEL_VAMPIRE_WAKEUP_EVENT(new MixinBuilder()
             .setPhase(Phase.LATE)
             .setApplyIf(() -> world.enable_player_sleeping_percentage)
