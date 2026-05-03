@@ -117,7 +117,6 @@ public class CmdDumpChunkloaders extends CmdBase {
                     }
                     int x = (minX + maxX) * 8 + 8;
                     int z = (minZ + maxZ) * 8 + 8;
-                    world.getChunkFromBlockCoords(x, z);
                     int y = world.getTopSolidOrLiquidBlock(x, z);
                     chunks.getChatStyle().setChatHoverEvent(
                             new HoverEvent(
@@ -132,7 +131,9 @@ public class CmdDumpChunkloaders extends CmdBase {
                                                     + " ; "
                                                     + ticket.getChunkList().toString())));
                     chunks.getChatStyle().setChatClickEvent(
-                            new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tp " + x + " " + y + " " + z));
+                            new ClickEvent(
+                                    ClickEvent.Action.RUN_COMMAND,
+                                    "/tpl " + x + " " + y + " " + z + " " + world.provider.dimensionId));
 
                     sender.addChatMessage(
                             ticketDescription.appendText(" | ").appendSibling(chunks).appendText(" | ")
@@ -174,11 +175,10 @@ public class CmdDumpChunkloaders extends CmdBase {
 
                         int x = headChunk.chunkXPos * 16 + 8;
                         int z = headChunk.chunkZPos * 16 + 8;
-                        world.getChunkFromBlockCoords(x, z);
                         int y = world.getTopSolidOrLiquidBlock(x, z);
 
                         IChatComponent teleport = new ChatComponentText("Teleport");
-                        String teleportCommand = "/tp " + x + " " + y + " " + z;
+                        String teleportCommand = "/tpl " + x + " " + y + " " + z + " " + world.provider.dimensionId;
                         teleport.getChatStyle().setChatHoverEvent(
                                 new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ChatComponentText(teleportCommand)));
                         teleport.getChatStyle()
