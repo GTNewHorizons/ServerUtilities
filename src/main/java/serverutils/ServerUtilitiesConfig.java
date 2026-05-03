@@ -366,6 +366,7 @@ public class ServerUtilitiesConfig {
         public boolean enable_starting_items;
 
         @Config.Comment("Message of the day. This will be displayed when player joins the server.")
+        @Config.Reloadable("motd")
         @Config.DefaultStringList("Hello player!")
         public String[] motd;
 
@@ -375,7 +376,7 @@ public class ServerUtilitiesConfig {
         public String[] starting_items;
 
         @Config.Ignore
-        private List<IChatComponent> motdComponents = null;
+        public List<IChatComponent> motdComponents = null;
 
         @Config.Ignore
         private List<ItemStack> startingItems = null;
