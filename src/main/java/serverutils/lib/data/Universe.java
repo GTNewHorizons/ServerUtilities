@@ -55,6 +55,7 @@ import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.ranks.Ranks;
 import serverutils.task.Task;
 
 public class Universe {
@@ -686,6 +687,9 @@ public class Universe {
         getTeams().forEach(ForgeTeam::clearCache);
         getPlayers().forEach(ForgePlayer::clearCache);
         fakePlayer.clearCache();
+        if (Ranks.INSTANCE != null) {
+            Ranks.INSTANCE.clearCache();
+        }
     }
 
     public void addTeam(ForgeTeam team) {

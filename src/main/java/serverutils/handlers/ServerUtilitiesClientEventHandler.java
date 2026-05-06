@@ -31,7 +31,6 @@ import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.client.gui.GuiClaimedChunks;
 import serverutils.client.gui.GuiClientConfig;
 import serverutils.client.gui.GuiSidebar;
-import serverutils.events.chunks.UpdateClientDataEvent;
 import serverutils.events.client.CustomClickEvent;
 import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.OtherMods;
@@ -44,7 +43,6 @@ import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.SidedUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.net.MessageAdminPanelGui;
-import serverutils.net.MessageClaimedChunksUpdate;
 import serverutils.net.MessageEditNBTRequest;
 import serverutils.net.MessageLeaderboardList;
 import serverutils.net.MessageMyTeamGui;
@@ -85,15 +83,6 @@ public class ServerUtilitiesClientEventHandler {
                 mc.theWorld.getWorldInfo()
                         .setThundering(ServerUtilitiesConfig.world.forced_spawn_dimension_weather >= 2);
             }
-        }
-    }
-
-    @SubscribeEvent
-    public static void onChunkDataUpdate(UpdateClientDataEvent event) {
-        MessageClaimedChunksUpdate message = event.getMessage();
-        GuiClaimedChunks.onChunkDataUpdate(message);
-        if (OtherMods.isNavigatorLoaded()) {
-            NavigatorIntegration.onChunkDataUpdate(message);
         }
     }
 

@@ -32,7 +32,6 @@ import serverutils.ServerUtilitiesStats;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
-import serverutils.events.universe.UniverseClearCacheEvent;
 import serverutils.lib.config.ConfigEnum;
 import serverutils.lib.config.RankConfigAPI;
 import serverutils.lib.data.ForgePlayer;
@@ -56,13 +55,6 @@ public class ServerUtilitiesServerEventHandler {
     private static final String BOLD_REPLACE = "&l$1&l";
     private static final Pattern ITALIC_PATTERN = Pattern.compile("\\*(.+?)\\*|_(.+?)_");
     private static final String ITALIC_REPLACE = "&o$1&o";
-
-    @SubscribeEvent
-    public static void onCacheCleared(UniverseClearCacheEvent event) {
-        if (Ranks.INSTANCE != null) {
-            Ranks.INSTANCE.clearCache();
-        }
-    }
 
     @SubscribeEvent
     public static void loadWorldEvent(WorldEvent.Load event) {
