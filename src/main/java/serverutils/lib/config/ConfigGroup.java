@@ -23,11 +23,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 
+import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.util.FinalIDObject;
 import serverutils.lib.util.StringUtils;
-import serverutils.lib.util.misc.BooleanConsumer;
 import serverutils.lib.util.misc.NameMap;
 
 public class ConfigGroup extends FinalIDObject {

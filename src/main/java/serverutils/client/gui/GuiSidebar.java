@@ -13,9 +13,14 @@ import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.client.event.GuiScreenEvent;
 
 import org.lwjgl.opengl.GL11;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
 import serverutils.client.EnumPlacement;
 import serverutils.client.EnumSidebarLocation;
 import serverutils.client.ServerUtilitiesClientConfig;
@@ -23,8 +28,10 @@ import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.icon.Color4I;
 
+@EventBusSubscriber(side = Side.CLIENT)
 public class GuiSidebar extends GuiButton {
 
+    private static final List<String> sidebarButtonTooltip = new ArrayList<>();
     public static Rectangle lastDrawnArea = new Rectangle();
     public static int dragOffsetX = 0, dragOffsetY = 0;
     private final GuiContainer gui;
@@ -275,6 +282,31 @@ public class GuiSidebar extends GuiButton {
             if (button.getTooltipHandler() != null) {
                 button.getTooltipHandler().accept(textLines);
             }
+        }
+    }
+
+    /**
+     * Renders sidebar button tooltips outside of {@link GuiSidebar#drawButton} so that other screen elements don't draw
+     * over it.
+     */
+    @SubscribeEvent
+    public static void onGuiScreenDraw(final GuiScreenEvent.DrawScreenEvent.Post event) {
+        if (ClientUtils.areButtonsVisible(event.gui)) {
+            event.gui.buttonList.forEach((GuiButton button) -> {
+                if (button instanceof GuiSidebar sidebar) {
+                    sidebarButtonTooltip.clear();
+                    sidebar.addTooltip(sidebarButtonTooltip);
+                    event.gui.func_146283_a(sidebarButtonTooltip, event.mouseX, event.mouseY);
+                }
+            });
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @SubscribeEvent
+    public static void onGuiInit(final GuiScreenEvent.InitGuiEvent.Post event) {
+        if (ClientUtils.areButtonsVisible(event.gui)) {
+            event.buttonList.add(new GuiSidebar((GuiContainer) event.gui));
         }
     }
 }

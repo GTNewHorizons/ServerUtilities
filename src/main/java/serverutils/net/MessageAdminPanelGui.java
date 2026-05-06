@@ -6,7 +6,7 @@ import java.util.List;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 
-import serverutils.ServerUtilitiesCommon;
+import serverutils.ServerUtilitiesRegistry;
 import serverutils.lib.data.Action;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
@@ -26,7 +26,7 @@ public class MessageAdminPanelGui extends MessageToServer {
         ForgePlayer p = Universe.get().getPlayer(player);
         NBTTagCompound data = new NBTTagCompound();
 
-        for (Action a : ServerUtilitiesCommon.ADMIN_PANEL_ACTIONS.values()) {
+        for (Action a : ServerUtilitiesRegistry.ADMIN_PANEL_ACTIONS.values()) {
             Action.Type type = a.getType(p, data);
 
             if (type.isVisible()) {
