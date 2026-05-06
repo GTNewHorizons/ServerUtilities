@@ -22,11 +22,6 @@ public class ResourceDataReader extends DataReader {
         resource = r;
     }
 
-    // public String toString()
-    // {
-    // return resource.getResourceLocation().toString();
-    // }
-
     @Override
     public String string(int bufferSize) throws Exception {
         return readStringFromStream(resource.getInputStream(), bufferSize);

@@ -9,7 +9,7 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ResourceLocation;
 
-import serverutils.ServerUtilitiesCommon;
+import serverutils.ServerUtilitiesRegistry;
 import serverutils.events.ServerReloadEvent;
 import serverutils.lib.EnumReloadType;
 import serverutils.lib.command.CmdBase;
@@ -26,7 +26,7 @@ public class CmdReload extends CmdBase {
         tab = new HashSet<>();
         tab.add("*");
 
-        for (ResourceLocation r : ServerUtilitiesCommon.RELOAD_IDS.keySet()) {
+        for (ResourceLocation r : ServerUtilitiesRegistry.RELOAD_IDS.keySet()) {
             tab.add(r.toString());
             tab.add(r.getResourceDomain() + ":*");
         }

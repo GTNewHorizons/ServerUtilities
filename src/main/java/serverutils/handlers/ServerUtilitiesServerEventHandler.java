@@ -18,6 +18,8 @@ import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -30,7 +32,6 @@ import serverutils.ServerUtilitiesStats;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
-import serverutils.events.universe.UniverseClearCacheEvent;
 import serverutils.lib.config.ConfigEnum;
 import serverutils.lib.config.RankConfigAPI;
 import serverutils.lib.data.ForgePlayer;
@@ -45,9 +46,9 @@ import serverutils.net.MessageUpdateTabName;
 import serverutils.pregenerator.ChunkLoaderManager;
 import serverutils.ranks.Ranks;
 
+@EventBusSubscriber
 public class ServerUtilitiesServerEventHandler {
 
-    public static final ServerUtilitiesServerEventHandler INST = new ServerUtilitiesServerEventHandler();
     private static final Pattern STRIKETHROUGH_PATTERN = Pattern.compile("~~(.+?)~~");
     private static final String STRIKETHROUGH_REPLACE = "&m$1&m";
     private static final Pattern BOLD_PATTERN = Pattern.compile("\\*\\*(.+?)\\*\\*|__(.+?)__");
@@ -56,14 +57,7 @@ public class ServerUtilitiesServerEventHandler {
     private static final String ITALIC_REPLACE = "&o$1&o";
 
     @SubscribeEvent
-    public void onCacheCleared(UniverseClearCacheEvent event) {
-        if (Ranks.INSTANCE != null) {
-            Ranks.INSTANCE.clearCache();
-        }
-    }
-
-    @SubscribeEvent
-    public void loadWorldEvent(WorldEvent.Load event) {
+    public static void loadWorldEvent(WorldEvent.Load event) {
         if (ServerUtilitiesConfig.world.enable_player_sleeping_percentage) {
             if (!event.world.isRemote && !event.world.getGameRules().hasRule("playersSleepingPercentage")) {
                 event.world.getGameRules().addGameRule(
@@ -74,7 +68,7 @@ public class ServerUtilitiesServerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onServerChatEvent(ServerChatEvent event) {
+    public static void onServerChatEvent(ServerChatEvent event) {
         if (!ServerUtilitiesConfig.ranks.override_chat || !Ranks.isActive()) {
             return;
         }
@@ -157,7 +151,7 @@ public class ServerUtilitiesServerEventHandler {
     }
 
     @SubscribeEvent
-    public void onServerTick(TickEvent.ServerTickEvent event) {
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (!Universe.loaded()) {
             return;
         }
@@ -242,7 +236,7 @@ public class ServerUtilitiesServerEventHandler {
     }
 
     @SubscribeEvent
-    public void onWorldTick(TickEvent.WorldTickEvent event) {
+    public static void onWorldTick(TickEvent.WorldTickEvent event) {
         if (!event.world.isRemote && event.phase == TickEvent.Phase.START
                 && event.world.provider.dimensionId == ServerUtilitiesConfig.world.spawn_dimension) {
             if (ServerUtilitiesConfig.world.forced_spawn_dimension_time != -1) {
@@ -267,7 +261,7 @@ public class ServerUtilitiesServerEventHandler {
     }
 
     @SubscribeEvent
-    public void onServerChatEventLog(ServerChatEvent event) {
+    public static void onServerChatEventLog(ServerChatEvent event) {
         if (ServerUtilitiesConfig.world.logging.chat_enable) {
             ServerUtilitiesUniverseData.chatLog(String.format("From %s: %s", event.username, event.message));
         }

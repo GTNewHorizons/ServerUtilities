@@ -12,10 +12,13 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.client.gui.ClientClaimedChunks;
+import serverutils.client.gui.GuiClaimedChunks;
 import serverutils.data.ClaimedChunk;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesTeamData;
 import serverutils.events.chunks.UpdateClientDataEvent;
+import serverutils.integration.navigator.NavigatorIntegration;
+import serverutils.lib.OtherMods;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
@@ -143,5 +146,9 @@ public class MessageClaimedChunksUpdate extends MessageToClient {
     @SideOnly(Side.CLIENT)
     public void onMessage() {
         new UpdateClientDataEvent(this).post();
+        GuiClaimedChunks.onChunkDataUpdate(this);
+        if (OtherMods.isNavigatorLoaded()) {
+            NavigatorIntegration.onChunkDataUpdate(this);
+        }
     }
 }

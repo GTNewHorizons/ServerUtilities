@@ -6,7 +6,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.client.ClientCommandHandler;
-import net.minecraftforge.common.MinecraftForge;
 
 import org.lwjgl.input.Keyboard;
 
@@ -14,7 +13,6 @@ import com.gtnewhorizon.gtnhlib.config.ConfigException;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 
 import cpw.mods.fml.client.registry.ClientRegistry;
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
@@ -29,7 +27,6 @@ import serverutils.command.client.CommandPing;
 import serverutils.command.client.CommandPrintItem;
 import serverutils.command.client.CommandPrintState;
 import serverutils.command.client.CommandSimulateButton;
-import serverutils.handlers.ServerUtilitiesClientEventHandler;
 import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.OtherMods;
 import serverutils.lib.client.ClientUtils;
@@ -58,10 +55,6 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
         ((IReloadableResourceManager) Minecraft.getMinecraft().getResourceManager())
                 .registerReloadListener(SidebarButtonManager.INSTANCE);
         ChunkSelectorMap.setMap(new BuiltinChunkMap());
-
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesClientEventHandler.INST);
-        FMLCommonHandler.instance().bus().register(ServerUtilitiesClientEventHandler.INST);
-
         ClientRegistry.registerKeyBinding(
                 KEY_NBT = new KeyBinding("key.serverutilities.nbt", Keyboard.KEY_NONE, KEY_CATEGORY));
         ClientRegistry.registerKeyBinding(

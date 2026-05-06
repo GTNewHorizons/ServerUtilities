@@ -46,7 +46,6 @@ import serverutils.events.universe.UniverseClearCacheEvent;
 import serverutils.events.universe.UniverseClosedEvent;
 import serverutils.events.universe.UniverseLoadedEvent;
 import serverutils.events.universe.UniverseSavedEvent;
-import serverutils.lib.ATHelper;
 import serverutils.lib.EnumReloadType;
 import serverutils.lib.EnumTeamColor;
 import serverutils.lib.io.DataReader;
@@ -56,6 +55,7 @@ import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.ranks.Ranks;
 import serverutils.task.Task;
 
 public class Universe {
@@ -182,7 +182,7 @@ public class Universe {
             }
 
             if (universe.server.isSinglePlayer()) {
-                boolean cheats = ATHelper.areCommandsAllowedForAll(universe.server.getConfigurationManager());
+                boolean cheats = universe.server.getConfigurationManager().commandsAllowedForAll;
 
                 if (universe.prevCheats != cheats) {
                     universe.prevCheats = cheats;
@@ -687,6 +687,9 @@ public class Universe {
         getTeams().forEach(ForgeTeam::clearCache);
         getPlayers().forEach(ForgePlayer::clearCache);
         fakePlayer.clearCache();
+        if (Ranks.INSTANCE != null) {
+            Ranks.INSTANCE.clearCache();
+        }
     }
 
     public void addTeam(ForgeTeam team) {

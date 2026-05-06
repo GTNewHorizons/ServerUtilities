@@ -14,6 +14,8 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
@@ -28,13 +30,14 @@ import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.ranks.Ranks;
 
+@EventBusSubscriber
 public class ServerUtilitiesUniverseData {
 
     public static final ServerUtilitiesUniverseData INST = new ServerUtilitiesUniverseData();
     public static final BlockDimPosStorage WARPS = new BlockDimPosStorage();
     private static final List<String> worldLog = new ArrayList<>();
     private static final List<String> chatLog = new ArrayList<>();
-    private List<ServerUtilitiesTeamData> registeredTeamData = new ArrayList<>();
+    private static final List<ServerUtilitiesTeamData> registeredTeamData = new ArrayList<>();
 
     public static boolean isInSpawn(MinecraftServer server, ChunkDimPos pos) {
         if (pos.dim != 0 || (!server.isDedicatedServer() && !ServerUtilitiesConfig.world.spawn_area_in_sp)) {
@@ -55,19 +58,19 @@ public class ServerUtilitiesUniverseData {
     }
 
     @SubscribeEvent
-    public void registerTeamData(ForgeTeamDataEvent event) {
+    public static void registerTeamData(ForgeTeamDataEvent event) {
         event.register(new ServerUtilitiesTeamData(event.getTeam()));
     }
 
     @SubscribeEvent
-    public void onCreateServerTeams(UniverseLoadedEvent.CreateServerTeams event) {
+    public static void onCreateServerTeams(UniverseLoadedEvent.CreateServerTeams event) {
         ServerUtilitiesTeamData teamData = new ServerUtilitiesTeamData(event.getUniverse().fakePlayerTeam);
         registeredTeamData.add(teamData);
         MinecraftForge.EVENT_BUS.register(teamData);
     }
 
     @SubscribeEvent
-    public void onUniversePreLoaded(UniverseLoadedEvent.Pre event) {
+    public static void onUniversePreLoaded(UniverseLoadedEvent.Pre event) {
         if (ServerUtilitiesConfig.world.chunk_claiming) {
             ClaimedChunks.instance = new ClaimedChunks(event.getUniverse());
         }
@@ -76,13 +79,13 @@ public class ServerUtilitiesUniverseData {
     }
 
     @SubscribeEvent
-    public void onUniversePostLoaded(UniverseLoadedEvent.Post event) {
+    public static void onUniversePostLoaded(UniverseLoadedEvent.Post event) {
         NBTTagCompound nbt = event.getData(ServerUtilities.MOD_ID);
         WARPS.deserializeNBT(nbt.getCompoundTag("Warps"));
     }
 
     @SubscribeEvent
-    public void onUniverseLoaded(UniverseLoadedEvent.Finished event) {
+    public static void onUniverseLoaded(UniverseLoadedEvent.Finished event) {
         long now = System.currentTimeMillis();
         if (ClaimedChunks.isActive()) {
             ClaimedChunks.instance.nextChunkloaderUpdate = now + Ticks.SECOND.millis();
@@ -132,7 +135,7 @@ public class ServerUtilitiesUniverseData {
     }
 
     @SubscribeEvent
-    public void onUniverseSaved(UniverseSavedEvent event) {
+    public static void onUniverseSaved(UniverseSavedEvent event) {
         if (ClaimedChunks.isActive()) {
             ClaimedChunks.instance.processQueue();
         }
@@ -186,7 +189,7 @@ public class ServerUtilitiesUniverseData {
     }
 
     @SubscribeEvent
-    public void onUniverseClosed(UniverseClosedEvent event) {
+    public static void onUniverseClosed(UniverseClosedEvent event) {
         if (ClaimedChunks.instance != null) {
             ClaimedChunks.instance.clear();
             ClaimedChunks.instance = null;
