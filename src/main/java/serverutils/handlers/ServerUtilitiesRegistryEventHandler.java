@@ -38,13 +38,15 @@ public class ServerUtilitiesRegistryEventHandler {
         registry.registerServerReloadHandler(
                 new ResourceLocation(ServerUtilities.MOD_ID, "ranks"),
                 reloadEvent -> Ranks.INSTANCE.reload());
-        registry.registerServerReloadHandler(new ResourceLocation(ServerUtilities.MOD_ID, "motd"), reloadEvent -> {
-            if (reloadEvent.getType().command()) {
-                ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "motd");
-                ServerUtilitiesConfig.login.motdComponents = null;
-            }
-            return true;
-        });
+        if (ServerUtilitiesConfig.login.enable_motd) {
+            registry.registerServerReloadHandler(new ResourceLocation(ServerUtilities.MOD_ID, "motd"), reloadEvent -> {
+                if (reloadEvent.getType().command()) {
+                    ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "motd");
+                    ServerUtilitiesConfig.login.motdComponents = null;
+                }
+                return true;
+            });
+        }
 
         registry.registerSyncData(ServerUtilities.MOD_ID, new ServerUtilitiesSyncData());
 
