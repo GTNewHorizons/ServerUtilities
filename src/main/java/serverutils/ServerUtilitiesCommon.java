@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
-import net.minecraft.launchwrapper.Launch;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
@@ -34,18 +33,13 @@ import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import serverutils.aurora.Aurora;
 import serverutils.aurora.AuroraConfig;
-import serverutils.aurora.mc.AuroraMinecraftHandler;
 import serverutils.command.ServerUtilitiesCommands;
 import serverutils.data.NodeEntry;
 import serverutils.data.ServerUtilitiesLoadedChunkManager;
-import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.events.CustomPermissionPrefixesRegistryEvent;
 import serverutils.events.IReloadHandler;
 import serverutils.events.ServerReloadEvent;
 import serverutils.events.ServerUtilitiesPreInitRegistryEvent;
-import serverutils.handlers.ServerUtilitiesRegistryEventHandler;
-import serverutils.handlers.ServerUtilitiesServerEventHandler;
-import serverutils.handlers.ServerUtilitiesWorldEventHandler;
 import serverutils.lib.EnumReloadType;
 import serverutils.lib.OtherMods;
 import serverutils.lib.config.ConfigBoolean;
@@ -121,10 +115,6 @@ public class ServerUtilitiesCommon {
     }
 
     public void preInit(FMLPreInitializationEvent event) {
-        if ((Boolean) Launch.blackboard.get("fml.deobfuscatedEnvironment")) {
-            ServerUtilities.LOGGER.info("Loading ServerUtilities in development environment");
-        }
-
         OtherMods.init();
         if (ranks.enabled) {
             PermissionAPI.setPermissionHandler(ServerUtilitiesPermissionHandler.INSTANCE);
@@ -146,16 +136,6 @@ public class ServerUtilitiesCommon {
         KAOMOJIS.put("tableflip", "(\u256F\u00B0\u25A1\u00B0)\u256F \uFE35 \u253B\u2501\u253B");
         KAOMOJIS.put("unflip", "\u252C\u2500\u252C\u30CE( \u309C-\u309C\u30CE)");
 
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesRegistryEventHandler.INST);
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesServerEventHandler.INST);
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesWorldEventHandler.INST);
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesUniverseData.INST);
-        MinecraftForge.EVENT_BUS.register(ServerUtilitiesPermissions.INST);
-        FMLCommonHandler.instance().bus().register(ServerUtilitiesServerEventHandler.INST);
-        if (AuroraConfig.general.enable) {
-            MinecraftForge.EVENT_BUS.register(AuroraMinecraftHandler.INST);
-            FMLCommonHandler.instance().bus().register(AuroraMinecraftHandler.INST);
-        }
         new CustomPermissionPrefixesRegistryEvent(CUSTOM_PERM_PREFIX_REGISTRY::add).post();
     }
 

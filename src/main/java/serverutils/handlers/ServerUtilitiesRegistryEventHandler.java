@@ -9,6 +9,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.GameRules;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
@@ -26,12 +28,11 @@ import serverutils.net.MessageRanks;
 import serverutils.net.MessageViewCrashList;
 import serverutils.ranks.Ranks;
 
+@EventBusSubscriber
 public class ServerUtilitiesRegistryEventHandler {
 
-    public static final ServerUtilitiesRegistryEventHandler INST = new ServerUtilitiesRegistryEventHandler();
-
     @SubscribeEvent
-    public void onServerUtilitiesPreInitRegistry(ServerUtilitiesPreInitRegistryEvent event) {
+    public static void onServerUtilitiesPreInitRegistry(ServerUtilitiesPreInitRegistryEvent event) {
         ServerUtilitiesPreInitRegistryEvent.Registry registry = event.getRegistry();
         registry.registerServerReloadHandler(
                 new ResourceLocation(ServerUtilities.MOD_ID, "ranks"),

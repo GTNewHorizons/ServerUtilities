@@ -17,6 +17,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBucket;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.GameData;
 import serverutils.data.Leaderboard;
@@ -36,9 +38,8 @@ import serverutils.lib.util.text_components.TextComponentParser;
 import serverutils.ranks.Rank;
 import serverutils.ranks.ServerUtilitiesPermissionHandler;
 
+@EventBusSubscriber
 public class ServerUtilitiesPermissions {
-
-    public static final ServerUtilitiesPermissions INST = new ServerUtilitiesPermissions();
 
     public static final Set<NodeEntry> earlyPermissions = new HashSet<>();
     // Display //
@@ -132,7 +133,7 @@ public class ServerUtilitiesPermissions {
     public static final String CLAIMS_JOURNEYMAP_OTHER = "serverutilities.journeymap.other";
 
     @SubscribeEvent
-    public void registerRankConfigHandler(RegisterRankConfigHandlerEvent event) {
+    public static void registerRankConfigHandler(RegisterRankConfigHandlerEvent event) {
         if (ServerUtilitiesConfig.ranks.enabled) {
             event.setHandler(ServerUtilitiesPermissionHandler.INSTANCE);
         }
@@ -302,7 +303,7 @@ public class ServerUtilitiesPermissions {
     }
 
     @SubscribeEvent
-    public void registerConfigs(RegisterRankConfigEvent event) {
+    public static void registerConfigs(RegisterRankConfigEvent event) {
         event.register(
                 Rank.NODE_PARENT,
                 new ConfigString("", Pattern.compile("^[a-z0-9\\s,]*$")),
@@ -356,7 +357,7 @@ public class ServerUtilitiesPermissions {
     }
 
     @SubscribeEvent
-    public void registerCustomPermissionPrefixes(CustomPermissionPrefixesRegistryEvent event) {
+    public static void registerCustomPermissionPrefixes(CustomPermissionPrefixesRegistryEvent event) {
         event.register(
                 Rank.NODE_COMMAND,
                 DefaultPermissionLevel.OP,
