@@ -23,6 +23,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
+
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -290,6 +292,11 @@ public class ServerUtilitiesCommon {
     public boolean onReload(ServerReloadEvent event) {
         if (event.getUniverse() != null) {
             ServerUtilitiesLeaderboards.loadLeaderboards();
+
+            if (ServerUtilitiesConfig.login.enable_motd && event.getType().command()) {
+                ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "motd");
+                ServerUtilitiesConfig.login.motdComponents = null;
+            }
         }
         return true;
     }

@@ -9,8 +9,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.GameRules;
 
-import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
-
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
@@ -38,15 +36,6 @@ public class ServerUtilitiesRegistryEventHandler {
         registry.registerServerReloadHandler(
                 new ResourceLocation(ServerUtilities.MOD_ID, "ranks"),
                 reloadEvent -> Ranks.INSTANCE.reload());
-        if (ServerUtilitiesConfig.login.enable_motd) {
-            registry.registerServerReloadHandler(new ResourceLocation(ServerUtilities.MOD_ID, "motd"), reloadEvent -> {
-                if (reloadEvent.getType().command()) {
-                    ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "motd");
-                    ServerUtilitiesConfig.login.motdComponents = null;
-                }
-                return true;
-            });
-        }
 
         registry.registerSyncData(ServerUtilities.MOD_ID, new ServerUtilitiesSyncData());
 
