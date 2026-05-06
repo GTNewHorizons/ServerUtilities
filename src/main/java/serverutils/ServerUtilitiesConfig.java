@@ -366,7 +366,7 @@ public class ServerUtilitiesConfig {
         public boolean enable_starting_items;
 
         @Config.Comment("Message of the day. This will be displayed when player joins the server.")
-        @Config.Reloadable("motd")
+        @Config.Reloadable("login_motd")
         @Config.DefaultStringList("Hello player!")
         public String[] motd;
 
@@ -730,10 +730,12 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("First line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
         @Config.DefaultString("§6§lMy Minecraft Server")
+        @Config.Reloadable("server_motd")
         public String line1;
 
         @Config.Comment("Second line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
         @Config.DefaultString("§aUptime: §f{uptime} §7| §bTPS: §f{tps}")
+        @Config.Reloadable("server_motd")
         public String line2;
     }
 }

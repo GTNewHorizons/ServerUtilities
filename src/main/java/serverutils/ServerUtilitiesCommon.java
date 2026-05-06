@@ -149,9 +149,15 @@ public class ServerUtilitiesCommon {
         if (event.getUniverse() != null) {
             ServerUtilitiesLeaderboards.loadLeaderboards();
 
-            if (ServerUtilitiesConfig.login.enable_motd && event.getType().command()) {
-                ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "motd");
-                ServerUtilitiesConfig.login.motdComponents = null;
+            if (event.getType().command()) {
+                if (ServerUtilitiesConfig.login.enable_motd) {
+                    ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "login_motd");
+                    ServerUtilitiesConfig.login.motdComponents = null;
+                }
+
+                if (ServerUtilitiesConfig.motd.enabled) {
+                    ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "server_motd");
+                }
             }
         }
         return true;
