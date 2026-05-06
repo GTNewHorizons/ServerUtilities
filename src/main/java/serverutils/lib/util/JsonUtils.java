@@ -55,9 +55,7 @@ import com.google.gson.stream.JsonWriter;
 
 import serverutils.lib.ATHelper;
 import serverutils.lib.math.Ticks;
-import serverutils.lib.util.text_components.ChatComponentScore;
 import serverutils.lib.util.text_components.Notification;
-import serverutils.lib.util.text_components.TextComponentCountdown;
 
 public class JsonUtils {
 
@@ -323,8 +321,6 @@ public class JsonUtils {
                     if (json.has("vanilla")) {
                         n.setVanilla(net.minecraft.util.JsonUtils.getJsonObjectBooleanFieldValue(json, "vanilla"));
                     }
-                } else if (json.has("countdown")) {
-                    component = new TextComponentCountdown(s, json.get("countdown").getAsLong());
                 } else {
                     component = new ChatComponentText(s);
                 }
@@ -351,27 +347,6 @@ public class JsonUtils {
                 } else {
                     component = new ChatComponentTranslation(s);
                 }
-            } else if (json.has("score")) {
-                JsonObject o1 = json.getAsJsonObject("score");
-
-                if (!o1.has("name") || !o1.has("objective")) {
-                    throw new JsonParseException("A score component needs a least a name and an objective");
-                }
-
-                component = new ChatComponentScore(
-                        net.minecraft.util.JsonUtils.getJsonObjectStringFieldValue(o1, "name"),
-                        net.minecraft.util.JsonUtils.getJsonObjectStringFieldValue(o1, "objective"));
-
-                if (o1.has("value")) {
-                    ((ChatComponentScore) component)
-                            .setValue(net.minecraft.util.JsonUtils.getJsonObjectStringFieldValue(o1, "value"));
-                }
-                // } else if (json.has("selector")) {
-                // component = new
-                // TextComponentSelector(net.minecraft.util.JsonUtils.getJsonObjectStringFieldValue(json, "selector"));
-                // } else if (json.has("keybind")) {
-                // component = new TextComponentKeybind(net.minecraft.util.JsonUtils.getJsonObjectStringFieldValue(json,
-                // "keybind"));
             } else {
                 return null;
             }
