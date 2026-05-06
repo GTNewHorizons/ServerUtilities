@@ -9,7 +9,7 @@ import java.util.List;
 
 import net.minecraft.util.ChatComponentTranslation;
 
-import serverutils.ServerUtilitiesCommon;
+import serverutils.ServerUtilitiesPermissions;
 import serverutils.aurora.AuroraConfig;
 import serverutils.aurora.PageType;
 import serverutils.aurora.page.HTTPWebPage;
@@ -73,7 +73,7 @@ public class PermissionListPage extends HTTPWebPage {
     public void body(Tag body) {
         body.h1("Permission List");
 
-        List<NodeEntry> allNodes = new ArrayList<>(ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY);
+        List<NodeEntry> allNodes = new ArrayList<>(ServerUtilitiesPermissions.getPrefixes());
 
         for (String s : PermissionAPI.getPermissionHandler().getRegisteredNodes()) {
             DefaultPermissionLevel level = DefaultPermissionHandler.INSTANCE.getDefaultPermissionLevel(s);
@@ -81,7 +81,7 @@ public class PermissionListPage extends HTTPWebPage {
 
             boolean printNode = true;
 
-            for (NodeEntry cprefix : ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY) {
+            for (NodeEntry cprefix : ServerUtilitiesPermissions.getPrefixes()) {
                 if (s.startsWith(cprefix.getNode())) {
                     if (cprefix.level != null && level == cprefix.level && desc.isEmpty()) {
                         printNode = false;

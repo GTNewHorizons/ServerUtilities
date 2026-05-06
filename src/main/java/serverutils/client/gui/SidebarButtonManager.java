@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.client.resources.IResourceManager;
+import net.minecraft.client.resources.IResourceManagerReloadListener;
 import net.minecraft.util.ResourceLocation;
 
 import com.google.gson.JsonElement;
@@ -18,14 +18,11 @@ import com.google.gson.JsonObject;
 
 import serverutils.ServerUtilitiesConfig;
 import serverutils.client.ServerUtilitiesClient;
-import serverutils.client.ServerUtilitiesResourceType;
-import serverutils.client.resource.IResourceType;
-import serverutils.client.resource.ISelectiveResourceReloadListener;
 import serverutils.events.SidebarButtonCreatedEvent;
 import serverutils.lib.io.DataReader;
 import serverutils.lib.util.JsonUtils;
 
-public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
+public enum SidebarButtonManager implements IResourceManagerReloadListener {
 
     INSTANCE;
 
@@ -34,11 +31,7 @@ public enum SidebarButtonManager implements ISelectiveResourceReloadListener {
     private static final String POSITION = "position";
 
     @Override
-    public void onResourceManagerReload(IResourceManager manager, Predicate<IResourceType> resourcePredicate) {
-        if (!resourcePredicate.test(ServerUtilitiesResourceType.SERVERUTILS_CONFIG)) {
-            return;
-        }
-
+    public void onResourceManagerReload(IResourceManager manager) {
         groups.clear();
 
         JsonElement element = DataReader.get(

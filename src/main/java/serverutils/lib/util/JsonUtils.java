@@ -53,11 +53,8 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
-import serverutils.lib.ATHelper;
 import serverutils.lib.math.Ticks;
-import serverutils.lib.util.text_components.ChatComponentScore;
 import serverutils.lib.util.text_components.Notification;
-import serverutils.lib.util.text_components.TextComponentCountdown;
 
 public class JsonUtils {
 
@@ -81,7 +78,6 @@ public class JsonUtils {
 
         JsonReader jsonReader = new JsonReader(reader);
         JsonElement element;
-        boolean lenient = jsonReader.isLenient();
         jsonReader.setLenient(true);
         element = Streams.parse(jsonReader);
 
@@ -176,35 +172,35 @@ public class JsonUtils {
         ChatStyle style = component.getChatStyle();
 
         if (!style.isEmpty()) {
-            if (ATHelper.getBold(style) != null) {
+            if (style.bold != null) {
                 json.addProperty("bold", style.getBold());
             }
 
-            if (ATHelper.getItalic(style) != null) {
+            if (style.italic != null) {
                 json.addProperty("italic", style.getItalic());
             }
 
-            if (ATHelper.getUnderlined(style) != null) {
+            if (style.underlined != null) {
                 json.addProperty("underlined", style.getUnderlined());
             }
 
-            if (ATHelper.getStrikethrough(style) != null) {
+            if (style.strikethrough != null) {
                 json.addProperty("strikethrough", style.getStrikethrough());
             }
 
-            if (ATHelper.getObfuscated(style) != null) {
+            if (style.obfuscated != null) {
                 json.addProperty("obfuscated", style.getObfuscated());
             }
 
-            if (ATHelper.getColor(style) != null) {
+            if (style.color != null) {
                 json.addProperty("color", style.getColor().getFriendlyName());
             }
 
-            if (ATHelper.getClickEvent(style) != null) {
+            if (style.chatClickEvent != null) {
                 json.add("clickEvent", serializeClickEvent(style.getChatClickEvent()));
             }
 
-            if (ATHelper.getHoverEvent(style) != null) {
+            if (style.chatHoverEvent != null) {
                 json.add("hoverEvent", serializeHoverEvent(style.getChatHoverEvent()));
             }
         }
@@ -324,8 +320,6 @@ public class JsonUtils {
                     if (json.has("vanilla")) {
                         n.setVanilla(net.minecraft.util.JsonUtils.getJsonObjectBooleanFieldValue(json, "vanilla"));
                     }
-                } else if (json.has("countdown")) {
-                    component = new TextComponentCountdown(s, json.get("countdown").getAsLong());
                 } else {
                     component = new ChatComponentText(s);
                 }
@@ -352,27 +346,6 @@ public class JsonUtils {
                 } else {
                     component = new ChatComponentTranslation(s);
                 }
-            } else if (json.has("score")) {
-                JsonObject o1 = json.getAsJsonObject("score");
-
-                if (!o1.has("name") || !o1.has("objective")) {
-                    throw new JsonParseException("A score component needs a least a name and an objective");
-                }
-
-                component = new ChatComponentScore(
-                        net.minecraft.util.JsonUtils.getJsonObjectStringFieldValue(o1, "name"),
-                        net.minecraft.util.JsonUtils.getJsonObjectStringFieldValue(o1, "objective"));
-
-                if (o1.has("value")) {
-                    ((ChatComponentScore) component)
-                            .setValue(net.minecraft.util.JsonUtils.getJsonObjectStringFieldValue(o1, "value"));
-                }
-                // } else if (json.has("selector")) {
-                // component = new
-                // TextComponentSelector(net.minecraft.util.JsonUtils.getJsonObjectStringFieldValue(json, "selector"));
-                // } else if (json.has("keybind")) {
-                // component = new TextComponentKeybind(net.minecraft.util.JsonUtils.getJsonObjectStringFieldValue(json,
-                // "keybind"));
             } else {
                 return null;
             }

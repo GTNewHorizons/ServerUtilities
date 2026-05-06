@@ -17,18 +17,21 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBucket;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.GameData;
 import serverutils.data.Leaderboard;
 import serverutils.data.NodeEntry;
 import serverutils.events.CustomPermissionPrefixesRegistryEvent;
-import serverutils.events.RegisterRankConfigEvent;
 import serverutils.events.RegisterRankConfigHandlerEvent;
 import serverutils.lib.config.ConfigBoolean;
 import serverutils.lib.config.ConfigEnum;
 import serverutils.lib.config.ConfigInt;
 import serverutils.lib.config.ConfigString;
 import serverutils.lib.config.ConfigTimer;
+import serverutils.lib.config.IRankConfigHandler;
+import serverutils.lib.config.RankConfigAPI;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.util.permission.PermissionAPI;
@@ -36,9 +39,10 @@ import serverutils.lib.util.text_components.TextComponentParser;
 import serverutils.ranks.Rank;
 import serverutils.ranks.ServerUtilitiesPermissionHandler;
 
+@EventBusSubscriber
 public class ServerUtilitiesPermissions {
 
-    public static final ServerUtilitiesPermissions INST = new ServerUtilitiesPermissions();
+    public static final Collection<NodeEntry> CUSTOM_PERM_PREFIX = new HashSet<>();
 
     public static final Set<NodeEntry> earlyPermissions = new HashSet<>();
     // Display //
@@ -132,13 +136,19 @@ public class ServerUtilitiesPermissions {
     public static final String CLAIMS_JOURNEYMAP_OTHER = "serverutilities.journeymap.other";
 
     @SubscribeEvent
-    public void registerRankConfigHandler(RegisterRankConfigHandlerEvent event) {
+    public static void registerRankConfigHandler(RegisterRankConfigHandlerEvent event) {
         if (ServerUtilitiesConfig.ranks.enabled) {
             event.setHandler(ServerUtilitiesPermissionHandler.INSTANCE);
         }
     }
 
-    public static void registerPermissions() {
+    static void init() {
+        registerPermissions();
+        registerConfigs();
+        registerPrefixes();
+    }
+
+    private static void registerPermissions() {
         for (NodeEntry entry : earlyPermissions) {
             PermissionAPI.registerNode(entry.node, entry.level, entry.desc);
         }
@@ -301,82 +311,88 @@ public class ServerUtilitiesPermissions {
         }
     }
 
-    @SubscribeEvent
-    public void registerConfigs(RegisterRankConfigEvent event) {
-        event.register(
+    private static void registerConfigs() {
+        IRankConfigHandler handler = RankConfigAPI.getHandler();
+        handler.registerRankConfig(
                 Rank.NODE_PARENT,
                 new ConfigString("", Pattern.compile("^[a-z0-9\\s,]*$")),
                 new ConfigString(""));
-        event.register(Rank.NODE_DEFAULT_PLAYER, new ConfigBoolean(false), new ConfigBoolean(false));
-        event.register(Rank.NODE_DEFAULT_OP, new ConfigBoolean(false), new ConfigBoolean(false));
-        event.register(Rank.NODE_POWER, new ConfigInt(0, 0, Integer.MAX_VALUE - 1), new ConfigInt(0));
-        event.register(Rank.NODE_PRIORITY, new ConfigInt(0, 0, Integer.MAX_VALUE - 1), new ConfigInt(0));
+        handler.registerRankConfig(Rank.NODE_DEFAULT_PLAYER, new ConfigBoolean(false), new ConfigBoolean(false));
+        handler.registerRankConfig(Rank.NODE_DEFAULT_OP, new ConfigBoolean(false), new ConfigBoolean(false));
+        handler.registerRankConfig(Rank.NODE_POWER, new ConfigInt(0, 0, Integer.MAX_VALUE - 1), new ConfigInt(0));
+        handler.registerRankConfig(Rank.NODE_PRIORITY, new ConfigInt(0, 0, Integer.MAX_VALUE - 1), new ConfigInt(0));
 
-        event.register(CHAT_NAME_FORMAT, new ConfigString("<{name}>"), new ConfigString("<&2{name}&r>"));
-        event.register(CHAT_TEXT_COLOR, new ConfigEnum<>(TextComponentParser.TEXT_FORMATTING_COLORS_NAME_MAP));
-        event.register(HOMES_MAX, new ConfigInt(1, 0, 30000), new ConfigInt(100));
-        event.register(HOMES_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(5)), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(WARPS_COOLDOWN, new ConfigTimer(Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(TPA_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(3)), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(SPAWN_COOLDOWN, new ConfigTimer(Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(BACK_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(3)), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(RTP_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(10)), new ConfigTimer(Ticks.NO_TICKS));
-        event.register(
+        handler.registerRankConfig(CHAT_NAME_FORMAT, new ConfigString("<{name}>"), new ConfigString("<&2{name}&r>"));
+        handler.registerRankConfig(
+                CHAT_TEXT_COLOR,
+                new ConfigEnum<>(TextComponentParser.TEXT_FORMATTING_COLORS_NAME_MAP));
+        handler.registerRankConfig(HOMES_MAX, new ConfigInt(1, 0, 30000), new ConfigInt(100));
+        handler.registerRankConfig(HOMES_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(5)), new ConfigTimer(Ticks.NO_TICKS));
+        handler.registerRankConfig(WARPS_COOLDOWN, new ConfigTimer(Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
+        handler.registerRankConfig(TPA_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(3)), new ConfigTimer(Ticks.NO_TICKS));
+        handler.registerRankConfig(SPAWN_COOLDOWN, new ConfigTimer(Ticks.MINUTE), new ConfigTimer(Ticks.NO_TICKS));
+        handler.registerRankConfig(BACK_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(3)), new ConfigTimer(Ticks.NO_TICKS));
+        handler.registerRankConfig(RTP_COOLDOWN, new ConfigTimer(Ticks.MINUTE.x(10)), new ConfigTimer(Ticks.NO_TICKS));
+        handler.registerRankConfig(
                 HOMES_WARMUP,
                 new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
                 new ConfigTimer(Ticks.NO_TICKS));
-        event.register(
+        handler.registerRankConfig(
                 WARPS_WARMUP,
                 new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
                 new ConfigTimer(Ticks.NO_TICKS));
-        event.register(
+        handler.registerRankConfig(
                 TPA_WARMUP,
                 new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
                 new ConfigTimer(Ticks.NO_TICKS));
-        event.register(
+        handler.registerRankConfig(
                 SPAWN_WARMUP,
                 new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
                 new ConfigTimer(Ticks.NO_TICKS));
-        event.register(
+        handler.registerRankConfig(
                 BACK_WARMUP,
                 new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
                 new ConfigTimer(Ticks.NO_TICKS));
-        event.register(
+        handler.registerRankConfig(
                 RTP_WARMUP,
                 new ConfigTimer(Ticks.SECOND.x(5), Ticks.MINUTE.x(5)),
                 new ConfigTimer(Ticks.NO_TICKS));
-        event.register(CLAIMS_MAX_CHUNKS, new ConfigInt(100, 0, 30000), new ConfigInt(1000));
-        event.register(CHUNKLOADER_MAX_CHUNKS, new ConfigInt(50, 0, 30000), new ConfigInt(64));
-        event.register(AFK_TIMER, new ConfigTimer(Ticks.NO_TICKS));
-        event.register(CLAIM_DECAY_TIMER, new ConfigTimer(Ticks.NO_TICKS, Ticks.DAY.x(365)));
-        event.register(
+        handler.registerRankConfig(CLAIMS_MAX_CHUNKS, new ConfigInt(100, 0, 30000), new ConfigInt(1000));
+        handler.registerRankConfig(CHUNKLOADER_MAX_CHUNKS, new ConfigInt(50, 0, 30000), new ConfigInt(64));
+        handler.registerRankConfig(AFK_TIMER, new ConfigTimer(Ticks.NO_TICKS));
+        handler.registerRankConfig(CLAIM_DECAY_TIMER, new ConfigTimer(Ticks.NO_TICKS, Ticks.DAY.x(365)));
+        handler.registerRankConfig(
                 CHUNKLOAD_DECAY_TIMER,
                 new ConfigTimer(Ticks.WEEK.x(2), Ticks.DAY.x(365)),
                 new ConfigTimer(Ticks.NO_TICKS));
     }
 
-    @SubscribeEvent
-    public void registerCustomPermissionPrefixes(CustomPermissionPrefixesRegistryEvent event) {
-        event.register(
+    private static void registerPrefixes() {
+        registerPrefix(
                 Rank.NODE_COMMAND,
                 DefaultPermissionLevel.OP,
                 "Permission for commands, if ServerUtilities command overriding is enabled. If not, this String will be inactive");
-        event.register(
+        registerPrefix(
                 CLAIMS_BLOCK_EDIT_PREFIX,
                 DefaultPermissionLevel.OP,
                 "Permission for blocks that players can break and place within claimed chunks");
-        event.register(
+        registerPrefix(
                 CLAIMS_BLOCK_INTERACT_PREFIX,
                 DefaultPermissionLevel.OP,
                 "Permission for blocks that players can right-click within claimed chunks");
-        event.register(
+        registerPrefix(
                 CLAIMS_ITEM_PREFIX,
                 DefaultPermissionLevel.ALL,
                 "Permission for items that players can right-click in air within claimed chunks");
-        event.register(
+        registerPrefix(
                 LEADERBOARD_PREFIX,
                 DefaultPermissionLevel.ALL,
                 "Permission for leaderboards that players can view");
+        new CustomPermissionPrefixesRegistryEvent(CUSTOM_PERM_PREFIX::add).post();
+    }
+
+    public static void registerPrefix(String node, DefaultPermissionLevel level, String desc) {
+        CUSTOM_PERM_PREFIX.add(new NodeEntry(node, level, desc));
     }
 
     public static String formatId(@Nullable Block item) {
@@ -402,11 +418,11 @@ public class ServerUtilitiesPermissions {
     }
 
     public static Collection<NodeEntry> getPrefixes() {
-        return ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY;
+        return CUSTOM_PERM_PREFIX;
     }
 
     public static Collection<NodeEntry> getPrefixesExcluding(String... toExclude) {
-        return ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY.stream().filter(
+        return CUSTOM_PERM_PREFIX.stream().filter(
                 prefix -> toExclude.length == 0 || Arrays.stream(toExclude).noneMatch(prefix.getNode()::startsWith))
                 .collect(Collectors.toSet());
     }

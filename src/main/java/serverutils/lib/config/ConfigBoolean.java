@@ -11,10 +11,10 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import com.google.gson.JsonElement;
 
+import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import serverutils.lib.icon.Color4I;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
-import serverutils.lib.util.misc.BooleanConsumer;
 
 public class ConfigBoolean extends ConfigValue implements BooleanSupplier, BooleanConsumer, IIteratingConfig {
 

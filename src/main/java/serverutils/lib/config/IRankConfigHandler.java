@@ -12,6 +12,14 @@ public interface IRankConfigHandler {
 
     void registerRankConfig(RankConfigValueInfo info);
 
+    default void registerRankConfig(String id, ConfigValue defaultPlayerValue, ConfigValue defaultOPValue) {
+        registerRankConfig(new RankConfigValueInfo(id, defaultPlayerValue, defaultOPValue));
+    }
+
+    default void registerRankConfig(String id, ConfigValue defaultPlayerValue) {
+        registerRankConfig(new RankConfigValueInfo(id, defaultPlayerValue, null));
+    }
+
     Collection<RankConfigValueInfo> getRegisteredConfigs();
 
     ConfigValue getConfigValue(MinecraftServer server, GameProfile profile, String node);

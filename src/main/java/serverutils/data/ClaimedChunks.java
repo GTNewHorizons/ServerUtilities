@@ -16,7 +16,18 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.world.BlockEvent;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesNotifications;
 import serverutils.ServerUtilitiesPermissions;
@@ -26,10 +37,13 @@ import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.Universe;
 import serverutils.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.math.ChunkDimPos;
+import serverutils.lib.math.MathUtils;
 import serverutils.lib.math.Ticks;
+import serverutils.lib.util.InvUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageClaimedChunksUpdate;
 
+@EventBusSubscriber
 public class ClaimedChunks {
 
     public static ClaimedChunks instance;
@@ -409,5 +423,72 @@ public class ClaimedChunks {
 
     public static boolean isForcedToSave() {
         return instance != null && forceSave;
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onEntityAttacked(AttackEntityEvent event) {
+        if (!canAttackEntity(event.entityPlayer, event.target)) {
+            InvUtils.forceUpdate(event.entityPlayer);
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onPlayerInteraction(PlayerInteractEvent event) {
+        EntityPlayer player = event.entityPlayer;
+        boolean cancelled = false;
+
+        if (ServerUtilitiesConfig.world.isItemRightClickDisabled(player.getHeldItem())) {
+            cancelled = true;
+            if (!event.world.isRemote) {
+                player.addChatComponentMessage(
+                        new ChatComponentText(EnumChatFormatting.DARK_PURPLE + "Item is disabled!"));
+            }
+        }
+
+        int x = event.x;
+        int y = event.y;
+        int z = event.z;
+
+        if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
+            MovingObjectPosition lookPos = MathUtils.rayTrace(player, true);
+            if (lookPos != null) {
+                x = lookPos.blockX;
+                y = lookPos.blockY;
+                z = lookPos.blockZ;
+            } else {
+                x = MathHelper.floor_double(player.posX);
+                y = MathHelper.floor_double(player.posY);
+                z = MathHelper.floor_double(player.posZ);
+            }
+        }
+
+        if (!cancelled) {
+            cancelled = switch (event.action) {
+                case RIGHT_CLICK_AIR -> blockItemUse(player, x, y, z);
+                case RIGHT_CLICK_BLOCK -> blockBlockInteractions(player, x, y, z, 0);
+                case LEFT_CLICK_BLOCK -> blockBlockEditing(player, x, y, z, 0);
+            };
+        }
+
+        if (cancelled) {
+            event.setCanceled(true);
+            InvUtils.forceUpdate(player);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onBlockBreak(BlockEvent.BreakEvent event) {
+        if (blockBlockEditing(event.getPlayer(), event.x, event.y, event.z, 0)) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public static void onBlockPlace(BlockEvent.PlaceEvent event) {
+        if (blockBlockEditing(event.player, event.x, event.y, event.z, 0)) {
+            InvUtils.forceUpdate(event.player);
+            event.setCanceled(true);
+        }
     }
 }

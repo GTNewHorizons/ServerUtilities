@@ -52,7 +52,8 @@ public abstract class MixinEndermanGriefing extends EntityMob {
             method = "onLivingUpdate",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/entity/monster/EntityEnderman;getCarriable(Lnet/minecraft/block/Block;)Z"))
+                    target = "Lnet/minecraft/entity/monster/EntityEnderman;getCarriable(Lnet/minecraft/block/Block;)Z",
+                    remap = false))
     private boolean checkEndermanBlockGrab(Block instance, Operation<Boolean> original, @Local(ordinal = 0) int k,
             @Local(ordinal = 1) int i, @Local(ordinal = 2) int j) {
         if (!ClaimedChunks.isActive() || ServerUtilitiesConfig.world.enable_endermen.isTrue()) {

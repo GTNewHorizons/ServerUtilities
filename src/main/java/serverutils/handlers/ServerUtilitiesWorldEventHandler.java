@@ -17,6 +17,8 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
@@ -26,12 +28,11 @@ import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.pregenerator.ChunkLoaderManager;
 
+@EventBusSubscriber
 public class ServerUtilitiesWorldEventHandler {
 
-    public static final ServerUtilitiesWorldEventHandler INST = new ServerUtilitiesWorldEventHandler();
-
     @SubscribeEvent
-    public void onMobSpawned(EntityJoinWorldEvent event) {
+    public static void onMobSpawned(EntityJoinWorldEvent event) {
         if (!event.world.isRemote && !isEntityAllowed(event.entity)) {
             event.entity.setDead();
             event.setCanceled(true);
@@ -39,7 +40,7 @@ public class ServerUtilitiesWorldEventHandler {
     }
 
     @SubscribeEvent
-    public void onDimensionUnload(WorldEvent.Unload event) {
+    public static void onDimensionUnload(WorldEvent.Unload event) {
         if (ClaimedChunks.isActive() && event.world.provider.dimensionId != 0) {
             ClaimedChunks.instance.markDirty();
         }
@@ -63,7 +64,7 @@ public class ServerUtilitiesWorldEventHandler {
     }
 
     @SubscribeEvent
-    public void onExplosionDetonate(ExplosionEvent.Detonate event) {
+    public static void onExplosionDetonate(ExplosionEvent.Detonate event) {
         World world = event.world;
 
         if (world.isRemote || event.getAffectedBlocks().isEmpty()) {
@@ -99,7 +100,7 @@ public class ServerUtilitiesWorldEventHandler {
     }
 
     @SubscribeEvent
-    public void onWorldLoad(WorldEvent.Load event) {
+    public static void onWorldLoad(WorldEvent.Load event) {
         if (!event.world.isRemote) {
             int dimensionId = event.world.provider.dimensionId;
             MinecraftServer server = MinecraftServer.getServer();
@@ -111,7 +112,7 @@ public class ServerUtilitiesWorldEventHandler {
     }
 
     @SubscribeEvent
-    public void onWorldUnload(WorldEvent.Unload event) {
+    public static void onWorldUnload(WorldEvent.Unload event) {
         if (!event.world.isRemote) {
             if (event.world.provider.dimensionId == ChunkLoaderManager.instance.getDimensionID()
                     && ChunkLoaderManager.instance.isGenerating()) {
