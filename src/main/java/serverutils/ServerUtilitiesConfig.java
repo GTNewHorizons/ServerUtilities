@@ -605,9 +605,9 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("""
                 Which enemy types to block when spawning in claims while blockMobSpawningInClaims is set to TRUE
-                Allowed values: AMBIENT, WATER, MOB, ANIMAL
+                Allowed values: AMBIENT, WATER_CREATURE, MOB, ANIMAL
                 """)
-        @Config.DefaultStringList({ "AMBIENT", "WATER", "MOB", "ANIMAL" })
+        @Config.DefaultStringList({ "AMBIENT", "WATER_CREATURE", "MOB", "ANIMAL" })
         public String[] mobTypesToBlock;
 
         @Config.Ignore

@@ -80,6 +80,7 @@ public class ServerUtilitiesWorldEventHandler {
                     return creature.creatureType.getCreatureClass().isAssignableFrom(entity.getClass());
                 }
             }
+            return true;
         }
 
         ForgeTeam team = ClaimedChunks.instance.getChunkTeam(new ChunkDimPos(entity));
