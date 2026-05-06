@@ -22,12 +22,12 @@ import org.lwjgl.input.Mouse;
 
 import com.gtnewhorizon.gtnhlib.util.FilesUtil;
 
+import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.events.client.CustomClickEvent;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.gui.misc.GuiLoading;
 import serverutils.lib.gui.misc.YesNoCallback;
-import serverutils.lib.util.misc.BooleanConsumer;
 import serverutils.lib.util.misc.MouseButton;
 
 public abstract class GuiBase extends Panel implements IOpenableGui {
