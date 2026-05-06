@@ -3,6 +3,7 @@ package serverutils.mixins.early.minecraft;
 import static serverutils.ServerUtilitiesConfig.afk;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -31,7 +32,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.llamalad7.mixinextras.sugar.Local;
 
+import serverutils.ServerUtilitiesConfig;
+import serverutils.compat.WitcheryCompat;
 import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.lib.OtherMods;
 
 @Mixin(WorldServer.class)
 public abstract class MixinWorldServer_SleepPercentage extends World {
@@ -51,6 +55,9 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
     @Unique
     private Set<UUID> previousSleepingPlayers;
 
+    @Unique
+    private boolean serverUtilities$isVampireSleep;
+
     /**
      * We need to access this.playerEntities from the superclass, so we're extending World, and need this fake
      * constructor to make Java happy
@@ -68,44 +75,72 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
         if (percent > 100) {
             this.allPlayersSleeping = false;
             ci.cancel(/* /r/nosleep, vanilla behaviour */);
-        } else {
-            EntityPlayer theSleeper = null;
-            if (sleepingPlayers == null) {
-                sleepingPlayers = new ArrayList<>();
-            }
-            sleepingPlayers.clear();
-            int playerCountWithoutAFK = serverutilities$getListWithoutAFK(this.playerEntities).size();
-            int cap = (int) Math.ceil(playerCountWithoutAFK * percent * 0.01f);
-            for (EntityPlayer player : this.playerEntities) {
-                if (player.isPlayerSleeping()) {
-                    sleepingPlayers.add(player);
-                    // to find the player who was the last to sleep
-                    if (!previousSleepingPlayers.contains(player.getUniqueID())) {
-                        theSleeper = player;
-                    }
-                    if (sleepingPlayers.size() >= cap) {
-                        this.allPlayersSleeping = true;
-                        break;
-                    }
-                }
-            }
-            previousSleepingPlayers = sleepingPlayers.stream().map(EntityPlayer::getUniqueID)
-                    .collect(Collectors.toSet());
-            // if server is dedicated, or open to lan
-            if (!sleepingPlayers.isEmpty() && cap > 0 && theSleeper != null && (!mcServer.isSinglePlayer())) {
-                for (EntityPlayer player : this.playerEntities) {
-                    String percentString = String.format("%d", (sleepingPlayers.size() * 100) / playerCountWithoutAFK);
-                    player.addChatMessage(
-                            new ChatComponentTranslation(
-                                    "serverutilities.world.players_sleeping",
-                                    theSleeper.getDisplayName(),
-                                    sleepingPlayers.size(),
-                                    playerCountWithoutAFK,
-                                    percentString));
-                }
-            }
-            ci.cancel();
+            return;
         }
+        EntityPlayer theSleeper = null;
+        if (sleepingPlayers == null) {
+            sleepingPlayers = new ArrayList<>();
+        }
+        if (previousSleepingPlayers == null) {
+            previousSleepingPlayers = new HashSet<>();
+        }
+        sleepingPlayers.clear();
+        int playerCountWithoutAFK = 0;
+
+        int vampireSleepCount = 0;
+
+        for (EntityPlayer player : this.playerEntities) {
+            ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.getNullable(player);
+            if (data == null || data.afkTime <= afk.getNotificationTimer()) {
+                ++playerCountWithoutAFK;
+            }
+            if (player.isPlayerSleeping()) {
+                sleepingPlayers.add(player);
+                // to find the player who was the last to sleep
+                if (!previousSleepingPlayers.contains(player.getUniqueID())) {
+                    theSleeper = player;
+                }
+
+                if (OtherMods.isWitcheryLoaded() && WitcheryCompat.isVampire(player)
+                        && WitcheryCompat.isSleepInCoffin(this, player)) {
+                    ++vampireSleepCount;
+                }
+            }
+        }
+        int cap = (int) Math.ceil(playerCountWithoutAFK * percent * 0.01f);
+        this.allPlayersSleeping = !sleepingPlayers.isEmpty() && sleepingPlayers.size() >= cap;
+
+        if (allPlayersSleeping && vampireSleepCount > 0) {
+            int vampirePercent = vampireSleepCount * 100 / sleepingPlayers.size();
+            if (vampirePercent >= ServerUtilitiesConfig.world.vampire_sleep_percent) {
+                serverUtilities$isVampireSleep = true;
+            }
+        }
+
+        previousSleepingPlayers.clear();
+        for (EntityPlayer p : sleepingPlayers) {
+            previousSleepingPlayers.add(p.getUniqueID());
+        }
+        // if server is dedicated, or open to lan
+        if (!sleepingPlayers.isEmpty() && cap > 0 && theSleeper != null && (!mcServer.isSinglePlayer())) {
+            String key = "serverutilities.world.players_sleeping";
+
+            if (OtherMods.isWitcheryLoaded() && WitcheryCompat.isVampire(theSleeper)
+                    && WitcheryCompat.isSleepInCoffin(this, theSleeper)) {
+                key = "serverutilities.world.vampires_sleeping";
+            }
+            String percentString = String.format("%d", (sleepingPlayers.size() * 100) / playerCountWithoutAFK);
+            for (EntityPlayer player : this.playerEntities) {
+                player.addChatMessage(
+                        new ChatComponentTranslation(
+                                key,
+                                theSleeper.getDisplayName(),
+                                sleepingPlayers.size(),
+                                playerCountWithoutAFK,
+                                percentString));
+            }
+        }
+        ci.cancel();
     }
 
     @Redirect(
@@ -131,7 +166,19 @@ public abstract class MixinWorldServer_SleepPercentage extends World {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/EntityPlayer;wakeUpPlayer(ZZZ)V"))
     public void serverutilities$broadcast(CallbackInfo ctx, @Local EntityPlayer player) {
         if (percent > 0 && percent < 100 && (!mcServer.isSinglePlayer())) {
-            player.addChatMessage(new ChatComponentTranslation("serverutilities.world.skip_night"));
+            String key = serverUtilities$isVampireSleep ? "serverutilities.world.skip_day"
+                    : "serverutilities.world.skip_night";
+            player.addChatMessage(new ChatComponentTranslation(key));
+        }
+    }
+
+    @Inject(method = "wakeAllPlayers", at = @At(value = "TAIL"))
+    public void serverutilities$vampireSetTime(CallbackInfo ctx) {
+        if (serverUtilities$isVampireSleep) {
+            // Logic synced from Witchery
+            long currentTime = worldInfo.getWorldTime() - 11000L;
+            worldInfo.setWorldTime(currentTime);
+            serverUtilities$isVampireSleep = false;
         }
     }
 
