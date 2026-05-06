@@ -5,30 +5,28 @@ import java.util.Collection;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent;
+import cpw.mods.fml.relauncher.Side;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.client.ServerUtilitiesClient;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.client.gui.GuiClaimedChunks;
 import serverutils.client.gui.GuiClientConfig;
-import serverutils.client.gui.GuiSidebar;
-import serverutils.events.chunks.UpdateClientDataEvent;
 import serverutils.events.client.CustomClickEvent;
 import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.OtherMods;
@@ -41,14 +39,13 @@ import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.SidedUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.net.MessageAdminPanelGui;
-import serverutils.net.MessageClaimedChunksUpdate;
 import serverutils.net.MessageEditNBTRequest;
 import serverutils.net.MessageLeaderboardList;
 import serverutils.net.MessageMyTeamGui;
 
+@EventBusSubscriber(side = Side.CLIENT)
 public class ServerUtilitiesClientEventHandler {
 
-    public static final ServerUtilitiesClientEventHandler INST = new ServerUtilitiesClientEventHandler();
     public static boolean shouldRenderIcons = false;
     public static long shutdownTime = 0L;
 
@@ -59,7 +56,7 @@ public class ServerUtilitiesClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onClientDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+    public static void onClientDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         shutdownTime = 0L;
         SidedUtils.SERVER_MODS.clear();
         if (OtherMods.isNavigatorLoaded()) {
@@ -68,7 +65,7 @@ public class ServerUtilitiesClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onClientWorldTick(TickEvent.ClientTickEvent event) {
+    public static void onClientWorldTick(TickEvent.ClientTickEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
 
         if (event.phase == TickEvent.Phase.START && mc.theWorld != null
@@ -86,16 +83,7 @@ public class ServerUtilitiesClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onChunkDataUpdate(UpdateClientDataEvent event) {
-        MessageClaimedChunksUpdate message = event.getMessage();
-        GuiClaimedChunks.onChunkDataUpdate(message);
-        if (OtherMods.isNavigatorLoaded()) {
-            NavigatorIntegration.onChunkDataUpdate(message);
-        }
-    }
-
-    @SubscribeEvent
-    public void onDebugInfoEvent(RenderGameOverlayEvent.Text event) {
+    public static void onDebugInfoEvent(RenderGameOverlayEvent.Text event) {
 
         if (Minecraft.getMinecraft().gameSettings.showDebugInfo) {
             return;
@@ -122,7 +110,7 @@ public class ServerUtilitiesClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onKeyEvent(InputEvent.KeyInputEvent event) {
+    public static void onKeyEvent(InputEvent.KeyInputEvent event) {
         if (ServerUtilitiesClient.KEY_NBT.isPressed()) {
             MessageEditNBTRequest.editNBT();
         }
@@ -133,7 +121,7 @@ public class ServerUtilitiesClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onCustomClick(CustomClickEvent event) {
+    public static void onCustomClick(CustomClickEvent event) {
         if (event.getID().getResourceDomain().equals(ServerUtilities.MOD_ID)) {
             switch (event.getID().getResourcePath()) {
                 case "client_config_gui":
@@ -182,7 +170,7 @@ public class ServerUtilitiesClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onTooltip(ItemTooltipEvent event) {
+    public static void onTooltip(ItemTooltipEvent event) {
         if (ServerUtilitiesClientConfig.item_ore_names) {
             Collection<String> ores = InvUtils.getOreNames(null, event.itemStack);
 
@@ -205,16 +193,8 @@ public class ServerUtilitiesClientEventHandler {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @SubscribeEvent
-    public void onGuiInit(final GuiScreenEvent.InitGuiEvent.Post event) {
-        if (ClientUtils.areButtonsVisible(event.gui)) {
-            event.buttonList.add(new GuiSidebar((GuiContainer) event.gui));
-        }
-    }
-
-    @SubscribeEvent
-    public void onClientTick(TickEvent.ClientTickEvent event) {
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
         if (!ClientUtils.RUN_LATER.isEmpty()) {
             for (Runnable runnable : new ArrayList<>(ClientUtils.RUN_LATER)) {
                 runnable.run();
@@ -223,25 +203,8 @@ public class ServerUtilitiesClientEventHandler {
         }
     }
 
-    /**
-     * Renders sidebar button tooltips outside of {@link GuiSidebar#drawButton} so that other screen elements don't draw
-     * over it.
-     */
-    @SubscribeEvent
-    public void onGuiScreenDraw(final GuiScreenEvent.DrawScreenEvent.Post event) {
-        if (ClientUtils.areButtonsVisible(event.gui)) {
-            event.gui.buttonList.forEach((GuiButton button) -> {
-                if (button instanceof GuiSidebar sidebar) {
-                    sidebarButtonTooltip.clear();
-                    sidebar.addTooltip(sidebarButtonTooltip);
-                    event.gui.func_146283_a(sidebarButtonTooltip, event.mouseX, event.mouseY);
-                }
-            });
-        }
-    }
-
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
-    public void onRenderTick(TickEvent.RenderTickEvent event) {
+    public static void onRenderTick(TickEvent.RenderTickEvent event) {
         if (event.phase == TickEvent.Phase.START && shouldRenderIcons) {
             IconRenderer.render();
         }

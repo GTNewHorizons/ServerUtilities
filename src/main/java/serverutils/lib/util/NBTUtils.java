@@ -1,6 +1,5 @@
 package serverutils.lib.util;
 
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -19,8 +18,6 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.util.Constants;
-
-import serverutils.lib.io.ByteCounterOutputStream;
 
 public class NBTUtils {
 
@@ -198,22 +195,6 @@ public class NBTUtils {
             }
             default:
                 return builder.append(EnumChatFormatting.GRAY).append(nbt.toString());
-        }
-    }
-
-    public static long getSizeInBytes(NBTTagCompound nbt, boolean compressed) {
-        try {
-            ByteCounterOutputStream byteCounter = new ByteCounterOutputStream();
-
-            if (compressed) {
-                CompressedStreamTools.writeCompressed(nbt, byteCounter);
-            } else {
-                CompressedStreamTools.write(nbt, new DataOutputStream(byteCounter));
-            }
-
-            return byteCounter.getSize();
-        } catch (Exception ex) {
-            return -1L;
         }
     }
 

@@ -14,8 +14,8 @@ import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
+import serverutils.ServerUtilitiesRegistry;
 import serverutils.events.SyncGamerulesEvent;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.data.ForgePlayer;
@@ -57,7 +57,7 @@ public class MessageSyncData extends MessageToClient {
         universeId = forgePlayer.team.universe.getUUID();
         syncData = new NBTTagCompound();
 
-        for (Map.Entry<String, ISyncData> entry : ServerUtilitiesCommon.SYNCED_DATA.entrySet()) {
+        for (Map.Entry<String, ISyncData> entry : ServerUtilitiesRegistry.SYNCED_DATA.entrySet()) {
             syncData.setTag(entry.getKey(), entry.getValue().writeSyncData(player, forgePlayer));
         }
 
@@ -100,7 +100,7 @@ public class MessageSyncData extends MessageToClient {
         SidedUtils.UNIVERSE_UUID_CLIENT = universeId;
 
         for (String key : syncData.func_150296_c()) {
-            ISyncData nbt = ServerUtilitiesCommon.SYNCED_DATA.get(key);
+            ISyncData nbt = ServerUtilitiesRegistry.SYNCED_DATA.get(key);
 
             if (nbt != null) {
                 nbt.readSyncData(syncData.getCompoundTag(key));
@@ -115,7 +115,7 @@ public class MessageSyncData extends MessageToClient {
             ServerUtilities.LOGGER
                     .info("Synced data from universe " + StringUtils.fromUUID(SidedUtils.UNIVERSE_UUID_CLIENT));
         }
-        ClientUtils.is_op = Bits.getFlag(flags, OP);
+        ClientUtils.isOP = Bits.getFlag(flags, OP);
 
         SidedUtils.SERVER_MODS.putAll(modList);
         SidedUtils.trashCan = Bits.getFlag(flags, TRASH_CAN);
