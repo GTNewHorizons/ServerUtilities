@@ -3,7 +3,6 @@ package serverutils.lib.util;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 import javax.annotation.Nullable;
@@ -15,7 +14,6 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ICrafting;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -27,8 +25,6 @@ public class InvUtils {
 
     public static final int BUCKET_VOLUME = 1000;
     public static final ItemStack EMPTY_STACK = null;
-    public static final IInventory EMPTY_INVENTORY = new InventoryBasic("[Null]", true, 0);
-    public static final Predicate<ItemStack> NO_FILTER = stack -> true;
 
     public static ItemStack brokenItem(String id) {
         ItemStack stack = new ItemStack(Items.fish);

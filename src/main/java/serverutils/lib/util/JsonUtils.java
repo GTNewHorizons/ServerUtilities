@@ -81,7 +81,6 @@ public class JsonUtils {
 
         JsonReader jsonReader = new JsonReader(reader);
         JsonElement element;
-        boolean lenient = jsonReader.isLenient();
         jsonReader.setLenient(true);
         element = Streams.parse(jsonReader);
 

@@ -20,12 +20,13 @@ import net.minecraft.util.StatCollector;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
+import com.gtnewhorizon.gtnhlib.util.FilesUtil;
+
 import serverutils.ServerUtilitiesConfig;
 import serverutils.events.client.CustomClickEvent;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.gui.misc.GuiLoading;
 import serverutils.lib.gui.misc.YesNoCallback;
-import serverutils.lib.util.NetUtils;
 import serverutils.lib.util.misc.BooleanConsumer;
 import serverutils.lib.util.misc.MouseButton;
 
@@ -385,7 +386,7 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
                         Minecraft.getMinecraft().displayGuiScreen(new GuiConfirmOpenLink((result, id) -> {
                             if (result) {
                                 try {
-                                    NetUtils.openURI(uri);
+                                    FilesUtil.openUri(uri);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
                                 }
@@ -393,7 +394,7 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
                             Minecraft.getMinecraft().displayGuiScreen(currentScreen);
                         }, scheme + ':' + path, 0, false));
                     } else {
-                        NetUtils.openURI(uri);
+                        FilesUtil.openUri(uri);
                     }
 
                     return true;
@@ -405,7 +406,7 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
             }
             case "file": {
                 try {
-                    NetUtils.openURI(new URI("file:" + path));
+                    FilesUtil.openUri(new URI("file:" + path));
                     return true;
                 } catch (Exception ex) {
                     ex.printStackTrace();
