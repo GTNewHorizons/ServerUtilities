@@ -5,14 +5,11 @@ import java.util.Collection;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.EnumChatFormatting;
-import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 
@@ -30,7 +27,6 @@ import serverutils.client.ServerUtilitiesClient;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.client.gui.GuiClaimedChunks;
 import serverutils.client.gui.GuiClientConfig;
-import serverutils.client.gui.GuiSidebar;
 import serverutils.events.client.CustomClickEvent;
 import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.OtherMods;
@@ -197,14 +193,6 @@ public class ServerUtilitiesClientEventHandler {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    @SubscribeEvent
-    public static void onGuiInit(final GuiScreenEvent.InitGuiEvent.Post event) {
-        if (ClientUtils.areButtonsVisible(event.gui)) {
-            event.buttonList.add(new GuiSidebar((GuiContainer) event.gui));
-        }
-    }
-
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
         if (!ClientUtils.RUN_LATER.isEmpty()) {
@@ -212,23 +200,6 @@ public class ServerUtilitiesClientEventHandler {
                 runnable.run();
             }
             ClientUtils.RUN_LATER.clear();
-        }
-    }
-
-    /**
-     * Renders sidebar button tooltips outside of {@link GuiSidebar#drawButton} so that other screen elements don't draw
-     * over it.
-     */
-    @SubscribeEvent
-    public static void onGuiScreenDraw(final GuiScreenEvent.DrawScreenEvent.Post event) {
-        if (ClientUtils.areButtonsVisible(event.gui)) {
-            event.gui.buttonList.forEach((GuiButton button) -> {
-                if (button instanceof GuiSidebar sidebar) {
-                    sidebarButtonTooltip.clear();
-                    sidebar.addTooltip(sidebarButtonTooltip);
-                    event.gui.func_146283_a(sidebarButtonTooltip, event.mouseX, event.mouseY);
-                }
-            });
         }
     }
 
