@@ -115,7 +115,7 @@ public class MessageSyncData extends MessageToClient {
             ServerUtilities.LOGGER
                     .info("Synced data from universe " + StringUtils.fromUUID(SidedUtils.UNIVERSE_UUID_CLIENT));
         }
-        ClientUtils.is_op = Bits.getFlag(flags, OP);
+        ClientUtils.isOP = Bits.getFlag(flags, OP);
 
         SidedUtils.SERVER_MODS.putAll(modList);
         SidedUtils.trashCan = Bits.getFlag(flags, TRASH_CAN);

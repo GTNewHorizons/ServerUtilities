@@ -19,8 +19,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 
-import serverutils.lib.ATHelper;
-
 public class InvUtils {
 
     public static final int BUCKET_VOLUME = 1000;
@@ -198,7 +196,7 @@ public class InvUtils {
             ItemStack itemstack1 = itemstack == null ? InvUtils.EMPTY_STACK : itemstack.copy();
             container.inventoryItemStacks.set(i, itemstack1);
 
-            for (ICrafting listener : ATHelper.getContainerListeners(container)) {
+            for (ICrafting listener : container.crafters) {
                 listener.sendSlotContents(container, i, itemstack1);
             }
         }

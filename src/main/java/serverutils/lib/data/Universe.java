@@ -46,7 +46,6 @@ import serverutils.events.universe.UniverseClearCacheEvent;
 import serverutils.events.universe.UniverseClosedEvent;
 import serverutils.events.universe.UniverseLoadedEvent;
 import serverutils.events.universe.UniverseSavedEvent;
-import serverutils.lib.ATHelper;
 import serverutils.lib.EnumReloadType;
 import serverutils.lib.EnumTeamColor;
 import serverutils.lib.io.DataReader;
@@ -182,7 +181,7 @@ public class Universe {
             }
 
             if (universe.server.isSinglePlayer()) {
-                boolean cheats = ATHelper.areCommandsAllowedForAll(universe.server.getConfigurationManager());
+                boolean cheats = universe.server.getConfigurationManager().commandsAllowedForAll;
 
                 if (universe.prevCheats != cheats) {
                     universe.prevCheats = cheats;

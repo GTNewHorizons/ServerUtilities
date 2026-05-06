@@ -53,7 +53,6 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
-import serverutils.lib.ATHelper;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.text_components.Notification;
 
@@ -173,35 +172,35 @@ public class JsonUtils {
         ChatStyle style = component.getChatStyle();
 
         if (!style.isEmpty()) {
-            if (ATHelper.getBold(style) != null) {
+            if (style.bold != null) {
                 json.addProperty("bold", style.getBold());
             }
 
-            if (ATHelper.getItalic(style) != null) {
+            if (style.italic != null) {
                 json.addProperty("italic", style.getItalic());
             }
 
-            if (ATHelper.getUnderlined(style) != null) {
+            if (style.underlined != null) {
                 json.addProperty("underlined", style.getUnderlined());
             }
 
-            if (ATHelper.getStrikethrough(style) != null) {
+            if (style.strikethrough != null) {
                 json.addProperty("strikethrough", style.getStrikethrough());
             }
 
-            if (ATHelper.getObfuscated(style) != null) {
+            if (style.obfuscated != null) {
                 json.addProperty("obfuscated", style.getObfuscated());
             }
 
-            if (ATHelper.getColor(style) != null) {
+            if (style.color != null) {
                 json.addProperty("color", style.getColor().getFriendlyName());
             }
 
-            if (ATHelper.getClickEvent(style) != null) {
+            if (style.chatClickEvent != null) {
                 json.add("clickEvent", serializeClickEvent(style.getChatClickEvent()));
             }
 
-            if (ATHelper.getHoverEvent(style) != null) {
+            if (style.chatHoverEvent != null) {
                 json.add("hoverEvent", serializeHoverEvent(style.getChatHoverEvent()));
             }
         }
