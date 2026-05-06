@@ -19,8 +19,4 @@ public enum EnumCreature {
     EnumCreature(EnumCreatureType creatureType) {
         this.creatureType = creatureType;
     }
-
-    public static EnumCreatureType getFromString(String s) {
-        return NAME_MAP.get(s).creatureType;
-    }
 }
