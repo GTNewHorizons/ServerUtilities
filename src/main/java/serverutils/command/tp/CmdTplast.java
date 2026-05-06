@@ -33,7 +33,11 @@ public class CmdTplast extends CmdBase {
             double x = func_110665_a(sender, player.posX, args[0], -30000000, 30000000);
             double y = func_110665_a(sender, player.posY, args[1], -30000000, 30000000);
             double z = func_110665_a(sender, player.posZ, args[2], -30000000, 30000000);
-            TeleporterDimPos.of(x, y, z, player.dimension).teleport(player);
+            int dim = player.dimension;
+            if (args.length == 4) {
+                dim = parseInt(sender, args[3]);
+            }
+            TeleporterDimPos.of(x, y, z, dim).teleport(player);
             return;
         }
 
