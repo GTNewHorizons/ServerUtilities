@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.entity.player.EntityPlayer;
@@ -24,7 +26,11 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunk;
 import serverutils.data.ClaimedChunks;
+import serverutils.data.ServerUtilitiesTeamData;
 import serverutils.data.ServerUtilitiesUniverseData;
+import serverutils.lib.config.EnumTristate;
+import serverutils.lib.data.ForgeTeam;
+import serverutils.lib.enums.EnumCreature;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.pregenerator.ChunkLoaderManager;
 
@@ -57,6 +63,36 @@ public class ServerUtilitiesWorldEventHandler {
                 return false;
             } else {
                 return !(entity instanceof EntityChicken) || entity.riddenByEntity == null;
+            }
+        }
+        EnumTristate blockClaimSpawn = ServerUtilitiesConfig.world.blockMobSpawningInClaims;
+
+        if (!(entity instanceof EntityLiving) || blockClaimSpawn.isFalse() || !ClaimedChunks.isActive()) {
+            return true;
+        }
+
+        if (blockClaimSpawn.isTrue()) {
+            String[] mobTypes = ServerUtilitiesConfig.world.mobTypesToBlock;
+            if (mobTypes.length == 0) return false;
+            for (String string : mobTypes) {
+                EnumCreature creature = EnumCreature.NAME_MAP.getNullable(string);
+                if (creature != null) {
+                    return creature.creatureType.getCreatureClass().isAssignableFrom(entity.getClass());
+                }
+            }
+            return true;
+        }
+
+        ForgeTeam team = ClaimedChunks.instance.getChunkTeam(new ChunkDimPos(entity));
+        if (team != null && blockClaimSpawn.isDefault()) {
+            ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
+            if (data.allowsMobSpawning()) return true;
+            Set<EnumCreature> creatures = data.blockedCreatures;
+            if (creatures.isEmpty() || creatures.size() >= EnumCreature.VALUES.length) {
+                return false;
+            } else {
+                return data.blockedCreatures.stream()
+                        .noneMatch(a -> a.creatureType.getCreatureClass().isAssignableFrom(entity.getClass()));
             }
         }
 

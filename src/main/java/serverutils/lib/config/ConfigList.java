@@ -70,6 +70,7 @@ public class ConfigList<T extends ConfigValue> extends ConfigValue implements It
 
     public final List<T> list;
     public T type;
+    private boolean distinct = false;
 
     public ConfigList(T t) {
         list = new ArrayList<>();
@@ -102,6 +103,7 @@ public class ConfigList<T extends ConfigValue> extends ConfigValue implements It
         writeToList();
         data.writeString(type.getId());
         type.writeData(data);
+        data.writeBoolean(distinct);
         data.writeVarInt(list.size());
 
         for (ConfigValue s : list) {
@@ -114,6 +116,7 @@ public class ConfigList<T extends ConfigValue> extends ConfigValue implements It
         list.clear();
         type = (T) ServerUtilitiesAPI.createConfigValueFromId(data.readString());
         type.readData(data);
+        distinct = data.readBoolean();
         int s = data.readVarInt();
 
         while (--s >= 0) {
@@ -157,6 +160,7 @@ public class ConfigList<T extends ConfigValue> extends ConfigValue implements It
     public ConfigList<T> copy() {
         writeToList();
         ConfigList<T> l = new ConfigList<>((T) type.copy());
+        l.distinct = distinct;
 
         for (T value : list) {
             l.list.add((T) value.copy());
@@ -253,6 +257,10 @@ public class ConfigList<T extends ConfigValue> extends ConfigValue implements It
         return list.isEmpty();
     }
 
+    public boolean isDistinct() {
+        return distinct;
+    }
+
     @Override
     public void setValueFromOtherValue(ConfigValue ovalue) {
         list.clear();
@@ -281,6 +289,11 @@ public class ConfigList<T extends ConfigValue> extends ConfigValue implements It
         }
 
         readFromList();
+    }
+
+    public ConfigList<T> setDistinct(boolean value) {
+        distinct = value;
+        return this;
     }
 
     public void readFromList() {}

@@ -601,6 +601,21 @@ public class ServerUtilitiesConfig {
         @Config.RangeInt(min = 0, max = 100)
         public int vampire_sleep_percent;
 
+        @Config.Comment("""
+                Allowed values:
+                DEFAULT = Teams can decide whether mob spawns are allowed in their claims.
+                TRUE = Block mob spawning in all claims.
+                FALSE = Allow mob spawning in all claims.""")
+        @Config.DefaultEnum("DEFAULT")
+        public EnumTristate blockMobSpawningInClaims;
+
+        @Config.Comment("""
+                Which enemy types to block when spawning in claims while blockMobSpawningInClaims is set to TRUE
+                Allowed values: AMBIENT, WATER_CREATURE, MOB, ANIMAL
+                """)
+        @Config.DefaultStringList({ "AMBIENT", "WATER_CREATURE", "MOB", "ANIMAL" })
+        public String[] mobTypesToBlock;
+
         @Config.Ignore
         private List<DisabledItem> disabledItems = null;
 
