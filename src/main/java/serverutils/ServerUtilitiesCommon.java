@@ -15,6 +15,8 @@ import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
+
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -146,6 +148,17 @@ public class ServerUtilitiesCommon {
     static boolean onReload(ServerReloadEvent event) {
         if (event.getUniverse() != null) {
             ServerUtilitiesLeaderboards.loadLeaderboards();
+
+            if (event.getType().command()) {
+                if (ServerUtilitiesConfig.login.enable_motd) {
+                    ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "login_motd");
+                    ServerUtilitiesConfig.login.motdComponents = null;
+                }
+
+                if (ServerUtilitiesConfig.motd.enabled) {
+                    ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "server_motd");
+                }
+            }
         }
         return true;
     }
