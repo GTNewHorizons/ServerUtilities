@@ -161,6 +161,10 @@ public class ServerUtilitiesServerEventHandler {
         if (flip) {
             for (String rule : rulesToFlip) {
                 if (rule == null || rule.isEmpty()) continue;
+                if (!rules.hasRule(rule)) {
+                    ServerUtilities.LOGGER.warn("[Rules Flip] Game rule \"{}\" does not exist, skipping.", rule);
+                    continue;
+                }
                 boolean ruleValue = rules.getGameRuleBooleanValue(rule);
                 universe.flippedRulesSaveState.put(rule, String.valueOf(ruleValue));
                 rules.setOrCreateGameRule(rule, String.valueOf(!ruleValue));

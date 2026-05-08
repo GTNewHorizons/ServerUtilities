@@ -483,7 +483,9 @@ public class ServerUtilitiesConfig {
 
         public static class RulesFlip {
 
-            @Config.Comment("Enable flipping specific game rules when server is empty.")
+            @Config.Comment("""
+                    Enable flipping specific game rules when server is empty.
+                    Note: Flip state is stored on restart. If you disable it probably first stop the server in a unflipped state.""")
             @Config.DefaultBoolean(false)
             public boolean enable_flip_game_rules_when_empty;
 
@@ -492,7 +494,9 @@ public class ServerUtilitiesConfig {
             @Config.RangeInt(min = 0, max = 86400)
             public int flip_game_rules_when_empty_seconds;
 
-            @Config.Comment("Which game rules to flip when server is empty. Example: doDaylightCycle, doWeatherCycle , ...")
+            @Config.Comment("""
+                    Which game rules to flip when server is empty.
+                    Example: doDaylightCycle, doWeatherCycle , ...""")
             @Config.DefaultStringList({ "" })
             public String[] flip_game_rules_when_empty_rules;
         }
