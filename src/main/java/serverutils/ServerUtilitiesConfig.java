@@ -481,6 +481,24 @@ public class ServerUtilitiesConfig {
 
         public final WorldLogging logging = new WorldLogging();
 
+        public static class RulesFlip {
+
+            @Config.Comment("Enable flipping specific game rules when server is empty.")
+            @Config.DefaultBoolean(false)
+            public boolean enable_flip_game_rules_when_empty;
+
+            @Config.Comment("Flip specific game rules when server is empty for x seconds.")
+            @Config.DefaultInt(60)
+            @Config.RangeInt(min = 0, max = 86400)
+            public int flip_game_rules_when_empty_seconds;
+
+            @Config.Comment("Which game rules to flip when server is empty. Example: doDaylightCycle, doWeatherCycle , ...")
+            @Config.DefaultStringList({ "" })
+            public String[] flip_game_rules_when_empty_rules;
+        }
+
+        public final RulesFlip flip = new RulesFlip();
+
         @Config.Comment("Enables chunk claiming.")
         @Config.DefaultBoolean(true)
         public boolean chunk_claiming;
@@ -615,19 +633,6 @@ public class ServerUtilitiesConfig {
                 """)
         @Config.DefaultStringList({ "AMBIENT", "WATER_CREATURE", "MOB", "ANIMAL" })
         public String[] mobTypesToBlock;
-
-        @Config.Comment("Enable flipping specific game rules when server is empty.")
-        @Config.DefaultBoolean(false)
-        public boolean enable_flip_game_rules_when_empty;
-
-        @Config.Comment("Flip specific game rules when server is empty for x seconds.")
-        @Config.DefaultInt(60)
-        @Config.RangeInt(min = 0, max = 86400)
-        public int flip_game_rules_when_empty_seconds;
-
-        @Config.Comment("Which game rules to flip when server is empty. Example: doDaylightCycle, doWeatherCycle , ...")
-        @Config.DefaultStringList({ "" })
-        public String[] flip_game_rules_when_empty_rules;
 
         @Config.Ignore
         private List<DisabledItem> disabledItems = null;

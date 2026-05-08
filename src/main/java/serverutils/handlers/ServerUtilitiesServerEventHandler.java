@@ -154,7 +154,7 @@ public class ServerUtilitiesServerEventHandler {
     }
 
     public static void flipGameRules(Universe universe, boolean flip) {
-        String[] rulesToFlip = ServerUtilitiesConfig.world.flip_game_rules_when_empty_rules;
+        String[] rulesToFlip = ServerUtilitiesConfig.world.flip.flip_game_rules_when_empty_rules;
 
         GameRules rules = universe.world.getGameRules();
 
@@ -263,7 +263,7 @@ public class ServerUtilitiesServerEventHandler {
                 ChunkLoaderManager.instance.queueChunks(pregen.chunksPerTick);
             }
 
-            if (ServerUtilitiesConfig.world.enable_flip_game_rules_when_empty) {
+            if (ServerUtilitiesConfig.world.flip.enable_flip_game_rules_when_empty) {
                 boolean serverHasPlayer = false;
                 for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
                     if (!ServerUtils.isFake(player)) {
@@ -279,7 +279,7 @@ public class ServerUtilitiesServerEventHandler {
                         flipGameRules(universe, false);
                     }
                 } else {
-                    int beforeRulesFlipTick = ServerUtilitiesConfig.world.flip_game_rules_when_empty_seconds * 20;
+                    int beforeRulesFlipTick = ServerUtilitiesConfig.world.flip.flip_game_rules_when_empty_seconds * 20;
                     if (!universe.gameRulesFlipped) {
                         emptyTicks++;
                         if (emptyTicks >= beforeRulesFlipTick) {
