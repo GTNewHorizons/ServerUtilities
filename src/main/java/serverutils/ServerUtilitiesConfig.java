@@ -22,6 +22,7 @@ import serverutils.lib.util.ServerUtils;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", configSubDirectory = "../serverutilities/")
 @Config.RequiresWorldRestart
+@Config.LangKeyPattern(fullyQualified = true)
 public class ServerUtilitiesConfig {
 
     public static final AutoShutdown auto_shutdown = new AutoShutdown();
@@ -32,7 +33,9 @@ public class ServerUtilitiesConfig {
     public static final RanksConfig ranks = new RanksConfig();
     public static final WorldConfig world = new WorldConfig();
     public static final Debugging debugging = new Debugging();
+    @Config.LangKey("serverutilities.gui.backup.button")
     public static final Backups backups = new Backups();
+    @Config.LangKey("stat.generalButton")
     public static final General general = new General();
     public static final Teams teams = new Teams();
     public static final Tasks tasks = new Tasks();
@@ -140,10 +143,12 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Enables auto-shutdown.")
         @Config.DefaultBoolean(false)
+        @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
         @Config.Comment("Enables auto-shutdown in singleplayer worlds.")
         @Config.DefaultBoolean(false)
+        @Config.LangKey("serverutilities.config.enabled_singleplayer")
         public boolean enabled_singleplayer;
 
         @Config.Comment("""
@@ -158,10 +163,12 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Enables afk timer.")
         @Config.DefaultBoolean(true)
+        @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
         @Config.Comment("Enables afk timer in singleplayer.")
         @Config.DefaultBoolean(true)
+        @Config.LangKey("serverutilities.config.enabled_singleplayer")
         public boolean enabled_singleplayer;
 
         @Config.Comment("After how much time it will display notification to all players.")
@@ -422,6 +429,7 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Enables Ranks.")
         @Config.DefaultBoolean(true)
+        @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
         @Config.Comment("Adds chat colors/rank-specific syntax.")
@@ -439,6 +447,7 @@ public class ServerUtilitiesConfig {
 
             @Config.Comment("Enables world logging.")
             @Config.DefaultBoolean(false)
+            @Config.LangKey("serverutilities.config.enabled")
             public boolean enabled;
 
             @Config.Comment("Includes creative players in world logging.")
@@ -703,6 +712,7 @@ public class ServerUtilitiesConfig {
 
             @Config.Comment("Enables periodic removal of entities")
             @Config.DefaultBoolean(false)
+            @Config.LangKey("serverutilities.config.enabled")
             public boolean enabled;
 
             @Config.Comment("How often the cleanup should run in hours")
@@ -768,6 +778,7 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Enable custom configurable SERVER MOTD with color codes and variables")
         @Config.DefaultBoolean(false)
+        @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
         @Config.Comment("First line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")

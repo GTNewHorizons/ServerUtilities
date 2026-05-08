@@ -1,11 +1,12 @@
 # Config
+serverutilities.config.enabled=有効
+serverutilities.config.enabled_singleplayer=シングルプレイで有効化
+
 serverutilities.auto_shutdown=自動シャットダウン
-serverutilities.auto_shutdown.enabled_singleplayer=シングルプレイで有効化
 serverutilities.auto_shutdown.times=シャットダウン時間
 
 serverutilities.afk=退席中
 serverutilities.afk_kicked=あなたはキックされます: %s
-serverutilities.afk.enabled_singleplayer=シングルプレイで有効化
 serverutilities.afk.notification_timer=通知タイマー
 serverutilities.afk.log_afk=退席ログ
 
@@ -52,7 +53,6 @@ serverutilities.world.logging.block_broken=ブロックの破壊
 serverutilities.world.logging.item_clicked_in_air=アイテムでのクリック
 
 serverutilities.ranks=ランク
-serverutilities.ranks.enabled=有効
 serverutilities.ranks.override_chat=チャットをオーバーライド
 serverutilities.ranks.crash_client_side_permissions=Clientサイド権限のクラッシュ
 serverutilities.ranks.load_from_config_folder=Configフォルダからロード
