@@ -5,9 +5,13 @@ import com.gtnewhorizon.gtnhlib.config.Config;
 import serverutils.ServerUtilities;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", filename = "aurora", configSubDirectory = "../serverutilities/")
+@Config.ExcludeFromAutoGui
 public class AuroraConfig {
 
+    @Config.Comment("Aurora Webserver Settings")
     public static final General general = new General();
+
+    @Config.Comment("Aurora Page Settings")
     public static final Pages pages = new Pages();
 
     public static class General {

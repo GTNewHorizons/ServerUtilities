@@ -92,6 +92,9 @@ serverutilities.world.dimension.nether=Nether
 
 # Config
 serverutilities=Server Utilities
+serverutilities.config.enabled=Enabled
+serverutilities.config.enabled_singleplayer=Enabled in Singleplayer
+
 serverutilities.auto_shutdown=Auto Shutdown
 serverutilities.auto_shutdown.enabled_singleplayer=Enabled in Singleplayer
 serverutilities.auto_shutdown.times=Shutdown Times
@@ -102,23 +105,53 @@ serverutilities.afk.enabled_singleplayer=Enabled in Singleplayer
 serverutilities.afk.notification_timer=Notification Timer
 serverutilities.afk.log_afk=Log AFK
 
-serverutilities.server_info=Server Info
-serverutilities.server_info.difficulty=Difficulty
-serverutilities.server_info.admin_quick_access=Admin Quick Access
+serverutilities.backups.enable_backups=Enable Backups
+serverutilities.backups.backup_timer=Backup Timer
+serverutilities.backups.backups_to_keep=Backups To Keep
+serverutilities.backups.compression_level=Compression Level
+serverutilities.backups.backup_folder_path=Backup Folder Path
+serverutilities.backups.additional_backup_files=Additional Backup Files
+serverutilities.backups.use_separate_thread=Use Separate Thread
+serverutilities.backups.display_file_size=Display File Size
+serverutilities.backups.need_online_players=Need Online Players
+serverutilities.backups.silent_backup=Silent Backup
+serverutilities.backups.max_folder_size=Max Folder Size
+serverutilities.backups.delete_custom_name_backups=Delete Custom Named Backups
+serverutilities.backups.only_backup_claimed_chunks=Only Backup Claimed Chunks
+serverutilities.backups.backup_entire_regions_with_claims=Include Entire Regions With Claims
 
 serverutilities.chat=Chat
 serverutilities.chat.add_nickname_tilde=Add Nickname Tilde
+serverutilities.chat.replace_tab_names=Replace Tab Names
 serverutilities.chat.format=%s
 
 serverutilities.commands=Commands
 
+serverutilities.debugging=Debugging
+serverutilities.debugging.special_commands=Special Commands
+serverutilities.debugging.print_more_info=Print More Info
+serverutilities.debugging.print_more_errors=Print More Errors
+serverutilities.debugging.log_network=Log Network IO
+serverutilities.debugging.log_teleport=Log Teleporting
+serverutilities.debugging.log_config_editing=Log Config Editing
+serverutilities.debugging.dev_sidebar_buttons=Dev-only Sidebar Buttons
+serverutilities.debugging.gui_widget_bounds=GUI Widget Bounds
+serverutilities.debugging.log_events=Log Events
+serverutilities.debugging.log_chunkloading=Log Chunkloading
+
 serverutilities.login=Login
 serverutilities.login.enable_motd=Enable MOTD
 serverutilities.login.enable_starting_items=Enable Starting Items
-serverutilities.login.enable_global_badges=Enable Global Badges
-serverutilities.login.enable_event_badges=Enable Event Badges
-serverutilities.login.motd=MOTD
+serverutilities.login.motd=Login MOTD
 serverutilities.login.starting_items=Starting Items
+
+serverutilities.mixins=Mixins
+serverutilities.mixins.endermen=Enable Endermen Mixin
+serverutilities.mixins.bypassplayerlimit=Enable Bypass Player Limit Mixin
+
+serverutilities.motd=Server MOTD
+serverutilities.motd.line1=First MOTD Line
+serverutilities.motd.line2=Second MOTD Line
 
 serverutilities.world=World
 serverutilities.world.blocked_claiming_dimensions=Blocked Claiming Dimensions
@@ -137,6 +170,15 @@ serverutilities.world.disable_player_suffocation_damage=Disable Player Suffocati
 serverutilities.world.show_playtime=Show Playtime in Top-Left Corner
 serverutilities.world.players_sleeping=§f%s§6 is now sleeping. %s/%s (%s%%)
 serverutilities.world.vampires_sleeping=§f%s§4 is resting in a coffin. %s/%s (%s%%)
+serverutilities.world.enable_explosions=Enable Explosion in Claimed Chunks
+serverutilities.world.enable_endermen=Enable Endermen in Claimed Chunks
+serverutilities.world.enable_pvp=Enable PvP
+serverutilities.world.disabled_right_click_items=Disabled Right Click Items
+serverutilities.world.enable_player_sleeping_percentage=Enable Player Sleeping Percentage
+serverutilities.world.player_sleeping_percentage=Player Sleeping Percentage Default Value
+serverutilities.world.vampire_sleep_percent=Vampire Sleep Percentage
+serverutilities.world.blockmobspawninginclaims=Block Mob Spawning in Claims
+serverutilities.world.mobtypestoblock=Mob Types to Block
 
 serverutilities.world.skip_night=§6Wakey, wakey, rise and shine... Good Morning everyone!
 serverutilities.world.skip_day=§4The sun has set, and the shadows grow long... The night is ours!
@@ -147,23 +189,21 @@ serverutilities.world.logging.include_fake_players=Include Fake Players
 serverutilities.world.logging.block_placed=Block Placed
 serverutilities.world.logging.block_broken=Block Broken
 serverutilities.world.logging.item_clicked_in_air=Item Clicked in Air
+serverutilities.world.logging.entity_attacked=Entity Attacked
+serverutilities.world.logging.exclude_mob_entity=Exclude Hostile Entity
+serverutilities.world.logging.chat_enable=Enable Chat Log
 
 serverutilities.ranks=Ranks
-serverutilities.ranks.enabled=Enabled
 serverutilities.ranks.override_chat=Override Chat
-serverutilities.ranks.override_commands=Override Commands
-serverutilities.ranks.crash_client_side_permissions=Crash Client-Side Permissions
-serverutilities.ranks.load_from_config_folder=Load From Config Folder
-serverutilities.ranks.print_command_errors=Print Command Errors
+serverutilities.ranks.command_permissions=Command Permissions
 
 serverutilities.ranks.tags.default_player_rank=Default Player Rank
 serverutilities.ranks.tags.default_op_rank=Default OP Rank
 
-serverutilities.debugging.log_chunkloading=Log Chunkloading
-
-serverutilities.general.clientless_mode=Clientless Mode
-serverutilities.general.replace_reload_command=Replace /reload Command
 serverutilities.general.merge_offline_mode_players=Merge Offline Mode Players
+serverutilities.general.enable_pause_when_empty_property=Enable pause_when_empty Property
+serverutilities.general.enable_max_tick_time_property=Enable max_tick_time Property
+serverutilities.general.enable_toggle_cheats_button=Enable Toggle Cheats Button
 serverutilities.general.toggle_cheats=Toggle Cheats
 serverutilities.general.enable_cheats=Enable Cheats
 serverutilities.general.disable_cheats=Disable Cheats
@@ -171,17 +211,28 @@ serverutilities.general.disable_cheats=Disable Cheats
 serverutilities.teams=Teams
 serverutilities.teams.autocreate_sp=Autocreate on Singleplayer
 serverutilities.teams.autocreate_mp=Autocreate on Multiplayer
+serverutilities.teams.hide_team_notification=Hide Team Notification
+serverutilities.teams.grief_protection=Grief Protection
+serverutilities.teams.interaction_protection=Interaction Protection
+serverutilities.teams.force_team_prefix=Force Team Prefix
+serverutilities.teams.disable_teams=Disable Teams
 
-serverutilities.debugging=Debugging
-serverutilities.debugging.special_commands=Special Commands
-serverutilities.debugging.print_more_info=Print More Info
-serverutilities.debugging.print_more_errors=Print More Errors
-serverutilities.debugging.log_network=Log Network IO
-serverutilities.debugging.log_teleport=Log Teleporting
-serverutilities.debugging.log_config_editing=Log Config Editing
-serverutilities.debugging.dev_sidebar_buttons=Dev-only Sidebar Buttons
-serverutilities.debugging.gui_widget_bounds=GUI Widget Bounds
-serverutilities.debugging.log_events=Log Events
+serverutilities.tasks=Tasks
+serverutilities.tasks.cleanup=Cleanup
+serverutilities.tasks.cleanup.interval=Interval
+serverutilities.tasks.cleanup.hostiles=Include Hostiles
+serverutilities.tasks.cleanup.passives=Include Passives
+serverutilities.tasks.cleanup.items=Include Items
+serverutilities.tasks.cleanup.experience=Include Experience Orbs
+serverutilities.tasks.cleanup.silent=Silent Cleanup
+
+serverutilities.pregen=Pregen
+serverutilities.pregen.chunkspertick=Chunks Per Tick
+serverutilities.pregen.timelimitms=Time Limit In ms
+
+serverutilities.server_info=Server Info
+serverutilities.server_info.difficulty=Difficulty
+serverutilities.server_info.admin_quick_access=Admin Quick Access
 
 # Client Config
 serverutilities_client=Client Config
