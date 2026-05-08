@@ -750,6 +750,10 @@ public class ServerUtilitiesConfig {
         @Config.Comment("Adds a permission node (serverutilities.bypass_player_limit) that allows for joining while server is full.")
         @Config.DefaultBoolean(true)
         public boolean bypassPlayerLimit;
+
+        @Config.Comment("Enable grief protection for farmland trampling.")
+        @Config.DefaultBoolean(true)
+        public boolean farmlandTramplingProtection;
     }
 
     public static class MOTD {

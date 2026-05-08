@@ -148,6 +148,7 @@ serverutilities.login.starting_items=Starting Items
 serverutilities.mixins=Mixins
 serverutilities.mixins.endermen=Enable Endermen Mixin
 serverutilities.mixins.bypassplayerlimit=Enable Bypass Player Limit Mixin
+serverutilities.mixins.farmlandtramplingprotection=Enable Farmland Trampling Protection Mixin
 
 serverutilities.motd=Server MOTD
 serverutilities.motd.line1=First MOTD Line
