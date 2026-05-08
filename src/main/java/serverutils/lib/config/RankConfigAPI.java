@@ -7,8 +7,10 @@ import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.events.RegisterRankConfigEvent;
 import serverutils.events.RegisterRankConfigHandlerEvent;
+import serverutils.ranks.ServerUtilitiesPermissionHandler;
 
 public class RankConfigAPI {
 
@@ -22,7 +24,8 @@ public class RankConfigAPI {
 
     public static IRankConfigHandler getHandler() {
         if (handler == null) {
-            handler = DefaultRankConfigHandler.INSTANCE;
+            handler = ServerUtilitiesConfig.ranks.enabled ? ServerUtilitiesPermissionHandler.INSTANCE
+                    : DefaultRankConfigHandler.INSTANCE;
             new RegisterRankConfigHandlerEvent(RankConfigAPI::setHandler).post();
             new RegisterRankConfigEvent(handler::registerRankConfig).post();
         }
