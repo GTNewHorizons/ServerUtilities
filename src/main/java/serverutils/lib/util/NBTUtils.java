@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -210,5 +211,9 @@ public class NBTUtils {
 
     public static boolean getBooleanOrTrue(NBTTagCompound nbt, String key) {
         return !nbt.hasKey(key) || nbt.getBoolean(key);
+    }
+
+    public static Set<String> getKeySet(NBTTagCompound nbt) {
+        return nbt.func_150296_c();
     }
 }

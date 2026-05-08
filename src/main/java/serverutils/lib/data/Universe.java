@@ -212,6 +212,8 @@ public class Universe {
     private boolean prevCheats = false;
     public File dataFolder;
     public File latModFolder;
+    public boolean gameRulesFlipped;
+    public final Map<String, String> flippedRulesSaveState;
 
     public Universe(MinecraftServer s) {
         server = s;
@@ -226,6 +228,8 @@ public class Universe {
         checkSaving = true;
         taskList = new ArrayList<>();
         taskQueue = new ArrayList<>();
+        gameRulesFlipped = false;
+        flippedRulesSaveState = new HashMap<>();
     }
 
     public void markDirty() {
@@ -405,6 +409,15 @@ public class Universe {
 
         fakePlayerTeam.owner = fakePlayer;
 
+        if (universeData.hasKey("GameRulesState")) {
+            NBTTagCompound gameRulesState = universeData.getCompoundTag("GameRulesState");
+            gameRulesFlipped = gameRulesState.getBoolean("Flipped");
+            NBTTagCompound savedRules = gameRulesState.getCompoundTag("SavedRules");
+            for (String key : NBTUtils.getKeySet(savedRules)) {
+                flippedRulesSaveState.put(key, savedRules.getString(key));
+            }
+        }
+
         new UniverseLoadedEvent.Post(this, data).post();
 
         if (shouldLoadLatmod()) {
@@ -433,6 +446,14 @@ public class Universe {
             universeData.setString("UUID", StringUtils.fromUUID(getUUID()));
             universeData.setTag("FakePlayer", fakePlayer.serializeNBT());
             universeData.setTag("FakeTeam", fakePlayerTeam.serializeNBT());
+            NBTTagCompound gameRulesState = new NBTTagCompound();
+            gameRulesState.setBoolean("Flipped", gameRulesFlipped);
+            NBTTagCompound savedRules = new NBTTagCompound();
+            for (Map.Entry<String, String> entry : flippedRulesSaveState.entrySet()) {
+                savedRules.setString(entry.getKey(), entry.getValue());
+            }
+            gameRulesState.setTag("SavedRules", savedRules);
+            universeData.setTag("GameRulesState", gameRulesState);
             NBTUtils.writeNBTSafe(new File(dataFolder, "universe.dat"), universeData);
             needsSaving = false;
         }
