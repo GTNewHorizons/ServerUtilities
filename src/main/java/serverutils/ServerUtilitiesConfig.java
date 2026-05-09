@@ -333,7 +333,7 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean need_online_players;
 
-        @Config.Comment("Silence backup notifications.")
+        @Config.Comment("Silence every backup notification except for critical errors.")
         @Config.DefaultBoolean(false)
         public boolean silent_backup;
 

@@ -113,7 +113,9 @@ public class BackupTask extends Task {
         }
 
         server.getConfigurationManager().saveAllPlayerData();
-        BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
+        if (!backups.silent_backup) {
+            BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
+        }
         Set<ChunkDimPos> backupChunks = new HashSet<>();
         if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
             backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
