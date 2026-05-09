@@ -79,6 +79,10 @@ public enum Mixins implements IMixins {
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> general.enable_toggle_cheats_button)
             .addClientMixins("minecraft.AccessorSaveFormatComparator")),
+    FARMLAND_TRAMPLING_PROTECTION(new MixinBuilder("Make grief protection apply to farmland trampling")
+            .setPhase(Phase.EARLY)
+            .setApplyIf(() -> mixins.farmlandTramplingProtection)
+            .addCommonMixins("minecraft.MixinBlockFarmland")),
     ;
     // spotless:on
 
