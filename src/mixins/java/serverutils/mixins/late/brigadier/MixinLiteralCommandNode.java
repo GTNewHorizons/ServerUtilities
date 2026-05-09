@@ -31,7 +31,7 @@ public class MixinLiteralCommandNode<S> implements ICommandWithPermission {
     private String serverUtilities$modId;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void serverutilities$ssfsasd(String literal, Command<S> command, Predicate<S> requirement,
+    private void serverutilities$init(String literal, Command<S> command, Predicate<S> requirement,
             CommandNode<S> redirect, RedirectModifier<S> modifier, boolean forks, CallbackInfo ci) {
         ModContainer container = Loader.instance().activeModContainer();
         serverutilities$setModName(container == null ? "" : container.getName());
