@@ -11,11 +11,16 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 
+import com.gtnewhorizon.gtnhlib.brigadier.BrigadierApi;
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
+import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -40,6 +45,8 @@ import serverutils.lib.net.MessageToClient;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.ServerUtilitiesNetHandler;
+import serverutils.ranks.ICommandWithPermission;
+import serverutils.ranks.Rank;
 import serverutils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.task.CleanupTask;
 import serverutils.task.DecayTask;
@@ -123,6 +130,30 @@ public class ServerUtilitiesCommon {
     public void onServerStarted(FMLServerStartedEvent event) {
         Universe.onServerStarted(event);
         registerTasks();
+
+        if (ranks.enabled && ranks.command_permissions) {
+            for (CommandNode<?> node : BrigadierApi.getCommandDispatcher().getRoot().getChildren()) {
+                if (node instanceof LiteralCommandNode<?>literalNode) {
+                    registerBrigadierCommands(literalNode, (ICommandWithPermission) literalNode, null);
+                }
+            }
+        }
+    }
+
+    private static void registerBrigadierCommands(LiteralCommandNode<?> literalNode, ICommandWithPermission cmdPerm,
+            @Nullable String parentNode) {
+        String node = parentNode == null
+                ? Rank.NODE_COMMAND + '.' + cmdPerm.serverutilities$getModId() + "." + literalNode.getLiteral()
+                : parentNode + "." + literalNode.getLiteral();
+
+        cmdPerm.serverutilities$setPermissionNode(node);
+        cmdPerm.serverUtilities$registerPermissions();
+
+        for (CommandNode<?> child : literalNode.getChildren()) {
+            if (child instanceof LiteralCommandNode<?>childLiteral) {
+                registerBrigadierCommands(childLiteral, (ICommandWithPermission) childLiteral, node);
+            }
+        }
     }
 
     public void onServerStopping(FMLServerStoppingEvent event) {

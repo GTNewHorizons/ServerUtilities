@@ -14,6 +14,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import com.mojang.brigadier.tree.CommandNode;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import it.unimi.dsi.fastutil.ints.IntComparators;
@@ -141,9 +143,15 @@ public class MessageRanks extends MessageToClient {
                 IChatComponent name = new ChatComponentText(
                         EnumChatFormatting.BLUE + "[" + command.serverutilities$getModName() + "]\n");
                 ConfigBoolean val = new ConfigBoolean(level == DefaultPermissionLevel.ALL);
-                commandPermissions.add(node, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                        .setDisplayName(new ChatComponentTranslation(node)).setInfo(
-                                name.appendSibling(CommandUtils.getTranslatedUsage((ICommand) command, p.getPlayer())));
+                if (command instanceof ICommand cmd) {
+                    commandPermissions.add(node, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
+                            .setDisplayName(new ChatComponentTranslation(node))
+                            .setInfo(name.appendSibling(CommandUtils.getTranslatedUsage(cmd, p.getPlayer())));
+                } else if (command instanceof CommandNode<?>cmdNode) {
+                    commandPermissions.add(node, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
+                            .setDisplayName(new ChatComponentTranslation(node))
+                            .setInfo(name.appendSibling(new ChatComponentText(cmdNode.getUsageText())));
+                }
             }
         }
     }

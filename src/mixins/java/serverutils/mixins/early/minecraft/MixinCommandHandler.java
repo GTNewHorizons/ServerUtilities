@@ -3,7 +3,6 @@ package serverutils.mixins.early.minecraft;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
@@ -19,13 +18,8 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 
 import cpw.mods.fml.common.Loader;
-import cpw.mods.fml.common.LoaderState;
 import cpw.mods.fml.common.ModContainer;
-import serverutils.ServerUtilitiesPermissions;
-import serverutils.data.NodeEntry;
 import serverutils.lib.command.CommandTreeBase;
-import serverutils.lib.util.permission.DefaultPermissionLevel;
-import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.ranks.ICommandWithPermission;
 import serverutils.ranks.Rank;
 
@@ -71,35 +65,6 @@ public abstract class MixinCommandHandler {
         ICommandWithPermission cmd = (ICommandWithPermission) command;
         cmd.serverutilities$setPermissionNode(PERMISSION_REPLACE_MATCHER.reset(node.toLowerCase()).replaceAll("_"));
         cmd.serverutilities$setModName(container == null ? "Minecraft" : container.getName());
-        serverUtilities$registerPermissions(cmd);
-    }
-
-    @Unique
-    private DefaultPermissionLevel serverUtilities$getDefaultLevel(ICommandWithPermission command) {
-        if (command instanceof CommandBase cmdBase) {
-            return cmdBase.getRequiredPermissionLevel() > 0 ? DefaultPermissionLevel.OP : DefaultPermissionLevel.ALL;
-        }
-        return DefaultPermissionLevel.OP;
-    }
-
-    @Unique
-    private void serverUtilities$registerPermissions(ICommandWithPermission command) {
-        String node = command.serverutilities$getPermissionNode();
-        DefaultPermissionLevel level = serverUtilities$getDefaultLevel(command);
-
-        if (command instanceof CommandTreeBase tree) {
-            for (ICommand c : tree.getSubCommands()) {
-                ICommandWithPermission child = (ICommandWithPermission) c;
-                child.serverutilities$setPermissionNode(node.toLowerCase() + '.' + c.getCommandName());
-                child.serverutilities$setModName(command.serverutilities$getModName());
-                serverUtilities$registerPermissions(child);
-            }
-        }
-
-        if (Loader.instance().getLoaderState().ordinal() > LoaderState.PREINITIALIZATION.ordinal()) {
-            PermissionAPI.registerNode(node, level, "");
-        } else {
-            ServerUtilitiesPermissions.earlyPermissions.add(new NodeEntry(node, level, ""));
-        }
+        cmd.serverUtilities$registerPermissions();
     }
 }
