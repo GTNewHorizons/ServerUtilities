@@ -90,14 +90,15 @@ serverutilities.world.dimension.end=Край
 serverutilities.world.dimension.nether=Нижний мир
 
 # Config
-serverutilities=FTBLib
+serverutilities=Server Utilities
+serverutilities.config.enabled=Включено
+serverutilities.config.enabled_singleplayer=Включено в одиночной игре
+
 serverutilities.auto_shutdown=Автовыключение
-serverutilities.auto_shutdown.enabled_singleplayer=Включено в одиночной игре
 serverutilities.auto_shutdown.times=Время выключения
 
 serverutilities.afk=AFK
 serverutilities.afk_kicked=Вы будете изгнаны после: %s
-serverutilities.afk.enabled_singleplayer=Включено в одиночной игре
 serverutilities.afk.notification_timer=Таймер уведомления
 serverutilities.afk.log_afk=Журнал AFK
 
@@ -145,7 +146,6 @@ serverutilities.world.logging.block_broken=Разрушение блока
 serverutilities.world.logging.item_clicked_in_air=Предмет нажатого в воздухе
 
 serverutilities.ranks=Ранги
-serverutilities.ranks.enabled=Включено
 serverutilities.ranks.override_chat=Переопределить чат
 serverutilities.ranks.override_commands=Переопределить команды
 serverutilities.ranks.crash_client_side_permissions=Разрешения крашей на стороне клиента

@@ -17,14 +17,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBucket;
 
-import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
-
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.registry.GameData;
 import serverutils.data.Leaderboard;
 import serverutils.data.NodeEntry;
 import serverutils.events.CustomPermissionPrefixesRegistryEvent;
-import serverutils.events.RegisterRankConfigHandlerEvent;
 import serverutils.lib.config.ConfigBoolean;
 import serverutils.lib.config.ConfigEnum;
 import serverutils.lib.config.ConfigInt;
@@ -37,9 +33,7 @@ import serverutils.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.lib.util.text_components.TextComponentParser;
 import serverutils.ranks.Rank;
-import serverutils.ranks.ServerUtilitiesPermissionHandler;
 
-@EventBusSubscriber
 public class ServerUtilitiesPermissions {
 
     public static final Collection<NodeEntry> CUSTOM_PERM_PREFIX = new HashSet<>();
@@ -134,13 +128,6 @@ public class ServerUtilitiesPermissions {
 
     public static final String CLAIMS_JOURNEYMAP = "serverutilities.journeymap.enable";
     public static final String CLAIMS_JOURNEYMAP_OTHER = "serverutilities.journeymap.other";
-
-    @SubscribeEvent
-    public static void registerRankConfigHandler(RegisterRankConfigHandlerEvent event) {
-        if (ServerUtilitiesConfig.ranks.enabled) {
-            event.setHandler(ServerUtilitiesPermissionHandler.INSTANCE);
-        }
-    }
 
     static void init() {
         registerPermissions();
