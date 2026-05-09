@@ -14,6 +14,7 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.world.GameRules;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.world.WorldEvent;
@@ -55,6 +56,8 @@ public class ServerUtilitiesServerEventHandler {
     private static final String BOLD_REPLACE = "&l$1&l";
     private static final Pattern ITALIC_PATTERN = Pattern.compile("\\*(.+?)\\*|_(.+?)_");
     private static final String ITALIC_REPLACE = "&o$1&o";
+
+    private static int emptyTicks = 0;
 
     @SubscribeEvent
     public static void loadWorldEvent(WorldEvent.Load event) {
@@ -150,6 +153,37 @@ public class ServerUtilitiesServerEventHandler {
         event.component = new ChatComponentTranslation("serverutilities.chat.format", main);
     }
 
+    public static void flipGameRules(Universe universe, boolean flip) {
+        String[] rulesToFlip = ServerUtilitiesConfig.world.flip.flip_game_rules_when_empty_rules;
+
+        GameRules rules = universe.world.getGameRules();
+
+        if (flip) {
+            for (String rule : rulesToFlip) {
+                if (rule == null || rule.isEmpty()) continue;
+                if (!rules.hasRule(rule)) {
+                    ServerUtilities.LOGGER.warn("[Rules Flip] Game rule \"{}\" does not exist, skipping.", rule);
+                    continue;
+                }
+                boolean ruleValue = rules.getGameRuleBooleanValue(rule);
+                universe.flippedRulesSaveState.put(rule, String.valueOf(ruleValue));
+                rules.setOrCreateGameRule(rule, String.valueOf(!ruleValue));
+                ServerUtilities.LOGGER
+                        .info("[Rules Flip] Changed game rule \"{}\" from {} to {}.", rule, ruleValue, !ruleValue);
+            }
+        } else {
+            for (String rule : rulesToFlip) {
+                if (rule == null || rule.isEmpty()) continue;
+                String savedValue = universe.flippedRulesSaveState.get(rule);
+                rules.setOrCreateGameRule(rule, savedValue);
+                ServerUtilities.LOGGER
+                        .info("[Rules Flip] Restored game rule \"{}\" to {} from saved state.", rule, savedValue);
+            }
+            universe.flippedRulesSaveState.clear();
+        }
+        universe.markDirty();
+    }
+
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
         if (!Universe.loaded()) {
@@ -231,6 +265,33 @@ public class ServerUtilitiesServerEventHandler {
 
             if (ChunkLoaderManager.instance.isGenerating()) {
                 ChunkLoaderManager.instance.queueChunks(pregen.chunksPerTick);
+            }
+
+            if (ServerUtilitiesConfig.world.flip.enable_flip_game_rules_when_empty) {
+                boolean serverHasPlayer = false;
+                for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
+                    if (!ServerUtils.isFake(player)) {
+                        serverHasPlayer = true;
+                        break;
+                    }
+                }
+
+                if (serverHasPlayer) {
+                    emptyTicks = 0;
+                    if (universe.gameRulesFlipped) {
+                        universe.gameRulesFlipped = false;
+                        flipGameRules(universe, false);
+                    }
+                } else {
+                    int beforeRulesFlipTick = ServerUtilitiesConfig.world.flip.flip_game_rules_when_empty_seconds * 20;
+                    if (!universe.gameRulesFlipped) {
+                        emptyTicks++;
+                        if (emptyTicks >= beforeRulesFlipTick) {
+                            universe.gameRulesFlipped = true;
+                            flipGameRules(universe, true);
+                        }
+                    }
+                }
             }
         }
     }
