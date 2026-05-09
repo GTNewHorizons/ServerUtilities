@@ -510,6 +510,7 @@ public class ServerUtilitiesConfig {
             public String[] flip_game_rules_when_empty_rules;
         }
 
+        @Config.Name("flip_game_rules_when_empty")
         public final RulesFlip flip = new RulesFlip();
 
         @Config.Comment("Enables chunk claiming.")
