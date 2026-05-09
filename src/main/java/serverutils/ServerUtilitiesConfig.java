@@ -333,7 +333,7 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean need_online_players;
 
-        @Config.Comment("Silence backup notifications.")
+        @Config.Comment("Silence every backup notification except for critical errors.")
         @Config.DefaultBoolean(false)
         public boolean silent_backup;
 
@@ -773,6 +773,10 @@ public class ServerUtilitiesConfig {
         @Config.Comment("Adds a permission node (serverutilities.bypass_player_limit) that allows for joining while server is full.")
         @Config.DefaultBoolean(true)
         public boolean bypassPlayerLimit;
+
+        @Config.Comment("Enable grief protection for farmland trampling.")
+        @Config.DefaultBoolean(true)
+        public boolean farmlandTramplingProtection;
     }
 
     public static class MOTD {
