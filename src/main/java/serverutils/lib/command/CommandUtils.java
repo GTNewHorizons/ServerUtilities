@@ -20,7 +20,6 @@ import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.DimensionManager;
 
 import com.gtnewhorizon.gtnhlib.brigadier.BrigadierApi;
-import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
 
 import serverutils.ServerUtilities;
@@ -204,10 +203,10 @@ public class CommandUtils {
             }
         }
 
-        if (command instanceof CommandNode<?>node && !(node instanceof ArgumentCommandNode)) {
+        if (command instanceof CommandNode<?>node) {
             for (CommandNode<?> child : node.getChildren()) {
-                if (!(child instanceof ArgumentCommandNode)) {
-                    addCommand(list, (ICommandWithPermission) child);
+                if (child instanceof ICommandWithPermission cmdPerm) {
+                    addCommand(list, cmdPerm);
                 }
             }
         }

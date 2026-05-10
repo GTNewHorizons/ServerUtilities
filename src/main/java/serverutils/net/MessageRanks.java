@@ -140,18 +140,18 @@ public class MessageRanks extends MessageToClient {
             for (ICommandWithPermission command : CommandUtils.getPermissionCommands()) {
                 String node = command.serverutilities$getPermissionNode();
                 DefaultPermissionLevel level = DefaultPermissionHandler.INSTANCE.getDefaultPermissionLevel(node);
-                IChatComponent name = new ChatComponentText(
-                        EnumChatFormatting.BLUE + "[" + command.serverutilities$getModName() + "]\n");
                 ConfigBoolean val = new ConfigBoolean(level == DefaultPermissionLevel.ALL);
+                IChatComponent desc = new ChatComponentText(
+                        EnumChatFormatting.BLUE + "[" + command.serverutilities$getModName() + "]\n");
+
                 if (command instanceof ICommand cmd) {
-                    commandPermissions.add(node, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                            .setDisplayName(new ChatComponentTranslation(node))
-                            .setInfo(name.appendSibling(CommandUtils.getTranslatedUsage(cmd, p.getPlayer())));
+                    desc = desc.appendSibling(CommandUtils.getTranslatedUsage(cmd, p.getPlayer()));
                 } else if (command instanceof CommandNode<?>cmdNode) {
-                    commandPermissions.add(node, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
-                            .setDisplayName(new ChatComponentTranslation(node))
-                            .setInfo(name.appendSibling(new ChatComponentText(cmdNode.getUsageText())));
+                    desc = desc.appendSibling(new ChatComponentText(cmdNode.getUsageText()));
                 }
+
+                commandPermissions.add(node, val, val, StringUtils.FLAG_ID_PERIOD_DEFAULTS)
+                        .setDisplayName(new ChatComponentTranslation(node)).setInfo(desc);
             }
         }
     }

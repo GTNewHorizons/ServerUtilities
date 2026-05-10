@@ -7,7 +7,6 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommand;
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Unique;
 
 import cpw.mods.fml.common.Loader;
@@ -26,17 +25,17 @@ public interface ICommandWithPermission {
 
     String serverutilities$getPermissionNode();
 
-    void serverutilities$setPermissionNode(@NotNull String node);
+    void serverutilities$setPermissionNode(String node);
 
     String serverutilities$getModName();
 
-    void serverutilities$setModName(@NotNull String modName);
+    void serverutilities$setModName(String modName);
 
     default String serverutilities$getModId() {
         return "";
     }
 
-    default void serverutilities$setModId(@NotNull String modId) {}
+    default void serverutilities$setModId(String modId) {}
 
     default boolean serverutilities$hasPermission(EntityPlayerMP player) {
         return false;
@@ -68,6 +67,9 @@ public interface ICommandWithPermission {
         if (this instanceof CommandBase cmdBase) {
             return cmdBase.getRequiredPermissionLevel() > 0 ? DefaultPermissionLevel.OP : DefaultPermissionLevel.ALL;
         }
+
+        // Command permissions function as overrides, so it's fine to return OP for Brigadier commands
+        // Only used for display purposes in the rank edit GUI
         return DefaultPermissionLevel.OP;
     }
 }

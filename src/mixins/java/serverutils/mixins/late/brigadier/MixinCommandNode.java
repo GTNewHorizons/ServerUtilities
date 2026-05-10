@@ -18,8 +18,10 @@ public abstract class MixinCommandNode<S> {
 
     @ModifyReturnValue(method = "canUse", at = @At(value = "RETURN"), remap = false)
     private boolean serverutilities$brigadierExecute(boolean original, @Local(argsOnly = true) S source) {
-        if (!(source instanceof EntityPlayerMP player) || !(this instanceof ICommandWithPermission permission))
+        if (!(source instanceof EntityPlayerMP player) || !(this instanceof ICommandWithPermission permission)) {
             return original;
+        }
+
         Event.Result result = Ranks.INSTANCE
                 .getPermissionResult(player, permission.serverutilities$getPermissionNode(), true);
         if (result == Event.Result.DEFAULT) {
