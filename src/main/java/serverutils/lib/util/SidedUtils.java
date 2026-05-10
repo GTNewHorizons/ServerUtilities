@@ -1,9 +1,12 @@
 package serverutils.lib.util;
 
+import static serverutils.ServerUtilitiesConfig.commands;
+import static serverutils.ServerUtilitiesConfig.teams;
+import static serverutils.ServerUtilitiesConfig.world;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
@@ -11,9 +14,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class SidedUtils {
 
-    public static Map<String, String> SERVER_MODS = new HashMap<>();
-    public static UUID UNIVERSE_UUID_CLIENT = null;
-    public static boolean trashCan = false, teams = false, chunkClaiming = false;
+    public static final Map<String, String> SERVER_MODS = new HashMap<>();
 
     public static IChatComponent lang(String key, Object... args) {
         return new ChatComponentTranslation(key, args);
@@ -43,9 +44,9 @@ public class SidedUtils {
 
     public static boolean isButtonEnabledOnServer(ResourceLocation buttonId) {
         return switch (buttonId.toString()) {
-            case "serverutilities:trash_can" -> trashCan;
-            case "serverutilities:my_team" -> teams;
-            case "serverutilities:claimed_chunks" -> chunkClaiming;
+            case "serverutilities:trash_can" -> commands.trash_can;
+            case "serverutilities:my_team" -> !teams.disable_teams;
+            case "serverutilities:claimed_chunks" -> world.chunk_claiming;
             default -> true;
         };
     }
