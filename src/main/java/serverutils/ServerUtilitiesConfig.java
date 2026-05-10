@@ -69,6 +69,7 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Disable teams entirely")
         @Config.DefaultBoolean(false)
+        @Config.Sync
         public boolean disable_teams;
 
         @Config.Comment("Automatically creates a team for player on multiplayer, based on their username and with a random color.")
@@ -223,6 +224,7 @@ public class ServerUtilitiesConfig {
         public boolean tpl;
 
         @Config.DefaultBoolean(true)
+        @Config.Sync
         public boolean trash_can;
 
         @Config.DefaultBoolean(true)
@@ -515,6 +517,7 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Enables chunk claiming.")
         @Config.DefaultBoolean(true)
+        @Config.Sync
         public boolean chunk_claiming;
 
         @Config.Comment("Enables chunk loading. If chunk_claiming is set to false, changing this won't do anything.")
