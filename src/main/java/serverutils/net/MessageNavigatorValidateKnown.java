@@ -2,8 +2,8 @@ package serverutils.net;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ClaimedChunk;
 import serverutils.data.ClaimedChunks;
@@ -16,11 +16,11 @@ import serverutils.lib.util.permission.PermissionAPI;
 
 public class MessageNavigatorValidateKnown extends MessageToServer {
 
-    private LongSet knownPositions;
+    private LongList knownPositions;
 
     public MessageNavigatorValidateKnown() {}
 
-    public MessageNavigatorValidateKnown(LongSet knownPositions) {
+    public MessageNavigatorValidateKnown(LongList knownPositions) {
         this.knownPositions = knownPositions;
     }
 
@@ -38,7 +38,7 @@ public class MessageNavigatorValidateKnown extends MessageToServer {
 
     @Override
     public void readData(DataIn data) {
-        knownPositions = new LongOpenHashSet();
+        knownPositions = new LongArrayList();
         while (data.isReadable()) {
             knownPositions.add(data.readLong());
         }
@@ -49,7 +49,7 @@ public class MessageNavigatorValidateKnown extends MessageToServer {
         if (knownPositions.isEmpty()) return;
         if (ClaimedChunks.isActive()
                 && PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP)) {
-            LongSet toRemove = new LongOpenHashSet();
+            LongList toRemove = new LongArrayList();
             ChunkDimPos mut = new ChunkDimPos();
             for (long pos : knownPositions) {
                 ClaimedChunk chunk = ClaimedChunks.instance.getChunk(mut.set(pos, player.dimension));

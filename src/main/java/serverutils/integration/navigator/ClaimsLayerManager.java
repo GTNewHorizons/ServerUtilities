@@ -1,6 +1,8 @@
 package serverutils.integration.navigator;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
@@ -13,8 +15,8 @@ import com.gtnewhorizons.navigator.api.model.locations.ILocationProvider;
 import com.gtnewhorizons.navigator.api.model.locations.IWaypointAndLocationProvider;
 import com.gtnewhorizons.navigator.api.model.waypoints.Waypoint;
 
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 import serverutils.client.gui.ClientClaimedChunks;
 import serverutils.net.MessageNavigatorRequest;
 import serverutils.net.MessageNavigatorValidateKnown;
@@ -22,6 +24,7 @@ import serverutils.net.MessageNavigatorValidateKnown;
 public class ClaimsLayerManager extends InteractableLayerManager {
 
     public static final ClaimsLayerManager INSTANCE = new ClaimsLayerManager();
+    private static final int MAX_CHUNKS_TO_VALIDATE = 2000;
     private long lastRequest, lastValidateRequest;
 
     public ClaimsLayerManager() {
@@ -73,9 +76,25 @@ public class ClaimsLayerManager extends InteractableLayerManager {
             Collection<IWaypointAndLocationProvider> visibleLocations = getVisibleLocations();
             if (visibleLocations.isEmpty()) return;
 
-            LongSet positions = new LongOpenHashSet();
+            LongList positions = new LongArrayList();
             visibleLocations.forEach(location -> positions.add(location.toLong()));
-            new MessageNavigatorValidateKnown(positions).sendToServer();
+            if (visibleLocations.size() <= MAX_CHUNKS_TO_VALIDATE) {
+                new MessageNavigatorValidateKnown(positions).sendToServer();
+            } else {
+                List<LongList> chunks = partitionList(positions);
+                for (LongList chunk : chunks) {
+                    new MessageNavigatorValidateKnown(chunk).sendToServer();
+                }
+            }
         }
+    }
+
+    private static List<LongList> partitionList(LongList list) {
+        List<LongList> chunkList = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += MAX_CHUNKS_TO_VALIDATE) {
+            int end = Math.min(i + MAX_CHUNKS_TO_VALIDATE, list.size());
+            chunkList.add(list.subList(i, end));
+        }
+        return chunkList;
     }
 }
