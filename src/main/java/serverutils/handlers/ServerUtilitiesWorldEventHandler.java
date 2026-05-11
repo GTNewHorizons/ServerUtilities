@@ -71,20 +71,22 @@ public class ServerUtilitiesWorldEventHandler {
             return true;
         }
 
+        ForgeTeam team = ClaimedChunks.instance.getChunkTeam(new ChunkDimPos(entity));
+        if (team == null) return true;
+
         if (blockClaimSpawn.isTrue()) {
             String[] mobTypes = ServerUtilitiesConfig.world.mobTypesToBlock;
             if (mobTypes.length == 0) return false;
             for (String string : mobTypes) {
-                EnumCreature creature = EnumCreature.NAME_MAP.getNullable(string);
-                if (creature != null) {
-                    return creature.creatureType.getCreatureClass().isAssignableFrom(entity.getClass());
+                EnumCreature creature = EnumCreature.NAME_MAP.getNullable(string.toLowerCase());
+                if (creature != null && creature.creatureType.getCreatureClass().isAssignableFrom(entity.getClass())) {
+                    return false;
                 }
             }
             return true;
         }
 
-        ForgeTeam team = ClaimedChunks.instance.getChunkTeam(new ChunkDimPos(entity));
-        if (team != null && blockClaimSpawn.isDefault()) {
+        if (blockClaimSpawn.isDefault()) {
             ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
             if (data.allowsMobSpawning()) return true;
             Set<EnumCreature> creatures = data.blockedCreatures;
