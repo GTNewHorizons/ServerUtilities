@@ -1,5 +1,7 @@
 package serverutils.command;
 
+import java.util.Arrays;
+
 import net.minecraft.command.ICommandSender;
 
 import serverutils.ServerUtilities;
@@ -26,10 +28,18 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            BackupTask task = new BackupTask(sender, args.length == 0 ? "" : args[0]);
+            final boolean oc = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=oc"));
+
+            final String target = Arrays.stream(args).filter(arg -> !arg.equalsIgnoreCase("=oc")).findFirst()
+                    .orElse("");
+
+            final BackupTask task = oc ? new BackupTask(sender, target, true) : new BackupTask(sender, target);
+
             if (BackupTask.thread == null) {
                 task.execute(Universe.get());
-                sender.addChatMessage(ServerUtilities.lang("cmd.backup_manual_launch", sender.getCommandSenderName()));
+                sender.addChatMessage(
+                        ServerUtilities
+                                .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
             } else {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
             }
