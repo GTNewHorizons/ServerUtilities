@@ -29,11 +29,10 @@ public class CmdBackup extends CmdTreeBase {
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
             final boolean oc = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=oc"));
-
             final String target = Arrays.stream(args).filter(arg -> !arg.equalsIgnoreCase("=oc")).findFirst()
                     .orElse("");
 
-            final BackupTask task = oc ? new BackupTask(sender, target, true) : new BackupTask(sender, target);
+            final BackupTask task = new BackupTask(sender, target, oc);
 
             if (BackupTask.thread == null) {
                 task.execute(Universe.get());
