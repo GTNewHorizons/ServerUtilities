@@ -146,7 +146,7 @@ public class ServerUtilitiesCommon {
                 ? Rank.NODE_COMMAND + '.' + cmdPerm.serverutilities$getModId() + "." + literalNode.getLiteral()
                 : parentNode + "." + literalNode.getLiteral();
 
-        cmdPerm.serverutilities$setPermissionNode(node);
+        cmdPerm.serverutilities$setPermissionNode(node.toLowerCase());
         cmdPerm.serverUtilities$registerPermissions();
 
         for (CommandNode<?> child : literalNode.getChildren()) {
