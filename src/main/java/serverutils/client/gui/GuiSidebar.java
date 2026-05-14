@@ -1,6 +1,5 @@
 package serverutils.client.gui;
 
-import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +31,6 @@ import serverutils.lib.icon.Color4I;
 public class GuiSidebar extends GuiButton {
 
     private static final List<String> sidebarButtonTooltip = new ArrayList<>();
-    public static Rectangle lastDrawnArea = new Rectangle();
     public static int dragOffsetX = 0, dragOffsetY = 0;
     private final GuiContainer gui;
     public final List<GuiButtonSidebar> buttons;
@@ -57,11 +55,11 @@ public class GuiSidebar extends GuiButton {
             clearButtons();
         }
 
-        this.setButtonLocations(mc, mx, my);
         if (buttons.isEmpty()) {
             addButtonsToSidebar();
         }
 
+        setButtonLocations(mc, mx, my);
         int x = Integer.MAX_VALUE;
         int y = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE;
@@ -126,8 +124,6 @@ public class GuiSidebar extends GuiButton {
         GlStateManager.disableDepth();
         GlStateManager.popMatrix();
         zLevel = 0F;
-
-        lastDrawnArea = new Rectangle(xPosition, yPosition, width, height);
     }
 
     public void addTooltip(List<String> textLines) {
