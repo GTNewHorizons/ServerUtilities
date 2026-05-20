@@ -167,5 +167,9 @@ public class ServerUtilitiesCommands {
         if (ServerUtilitiesConfig.commands.pregen) {
             event.registerServerCommand(new CmdPregen());
         }
+
+        if (ServerUtilitiesConfig.transfer.enabled) {
+            event.registerServerCommand(new TransferCommand());
+        }
     }
 }
