@@ -21,6 +21,8 @@ import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.client.gui.BuiltinChunkMap;
 import serverutils.client.gui.SidebarButtonManager;
+import serverutils.client.tab.TabChannelHandler;
+import serverutils.client.tab.TabDisplayHandler;
 import serverutils.command.client.CommandClientConfig;
 import serverutils.command.client.CommandKaomoji;
 import serverutils.command.client.CommandPing;
@@ -78,6 +80,11 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
 
         if (OtherMods.isNavigatorLoaded()) {
             NavigatorIntegration.init();
+        }
+
+        if (ServerUtilitiesClientConfig.modernTabOverlay) {
+            TabChannelHandler.INSTANCE.registerChannel();
+            TabDisplayHandler.INSTANCE.registerChannel();
         }
 
         if (Loader.isModLoaded("FTBU") || Loader.isModLoaded("FTBL")) {

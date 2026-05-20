@@ -42,6 +42,7 @@ public class ServerUtilitiesConfig {
     public static final Pregen pregen = new Pregen();
     public static final Mixins mixins = new Mixins();
     public static final MOTD motd = new MOTD();
+    public static final Tab tab = new Tab();
 
     public static class General {
 
@@ -798,5 +799,28 @@ public class ServerUtilitiesConfig {
         @Config.DefaultString("§aUptime: §f{uptime} §7| §bTPS: §f{tps}")
         @Config.Reloadable("server_motd")
         public String line2;
+    }
+
+    public static class Tab {
+
+        @Config.Comment("Show player head icons in the modern tab overlay.")
+        @Config.DefaultBoolean(true)
+        public boolean showPlayerHeads;
+
+        @Config.Comment("Show numeric ping value (e.g. 42ms) next to the signal bars.")
+        @Config.DefaultBoolean(true)
+        public boolean showPingNumber;
+
+        @Config.Comment("Show signal bars in the modern tab overlay.")
+        @Config.DefaultBoolean(true)
+        public boolean showPingBars;
+
+        @Config.Comment("Header text for the modern tab overlay. Use & for color/format codes, \\n for line breaks. Overridden by proxy plugin channel.")
+        @Config.DefaultString("&b&lGTNH Server\\n&7A modern tab list for 1.7.10")
+        public String headerText;
+
+        @Config.Comment("Footer text for the modern tab overlay. Use & for color/format codes, \\n for line breaks. Overridden by proxy plugin channel.")
+        @Config.DefaultString("&7Ping: &a< 150ms &e< 300ms &c< 600ms &4< 1000ms &8>= 1000ms\\n&8Powered by &dServerUtilities")
+        public String footerText;
     }
 }
