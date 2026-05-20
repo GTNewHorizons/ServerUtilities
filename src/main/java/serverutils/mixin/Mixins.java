@@ -87,6 +87,9 @@ public enum Mixins implements IMixins {
             .setPhase(Phase.LATE)
             .setApplyIf(() -> ranks.enabled && ranks.command_permissions)
             .addCommonMixins("brigadier.MixinCommandNode", "brigadier.MixinLiteralCommandNode")),
+    MODERN_TAB_OVERLAY(new MixinBuilder("Modern-style player list overlay")
+            .setPhase(Phase.EARLY)
+            .addClientMixins("forge.MixinGuiIngameForge_ModernTab")),
     ;
     // spotless:on
 

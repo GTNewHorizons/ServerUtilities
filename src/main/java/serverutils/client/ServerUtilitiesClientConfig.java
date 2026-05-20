@@ -50,6 +50,26 @@ public class ServerUtilitiesClientConfig {
     @Config.DefaultInt(18000)
     public static int button_nighttime;
 
+    @Config.Comment("Replaces the vanilla player list (TAB overlay) with a modern-style tab list featuring player heads, dynamic columns, and header/footer support.")
+    @Config.DefaultBoolean(true)
+    @Config.RequiresMcRestart
+    public static boolean modernTabOverlay;
+
+    @Config.Ignore
+    public static boolean tabShowPlayerHeads = true;
+
+    @Config.Ignore
+    public static boolean tabShowPingNumber = true;
+
+    @Config.Ignore
+    public static boolean tabShowPingBars = true;
+
+    @Config.Ignore
+    public static String tabHeaderText = "";
+
+    @Config.Ignore
+    public static String tabFooterText = "";
+
     @Config.Ignore
     private static long show_shutdown_timer_ms = -1L;
 
