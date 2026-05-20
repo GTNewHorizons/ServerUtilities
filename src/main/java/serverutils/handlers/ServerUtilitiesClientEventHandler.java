@@ -27,6 +27,9 @@ import serverutils.client.ServerUtilitiesClient;
 import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.client.gui.GuiClaimedChunks;
 import serverutils.client.gui.GuiClientConfig;
+import serverutils.client.tab.TabChannelHandler;
+import serverutils.client.tab.TabDisplayHandler;
+import serverutils.client.tab.TabSkinCache;
 import serverutils.events.client.CustomClickEvent;
 import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.OtherMods;
@@ -62,6 +65,9 @@ public class ServerUtilitiesClientEventHandler {
         if (OtherMods.isNavigatorLoaded()) {
             NavigatorIntegration.CLAIMS.clear();
         }
+        TabSkinCache.INSTANCE.clear();
+        TabChannelHandler.INSTANCE.clear();
+        TabDisplayHandler.INSTANCE.clear();
     }
 
     @SubscribeEvent

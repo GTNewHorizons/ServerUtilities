@@ -83,6 +83,9 @@ public enum Mixins implements IMixins {
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> mixins.farmlandTramplingProtection)
             .addCommonMixins("minecraft.MixinBlockFarmland")),
+    MODERN_TAB_OVERLAY(new MixinBuilder("Modern-style player list overlay")
+            .setPhase(Phase.EARLY)
+            .addClientMixins("forge.MixinGuiIngameForge_ModernTab")),
     ;
     // spotless:on
 
