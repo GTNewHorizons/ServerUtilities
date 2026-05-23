@@ -47,6 +47,7 @@ public class BackupTask extends Task {
     private ICommandSender sender;
     private String customName = "";
     private boolean post = false;
+    private boolean forceOnlyClaimed = false;
 
     static {
         BACKUP_FOLDER = backups.backup_folder_path.isEmpty() ? new File("/backups/")
@@ -58,6 +59,11 @@ public class BackupTask extends Task {
 
     public BackupTask() {
         super(Ticks.HOUR.x(backups.backup_timer));
+    }
+
+    public BackupTask(@Nullable ICommandSender ics, String customName, final boolean forceOnlyClaimed) {
+        this(ics, customName);
+        this.forceOnlyClaimed = forceOnlyClaimed;
     }
 
     public BackupTask(@Nullable ICommandSender ics, String customName) {
@@ -117,7 +123,7 @@ public class BackupTask extends Task {
             BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
         }
         Set<ChunkDimPos> backupChunks = new HashSet<>();
-        if (backups.only_backup_claimed_chunks && ClaimedChunks.isActive()) {
+        if ((this.forceOnlyClaimed || backups.only_backup_claimed_chunks) && ClaimedChunks.isActive()) {
             backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
             // noinspection ResultOfMethodCallIgnored
             BACKUP_TEMP_FOLDER.mkdirs();
