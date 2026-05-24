@@ -25,7 +25,7 @@ public class TransferCommand extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel() {
-        return 3;
+        return 2;
     }
 
     @Override
@@ -40,6 +40,17 @@ public class TransferCommand extends CommandBase {
         int port = 25565;
         if (args.length >= 3) {
             port = parseIntBounded(sender, args[2], 1, 65535);
+        } else {
+            int colonIdx = hostname.lastIndexOf(':');
+            if (colonIdx > 0 && colonIdx < hostname.length() - 1) {
+                try {
+                    port = Integer.parseInt(hostname.substring(colonIdx + 1));
+                    if (port < 1 || port > 65535) {
+                        throw new WrongUsageException(getCommandUsage(sender));
+                    }
+                    hostname = hostname.substring(0, colonIdx);
+                } catch (NumberFormatException ignored) {}
+            }
         }
 
         TransferHelper.transfer(player, hostname, port);
