@@ -4,7 +4,7 @@ dependencies {
 
     api("com.github.GTNewHorizons:GTNHLib:0.9.66:dev")
     compileOnly("com.github.GTNewHorizons:NotEnoughItems:2.8.98-GTNH:dev") {transitive = false}
-    compileOnly("com.github.GTNewHorizons:EnderIO:5.2.62:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:EnderIO:2.10.27:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Random-Things:2.7.7:dev") {transitive = false}
     compileOnly("com.github.GTNewHorizons:Navigator:1.1.3:dev")
     compileOnly('org.jetbrains:annotations:25.0.0')
