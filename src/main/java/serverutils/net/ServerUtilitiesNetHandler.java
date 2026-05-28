@@ -25,6 +25,7 @@ public class ServerUtilitiesNetHandler {
         GENERAL.register(new MessageUpdateTabName());
         GENERAL.register(new MessageInvseeContainer());
         GENERAL.register(new MessageInvseeSwitch());
+        GENERAL.register(new MessageTransfer());
 
         CLAIMS.register(new MessageClaimedChunksRequest());
         CLAIMS.register(new MessageClaimedChunksUpdate());
