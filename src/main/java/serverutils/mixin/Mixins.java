@@ -83,6 +83,10 @@ public enum Mixins implements IMixins {
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> mixins.farmlandTramplingProtection)
             .addCommonMixins("minecraft.MixinBlockFarmland")),
+    BRIGADIER_COMMAND_PERMISSIONS(new MixinBuilder("Make command permissions work with Brigadier commands")
+            .setPhase(Phase.LATE)
+            .setApplyIf(() -> ranks.enabled && ranks.command_permissions)
+            .addCommonMixins("brigadier.MixinCommandNode", "brigadier.MixinLiteralCommandNode")),
     ;
     // spotless:on
 
