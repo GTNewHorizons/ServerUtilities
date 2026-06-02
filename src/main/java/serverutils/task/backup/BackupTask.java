@@ -20,6 +20,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.DimensionManager;
 
 import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
@@ -119,6 +120,15 @@ public class BackupTask extends Task {
         }
 
         server.getConfigurationManager().saveAllPlayerData();
+
+        // saveAllPlayerData saves in another thread, so wait for it to finish
+        try {
+            ThreadedFileIOBase.threadedIOInstance.waitForFinish();
+        } catch (InterruptedException ex) {
+            ServerUtilities.LOGGER.warn("Interrupted while flushing pending world writes before backup", ex);
+            Thread.currentThread().interrupt();
+        }
+
         if (!backups.silent_backup) {
             BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
         }
