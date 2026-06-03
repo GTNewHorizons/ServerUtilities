@@ -100,6 +100,11 @@ public class BackupTask extends Task {
         }
 
         dimSaveStates.clear();
+
+        // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
+        // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
+        server.getConfigurationManager().saveAllPlayerData();
+
         try {
             for (int i = 0; i < server.worldServers.length; ++i) {
                 WorldServer world = server.worldServers[i];
@@ -119,9 +124,7 @@ public class BackupTask extends Task {
             return;
         }
 
-        server.getConfigurationManager().saveAllPlayerData();
-
-        // saveAllPlayerData saves in another thread, so wait for it to finish
+        // saveAllPlayerData and saveAllChunks queue writes on another thread, so wait for them to finish
         try {
             ThreadedFileIOBase.threadedIOInstance.waitForFinish();
         } catch (InterruptedException ex) {
