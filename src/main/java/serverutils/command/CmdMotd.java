@@ -17,8 +17,8 @@ public class CmdMotd extends CmdBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        MinecraftServer server = MinecraftServer.getServer();
-
-        if (server != null) sender.addChatMessage(MOTDFormatter.buildMOTD(server));
+        for (IChatComponent component : ServerUtilitiesConfig.login.getMOTD()) {
+            sender.addChatMessage(component);
+        }
     }
 }
