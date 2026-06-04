@@ -1,10 +1,10 @@
 package serverutils.command;
 
 import net.minecraft.command.ICommandSender;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.IChatComponent;
 
+import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.command.CmdBase;
-import serverutils.lib.util.MOTDFormatter;
 
 /**
  * Sends the server's motd to the player.
