@@ -42,6 +42,7 @@ public class ServerUtilitiesConfig {
     public static final Pregen pregen = new Pregen();
     public static final Mixins mixins = new Mixins();
     public static final MOTD motd = new MOTD();
+    public static final Transfer transfer = new Transfer();
 
     public static class General {
 
@@ -798,5 +799,16 @@ public class ServerUtilitiesConfig {
         @Config.DefaultString("§aUptime: §f{uptime} §7| §bTPS: §f{tps}")
         @Config.Reloadable("server_motd")
         public String line2;
+    }
+
+    public static class Transfer {
+
+        @Config.Comment("Enable the /transfer command and transfer packet.")
+        @Config.DefaultBoolean(true)
+        public boolean enabled;
+
+        @Config.Comment("Whitelist of allowed transfer hostnames. Empty = allow all.")
+        @Config.DefaultStringList({})
+        public String[] whitelist;
     }
 }
