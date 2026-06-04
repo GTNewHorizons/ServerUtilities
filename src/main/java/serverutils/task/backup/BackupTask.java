@@ -20,6 +20,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.WorldServer;
+import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.DimensionManager;
 
 import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
@@ -99,6 +100,11 @@ public class BackupTask extends Task {
         }
 
         dimSaveStates.clear();
+
+        // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
+        // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
+        server.getConfigurationManager().saveAllPlayerData();
+
         try {
             for (int i = 0; i < server.worldServers.length; ++i) {
                 WorldServer world = server.worldServers[i];
@@ -118,7 +124,14 @@ public class BackupTask extends Task {
             return;
         }
 
-        server.getConfigurationManager().saveAllPlayerData();
+        // saveAllPlayerData and saveAllChunks queue writes on another thread, so wait for them to finish
+        try {
+            ThreadedFileIOBase.threadedIOInstance.waitForFinish();
+        } catch (InterruptedException ex) {
+            ServerUtilities.LOGGER.warn("Interrupted while flushing pending world writes before backup", ex);
+            Thread.currentThread().interrupt();
+        }
+
         if (!backups.silent_backup) {
             BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
         }
