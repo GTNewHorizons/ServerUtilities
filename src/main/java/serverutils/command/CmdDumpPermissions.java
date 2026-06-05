@@ -8,8 +8,11 @@ import java.util.List;
 import net.minecraft.command.ICommand;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
+
+import com.mojang.brigadier.tree.CommandNode;
 
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesPermissions;
@@ -149,20 +152,29 @@ public class CmdDumpPermissions extends CmdBase {
         commandList.add(Arrays.asList("Node", "Command", "Default Permission", "Usage"));
         commandList.add(Arrays.asList(EMPTY_ROW));
 
-        for (ICommand command : CommandUtils.getAllCommands(sender)) {
-            if (command instanceof ICommandWithPermission cmd) {
-                String node = cmd.serverutilities$getPermissionNode();
-                DefaultPermissionLevel defaultPermissionLevel = DefaultPermissionHandler.INSTANCE
-                        .getDefaultPermissionLevel(node);
-                IChatComponent usage = CommandUtils.getTranslatedUsage(command, sender);
+        for (ICommandWithPermission command : CommandUtils.getPermissionCommands()) {
+            String node = command.serverutilities$getPermissionNode();
+            DefaultPermissionLevel defaultPermissionLevel = DefaultPermissionHandler.INSTANCE
+                    .getDefaultPermissionLevel(node);
 
-                commandList.add(
-                        Arrays.asList(
-                                node,
-                                "/" + command.getCommandName(),
-                                defaultPermissionLevel.name(),
-                                usage.getUnformattedText()));
+            IChatComponent usage;
+            if (command instanceof ICommand cmd) {
+                usage = CommandUtils.getTranslatedUsage(cmd, sender);
+            } else if (command instanceof CommandNode<?>cmdNode) {
+                usage = new ChatComponentText(cmdNode.getUsageText());
+            } else {
+                usage = new ChatComponentText("");
             }
+
+            String cmdName = null;
+            if (command instanceof ICommand cmd) {
+                cmdName = cmd.getCommandName();
+            } else if (command instanceof CommandNode<?>cmdNode) {
+                cmdName = cmdNode.getName();
+            }
+
+            commandList
+                    .add(Arrays.asList(node, "/" + cmdName, defaultPermissionLevel.name(), usage.getUnformattedText()));
         }
 
         int[] cmdMaxLength = new int[4];

@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.gtnewhorizon.gtnhlib.config.ConfigException;
+import net.minecraft.launchwrapper.Launch;
+import net.minecraft.launchwrapper.LaunchClassLoader;
+
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
 import com.gtnewhorizon.gtnhmixins.builders.IMixins;
@@ -19,11 +21,18 @@ public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader
 
     static {
         try {
-            ConfigurationManager.registerConfig(ServerUtilitiesConfig.class);
-            ConfigurationManager.registerConfig(AuroraConfig.class);
-        } catch (ConfigException e) {
+            var cleF = LaunchClassLoader.class.getDeclaredField("classLoaderExceptions");
+            cleF.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            var cle = (Set<String>) cleF.get(Launch.classLoader);
+            // for Brigadier
+            cle.remove("com.mojang.");
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+
+        ConfigurationManager.registerConfig(ServerUtilitiesConfig.class);
+        ConfigurationManager.registerConfig(AuroraConfig.class);
     }
 
     @Override
