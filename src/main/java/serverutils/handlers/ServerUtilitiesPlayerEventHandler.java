@@ -47,7 +47,6 @@ import serverutils.lib.util.InvUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.permission.PermissionAPI;
-import serverutils.net.MessageTabConfig;
 import serverutils.net.MessageUpdateTabName;
 import serverutils.task.backup.BackupTask;
 
@@ -92,13 +91,6 @@ public class ServerUtilitiesPlayerEventHandler {
         if (ServerUtilitiesConfig.chat.replace_tab_names) {
             new MessageUpdateTabName(Universe.get().getOnlinePlayers()).sendTo(player);
         }
-
-        new MessageTabConfig(
-                ServerUtilitiesConfig.tab.headerText,
-                ServerUtilitiesConfig.tab.footerText,
-                ServerUtilitiesConfig.tab.showPlayerHeads,
-                ServerUtilitiesConfig.tab.showPingNumber,
-                ServerUtilitiesConfig.tab.showPingBars).sendTo(player);
 
         BackupTask.hadPlayer = true;
     }

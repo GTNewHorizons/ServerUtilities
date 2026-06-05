@@ -17,9 +17,9 @@ public class TabChannelHandler {
     public static final String CHANNEL_NAME = "HP|TabHF";
     public static final TabChannelHandler INSTANCE = new TabChannelHandler();
 
-    private String header = "";
-    private String footer = "";
-    private boolean hasServerData = false;
+    private volatile String header = "";
+    private volatile String footer = "";
+    private volatile boolean hasServerData = false;
 
     private TabChannelHandler() {}
 

@@ -22,7 +22,8 @@ import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL11;
 
-import serverutils.client.ServerUtilitiesClientConfig;
+import serverutils.ServerUtilitiesConfig;
+import serverutils.lib.util.StringUtils;
 
 public class ModernTabRenderer {
 
@@ -70,7 +71,7 @@ public class ModernTabRenderer {
                 return Integer.compare(idxA, idxB);
             });
         } else {
-            players = allPlayers.subList(0, playerCount);
+            players = new ArrayList<>(allPlayers.subList(0, playerCount));
         }
 
         int maxNameWidth = 0;
@@ -98,8 +99,8 @@ public class ModernTabRenderer {
             maxScoreWidth += 5;
         }
 
-        boolean showPingNumber = ServerUtilitiesClientConfig.tabShowPingNumber;
-        boolean showPingBars = ServerUtilitiesClientConfig.tabShowPingBars;
+        boolean showPingNumber = ServerUtilitiesConfig.tab.showPingNumber;
+        boolean showPingBars = ServerUtilitiesConfig.tab.showPingBars;
         int maxPingTextWidth = 0;
         if (showPingNumber) {
             for (GuiPlayerInfo player : players) {
@@ -127,7 +128,7 @@ public class ModernTabRenderer {
             rows = (playerCount + columns - 1) / columns;
         }
 
-        boolean showHeads = ServerUtilitiesClientConfig.tabShowPlayerHeads;
+        boolean showHeads = ServerUtilitiesConfig.tab.showPlayerHeads;
         int headSpace = showHeads ? HEAD_PADDING : 0;
 
         int pingBarSpace = showPingBars ? PING_ICON_WIDTH + 1 : 0;
@@ -219,7 +220,7 @@ public class ModernTabRenderer {
 
             if (objective != null) {
                 int nameEndX = textX + font.getStringWidth(displayName) + 5;
-                int scoreEndX = x + columnWidth - pingBarSpace - 2 - 5;
+                int scoreEndX = x + columnWidth - pingBarSpace - maxPingTextWidth - maxSuffixWidth - 2;
                 if (scoreEndX - nameEndX > 5) {
                     Score score = objective.getScoreboard().func_96529_a(player.name, objective);
                     String scoreStr = EnumChatFormatting.YELLOW + "" + score.getScorePoints();
@@ -284,10 +285,10 @@ public class ModernTabRenderer {
         if (ch.hasServerData()) {
             text = isHeader ? ch.getHeader() : ch.getFooter();
         } else {
-            text = isHeader ? ServerUtilitiesClientConfig.tabHeaderText : ServerUtilitiesClientConfig.tabFooterText;
+            text = isHeader ? ServerUtilitiesConfig.tab.headerText : ServerUtilitiesConfig.tab.footerText;
         }
         if (text == null || text.isEmpty()) return "";
-        return text.replace("\\n", "\n").replaceAll("&([0-9a-fk-or])", "§$1");
+        return StringUtils.addFormatting(text.replace("\\n", "\n"));
     }
 
     private static List<String> wrapText(FontRenderer font, String text, int maxWidth) {

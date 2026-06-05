@@ -1,9 +1,9 @@
 package serverutils.client.tab;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.util.ResourceLocation;
@@ -12,7 +12,7 @@ public class TabSkinCache {
 
     public static final TabSkinCache INSTANCE = new TabSkinCache();
 
-    private final Map<String, ResourceLocation> cache = new HashMap<>();
+    private final Map<String, ResourceLocation> cache = new ConcurrentHashMap<>();
 
     private TabSkinCache() {}
 

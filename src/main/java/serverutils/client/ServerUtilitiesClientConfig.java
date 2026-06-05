@@ -56,21 +56,6 @@ public class ServerUtilitiesClientConfig {
     public static boolean modernTabOverlay;
 
     @Config.Ignore
-    public static boolean tabShowPlayerHeads = true;
-
-    @Config.Ignore
-    public static boolean tabShowPingNumber = true;
-
-    @Config.Ignore
-    public static boolean tabShowPingBars = true;
-
-    @Config.Ignore
-    public static String tabHeaderText = "";
-
-    @Config.Ignore
-    public static String tabFooterText = "";
-
-    @Config.Ignore
     private static long show_shutdown_timer_ms = -1L;
 
     public static long getShowShutdownTimer() {
