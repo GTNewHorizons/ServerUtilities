@@ -20,17 +20,7 @@ import serverutils.mixin.Mixins;
 public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     static {
-        try {
-            var cleF = LaunchClassLoader.class.getDeclaredField("classLoaderExceptions");
-            cleF.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            var cle = (Set<String>) cleF.get(Launch.classLoader);
-            // for Brigadier
-            cle.remove("com.mojang.");
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-
+        removeBrigadierExceptions();
         ConfigurationManager.registerConfig(ServerUtilitiesConfig.class);
         ConfigurationManager.registerConfig(AuroraConfig.class);
     }
@@ -66,5 +56,23 @@ public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader
     @Override
     public List<String> getMixins(Set<String> loadedCoreMods) {
         return IMixins.getEarlyMixins(Mixins.class, loadedCoreMods);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void removeBrigadierExceptions() {
+        try {
+            var clef = LaunchClassLoader.class.getDeclaredField("classLoaderExceptions");
+            clef.setAccessible(true);
+            var tef = LaunchClassLoader.class.getDeclaredField("transformerExceptions");
+            tef.setAccessible(true);
+            Set<String> loaderExceptions = (Set<String>) clef.get(Launch.classLoader);
+            Set<String> transformerExceptions = (Set<String>) tef.get(Launch.classLoader);
+            // Remove classloader exception added by FML
+            loaderExceptions.remove("com.mojang.");
+            // Remove transformer exception added by GTNHExtLib
+            transformerExceptions.remove("com.mojang.brigadier");
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
