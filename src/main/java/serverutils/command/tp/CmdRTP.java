@@ -44,11 +44,15 @@ public class CmdRTP extends CmdBase {
         }
         ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(CommandUtils.getForgePlayer(player));
         data.checkTeleportCooldown(sender, TeleportType.RTP);
-        TeleporterDimPos pos = findBlockPos(
-                player.mcServer.worldServerForDimension(ServerUtilitiesConfig.world.spawn_dimension),
-                player,
-                0);
+
+        World world = player.mcServer.worldServerForDimension(ServerUtilitiesConfig.world.spawn_dimension);
+        boolean prevFindingSpawnPoint = world.findingSpawnPoint;
+        world.findingSpawnPoint = true;
+
+        TeleporterDimPos pos = findBlockPos(world, player, 0);
         data.teleport(pos, TeleportType.RTP, null);
+
+        world.findingSpawnPoint = prevFindingSpawnPoint;
     }
 
     private TeleporterDimPos findBlockPos(World world, EntityPlayerMP player, int depth) {
