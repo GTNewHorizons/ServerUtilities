@@ -20,6 +20,7 @@ public enum Mixins implements IMixins {
                     "minecraft.MixinICommand")),
     REPLACE_TAB_NAMES(new MixinBuilder()
             .setPhase(Phase.EARLY)
+            .setApplyIf(() -> !mixins.modernTabOverlay)
             .addClientMixins("forge.MixinGuiIngameForge")),
     VANILLA_TP_BACK_COMPAT(new MixinBuilder("/back compat for the vanilla /tp")
             .setPhase(Phase.EARLY)
@@ -87,6 +88,10 @@ public enum Mixins implements IMixins {
             .setPhase(Phase.LATE)
             .setApplyIf(() -> ranks.enabled && ranks.command_permissions)
             .addCommonMixins("brigadier.MixinCommandNode", "brigadier.MixinLiteralCommandNode")),
+    MODERN_TAB_OVERLAY(new MixinBuilder("Modern-style player list overlay")
+            .setPhase(Phase.EARLY)
+            .setApplyIf(() -> mixins.modernTabOverlay)
+            .addClientMixins("forge.MixinGuiIngameForge_ModernTab")),
     ;
     // spotless:on
 
