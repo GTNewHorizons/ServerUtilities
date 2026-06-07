@@ -82,7 +82,7 @@ public class ServerUtilitiesClient extends ServerUtilitiesCommon {
             NavigatorIntegration.init();
         }
 
-        if (ServerUtilitiesClientConfig.modernTabOverlay) {
+        if (ServerUtilitiesConfig.mixins.modernTabOverlay) {
             TabChannelHandler.INSTANCE.registerChannel();
             TabDisplayHandler.INSTANCE.registerChannel();
         }

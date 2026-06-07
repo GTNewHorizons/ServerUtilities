@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import serverutils.client.ServerUtilitiesClientConfig;
 import serverutils.client.tab.ModernTabRenderer;
 
 @Mixin(GuiIngameForge.class)
@@ -34,7 +33,6 @@ public class MixinGuiIngameForge_ModernTab extends GuiIngame {
     @SuppressWarnings("unchecked")
     @Inject(method = "renderPlayerList", at = @At("HEAD"), cancellable = true, remap = false)
     private void serverutilities$modernTab(int width, int height, CallbackInfo ci) {
-        if (!ServerUtilitiesClientConfig.modernTabOverlay) return;
         ci.cancel();
 
         ScoreObjective scoreobjective = mc.theWorld.getScoreboard().func_96539_a(0);

@@ -23,6 +23,7 @@ import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
 import serverutils.ServerUtilitiesConfig;
+import serverutils.client.gui.misc.GuiPlayerInfoWrapper;
 import serverutils.lib.util.StringUtils;
 
 public class ModernTabRenderer {
@@ -76,15 +77,7 @@ public class ModernTabRenderer {
 
         int maxNameWidth = 0;
         for (GuiPlayerInfo player : players) {
-            String customName = displayHandler.getDisplayName(player.name);
-            String displayName;
-            if (customName != null) {
-                displayName = customName;
-            } else {
-                ScorePlayerTeam team = scoreboard.getPlayersTeam(player.name);
-                displayName = ScorePlayerTeam.formatPlayerName(team, player.name);
-            }
-            int w = font.getStringWidth(displayName);
+            int w = font.getStringWidth(resolveDisplayName(player, scoreboard, displayHandler));
             if (w > maxNameWidth) maxNameWidth = w;
         }
 
@@ -190,14 +183,7 @@ public class ModernTabRenderer {
             GuiPlayerInfo player = players.get(i);
             activeNames.add(player.name);
 
-            String customName = displayHandler.getDisplayName(player.name);
-            String displayName;
-            if (customName != null) {
-                displayName = customName;
-            } else {
-                ScorePlayerTeam team = scoreboard.getPlayersTeam(player.name);
-                displayName = ScorePlayerTeam.formatPlayerName(team, player.name);
-            }
+            String displayName = resolveDisplayName(player, scoreboard, displayHandler);
 
             Gui.drawRect(x, y, x + columnWidth, y + 8, ENTRY_BG_COLOR);
 
@@ -277,6 +263,15 @@ public class ModernTabRenderer {
 
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    private static String resolveDisplayName(GuiPlayerInfo player, Scoreboard scoreboard,
+            TabDisplayHandler displayHandler) {
+        String proxyName = displayHandler.getDisplayName(player.name);
+        if (proxyName != null) return proxyName;
+        if (player instanceof GuiPlayerInfoWrapper wrapper && wrapper.displayName != null) return wrapper.displayName;
+        ScorePlayerTeam team = scoreboard.getPlayersTeam(player.name);
+        return ScorePlayerTeam.formatPlayerName(team, player.name);
     }
 
     private static String resolveHeaderFooter(boolean isHeader) {

@@ -19,7 +19,7 @@ import serverutils.ServerUtilities;
 
 public class TabDisplayHandler {
 
-    public static final String CHANNEL_NAME = "HP|TabUD";
+    public static final String CHANNEL_NAME = "SU|TabUD";
     public static final TabDisplayHandler INSTANCE = new TabDisplayHandler();
 
     private final Map<String, String> displayNames = new ConcurrentHashMap<>();
@@ -55,10 +55,10 @@ public class TabDisplayHandler {
                     handleSort(obj);
                     break;
                 default:
-                    ServerUtilities.LOGGER.warn("Unknown HP|TabUD action: {}", action);
+                    ServerUtilities.LOGGER.warn("Unknown SU|TabUD action: {}", action);
             }
         } catch (Exception e) {
-            ServerUtilities.LOGGER.warn("Failed to parse HP|TabUD packet", e);
+            ServerUtilities.LOGGER.warn("Failed to parse SU|TabUD packet", e);
         }
     }
 

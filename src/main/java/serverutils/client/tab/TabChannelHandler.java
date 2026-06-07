@@ -14,7 +14,7 @@ import serverutils.ServerUtilities;
 
 public class TabChannelHandler {
 
-    public static final String CHANNEL_NAME = "HP|TabHF";
+    public static final String CHANNEL_NAME = "SU|TabHF";
     public static final TabChannelHandler INSTANCE = new TabChannelHandler();
 
     private volatile String header = "";
@@ -41,7 +41,7 @@ public class TabChannelHandler {
             String f = obj.has("footer") ? obj.get("footer").getAsString() : "";
             setServerData(h, f);
         } catch (Exception e) {
-            ServerUtilities.LOGGER.warn("Failed to parse HP|TabHF packet", e);
+            ServerUtilities.LOGGER.warn("Failed to parse SU|TabHF packet", e);
         }
     }
 

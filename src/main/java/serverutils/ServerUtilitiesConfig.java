@@ -782,6 +782,10 @@ public class ServerUtilitiesConfig {
         @Config.Comment("Enable grief protection for farmland trampling.")
         @Config.DefaultBoolean(true)
         public boolean farmlandTramplingProtection;
+
+        @Config.Comment("Replaces the vanilla player list (TAB overlay) with a modern-style tab list featuring player heads, dynamic columns, and header/footer support.")
+        @Config.DefaultBoolean(true)
+        public boolean modernTabOverlay;
     }
 
     public static class MOTD {
