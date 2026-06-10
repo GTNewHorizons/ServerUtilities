@@ -18,7 +18,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 
 import com.gtnewhorizon.gtnhlib.util.FilesUtil;
 
@@ -146,22 +145,16 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
 
     @Override
     public final void closeGui(boolean openPrevScreen) {
-        int mx = Mouse.getX();
-        int my = Mouse.getY();
-
         Minecraft mc = Minecraft.getMinecraft();
 
-        if (mc.thePlayer != null) {
+        if (openPrevScreen) {
+            mc.displayGuiScreen(getPrevScreen());
+        } else if (mc.thePlayer != null) {
             mc.thePlayer.closeScreen();
 
             if (mc.currentScreen == null) {
                 mc.setIngameFocus();
             }
-        }
-
-        if (openPrevScreen) {
-            mc.displayGuiScreen(getPrevScreen());
-            Mouse.setCursorPosition(mx, my);
         }
 
         onClosed();
