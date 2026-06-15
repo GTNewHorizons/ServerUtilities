@@ -9,6 +9,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.Constants;
 
 import org.jetbrains.annotations.NotNull;
@@ -72,12 +73,12 @@ public class GalacticraftInventory implements IModdedInventory {
 
     @Override
     public @NotNull String getButtonText() {
-        return "Galacticraft";
+        return StatCollector.translateToLocal("serverutilities.invsee.galacticraft");
     }
 
     @Override
     public String getInventoryName() {
-        return "GC Items";
+        return StatCollector.translateToLocal("serverutilities.invsee.gc_items");
     }
 
     @Override

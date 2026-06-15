@@ -9,6 +9,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +81,7 @@ public class TiCInventory implements IModdedInventory {
 
     @Override
     public @NotNull String getButtonText() {
-        return "TiC Bag & Accessories";
+        return StatCollector.translateToLocal("serverutilities.invsee.tic_bag");
     }
 
     @Override

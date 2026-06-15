@@ -6,6 +6,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +55,7 @@ public class AdventureBackpackInv implements IModdedInventory {
 
     @Override
     public @NotNull String getButtonText() {
-        return "Adventure Backpack";
+        return StatCollector.translateToLocal("serverutilities.invsee.adventure_backpack");
     }
 
     @Override
