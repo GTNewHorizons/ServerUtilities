@@ -42,7 +42,7 @@ public class GalacticraftInventory implements IModdedInventory {
                 case 2, 3 -> new PartIcon(icon, 116, 53, 16, 16, 4);
                 case 4 -> new PartIcon(icon, 143, 17, 16, 16, 4);
                 case 5 -> new PartIcon(icon, 107, 17, 16, 16, 4);
-                case 6, 7, 8, 9 -> new PartIcon(icon, 79, 8 + ((i - 6) * 18), 16, 16, 4);
+                case 6, 7, 8, 9 -> new PartIcon(icon, 80, 8 + ((i - 6) * 18), 16, 16, 4);
                 default -> ItemIcon.EMPTY;
             };
         }
