@@ -51,8 +51,10 @@ public class Theme {
     private static final Icon WIDGET_MOUSE_OVER = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 36, 60, 18, 18, 3);
     private static final Icon WIDGET_DISABLED = WIDGET.withTint(Color4I.BLACK.withAlpha(100));
 
-    private static final Icon SLOT = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 18, 78, 18, 18, 3);
+    private static final Icon SLOT = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 36, 78, 18, 18, 3);
     private static final Icon SLOT_MOUSE_OVER = SLOT.combineWith(Color4I.WHITE.withAlpha(33));
+
+    private static final Icon INV_SLOT = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 18, 78, 18, 18, 3);
 
     private static final Icon SCROLL_BAR_BG = new PartIcon(TEXTURE_SERVERUTILS_WIDGETS, 0, 60, 18, 18, 3);
     private static final Icon SCROLL_BAR_BG_DISABLED = SCROLL_BAR_BG.withTint(Color4I.BLACK.withAlpha(100));
@@ -85,6 +87,10 @@ public class Theme {
 
     public void drawContainerSlot(int x, int y, int w, int h) {
         SLOT.draw(x - 1, y - 1, w + 2, h + 2);
+    }
+
+    public void drawInventorySlot(int x, int y, int w, int h) {
+        INV_SLOT.draw(x - 1, y - 1, w + 2, h + 2);
     }
 
     public void drawButton(int x, int y, int w, int h, WidgetType type) {

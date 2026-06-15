@@ -26,7 +26,6 @@ import serverutils.net.MessageInvseeSwitch;
 
 public class GuiInvseeContainer extends GuiBase {
 
-    private static final Icon BUTTON_BACKGROUND = Color4I.GRAY.withBorder(Color4I.DARK_GRAY, true);
     private final Map<InvSeeInventories, IInventory> inventories;
     private final InvseeContainer container;
     private final String playerName;
@@ -95,7 +94,11 @@ public class GuiInvseeContainer extends GuiBase {
 
         for (int i = 0; i < container.inventorySlots.size(); i++) {
             Slot slot = container.inventorySlots.get(i);
-            theme.drawContainerSlot(x + slot.xDisplayPosition, y + slot.yDisplayPosition, 16, 16);
+            if (i >= container.getNonPlayerSlots()) {
+                theme.drawInventorySlot(x + slot.xDisplayPosition, y + slot.yDisplayPosition, 16, 16);
+            } else {
+                theme.drawContainerSlot(x + slot.xDisplayPosition, y + slot.yDisplayPosition, 16, 16);
+            }
             if (i >= container.getNonPlayerSlots() || slot.getHasStack()) continue;
             Icon overlay = container.getActiveInventory().getInventory().getSlotOverlay(slot);
             if (overlay != null) {
@@ -124,7 +127,7 @@ public class GuiInvseeContainer extends GuiBase {
 
                         @Override
                         public void drawBackground(Theme theme, int x, int y, int w, int h) {
-                            BUTTON_BACKGROUND.draw(x, y, w, h);
+                            theme.drawWidget(x, y, w, h, getWidgetType());
                         }
 
                         @Override

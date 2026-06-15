@@ -95,7 +95,7 @@ public class MainInventory implements IModdedInventory {
         return inventory.getSizeInventory() - 4;
     }
 
-    private static class SlotArmor extends Slot {
+    public static class SlotArmor extends Slot {
 
         private final int armorSlot;
         private final EntityPlayer player;
