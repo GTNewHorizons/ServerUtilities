@@ -21,7 +21,7 @@ import serverutils.lib.icon.ItemIcon;
 
 public class MinecraftBackpackInv implements IModdedInventory {
 
-    private static final Icon BACKPACK_ICON = ItemIcon.getItemIcon(ItemsBackpack.backpack);
+    private static Icon BACKPACK_ICON = null;
 
     @Override
     public @Nullable IInventory loadOnlineInventory(EntityPlayerMP player) {
@@ -40,6 +40,9 @@ public class MinecraftBackpackInv implements IModdedInventory {
 
     @Override
     public @NotNull Icon getButtonIcon() {
+        if (BACKPACK_ICON == null) {
+            BACKPACK_ICON = ItemIcon.getItemIcon(ItemsBackpack.backpack);
+        }
         return BACKPACK_ICON;
     }
 

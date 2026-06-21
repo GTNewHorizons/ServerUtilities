@@ -18,29 +18,27 @@ import net.minecraft.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import serverutils.invsee.inventories.IModdedInventory;
-import serverutils.invsee.inventories.InvSeeInventories;
+import serverutils.invsee.inventories.InvSeeRegistry;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.gui.ContainerBase;
 
 public class InvseeContainer extends ContainerBase {
 
-    private final Map<InvSeeInventories, IInventory> inventories;
+    private final Map<IModdedInventory, IInventory> inventories;
     private final ForgePlayer otherPlayer;
-    private final Map<InvSeeInventories, List<Slot>> moddedInventorySlots = new HashMap<>();
-    private final Set<InvSeeInventories> modifiedInventories = new HashSet<>();
-    private InvSeeInventories activeInventory;
+    private final Map<IModdedInventory, List<Slot>> moddedInventorySlots = new HashMap<>();
+    private final Set<IModdedInventory> modifiedInventories = new HashSet<>();
+    private IModdedInventory activeInventory;
     private int playerSlotStart;
     private int armorSlotStart = -1;
 
-    public InvseeContainer(Map<InvSeeInventories, IInventory> moddedInventories, EntityPlayer player,
+    public InvseeContainer(Map<IModdedInventory, IInventory> moddedInventories, EntityPlayer player,
             @Nullable ForgePlayer otherPlayer) {
         super(player);
         this.inventories = moddedInventories;
         this.otherPlayer = otherPlayer;
 
-        for (Map.Entry<InvSeeInventories, IInventory> entry : moddedInventories.entrySet()) {
-            IModdedInventory moddedInventory = entry.getKey().getNullableInventory();
-            if (moddedInventory == null) continue;
+        for (Map.Entry<IModdedInventory, IInventory> entry : moddedInventories.entrySet()) {
             IInventory inventory = entry.getValue();
 
             List<Slot> inventorySlots = moddedInventorySlots
@@ -48,7 +46,7 @@ public class InvseeContainer extends ContainerBase {
             int slotsInRow = 0;
             for (int i = 0; i < inventory.getSizeInventory(); i++) {
                 if (slotsInRow == 9) slotsInRow = 0;
-                Slot slot = moddedInventory.getSlot(player, inventory, i, 8 + slotsInRow++ * 18, 54 - (i / 9) * 18);
+                Slot slot = entry.getKey().getSlot(player, inventory, i, 8 + slotsInRow++ * 18, 54 - (i / 9) * 18);
                 if (slot != null) {
                     inventorySlots.add(slot);
                 } else if (slotsInRow > 0) {
@@ -59,10 +57,10 @@ public class InvseeContainer extends ContainerBase {
             inventorySlots.sort(Comparator.comparingInt(Slot::getSlotIndex));
         }
 
-        setActiveInventory(InvSeeInventories.MAIN);
+        setActiveInventory(InvSeeRegistry.getMainInventory());
     }
 
-    public void setActiveInventory(InvSeeInventories inventory) {
+    public void setActiveInventory(IModdedInventory inventory) {
         activeInventory = inventory;
         inventorySlots.clear();
         armorSlotStart = -1;
@@ -82,7 +80,7 @@ public class InvseeContainer extends ContainerBase {
         return armorSlotStart >= 0 && containerIndex >= armorSlotStart && containerIndex < playerSlotStart;
     }
 
-    public InvSeeInventories getActiveInventory() {
+    public IModdedInventory getActiveInventory() {
         return activeInventory;
     }
 
@@ -116,12 +114,10 @@ public class InvseeContainer extends ContainerBase {
         super.onContainerClosed(player);
 
         if (!player.worldObj.isRemote && otherPlayer != null) {
-            List<InvSeeInventories> modifiedInventories = new ArrayList<>(this.modifiedInventories);
-            modifiedInventories.sort(Comparator.comparingInt(InvSeeInventories::ordinal));
-            for (InvSeeInventories inventory : modifiedInventories) {
-                IModdedInventory moddedInventory = inventory.getNullableInventory();
-                if (moddedInventory == null) continue;
-                moddedInventory.saveInventory(otherPlayer, inventories.get(inventory));
+            List<IModdedInventory> modifiedInventories = new ArrayList<>(this.modifiedInventories);
+            modifiedInventories.sort(Comparator.comparingInt(InvSeeRegistry.getRegisteredInventories()::indexOf));
+            for (IModdedInventory inventory : modifiedInventories) {
+                inventory.saveInventory(otherPlayer, inventories.get(inventory));
             }
         }
     }

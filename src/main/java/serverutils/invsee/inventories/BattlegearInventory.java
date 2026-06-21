@@ -41,7 +41,7 @@ public class BattlegearInventory implements IModdedInventory {
 
     @Override
     public @Nullable IInventory loadOfflineInventory(ForgePlayer player) {
-        return InvSeeInventories.MAIN.getInventory().loadOfflineInventory(player);
+        return InvSeeRegistry.getMainInventory().loadOfflineInventory(player);
     }
 
     @Override

@@ -13,9 +13,13 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.GameRules;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import serverutils.events.IReloadHandler;
 import serverutils.events.ServerReloadEvent;
 import serverutils.handlers.ServerUtilitiesSyncData;
+import serverutils.invsee.inventories.IModdedInventory;
+import serverutils.invsee.inventories.InvSeeRegistry;
 import serverutils.lib.EnumReloadType;
 import serverutils.lib.config.ConfigBoolean;
 import serverutils.lib.config.ConfigColor;
@@ -53,6 +57,8 @@ import serverutils.net.MessageRanks;
 import serverutils.net.MessageViewCrashList;
 import serverutils.ranks.Ranks;
 
+@ApiStatus.AvailableSince("2.2.25")
+@SuppressWarnings("unused")
 public class ServerUtilitiesRegistry {
 
     public static final Map<ResourceLocation, IReloadHandler> RELOAD_IDS = new HashMap<>();
@@ -79,6 +85,11 @@ public class ServerUtilitiesRegistry {
 
     public static void registerTeamAction(TeamAction action) {
         TEAM_GUI_ACTIONS.put(action.getId(), action);
+    }
+
+    @ApiStatus.AvailableSince("2.4.0")
+    public static void registerInvseeInventory(IModdedInventory inventory) {
+        InvSeeRegistry.registerInventory(inventory);
     }
 
     static void registerDefaults() {
