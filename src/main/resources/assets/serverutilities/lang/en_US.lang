@@ -814,3 +814,15 @@ serverutilities.jm.own_team=Your Team
 serverutilities.jm.claim=Double click an empty chunk to claim.
 serverutilities.jm.load_hint=Double click a claimed chunk to load/unload
 serverutilities.jm.unclaim_hint=Press %s to unclaim
+
+# Invsee GUI
+serverutilities.invsee.title=%s's %s
+serverutilities.invsee.main=Main Inventory
+serverutilities.invsee.ender_chest=Ender Chest
+serverutilities.invsee.personal_backpack=Personal Backpack
+serverutilities.invsee.baubles=Baubles
+serverutilities.invsee.adventure_backpack=Adventure Backpack
+serverutilities.invsee.battlegear=Battlegear
+serverutilities.invsee.tic_bag=TiC Bag & Accessories
+serverutilities.invsee.galacticraft=Galacticraft
+serverutilities.invsee.gc_items=GC Items

@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.inventory.Slot;
+import net.minecraft.util.StatCollector;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +45,7 @@ public class MinecraftBackpackInv implements IModdedInventory {
 
     @Override
     public @NotNull String getButtonText() {
-        return "Personal Backpack";
+        return StatCollector.translateToLocal("serverutilities.invsee.personal_backpack");
     }
 
     @Override

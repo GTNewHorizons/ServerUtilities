@@ -8,6 +8,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,7 +83,7 @@ public class BaublesInventory implements IModdedInventory {
 
     @Override
     public @NotNull String getButtonText() {
-        return "Baubles";
+        return StatCollector.translateToLocal("serverutilities.invsee.baubles");
     }
 
     @Override

@@ -7,6 +7,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.util.StatCollector;
 
 import serverutils.invsee.inventories.IModdedInventory;
 import serverutils.invsee.inventories.InvSeeInventories;
@@ -26,7 +27,6 @@ import serverutils.net.MessageInvseeSwitch;
 
 public class GuiInvseeContainer extends GuiBase {
 
-    private static final Icon BUTTON_BACKGROUND = Color4I.GRAY.withBorder(Color4I.DARK_GRAY, true);
     private final Map<InvSeeInventories, IInventory> inventories;
     private final InvseeContainer container;
     private final String playerName;
@@ -42,7 +42,10 @@ public class GuiInvseeContainer extends GuiBase {
         this.playerName = playerName;
         this.playerIcon = new PlayerHeadIcon(StringUtils.fromString(playerId));
         this.wrapper = new GuiWrapper(this, container).disableSlotDrawing();
-        this.inventoryName = playerName + "'s " + InvSeeInventories.MAIN.getInventory().getInventoryName();
+        this.inventoryName = StatCollector.translateToLocalFormatted(
+                "serverutilities.invsee.title",
+                playerName,
+                InvSeeInventories.MAIN.getInventory().getInventoryName());
     }
 
     @Override
@@ -95,7 +98,11 @@ public class GuiInvseeContainer extends GuiBase {
 
         for (int i = 0; i < container.inventorySlots.size(); i++) {
             Slot slot = container.inventorySlots.get(i);
-            theme.drawContainerSlot(x + slot.xDisplayPosition, y + slot.yDisplayPosition, 16, 16);
+            if (i >= container.getNonPlayerSlots()) {
+                theme.drawInventorySlot(x + slot.xDisplayPosition, y + slot.yDisplayPosition, 16, 16);
+            } else {
+                theme.drawContainerSlot(x + slot.xDisplayPosition, y + slot.yDisplayPosition, 16, 16);
+            }
             if (i >= container.getNonPlayerSlots() || slot.getHasStack()) continue;
             Icon overlay = container.getActiveInventory().getInventory().getSlotOverlay(slot);
             if (overlay != null) {
@@ -124,7 +131,7 @@ public class GuiInvseeContainer extends GuiBase {
 
                         @Override
                         public void drawBackground(Theme theme, int x, int y, int w, int h) {
-                            BUTTON_BACKGROUND.draw(x, y, w, h);
+                            theme.drawWidget(x, y, w, h, getWidgetType());
                         }
 
                         @Override
@@ -138,7 +145,10 @@ public class GuiInvseeContainer extends GuiBase {
     public void switchInventory(InvSeeInventories inventory) {
         if (container.getActiveInventory() == inventory) return;
         container.setActiveInventory(inventory);
-        inventoryName = playerName + "'s " + inventory.getInventory().getInventoryName();
+        inventoryName = StatCollector.translateToLocalFormatted(
+                "serverutilities.invsee.title",
+                playerName,
+                inventory.getInventory().getInventoryName());
         alignWidgets();
         new MessageInvseeSwitch(inventory).sendToServer();
     }

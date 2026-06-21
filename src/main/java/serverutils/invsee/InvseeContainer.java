@@ -30,6 +30,7 @@ public class InvseeContainer extends ContainerBase {
     private final Set<InvSeeInventories> modifiedInventories = new HashSet<>();
     private InvSeeInventories activeInventory;
     private int playerSlotStart;
+    private int armorSlotStart = -1;
 
     public InvseeContainer(Map<InvSeeInventories, IInventory> moddedInventories, EntityPlayer player,
             @Nullable ForgePlayer otherPlayer) {
@@ -64,13 +65,21 @@ public class InvseeContainer extends ContainerBase {
     public void setActiveInventory(InvSeeInventories inventory) {
         activeInventory = inventory;
         inventorySlots.clear();
+        armorSlotStart = -1;
         for (Slot slot : moddedInventorySlots.get(inventory)) {
             addSlotToContainer(slot);
+            if (slot.yDisplayPosition < 0 && armorSlotStart == -1) {
+                armorSlotStart = slot.slotNumber;
+            }
         }
 
         playerSlotStart = inventorySlots.size();
         addPlayerSlots(8, 85);
         detectAndSendChanges();
+    }
+
+    public boolean isArmorSlot(int containerIndex) {
+        return armorSlotStart >= 0 && containerIndex >= armorSlotStart && containerIndex < playerSlotStart;
     }
 
     public InvSeeInventories getActiveInventory() {
