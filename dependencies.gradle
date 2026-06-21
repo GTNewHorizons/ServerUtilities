@@ -11,7 +11,7 @@ dependencies {
     compileOnly('com.github.GTNewHorizons:Baubles-Expanded:2.2.21-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:Battlegear2:1.4.3:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:Galacticraft:3.4.29-GTNH:dev') {transitive = false}
-    compileOnly('com.github.GTNewHorizons:TinkersConstruct:1.14.93-GTNH:dev') /*{transitive = false}*/
+    compileOnly('com.github.GTNewHorizons:TinkersConstruct:1.14.93-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:AdventureBackpack2:1.4.22-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:Minecraft-Backpack-Mod:2.6.13-GTNH:dev') {transitive = false}
     compileOnly(rfg.deobf("curse.maven:witchery-69673:2234410")) {transitive = false}
