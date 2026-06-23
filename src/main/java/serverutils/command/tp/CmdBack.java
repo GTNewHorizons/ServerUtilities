@@ -16,10 +16,13 @@ import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.BlockDimPos;
+import serverutils.lib.math.TeleporterDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.task.Task;
 
 public class CmdBack extends CmdBase {
+
+    private static final BlockDimPos NO_POS_FOUND = new BlockDimPos(0, 0, 0, 0);
 
     public CmdBack() {
         super("back", Level.ALL);
@@ -38,8 +41,8 @@ public class CmdBack extends CmdBase {
             throw ServerUtilities.error(sender, "serverutilities.lang.warps.no_dp");
         }
 
-        BlockDimPos noPosFound = new BlockDimPos(0, 0, 0, 0);
-        if (lastTeleportLog.getBlockDimPos().equalsPos(noPosFound)) {
+        BlockDimPos lastPos = lastTeleportLog.getBlockDimPos();
+        if (lastPos.equalsPos(NO_POS_FOUND)) {
             throw ServerUtilities.error(sender, "serverutilities.lang.warps.no_pos_found");
         }
 
@@ -57,6 +60,6 @@ public class CmdBack extends CmdBase {
             }
         };
 
-        data.teleport(lastTeleportLog.teleporter(), BACK, task);
+        data.teleport(TeleporterDimPos.of(lastPos.posX, lastPos.posY + 0.5D, lastPos.posZ, lastPos.dim), BACK, task);
     }
 }

@@ -1,7 +1,5 @@
 package serverutils.handlers;
 
-import static journeymap.client.data.AllData.Key.player;
-
 import net.minecraft.block.Block;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
