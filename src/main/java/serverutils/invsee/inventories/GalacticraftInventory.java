@@ -29,8 +29,9 @@ import serverutils.lib.icon.PartIcon;
 public class GalacticraftInventory implements IModdedInventory {
 
     private static final Icon[] SLOT_OVERLAYS = new Icon[10];
-    private static final Icon GC_BUTTON_ICON = ItemIcon.getItemIcon(GCItems.oxMask);
     private static final String GC_EXTENDED_INV = "ExtendedInventoryGC";
+
+    private static Icon GC_BUTTON_ICON = null;
 
     static {
         ImageIcon icon = new ImageIcon(
@@ -68,6 +69,9 @@ public class GalacticraftInventory implements IModdedInventory {
 
     @Override
     public @NotNull Icon getButtonIcon() {
+        if (GC_BUTTON_ICON == null) {
+            GC_BUTTON_ICON = ItemIcon.getItemIcon(GCItems.oxMask);
+        }
         return GC_BUTTON_ICON;
     }
 

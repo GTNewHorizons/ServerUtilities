@@ -33,7 +33,6 @@ import serverutils.ranks.Ranks;
 @EventBusSubscriber
 public class ServerUtilitiesUniverseData {
 
-    public static final ServerUtilitiesUniverseData INST = new ServerUtilitiesUniverseData();
     public static final BlockDimPosStorage WARPS = new BlockDimPosStorage();
     private static final List<String> worldLog = new ArrayList<>();
     private static final List<String> chatLog = new ArrayList<>();

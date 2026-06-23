@@ -10,7 +10,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.util.StatCollector;
 
 import serverutils.invsee.inventories.IModdedInventory;
-import serverutils.invsee.inventories.InvSeeInventories;
+import serverutils.invsee.inventories.InvSeeRegistry;
 import serverutils.lib.gui.Button;
 import serverutils.lib.gui.GuiBase;
 import serverutils.lib.gui.GuiContainerWrapper;
@@ -27,7 +27,7 @@ import serverutils.net.MessageInvseeSwitch;
 
 public class GuiInvseeContainer extends GuiBase {
 
-    private final Map<InvSeeInventories, IInventory> inventories;
+    private final Map<IModdedInventory, IInventory> inventories;
     private final InvseeContainer container;
     private final String playerName;
     private final PlayerHeadIcon playerIcon;
@@ -36,7 +36,7 @@ public class GuiInvseeContainer extends GuiBase {
     private String inventoryName;
     private TextField textField;
 
-    public GuiInvseeContainer(Map<InvSeeInventories, IInventory> inventories, String playerName, String playerId) {
+    public GuiInvseeContainer(Map<IModdedInventory, IInventory> inventories, String playerName, String playerId) {
         this.inventories = inventories;
         this.container = new InvseeContainer(inventories, Minecraft.getMinecraft().thePlayer, null);
         this.playerName = playerName;
@@ -45,7 +45,7 @@ public class GuiInvseeContainer extends GuiBase {
         this.inventoryName = StatCollector.translateToLocalFormatted(
                 "serverutilities.invsee.title",
                 playerName,
-                InvSeeInventories.MAIN.getInventory().getInventoryName());
+                InvSeeRegistry.getMainInventory().getInventoryName());
     }
 
     @Override
@@ -104,7 +104,7 @@ public class GuiInvseeContainer extends GuiBase {
                 theme.drawContainerSlot(x + slot.xDisplayPosition, y + slot.yDisplayPosition, 16, 16);
             }
             if (i >= container.getNonPlayerSlots() || slot.getHasStack()) continue;
-            Icon overlay = container.getActiveInventory().getInventory().getSlotOverlay(slot);
+            Icon overlay = container.getActiveInventory().getSlotOverlay(slot);
             if (overlay != null) {
                 overlay.draw(x + slot.xDisplayPosition, y + slot.yDisplayPosition, 16, 16);
             }
@@ -120,13 +120,12 @@ public class GuiInvseeContainer extends GuiBase {
                 return topY + posY;
             }
         }.setColor(Color4I.DARK_GRAY).setScale(0.9f).setMaxWidth(165).setSpacing(8));
-        for (InvSeeInventories inventory : inventories.keySet()) {
-            IModdedInventory moddedInv = inventory.getInventory();
+        for (IModdedInventory inventory : inventories.keySet()) {
             add(
                     new SimpleButton(
                             this,
-                            moddedInv.getButtonText(),
-                            moddedInv.getButtonIcon(),
+                            inventory.getButtonText(),
+                            inventory.getButtonIcon(),
                             (a, b) -> switchInventory(inventory)) {
 
                         @Override
@@ -142,13 +141,11 @@ public class GuiInvseeContainer extends GuiBase {
         }
     }
 
-    public void switchInventory(InvSeeInventories inventory) {
+    public void switchInventory(IModdedInventory inventory) {
         if (container.getActiveInventory() == inventory) return;
         container.setActiveInventory(inventory);
-        inventoryName = StatCollector.translateToLocalFormatted(
-                "serverutilities.invsee.title",
-                playerName,
-                inventory.getInventory().getInventoryName());
+        inventoryName = StatCollector
+                .translateToLocalFormatted("serverutilities.invsee.title", playerName, inventory.getInventoryName());
         alignWidgets();
         new MessageInvseeSwitch(inventory).sendToServer();
     }

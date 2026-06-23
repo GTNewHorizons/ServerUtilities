@@ -28,6 +28,7 @@ import tconstruct.library.accessory.IAccessory;
 
 public class TiCInventory implements IModdedInventory {
 
+    private static final Icon BUTTON_ICON = ItemIcon.getItemIcon(Items.diamond_chestplate);
     private static final Icon[] SLOT_OVERLAYS = new Icon[7];
     private static final int KNAPSACK_SIZE = new KnapsackInventory().getSizeInventory();
 
@@ -76,7 +77,7 @@ public class TiCInventory implements IModdedInventory {
 
     @Override
     public @NotNull Icon getButtonIcon() {
-        return ItemIcon.getItemIcon(Items.diamond_chestplate);
+        return BUTTON_ICON;
     }
 
     @Override
