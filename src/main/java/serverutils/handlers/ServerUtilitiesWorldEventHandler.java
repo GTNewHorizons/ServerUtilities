@@ -21,6 +21,7 @@ import net.minecraftforge.event.world.WorldEvent;
 
 import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
@@ -39,9 +40,9 @@ public class ServerUtilitiesWorldEventHandler {
 
     @SubscribeEvent
     public static void onMobSpawned(LivingSpawnEvent event) {
-        if (!event.world.isRemote && !isEntityAllowed(event.entity)) {
+        if (!event.world.isRemote && !isEntityAllowed(event)) {
             event.entity.setDead();
-            event.setCanceled(true);
+            event.setResult(Event.Result.DENY);
         }
     }
 

@@ -179,6 +179,7 @@ serverutilities.world.enable_player_sleeping_percentage=Enable Player Sleeping P
 serverutilities.world.player_sleeping_percentage=Player Sleeping Percentage Default Value
 serverutilities.world.vampire_sleep_percent=Vampire Sleep Percentage
 serverutilities.world.blockmobspawninginclaims=Block Mob Spawning in Claims
+serverutilities.world.blockspecialmobspawninginclaims=Block Special Mob Spawning in Claims
 serverutilities.world.mobtypestoblock=Mob Types to Block
 
 serverutilities.world.skip_night=§6Wakey, wakey, rise and shine... Good Morning everyone!
@@ -377,6 +378,7 @@ team_config.serverutilities.explosions=Enable Explosions in Claimed Chunks
 team_config.serverutilities.endermen=Enable Endermen Interacting With Blocks in Claimed Chunks
 team_config.serverutilities.fake_players=Allow Fake Players to Interact With Blocks
 team_config.serverutilities.mob_spawning=Disable Mob Spawns Within Claimed Chunks
+team_config.serverutilities.special_mob_spawning=Disable Special Mob Spawns Within Claimed Chunks
 team_config.serverutilities.blocked_creatures=Creature Types To Block Within Claimed Chunks
 
 # Sidebar Buttons

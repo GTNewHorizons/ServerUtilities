@@ -235,7 +235,7 @@ public class ServerUtilitiesTeamData extends TeamData {
         group.addBool("mob_spawning", () -> mobSpawningDisabled, v -> mobSpawningDisabled = v, false)
                 .setCanEdit(ServerUtilitiesConfig.world.blockMobSpawningInClaims.isDefault());
         group.addBool(
-                "Special_mob_spawning",
+                "special_mob_spawning",
                 () -> mobSpecialSpawningDisabled,
                 v -> mobSpecialSpawningDisabled = v,
                 false).setCanEdit(ServerUtilitiesConfig.world.blockSpecialMobSpawningInClaims.isDefault());
