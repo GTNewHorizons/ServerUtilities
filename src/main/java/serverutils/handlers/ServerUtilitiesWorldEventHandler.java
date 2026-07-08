@@ -15,7 +15,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.World;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
@@ -38,7 +38,7 @@ import serverutils.pregenerator.ChunkLoaderManager;
 public class ServerUtilitiesWorldEventHandler {
 
     @SubscribeEvent
-    public static void onMobSpawned(EntityJoinWorldEvent event) {
+    public static void onMobSpawned(LivingSpawnEvent event) {
         if (!event.world.isRemote && !isEntityAllowed(event.entity)) {
             event.entity.setDead();
             event.setCanceled(true);
@@ -52,7 +52,9 @@ public class ServerUtilitiesWorldEventHandler {
         }
     }
 
-    private static boolean isEntityAllowed(Entity entity) {
+    private static boolean isEntityAllowed(LivingSpawnEvent event) {
+        Entity entity = event.entity;
+
         if (entity instanceof EntityPlayer) {
             return true;
         }
@@ -73,6 +75,19 @@ public class ServerUtilitiesWorldEventHandler {
 
         ForgeTeam team = ClaimedChunks.instance.getChunkTeam(new ChunkDimPos(entity));
         if (team == null) return true;
+
+        if (event instanceof LivingSpawnEvent.SpecialSpawn) {
+            EnumTristate blockSpecialClaimSpawn = ServerUtilitiesConfig.world.blockSpecialMobSpawningInClaims;
+            // if not blocking special spawns, spawn is allowed
+            if (blockSpecialClaimSpawn.isFalse()) {
+                return true;
+            } else {
+                // or if default and team chooses not to block them
+                if (!(!blockClaimSpawn.isDefault() || ServerUtilitiesTeamData.get(team).allowsSpecialMobSpawning()))
+                    return true;
+            }
+            // if all passed, then determine as if its normal spawn.
+        }
 
         if (blockClaimSpawn.isTrue()) {
             String[] mobTypes = ServerUtilitiesConfig.world.mobTypesToBlock;

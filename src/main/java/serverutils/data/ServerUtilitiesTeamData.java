@@ -149,6 +149,7 @@ public class ServerUtilitiesTeamData extends TeamData {
     private boolean explosions = false;
     private boolean endermen = false;
     private boolean mobSpawningDisabled = false;
+    private boolean mobSpecialSpawningDisabled = false;
     public boolean canForceChunks = false;
     private int cachedMaxClaimChunks, cachedMaxChunkloaderChunks;
     public boolean chunkloadsDecayed;
@@ -174,6 +175,7 @@ public class ServerUtilitiesTeamData extends TeamData {
         nbt.setString("UseItems", useItems.getName());
         nbt.setBoolean("DecayedChunkloads", chunkloadsDecayed);
         nbt.setBoolean("MobSpawnsDisabled", mobSpawningDisabled);
+        nbt.setBoolean("MobSpecialSpawnsDisabled", mobSpecialSpawningDisabled);
         NBTTagList blockedMobList = new NBTTagList();
         for (EnumCreature creature : blockedCreatures) {
             blockedMobList.appendTag(new NBTTagString(creature.name()));
@@ -192,6 +194,7 @@ public class ServerUtilitiesTeamData extends TeamData {
         useItems = EnumTeamStatus.NAME_MAP_PERMS.get(nbt.getString("UseItems"));
         chunkloadsDecayed = nbt.getBoolean("DecayedChunkloads");
         mobSpawningDisabled = nbt.getBoolean("MobSpawnsDisabled");
+        mobSpecialSpawningDisabled = nbt.getBoolean("MobSpecialSpawnsDisabled");
         NBTTagList blockedMobList = nbt.getTagList("BlockedCreatures", Constants.NBT.TAG_STRING);
         for (int i = 0; i < blockedMobList.tagCount(); i++) {
             String name = blockedMobList.getStringTagAt(i);
@@ -231,6 +234,11 @@ public class ServerUtilitiesTeamData extends TeamData {
                 .setCanEdit(ServerUtilitiesConfig.world.enable_endermen.isDefault());
         group.addBool("mob_spawning", () -> mobSpawningDisabled, v -> mobSpawningDisabled = v, false)
                 .setCanEdit(ServerUtilitiesConfig.world.blockMobSpawningInClaims.isDefault());
+        group.addBool(
+                "Special_mob_spawning",
+                () -> mobSpecialSpawningDisabled,
+                v -> mobSpecialSpawningDisabled = v,
+                false).setCanEdit(ServerUtilitiesConfig.world.blockSpecialMobSpawningInClaims.isDefault());
         group.addEnum("blocks_edit", () -> editBlocks, v -> editBlocks = v, EnumTeamStatus.NAME_MAP_PERMS)
                 .setCanEdit(ServerUtilitiesConfig.teams.grief_protection);
         group.addEnum(
@@ -282,6 +290,10 @@ public class ServerUtilitiesTeamData extends TeamData {
 
     public boolean allowsMobSpawning() {
         return !mobSpawningDisabled;
+    }
+
+    public boolean allowsSpecialMobSpawning() {
+        return !mobSpecialSpawningDisabled;
     }
 
     public int getMaxClaimChunks() {

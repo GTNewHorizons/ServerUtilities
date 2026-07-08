@@ -639,13 +639,23 @@ public class ServerUtilitiesConfig {
         public int vampire_sleep_percent;
 
         @Config.Comment("""
-                If active, blocks all spawns, including from breeding and forced spawns such as spawners and cursed earth.
+                If active, blocks all natural spawns.
                 Allowed values:
                 DEFAULT = Teams can decide whether mob spawns are allowed in their claims.
                 TRUE = Block mob spawning in all claims.
                 FALSE = Allow mob spawning in all claims.""")
         @Config.DefaultEnum("DEFAULT")
         public EnumTristate blockMobSpawningInClaims;
+
+        @Config.Comment("""
+                If active, blocks all spawns, including from breeding and forced spawns such as spawners and cursed earth.
+                Requires blockMobSpawningInClaims to be active.
+                Allowed values:
+                DEFAULT = Teams can decide whether special mob spawns are allowed in their claims.
+                TRUE = Block special mob spawning in all claims.
+                FALSE = Allow special mob spawning in all claims.""")
+        @Config.DefaultEnum("DEFAULT")
+        public EnumTristate blockSpecialMobSpawningInClaims;
 
         @Config.Comment("""
                 Which enemy types to block when spawning in claims while blockMobSpawningInClaims is set to TRUE
