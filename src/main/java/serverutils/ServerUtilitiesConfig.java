@@ -639,6 +639,7 @@ public class ServerUtilitiesConfig {
         public int vampire_sleep_percent;
 
         @Config.Comment("""
+                If active, blocks all spawns, including from breeding and forced spawns such as spawners and cursed earth.
                 Allowed values:
                 DEFAULT = Teams can decide whether mob spawns are allowed in their claims.
                 TRUE = Block mob spawning in all claims.
@@ -648,6 +649,7 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("""
                 Which enemy types to block when spawning in claims while blockMobSpawningInClaims is set to TRUE
+                If list is empty, blocks all spawns.
                 Allowed values: AMBIENT, WATER_CREATURE, MOB, ANIMAL
                 """)
         @Config.DefaultStringList({ "AMBIENT", "WATER_CREATURE", "MOB", "ANIMAL" })
