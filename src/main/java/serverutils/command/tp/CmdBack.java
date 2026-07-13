@@ -60,6 +60,13 @@ public class CmdBack extends CmdBase {
             }
         };
 
-        data.teleport(TeleporterDimPos.of(lastPos.posX, lastPos.posY + 0.5D, lastPos.posZ, lastPos.dim), BACK, task);
+        TeleporterDimPos pos;
+        if(lastTeleportLog.teleportType.equals(TeleportType.RESPAWN)) {
+            pos = TeleporterDimPos.of(lastPos.posX + 0.5D, lastPos.posY + 0.3D, lastPos.posZ + 0.5D, lastPos.dim);
+        } else {
+            pos = lastPos.teleporter();
+        }
+
+        data.teleport(pos, BACK, task);
     }
 }
