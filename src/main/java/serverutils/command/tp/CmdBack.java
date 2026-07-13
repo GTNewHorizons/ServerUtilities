@@ -61,7 +61,7 @@ public class CmdBack extends CmdBase {
         };
 
         TeleporterDimPos pos;
-        if(lastTeleportLog.teleportType.equals(TeleportType.RESPAWN)) {
+        if (lastTeleportLog.teleportType.equals(TeleportType.RESPAWN)) {
             pos = TeleporterDimPos.of(lastPos.posX + 0.5D, lastPos.posY + 0.3D, lastPos.posZ + 0.5D, lastPos.dim);
         } else {
             pos = lastPos.teleporter();
