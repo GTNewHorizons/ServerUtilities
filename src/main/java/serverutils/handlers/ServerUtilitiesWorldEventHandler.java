@@ -15,12 +15,13 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.World;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
 import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
@@ -38,10 +39,10 @@ import serverutils.pregenerator.ChunkLoaderManager;
 public class ServerUtilitiesWorldEventHandler {
 
     @SubscribeEvent
-    public static void onMobSpawned(EntityJoinWorldEvent event) {
+    public static void onMobSpawned(LivingSpawnEvent.CheckSpawn event) {
         if (!event.world.isRemote && !isEntityAllowed(event.entity)) {
             event.entity.setDead();
-            event.setCanceled(true);
+            event.setResult(Event.Result.DENY);
         }
     }
 
