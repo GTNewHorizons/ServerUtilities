@@ -83,8 +83,16 @@ public class NavigatorIntegration {
         currentClaimedChunks = message.claimedChunks;
     }
 
-    public static boolean claimChunk(ClickPos pos) {
-        if (pos.getRenderStep() != null || !pos.isDoubleClick()) return false;
+    public static boolean handleMapClick(ClickPos pos) {
+        if (!pos.isDoubleClick()) return false;
+        if (pos.getLocationRenderStep() != null) {
+            if (pos.getLocationRenderStep().getLocation() instanceof ClaimsLocation location) {
+                location.toggleLoaded();
+                return true;
+            }
+            return false;
+        }
+
         int selectionMode = MessageClaimedChunksModify.CLAIM;
         int chunkX = pos.getChunkX();
         int chunkZ = pos.getChunkZ();

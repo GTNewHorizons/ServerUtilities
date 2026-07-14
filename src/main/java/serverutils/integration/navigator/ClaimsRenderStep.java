@@ -2,11 +2,11 @@ package serverutils.integration.navigator;
 
 import java.util.List;
 
-import com.gtnewhorizons.navigator.api.model.steps.UniversalInteractableStep;
+import com.gtnewhorizons.navigator.api.model.steps.UniversalLocationInteractableStep;
 
 import serverutils.lib.icon.Color4I;
 
-public class ClaimsRenderStep extends UniversalInteractableStep<ClaimsLocation> {
+public class ClaimsRenderStep extends UniversalLocationInteractableStep<ClaimsLocation> {
 
     public ClaimsRenderStep(ClaimsLocation location) {
         super(location);

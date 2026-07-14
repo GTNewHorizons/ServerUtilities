@@ -10,8 +10,7 @@ import net.minecraft.world.ChunkCoordIntPair;
 import org.lwjgl.input.Keyboard;
 
 import com.gtnewhorizons.navigator.api.NavigatorApi;
-import com.gtnewhorizons.navigator.api.model.locations.IWaypointAndLocationProvider;
-import com.gtnewhorizons.navigator.api.model.waypoints.Waypoint;
+import com.gtnewhorizons.navigator.api.model.locations.ILocationProvider;
 import com.gtnewhorizons.navigator.api.util.Util;
 
 import serverutils.client.gui.ClientClaimedChunks;
@@ -19,7 +18,7 @@ import serverutils.lib.EnumTeamColor;
 import serverutils.net.MessageClaimedChunksModify;
 import serverutils.net.MessageNavigatorRequest;
 
-public class ClaimsLocation implements IWaypointAndLocationProvider {
+public class ClaimsLocation implements ILocationProvider {
 
     private final int blockX;
     private final int blockZ;
@@ -107,20 +106,4 @@ public class ClaimsLocation implements IWaypointAndLocationProvider {
         chunkData.setLoaded(!isLoaded());
     }
 
-    @Override
-    public Waypoint toWaypoint() {
-        toggleLoaded();
-        return null;
-    }
-
-    @Override
-    public boolean isActiveAsWaypoint() {
-        return false;
-    }
-
-    @Override
-    public void onWaypointCleared() {}
-
-    @Override
-    public void onWaypointUpdated(Waypoint waypoint) {}
 }

@@ -12,8 +12,7 @@ import com.gtnewhorizons.navigator.api.model.layers.InteractableLayerManager;
 import com.gtnewhorizons.navigator.api.model.layers.LayerRenderer;
 import com.gtnewhorizons.navigator.api.model.layers.UniversalInteractableRenderer;
 import com.gtnewhorizons.navigator.api.model.locations.ILocationProvider;
-import com.gtnewhorizons.navigator.api.model.locations.IWaypointAndLocationProvider;
-import com.gtnewhorizons.navigator.api.model.waypoints.Waypoint;
+import com.gtnewhorizons.navigator.api.util.Util;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
@@ -34,12 +33,14 @@ public class ClaimsLayerManager extends InteractableLayerManager {
     @Nullable
     @Override
     protected LayerRenderer addLayerRenderer(InteractableLayerManager manager, SupportedMods mod) {
-        return new UniversalInteractableRenderer(manager).withClickAction(NavigatorIntegration::claimChunk)
-                .withRenderStep(location -> new ClaimsRenderStep((ClaimsLocation) location));
+        UniversalInteractableRenderer renderer = new UniversalInteractableRenderer(manager)
+                .withClickAction(NavigatorIntegration::handleMapClick);
+        renderer.withRenderStep(location -> new ClaimsRenderStep((ClaimsLocation) location));
+        if (Util.isJourneyMapV6Installed()) {
+            renderer.withJourneyMapV6Overlays(ClaimsPolygonOverlay::create, true);
+        }
+        return renderer;
     }
-
-    @Override
-    public void setActiveWaypoint(Waypoint waypoint) {}
 
     @Override
     public void onLayerToggled(boolean toEnabled) {
@@ -73,7 +74,7 @@ public class ClaimsLayerManager extends InteractableLayerManager {
         long now = System.currentTimeMillis();
         if (now - lastValidateRequest >= TimeUnit.SECONDS.toMillis(10)) {
             lastValidateRequest = now;
-            Collection<IWaypointAndLocationProvider> visibleLocations = getVisibleLocations();
+            Collection<ILocationProvider> visibleLocations = getVisibleLocations();
             if (visibleLocations.isEmpty()) return;
 
             LongList positions = new LongArrayList();
