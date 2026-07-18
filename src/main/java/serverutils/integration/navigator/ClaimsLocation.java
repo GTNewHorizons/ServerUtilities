@@ -104,6 +104,7 @@ public class ClaimsLocation implements ILocationProvider {
         new MessageClaimedChunksModify(chunkX, chunkZ, selectionMode, chunks).sendToServer();
         new MessageNavigatorRequest(chunkX, chunkX, chunkZ, chunkZ).sendToServer();
         chunkData.setLoaded(!isLoaded());
+        ClaimsLayerManager.INSTANCE.forceRefresh();
     }
 
 }

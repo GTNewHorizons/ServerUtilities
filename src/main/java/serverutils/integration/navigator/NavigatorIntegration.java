@@ -2,6 +2,7 @@ package serverutils.integration.navigator;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -30,6 +31,7 @@ public class NavigatorIntegration {
     }
 
     public static void updateMap(MessageNavigatorUpdate message) {
+        boolean refresh = false;
         for (ClientClaimedChunks.Team team : message.teams.values()) {
             for (Object2ObjectMap.Entry<ChunkDimPos, ClientClaimedChunks.ChunkData> pos : team.chunkPos
                     .object2ObjectEntrySet()) {
@@ -41,16 +43,27 @@ public class NavigatorIntegration {
                     continue;
                 }
 
+                refresh |= needsRefresh(oldData, newData);
                 oldData.setLoaded(newData.isLoaded());
                 oldData.setTeam(newData.team);
             }
-
-            ClaimsLayerManager.INSTANCE.forceRefresh();
 
             if (OWNTEAM == null && team.isMember) {
                 OWNTEAM = team.chunkPos.values().iterator().next().copy().setLoaded(false);
             }
         }
+        if (refresh) ClaimsLayerManager.INSTANCE.forceRefresh();
+    }
+
+    private static boolean needsRefresh(ClientClaimedChunks.ChunkData oldData, ClientClaimedChunks.ChunkData newData) {
+        ClientClaimedChunks.Team oldTeam = oldData.team;
+        ClientClaimedChunks.Team newTeam = newData.team;
+        return oldData.isLoaded() != newData.isLoaded() || oldTeam.uid != newTeam.uid
+                || oldTeam.color != newTeam.color
+                || oldTeam.isAlly != newTeam.isAlly
+                || oldTeam.isMember != newTeam.isMember
+                || !Objects
+                        .equals(oldTeam.nameComponent.getUnformattedText(), newTeam.nameComponent.getUnformattedText());
     }
 
     public static void addToOwnTeam(int chunkX, int chunkZ) {
