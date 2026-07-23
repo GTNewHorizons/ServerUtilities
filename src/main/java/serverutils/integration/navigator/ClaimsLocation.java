@@ -68,6 +68,12 @@ public class ClaimsLocation implements ILocationProvider {
         return chunkData.isLoaded();
     }
 
+    boolean hasLoadedNeighbor(int offsetX, int offsetZ) {
+        ClientClaimedChunks.ChunkData neighbor = NavigatorIntegration.CLAIMS.get(
+                NavigatorIntegration.mutablePos.set(getChunkX() + offsetX, getChunkZ() + offsetZ, getDimensionId()));
+        return neighbor != null && neighbor.isLoaded();
+    }
+
     public String loadedHint() {
         return isLoaded() ? EnumChatFormatting.GREEN + I18n.format("serverutilities.lang.chunks.chunk_loaded") : "";
     }

@@ -37,7 +37,7 @@ public class ClaimsLayerManager extends InteractableLayerManager {
                 .withClickAction(NavigatorIntegration::handleMapClick);
         renderer.withRenderStep(location -> new ClaimsRenderStep((ClaimsLocation) location));
         if (Util.isJourneyMapV6Installed()) {
-            renderer.withJourneyMapV6Overlays(ClaimsPolygonOverlay::create, true);
+            renderer.withJourneyMapV6Overlays(ClaimsPolygonOverlay::create);
         }
         return renderer;
     }
