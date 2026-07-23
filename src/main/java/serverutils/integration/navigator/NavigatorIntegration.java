@@ -40,6 +40,7 @@ public class NavigatorIntegration {
                 ClientClaimedChunks.ChunkData oldData = CLAIMS.get(location);
                 if (oldData == null) {
                     CLAIMS.put(location, newData);
+                    refresh = true;
                     continue;
                 }
 
