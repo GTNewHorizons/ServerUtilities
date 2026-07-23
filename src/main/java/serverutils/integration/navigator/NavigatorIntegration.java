@@ -49,11 +49,19 @@ public class NavigatorIntegration {
                 oldData.setTeam(newData.team);
             }
 
-            if (OWNTEAM == null && team.isMember) {
-                OWNTEAM = team.chunkPos.values().iterator().next().copy().setLoaded(false);
+            if (team.isMember) {
+                OWNTEAM = new ClientClaimedChunks.ChunkData(team, 0);
             }
         }
         if (refresh) ClaimsLayerManager.INSTANCE.forceRefresh();
+    }
+
+    public static void clearSession() {
+        CLAIMS.clear();
+        OWNTEAM = null;
+        maxClaimedChunks = 0;
+        currentClaimedChunks = 0;
+        ClaimsLayerManager.INSTANCE.clearFullCache();
     }
 
     private static boolean needsRefresh(ClientClaimedChunks.ChunkData oldData, ClientClaimedChunks.ChunkData newData) {
