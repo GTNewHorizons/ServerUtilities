@@ -76,7 +76,7 @@ public class NavigatorIntegration {
 
     public static void removeChunk(int chunkX, int chunkZ) {
         int dim = Minecraft.getMinecraft().thePlayer.dimension;
-        ClaimsLayerManager.INSTANCE.removeLocation(chunkX, chunkZ);
+        ClaimsLayerManager.INSTANCE.invalidateLocation(chunkX, chunkZ);
         CLAIMS.remove(mutablePos.set(chunkX, chunkZ, dim));
     }
 
