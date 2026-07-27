@@ -16,7 +16,9 @@ import com.gtnewhorizons.navigator.api.util.Util;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import serverutils.client.gui.ClientClaimedChunks;
+import serverutils.lib.math.ChunkDimPos;
 import serverutils.net.MessageNavigatorRequest;
 import serverutils.net.MessageNavigatorValidateKnown;
 
@@ -58,6 +60,27 @@ public class ClaimsLayerManager extends InteractableLayerManager {
                 .get(NavigatorIntegration.mutablePos.set(chunkX, chunkZ, dim));
         if (data == null) return null;
         return new ClaimsLocation(chunkX, chunkZ, dim, data);
+    }
+
+    @Override
+    protected Collection<? extends ILocationProvider> generateVisibleLocations(int minBlockX, int minBlockZ,
+            int maxBlockX, int maxBlockZ, int dimension) {
+        int minChunkX = Util.coordBlockToChunk(minBlockX);
+        int minChunkZ = Util.coordBlockToChunk(minBlockZ);
+        int maxChunkX = Util.coordBlockToChunk(maxBlockX);
+        int maxChunkZ = Util.coordBlockToChunk(maxBlockZ);
+        List<ClaimsLocation> locations = new ArrayList<>();
+        for (Object2ObjectMap.Entry<ChunkDimPos, ClientClaimedChunks.ChunkData> entry : NavigatorIntegration.CLAIMS
+                .object2ObjectEntrySet()) {
+            ChunkDimPos pos = entry.getKey();
+            if (pos.dim == dimension && pos.posX >= minChunkX
+                    && pos.posX <= maxChunkX
+                    && pos.posZ >= minChunkZ
+                    && pos.posZ <= maxChunkZ) {
+                locations.add(new ClaimsLocation(pos.posX, pos.posZ, pos.dim, entry.getValue()));
+            }
+        }
+        return locations;
     }
 
     @Override
