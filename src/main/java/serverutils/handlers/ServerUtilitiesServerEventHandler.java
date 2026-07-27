@@ -5,6 +5,8 @@ import static serverutils.ServerUtilitiesNotifications.PLAYER_AFK;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -49,6 +51,12 @@ import serverutils.ranks.Ranks;
 
 @EventBusSubscriber
 public class ServerUtilitiesServerEventHandler {
+
+    private static final Queue<Runnable> SERVER_TASKS = new ConcurrentLinkedQueue<>();
+
+    public static void scheduleServerTask(Runnable task) {
+        SERVER_TASKS.add(task);
+    }
 
     private static final Pattern STRIKETHROUGH_PATTERN = Pattern.compile("~~(.+?)~~");
     private static final String STRIKETHROUGH_REPLACE = "&m$1&m";
@@ -186,6 +194,13 @@ public class ServerUtilitiesServerEventHandler {
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) {
+            Runnable task;
+            while ((task = SERVER_TASKS.poll()) != null) {
+                task.run();
+            }
+        }
+
         if (!Universe.loaded()) {
             return;
         }
