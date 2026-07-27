@@ -18,8 +18,8 @@ import serverutils.lib.util.permission.PermissionAPI;
 @Mixin(NetHandlerLoginServer.class)
 public class MixinNetHandlerLoginServer {
 
-
-    /// Return value of {@link ServerConfigurationManager#allowUserToConnect(java.net.SocketAddress, GameProfile)} when the server is full.
+    /// Return value of {@link ServerConfigurationManager#allowUserToConnect(java.net.SocketAddress, GameProfile)} when
+    /// the server is full.
     @Unique
     private static final String SERVER_FULL = "The server is full!";
 
