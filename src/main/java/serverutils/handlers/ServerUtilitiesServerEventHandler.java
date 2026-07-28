@@ -58,6 +58,10 @@ public class ServerUtilitiesServerEventHandler {
         SERVER_TASKS.add(task);
     }
 
+    public static void clearServerTasks() {
+        SERVER_TASKS.clear();
+    }
+
     private static final Pattern STRIKETHROUGH_PATTERN = Pattern.compile("~~(.+?)~~");
     private static final String STRIKETHROUGH_REPLACE = "&m$1&m";
     private static final Pattern BOLD_PATTERN = Pattern.compile("\\*\\*(.+?)\\*\\*|__(.+?)__");
@@ -197,7 +201,11 @@ public class ServerUtilitiesServerEventHandler {
         if (event.phase == TickEvent.Phase.START) {
             Runnable task;
             while ((task = SERVER_TASKS.poll()) != null) {
-                task.run();
+                try {
+                    task.run();
+                } catch (RuntimeException e) {
+                    ServerUtilities.LOGGER.error("Error running scheduled server task", e);
+                }
             }
         }
 

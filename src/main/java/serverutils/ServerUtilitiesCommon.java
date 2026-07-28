@@ -36,6 +36,7 @@ import serverutils.aurora.AuroraConfig;
 import serverutils.command.ServerUtilitiesCommands;
 import serverutils.data.ServerUtilitiesLoadedChunkManager;
 import serverutils.events.ServerReloadEvent;
+import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.lib.OtherMods;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.IConfigCallback;
@@ -114,6 +115,7 @@ public class ServerUtilitiesCommon {
     }
 
     public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
+        ServerUtilitiesServerEventHandler.clearServerTasks();
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());
@@ -163,6 +165,7 @@ public class ServerUtilitiesCommon {
         Aurora.stop();
         MinecraftForge.EVENT_BUS.unregister(oldUniverse);
         FMLCommonHandler.instance().bus().unregister(oldUniverse);
+        ServerUtilitiesServerEventHandler.clearServerTasks();
     }
 
     public void registerTasks() {
