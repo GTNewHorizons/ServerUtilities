@@ -63,7 +63,7 @@ public class ServerUtilitiesClientEventHandler {
         shutdownTime = 0L;
         SidedUtils.SERVER_MODS.clear();
         if (OtherMods.isNavigatorLoaded()) {
-            NavigatorIntegration.CLAIMS.clear();
+            NavigatorIntegration.clearSession();
         }
         TabSkinCache.INSTANCE.clear();
         TabChannelHandler.INSTANCE.clear();

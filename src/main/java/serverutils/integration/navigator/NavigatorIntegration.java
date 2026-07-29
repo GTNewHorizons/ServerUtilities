@@ -2,6 +2,7 @@ package serverutils.integration.navigator;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -30,6 +31,7 @@ public class NavigatorIntegration {
     }
 
     public static void updateMap(MessageNavigatorUpdate message) {
+        boolean refresh = false;
         for (ClientClaimedChunks.Team team : message.teams.values()) {
             for (Object2ObjectMap.Entry<ChunkDimPos, ClientClaimedChunks.ChunkData> pos : team.chunkPos
                     .object2ObjectEntrySet()) {
@@ -38,19 +40,39 @@ public class NavigatorIntegration {
                 ClientClaimedChunks.ChunkData oldData = CLAIMS.get(location);
                 if (oldData == null) {
                     CLAIMS.put(location, newData);
+                    refresh = true;
                     continue;
                 }
 
+                refresh |= needsRefresh(oldData, newData);
                 oldData.setLoaded(newData.isLoaded());
                 oldData.setTeam(newData.team);
             }
 
-            ClaimsLayerManager.INSTANCE.forceRefresh();
-
-            if (OWNTEAM == null && team.isMember) {
-                OWNTEAM = team.chunkPos.values().iterator().next().copy().setLoaded(false);
+            if (team.isMember) {
+                OWNTEAM = new ClientClaimedChunks.ChunkData(team, 0);
             }
         }
+        if (refresh) ClaimsLayerManager.INSTANCE.forceRefresh();
+    }
+
+    public static void clearSession() {
+        CLAIMS.clear();
+        OWNTEAM = null;
+        maxClaimedChunks = 0;
+        currentClaimedChunks = 0;
+        ClaimsLayerManager.INSTANCE.clearFullCache();
+    }
+
+    private static boolean needsRefresh(ClientClaimedChunks.ChunkData oldData, ClientClaimedChunks.ChunkData newData) {
+        ClientClaimedChunks.Team oldTeam = oldData.team;
+        ClientClaimedChunks.Team newTeam = newData.team;
+        return oldData.isLoaded() != newData.isLoaded() || oldTeam.uid != newTeam.uid
+                || oldTeam.color != newTeam.color
+                || oldTeam.isAlly != newTeam.isAlly
+                || oldTeam.isMember != newTeam.isMember
+                || !Objects
+                        .equals(oldTeam.nameComponent.getUnformattedText(), newTeam.nameComponent.getUnformattedText());
     }
 
     public static void addToOwnTeam(int chunkX, int chunkZ) {
@@ -63,7 +85,7 @@ public class NavigatorIntegration {
 
     public static void removeChunk(int chunkX, int chunkZ) {
         int dim = Minecraft.getMinecraft().thePlayer.dimension;
-        ClaimsLayerManager.INSTANCE.removeLocation(chunkX, chunkZ);
+        ClaimsLayerManager.INSTANCE.invalidateLocation(chunkX, chunkZ);
         CLAIMS.remove(mutablePos.set(chunkX, chunkZ, dim));
     }
 
@@ -83,8 +105,16 @@ public class NavigatorIntegration {
         currentClaimedChunks = message.claimedChunks;
     }
 
-    public static boolean claimChunk(ClickPos pos) {
-        if (pos.getRenderStep() != null || !pos.isDoubleClick()) return false;
+    public static boolean handleMapClick(ClickPos pos) {
+        if (!pos.isDoubleClick()) return false;
+        if (pos.getLocationRenderStep() != null) {
+            if (pos.getLocationRenderStep().getLocation() instanceof ClaimsLocation location) {
+                location.toggleLoaded();
+                return true;
+            }
+            return false;
+        }
+
         int selectionMode = MessageClaimedChunksModify.CLAIM;
         int chunkX = pos.getChunkX();
         int chunkZ = pos.getChunkZ();
