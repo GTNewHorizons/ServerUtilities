@@ -108,6 +108,7 @@ public class ServerUtilitiesPermissions {
     public static final String EDIT_WORLD_GAMERULES = "admin_panel.serverutilities.edit_world.gamerules";
     public static final String RANK_EDIT = "serverutilities.admin_panel.ranks.view";
     public static final String BYPASS_PLAYER_LIMIT = "serverutilities.bypass_player_limit";
+    public static final String BYPASS_WHITELIST = "serverutilities.bypass_whitelist";
 
     public static final String TPA_COOLDOWN = "serverutilities.tpa.cooldown";
     public static final String SPAWN_COOLDOWN = "serverutilities.spawn.cooldown";
@@ -257,6 +258,10 @@ public class ServerUtilitiesPermissions {
                 BYPASS_PLAYER_LIMIT,
                 DefaultPermissionLevel.OP,
                 "Allow player to join while the server is full");
+        PermissionAPI.registerNode(
+                BYPASS_WHITELIST,
+                DefaultPermissionLevel.OP,
+                "Allow player to join while not whitelisted");
 
         for (Block block : GameData.getBlockRegistry().typeSafeIterable()) {
             String name = formatId(block);

@@ -1,6 +1,7 @@
 package serverutils.mixins.early.minecraft;
 
 import static serverutils.ServerUtilitiesPermissions.BYPASS_PLAYER_LIMIT;
+import static serverutils.ServerUtilitiesPermissions.BYPASS_WHITELIST;
 
 import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.server.network.NetHandlerLoginServer;
@@ -23,6 +24,11 @@ public class MixinNetHandlerLoginServer {
     @Unique
     private static final String SERVER_FULL = "The server is full!";
 
+    /// Return value of {@link ServerConfigurationManager#allowUserToConnect(java.net.SocketAddress, GameProfile)} when
+    /// the player is not white-listed.
+    @Unique
+    private static final String NOT_WHITELISTED = "You are not white-listed on this server!";
+
     @Shadow
     private GameProfile field_147337_i;
 
@@ -37,6 +43,10 @@ public class MixinNetHandlerLoginServer {
         }
 
         if (SERVER_FULL.equals(original) && PermissionAPI.hasPermission(field_147337_i, BYPASS_PLAYER_LIMIT, null)) {
+            return null;
+        }
+
+        if (NOT_WHITELISTED.equals(original) && PermissionAPI.hasPermission(field_147337_i, BYPASS_WHITELIST, null)) {
             return null;
         }
 
