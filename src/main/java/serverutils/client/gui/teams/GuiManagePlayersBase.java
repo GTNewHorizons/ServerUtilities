@@ -18,24 +18,24 @@ public class GuiManagePlayersBase extends GuiButtonListBase {
 
     public static class ButtonPlayerBase extends SimpleTextButton {
 
-        final MessageMyTeamPlayerList.Entry entry;
+        protected final MessageMyTeamPlayerList.Entry entry;
 
-        ButtonPlayerBase(Panel panel, MessageMyTeamPlayerList.Entry m) {
+        protected ButtonPlayerBase(Panel panel, MessageMyTeamPlayerList.Entry m) {
             super(panel, "", Icon.EMPTY);
             entry = m;
             updateIcon();
             setTitle(entry.name);
         }
 
-        Color4I getPlayerColor() {
+        protected Color4I getPlayerColor() {
             return getDefaultPlayerColor();
         }
 
-        Color4I getDefaultPlayerColor() {
+        protected Color4I getDefaultPlayerColor() {
             return Color4I.GRAY;
         }
 
-        final void updateIcon() {
+        protected final void updateIcon() {
             // Variant 2: setIcon(gui.getTheme().getWidget(false).withColorAndBorder(getPlayerColor(),
             // 1).combineWith(gui.getTheme().getSlot(false).withColorAndBorder(Color4I.DARK_GRAY, 3), new
             // PlayerHeadIcon(entry.name).withBorder(4)));

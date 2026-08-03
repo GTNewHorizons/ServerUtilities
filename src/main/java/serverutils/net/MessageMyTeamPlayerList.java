@@ -26,8 +26,8 @@ public class MessageMyTeamPlayerList extends MessageToClient {
 
     public static class Entry implements Comparable<Entry> {
 
-        private static final DataOut.Serializer<Entry> SERIALIZER = (data, object) -> object.writeData(data);
-        private static final DataIn.Deserializer<Entry> DESERIALIZER = Entry::new;
+        static final DataOut.Serializer<Entry> SERIALIZER = (data, object) -> object.writeData(data);
+        static final DataIn.Deserializer<Entry> DESERIALIZER = Entry::new;
 
         public final UUID uuid;
         public final String name;

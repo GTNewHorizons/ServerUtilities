@@ -25,7 +25,7 @@ public class GuiManageEnemies extends GuiManagePlayersBase {
         }
 
         @Override
-        Color4I getPlayerColor() {
+        protected Color4I getPlayerColor() {
             return entry.status == EnumTeamStatus.ENEMY ? Color4I.getChatFormattingColor(EnumChatFormatting.RED)
                     : getDefaultPlayerColor();
         }
