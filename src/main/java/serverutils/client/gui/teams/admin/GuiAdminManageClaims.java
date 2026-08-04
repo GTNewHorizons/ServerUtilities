@@ -63,11 +63,23 @@ public class GuiAdminManageClaims extends GuiButtonListBase {
             }
 
             list.add(I18n.format("serverutilities.admin_panel.claims.click_to_unclaim"));
+            list.add(I18n.format("serverutilities.admin_panel.claims.shift_click_to_teleport"));
         }
 
         @Override
         public void onClicked(MouseButton button) {
             GuiHelper.playClickSound();
+
+            if (isShiftKeyDown()) {
+                NBTTagCompound data = new NBTTagCompound();
+                data.setBoolean("teleport", true);
+                data.setInteger("dim", entry.dim);
+                data.setInteger("x", entry.x);
+                data.setInteger("z", entry.z);
+                new MessageAdminTeamAction(teamId, MessageAdminTeamAction.CLAIMS, data).sendToServer();
+                // getGui().closeGui(true);
+                return;
+            }
 
             getGui().openYesNo(I18n.format("serverutilities.admin_panel.claims.unclaim_q"), getTitle(), () -> {
                 NBTTagCompound data = new NBTTagCompound();

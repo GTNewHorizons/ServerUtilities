@@ -5,9 +5,13 @@ import java.util.function.Predicate;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.world.World;
+import net.minecraftforge.common.DimensionManager;
 
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ClaimedChunks;
+import serverutils.data.ServerUtilitiesPlayerData;
+import serverutils.data.TeleportType;
 import serverutils.lib.EnumTeamStatus;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.ForgeTeam;
@@ -125,7 +129,14 @@ public class MessageAdminTeamAction extends MessageToServer {
                     ClaimedChunks.instance.unclaimAllChunks(p, team, OptionalInt.empty());
                 } else {
                     ChunkDimPos pos = new ChunkDimPos(nbt.getInteger("x"), nbt.getInteger("z"), nbt.getInteger("dim"));
-                    ClaimedChunks.instance.unclaimChunk(p, pos);
+                    if (nbt.getBoolean("teleport")) {
+                        World world = DimensionManager.getWorld(pos.dim);
+                        int y = world.getTopSolidOrLiquidBlock(pos.getBlockX(), pos.getBlockZ());
+                        ServerUtilitiesPlayerData.get(p)
+                                .teleport(pos.getBlockPos(y).teleporter(), TeleportType.VANILLA_TP, null);
+                    } else {
+                        ClaimedChunks.instance.unclaimChunk(p, pos);
+                    }
                 }
             }
         }
