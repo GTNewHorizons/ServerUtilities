@@ -107,6 +107,7 @@ public class ServerUtilitiesPermissions {
     public static final String LEADERBOARD_PREFIX = "serverutilities.leaderboard.";
     public static final String EDIT_WORLD_GAMERULES = "admin_panel.serverutilities.edit_world.gamerules";
     public static final String RANK_EDIT = "serverutilities.admin_panel.ranks.view";
+    public static final String TEAM_EDIT = "serverutilities.admin_panel.team.edit";
     public static final String BYPASS_PLAYER_LIMIT = "serverutilities.bypass_player_limit";
     public static final String BYPASS_WHITELIST = "serverutilities.bypass_whitelist";
 
@@ -244,6 +245,10 @@ public class ServerUtilitiesPermissions {
                 DefaultPermissionLevel.ALL,
                 "Allow player to see other teams claims on JourneyMap overlay");
         PermissionAPI.registerNode(RANK_EDIT, DefaultPermissionLevel.OP, "Allow player to edit ranks via Admin Panel");
+        PermissionAPI.registerNode(
+                TEAM_EDIT,
+                DefaultPermissionLevel.OP,
+                "Allow player to edit any team's owner, moderators, members and settings via Admin Panel");
         PermissionAPI.registerNode(
                 WARPS_CROSS_DIM,
                 DefaultPermissionLevel.ALL,

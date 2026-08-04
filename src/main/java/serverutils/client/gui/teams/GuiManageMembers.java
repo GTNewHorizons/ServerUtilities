@@ -25,26 +25,18 @@ public class GuiManageMembers extends GuiManagePlayersBase {
         }
 
         @Override
-        Color4I getPlayerColor() {
+        protected Color4I getPlayerColor() {
             if (entry.requestingInvite) {
                 return Color4I.getChatFormattingColor(EnumChatFormatting.GOLD);
             }
 
-            switch (entry.status) {
-                case NONE:
-                    return getDefaultPlayerColor();
-                case MEMBER:
-                case MOD:
-                    return Color4I.getChatFormattingColor(EnumChatFormatting.DARK_GREEN);
-                case INVITED:
-                    return Color4I.getChatFormattingColor(EnumChatFormatting.BLUE);
-                case ALLY:
-                    return Color4I.getChatFormattingColor(EnumChatFormatting.DARK_AQUA);
-                default:
-                    break;
-            }
+            return switch (entry.status) {
+                case MEMBER, MOD -> Color4I.getChatFormattingColor(EnumChatFormatting.DARK_GREEN);
+                case INVITED -> Color4I.getChatFormattingColor(EnumChatFormatting.BLUE);
+                case ALLY -> Color4I.getChatFormattingColor(EnumChatFormatting.DARK_AQUA);
+                default -> getDefaultPlayerColor();
+            };
 
-            return getDefaultPlayerColor();
         }
 
         @Override

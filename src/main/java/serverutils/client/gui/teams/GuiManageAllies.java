@@ -25,7 +25,7 @@ public class GuiManageAllies extends GuiManagePlayersBase {
         }
 
         @Override
-        Color4I getPlayerColor() {
+        protected Color4I getPlayerColor() {
             return entry.status.isEqualOrGreaterThan(EnumTeamStatus.ALLY)
                     ? Color4I.getChatFormattingColor(EnumChatFormatting.DARK_AQUA)
                     : getDefaultPlayerColor();

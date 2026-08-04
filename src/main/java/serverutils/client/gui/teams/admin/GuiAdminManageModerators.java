@@ -1,4 +1,4 @@
-package serverutils.client.gui.teams;
+package serverutils.client.gui.teams.admin;
 
 import java.util.Collection;
 import java.util.List;
@@ -7,21 +7,24 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 
+import serverutils.client.gui.teams.GuiManagePlayersBase;
 import serverutils.lib.EnumTeamStatus;
-import serverutils.lib.data.ServerUtilitiesTeamGuiActions;
 import serverutils.lib.gui.GuiHelper;
 import serverutils.lib.gui.Panel;
 import serverutils.lib.icon.Color4I;
 import serverutils.lib.util.misc.MouseButton;
-import serverutils.net.MessageMyTeamAction;
+import serverutils.net.MessageAdminTeamAction;
 import serverutils.net.MessageMyTeamPlayerList;
 
-public class GuiManageModerators extends GuiManagePlayersBase {
+public class GuiAdminManageModerators extends GuiManagePlayersBase {
 
     private static class ButtonPlayer extends ButtonPlayerBase {
 
-        private ButtonPlayer(Panel panel, MessageMyTeamPlayerList.Entry m) {
+        private final String teamId;
+
+        private ButtonPlayer(Panel panel, String teamId, MessageMyTeamPlayerList.Entry m) {
             super(panel, m);
+            this.teamId = teamId;
         }
 
         @Override
@@ -53,12 +56,15 @@ public class GuiManageModerators extends GuiManagePlayersBase {
                 entry.status = EnumTeamStatus.MOD;
             }
 
-            new MessageMyTeamAction(ServerUtilitiesTeamGuiActions.MODERATORS.getId(), data).sendToServer();
+            new MessageAdminTeamAction(teamId, MessageAdminTeamAction.MODERATORS, data).sendToServer();
             updateIcon();
         }
     }
 
-    public GuiManageModerators(Collection<MessageMyTeamPlayerList.Entry> m) {
-        super(I18n.format("team_action.serverutilities.moderators"), m, ButtonPlayer::new);
+    public GuiAdminManageModerators(String teamId, Collection<MessageMyTeamPlayerList.Entry> m) {
+        super(
+                I18n.format("team_action.serverutilities.moderators"),
+                m,
+                (panel, e) -> new ButtonPlayer(panel, teamId, e));
     }
 }

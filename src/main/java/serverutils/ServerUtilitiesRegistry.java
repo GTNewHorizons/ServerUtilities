@@ -1,6 +1,7 @@
 package serverutils;
 
 import static serverutils.ServerUtilitiesPermissions.RANK_EDIT;
+import static serverutils.ServerUtilitiesPermissions.TEAM_EDIT;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,12 +48,14 @@ import serverutils.lib.data.ISyncData;
 import serverutils.lib.data.ServerUtilitiesAPI;
 import serverutils.lib.data.ServerUtilitiesTeamGuiActions;
 import serverutils.lib.data.TeamAction;
+import serverutils.lib.data.Universe;
 import serverutils.lib.gui.GuiIcons;
 import serverutils.lib.icon.Color4I;
 import serverutils.lib.icon.ItemIcon;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.InvUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.net.MessageAdminTeamList;
 import serverutils.net.MessageRanks;
 import serverutils.net.MessageViewCrashList;
 import serverutils.ranks.Ranks;
@@ -245,5 +248,17 @@ public class ServerUtilitiesRegistry {
                         new MessageRanks(Ranks.INSTANCE, player).sendTo(player.getPlayer());
                     }
                 });
+        registerAdminPanelAction(new AdminPanelAction(ServerUtilities.MOD_ID, "edit_team", GuiIcons.FRIENDS, 0) {
+
+            @Override
+            public Type getType(ForgePlayer player, NBTTagCompound data) {
+                return Type.fromBoolean(player.hasPermission(TEAM_EDIT));
+            }
+
+            @Override
+            public void onAction(ForgePlayer player, NBTTagCompound data) {
+                new MessageAdminTeamList(Universe.get()).sendTo(player.getPlayer());
+            }
+        });
     }
 }
