@@ -64,6 +64,7 @@ public class GuiAdminManageClaimsDim extends GuiButtonListBase {
 
             list.add(I18n.format("serverutilities.admin_panel.claims.click_to_unclaim"));
             list.add(I18n.format("serverutilities.admin_panel.claims.shift_click_to_teleport"));
+            list.add(I18n.format("serverutilities.admin_panel.claims.ctrl_click_to_toggle_load"));
         }
 
         @Override
@@ -71,23 +72,34 @@ public class GuiAdminManageClaimsDim extends GuiButtonListBase {
             GuiHelper.playClickSound();
 
             if (isShiftKeyDown()) {
-                NBTTagCompound data = new NBTTagCompound();
+                NBTTagCompound data = newActionData();
                 data.setBoolean("teleport", true);
-                data.setInteger("dim", entry.dim);
-                data.setInteger("x", entry.x);
-                data.setInteger("z", entry.z);
+                new MessageAdminTeamAction(teamId, MessageAdminTeamAction.CLAIMS, data).sendToServer();
+                return;
+            }
+
+            if (isCtrlKeyDown()) {
+                entry.loaded = !entry.loaded;
+                setIcon(entry.loaded ? GuiIcons.BEACON : GuiIcons.MAP);
+
+                NBTTagCompound data = newActionData();
+                data.setBoolean("load", entry.loaded);
                 new MessageAdminTeamAction(teamId, MessageAdminTeamAction.CLAIMS, data).sendToServer();
                 return;
             }
 
             getGui().openYesNo(I18n.format("serverutilities.admin_panel.claims.unclaim_q"), getTitle(), () -> {
-                NBTTagCompound data = new NBTTagCompound();
-                data.setInteger("dim", entry.dim);
-                data.setInteger("x", entry.x);
-                data.setInteger("z", entry.z);
-                new MessageAdminTeamAction(teamId, MessageAdminTeamAction.CLAIMS, data).sendToServer();
+                new MessageAdminTeamAction(teamId, MessageAdminTeamAction.CLAIMS, newActionData()).sendToServer();
                 getGui().closeGui(true);
             });
+        }
+
+        private NBTTagCompound newActionData() {
+            NBTTagCompound data = new NBTTagCompound();
+            data.setInteger("dim", entry.dim);
+            data.setInteger("x", entry.x);
+            data.setInteger("z", entry.z);
+            return data;
         }
     }
 
@@ -95,12 +107,12 @@ public class GuiAdminManageClaimsDim extends GuiButtonListBase {
     private final int dim;
     private final List<MessageAdminTeamClaimsList.Entry> entries;
 
-    public GuiAdminManageClaimsDim(String teamId, int dim, List<MessageAdminTeamClaimsList.Entry> e) {
+    public GuiAdminManageClaimsDim(String teamId, int dim, List<MessageAdminTeamClaimsList.Entry> entries) {
         this.teamId = teamId;
         this.dim = dim;
+        this.entries = entries;
         setTitle(ServerUtils.getDimensionName(dim).getFormattedText());
         setHasSearchBox(true);
-        entries = e;
     }
 
     @Override

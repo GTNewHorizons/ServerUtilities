@@ -135,6 +135,12 @@ public class MessageAdminTeamAction extends MessageToServer {
                         int y = world.getTopSolidOrLiquidBlock(pos.getBlockX(), pos.getBlockZ());
                         ServerUtilitiesPlayerData.get(p)
                                 .teleport(pos.getBlockPos(y).teleporter(), TeleportType.VANILLA_TP, null);
+                    } else if (nbt.hasKey("load")) {
+                        if (nbt.getBoolean("load")) {
+                            ClaimedChunks.instance.loadChunk(p, team, pos);
+                        } else {
+                            ClaimedChunks.instance.unloadChunk(p, pos);
+                        }
                     } else {
                         ClaimedChunks.instance.unclaimChunk(p, pos);
                     }

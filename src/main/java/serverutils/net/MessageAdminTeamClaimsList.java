@@ -26,7 +26,7 @@ public class MessageAdminTeamClaimsList extends MessageToClient {
         public final int dim;
         public final int x;
         public final int z;
-        public final boolean loaded;
+        public boolean loaded;
 
         Entry(DataIn data) {
             dim = data.readInt();
