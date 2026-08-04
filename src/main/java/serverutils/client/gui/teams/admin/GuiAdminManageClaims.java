@@ -3,17 +3,20 @@ package serverutils.client.gui.teams.admin;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.client.resources.I18n;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumChatFormatting;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import serverutils.lib.gui.GuiHelper;
 import serverutils.lib.gui.GuiIcons;
 import serverutils.lib.gui.Panel;
 import serverutils.lib.gui.SimpleTextButton;
 import serverutils.lib.gui.WidgetType;
 import serverutils.lib.gui.misc.GuiButtonListBase;
+import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.misc.MouseButton;
 import serverutils.net.MessageAdminTeamAction;
 import serverutils.net.MessageAdminTeamClaimsList;
@@ -47,53 +50,30 @@ public class GuiAdminManageClaims extends GuiButtonListBase {
         }
     }
 
-    private class ButtonClaim extends SimpleTextButton {
+    private class ButtonDimension extends SimpleTextButton {
 
-        private final MessageAdminTeamClaimsList.Entry entry;
+        private final int dim;
+        private final List<MessageAdminTeamClaimsList.Entry> dimEntries;
 
-        private ButtonClaim(Panel panel, MessageAdminTeamClaimsList.Entry e) {
-            super(panel, "[" + e.dim + "] " + e.x + ", " + e.z, e.loaded ? GuiIcons.BEACON : GuiIcons.MAP);
-            entry = e;
-        }
-
-        @Override
-        public void addMouseOverText(List<String> list) {
-            if (entry.loaded) {
-                list.add(EnumChatFormatting.GREEN + I18n.format("serverutilities.lang.chunks.chunk_loaded"));
-            }
-
-            list.add(I18n.format("serverutilities.admin_panel.claims.click_to_unclaim"));
-            list.add(I18n.format("serverutilities.admin_panel.claims.shift_click_to_teleport"));
+        private ButtonDimension(Panel panel, int dim, List<MessageAdminTeamClaimsList.Entry> dimEntries) {
+            super(
+                    panel,
+                    ServerUtils.getDimensionName(dim).getFormattedText() + " (" + dimEntries.size() + ")",
+                    GuiIcons.GLOBE);
+            this.dim = dim;
+            this.dimEntries = dimEntries;
         }
 
         @Override
         public void onClicked(MouseButton button) {
             GuiHelper.playClickSound();
-
-            if (isShiftKeyDown()) {
-                NBTTagCompound data = new NBTTagCompound();
-                data.setBoolean("teleport", true);
-                data.setInteger("dim", entry.dim);
-                data.setInteger("x", entry.x);
-                data.setInteger("z", entry.z);
-                new MessageAdminTeamAction(teamId, MessageAdminTeamAction.CLAIMS, data).sendToServer();
-                // getGui().closeGui(true);
-                return;
-            }
-
-            getGui().openYesNo(I18n.format("serverutilities.admin_panel.claims.unclaim_q"), getTitle(), () -> {
-                NBTTagCompound data = new NBTTagCompound();
-                data.setInteger("dim", entry.dim);
-                data.setInteger("x", entry.x);
-                data.setInteger("z", entry.z);
-                new MessageAdminTeamAction(teamId, MessageAdminTeamAction.CLAIMS, data).sendToServer();
-                getGui().closeGui(true);
-            });
+            new GuiAdminManageClaimsDim(teamId, dim, dimEntries).openGui();
         }
     }
 
     private final String teamId;
     private final List<MessageAdminTeamClaimsList.Entry> entries;
+    private final Int2ObjectMap<List<MessageAdminTeamClaimsList.Entry>> entriesByDim;
 
     public GuiAdminManageClaims(String teamId, Collection<MessageAdminTeamClaimsList.Entry> e) {
         this.teamId = teamId;
@@ -103,14 +83,19 @@ public class GuiAdminManageClaims extends GuiButtonListBase {
         entries.sort(
                 (a, b) -> a.dim == b.dim ? a.x == b.x ? Integer.compare(a.z, b.z) : Integer.compare(a.x, b.x)
                         : Integer.compare(a.dim, b.dim));
+
+        entriesByDim = new Int2ObjectAVLTreeMap<>();
+        for (MessageAdminTeamClaimsList.Entry entry : entries) {
+            entriesByDim.computeIfAbsent(entry.dim, k -> new ArrayList<>()).add(entry);
+        }
     }
 
     @Override
     public void addButtons(Panel panel) {
         panel.add(new ButtonUnclaimAll(panel));
 
-        for (MessageAdminTeamClaimsList.Entry entry : entries) {
-            panel.add(new ButtonClaim(panel, entry));
+        for (Map.Entry<Integer, List<MessageAdminTeamClaimsList.Entry>> group : entriesByDim.int2ObjectEntrySet()) {
+            panel.add(new ButtonDimension(panel, group.getKey(), group.getValue()));
         }
     }
 }

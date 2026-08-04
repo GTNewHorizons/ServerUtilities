@@ -10,6 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
 
@@ -32,7 +33,13 @@ public class ServerUtils {
             case 0 -> new ChatComponentTranslation("serverutilities.world.dimension.overworld");
             case -1 -> new ChatComponentTranslation("serverutilities.world.dimension.nether");
             case 1 -> new ChatComponentTranslation("serverutilities.world.dimension.end");
-            default -> new ChatComponentText("dim_" + dim);
+            default -> {
+                try {
+                    yield new ChatComponentText(WorldProvider.getProviderForDimension(dim).getDimensionName());
+                } catch (Exception ex) {
+                    yield new ChatComponentText("dim_" + dim);
+                }
+            }
         };
     }
 

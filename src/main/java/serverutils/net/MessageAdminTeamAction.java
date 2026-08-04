@@ -126,7 +126,8 @@ public class MessageAdminTeamAction extends MessageToServer {
                 if (nbt.hasNoTags()) {
                     new MessageAdminTeamClaimsList(team).sendTo(player);
                 } else if (nbt.getBoolean("all")) {
-                    ClaimedChunks.instance.unclaimAllChunks(p, team, OptionalInt.empty());
+                    OptionalInt dim = nbt.hasKey("dim") ? OptionalInt.of(nbt.getInteger("dim")) : OptionalInt.empty();
+                    ClaimedChunks.instance.unclaimAllChunks(p, team, dim);
                 } else {
                     ChunkDimPos pos = new ChunkDimPos(nbt.getInteger("x"), nbt.getInteger("z"), nbt.getInteger("dim"));
                     if (nbt.getBoolean("teleport")) {
