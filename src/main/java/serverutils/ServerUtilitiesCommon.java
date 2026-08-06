@@ -14,11 +14,7 @@ import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.launchwrapper.Launch;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
@@ -49,7 +45,6 @@ import serverutils.lib.config.IConfigCallback;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.net.MessageToClient;
-import serverutils.lib.util.InvUtils;
 import serverutils.lib.util.MOTDFormatter;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.permission.PermissionAPI;
