@@ -461,6 +461,32 @@ public class ForgeTeam extends FinalIDObject implements INBTSerializable<NBTTagC
         return false;
     }
 
+    public boolean forceAddMember(ForgePlayer player) {
+        if (!isValid() || isMember(player)) {
+            return false;
+        }
+
+        if (player.hasTeam() && !player.team.removeMember(player)) {
+            return false;
+        }
+
+        universe.clearCache();
+        player.team = this;
+        players.remove(player);
+        requestingInvite.remove(player);
+
+        ForgeTeamPlayerJoinedEvent event = new ForgeTeamPlayerJoinedEvent(player);
+        event.post();
+
+        if (event.getDisplayGui() != null) {
+            event.getDisplayGui().run();
+        }
+
+        player.markDirty();
+        markDirty();
+        return true;
+    }
+
     public boolean removeMember(ForgePlayer player) {
         if (!isValid() || !isMember(player)) {
             return false;

@@ -105,8 +105,6 @@ public class GuiContainerWrapper extends GuiContainer implements IGuiWrapper {
 
         Theme theme = wrappedGui.getTheme();
         GuiHelper.setupDrawing();
-        drawDefaultBackground();
-        GuiHelper.setupDrawing();
         wrappedGui.draw(theme, guiLeft, guiTop, xSize, ySize);
 
         if (drawSlots) {

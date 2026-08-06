@@ -9,6 +9,7 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.Constants;
 
 import org.jetbrains.annotations.NotNull;
@@ -28,8 +29,9 @@ import serverutils.lib.icon.PartIcon;
 public class GalacticraftInventory implements IModdedInventory {
 
     private static final Icon[] SLOT_OVERLAYS = new Icon[10];
-    private static final Icon GC_BUTTON_ICON = ItemIcon.getItemIcon(GCItems.oxMask);
     private static final String GC_EXTENDED_INV = "ExtendedInventoryGC";
+
+    private static Icon GC_BUTTON_ICON = null;
 
     static {
         ImageIcon icon = new ImageIcon(
@@ -41,7 +43,7 @@ public class GalacticraftInventory implements IModdedInventory {
                 case 2, 3 -> new PartIcon(icon, 116, 53, 16, 16, 4);
                 case 4 -> new PartIcon(icon, 143, 17, 16, 16, 4);
                 case 5 -> new PartIcon(icon, 107, 17, 16, 16, 4);
-                case 6, 7, 8, 9 -> new PartIcon(icon, 79, 8 + ((i - 6) * 18), 16, 16, 4);
+                case 6, 7, 8, 9 -> new PartIcon(icon, 80, 8 + ((i - 6) * 18), 16, 16, 4);
                 default -> ItemIcon.EMPTY;
             };
         }
@@ -67,17 +69,20 @@ public class GalacticraftInventory implements IModdedInventory {
 
     @Override
     public @NotNull Icon getButtonIcon() {
+        if (GC_BUTTON_ICON == null) {
+            GC_BUTTON_ICON = ItemIcon.getItemIcon(GCItems.oxMask);
+        }
         return GC_BUTTON_ICON;
     }
 
     @Override
     public @NotNull String getButtonText() {
-        return "Galacticraft";
+        return StatCollector.translateToLocal("serverutilities.invsee.galacticraft");
     }
 
     @Override
     public String getInventoryName() {
-        return "GC Items";
+        return StatCollector.translateToLocal("serverutilities.invsee.gc_items");
     }
 
     @Override

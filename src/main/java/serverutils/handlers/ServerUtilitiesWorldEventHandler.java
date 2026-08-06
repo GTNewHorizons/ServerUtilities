@@ -4,42 +4,50 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.passive.EntityChicken;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.World;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.world.ExplosionEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
+import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunk;
 import serverutils.data.ClaimedChunks;
+import serverutils.data.ServerUtilitiesTeamData;
 import serverutils.data.ServerUtilitiesUniverseData;
+import serverutils.lib.config.EnumTristate;
+import serverutils.lib.data.ForgeTeam;
+import serverutils.lib.enums.EnumCreature;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.pregenerator.ChunkLoaderManager;
 
+@EventBusSubscriber
 public class ServerUtilitiesWorldEventHandler {
 
-    public static final ServerUtilitiesWorldEventHandler INST = new ServerUtilitiesWorldEventHandler();
-
     @SubscribeEvent
-    public void onMobSpawned(EntityJoinWorldEvent event) {
+    public static void onMobSpawned(LivingSpawnEvent.CheckSpawn event) {
         if (!event.world.isRemote && !isEntityAllowed(event.entity)) {
             event.entity.setDead();
-            event.setCanceled(true);
+            event.setResult(Event.Result.DENY);
         }
     }
 
     @SubscribeEvent
-    public void onDimensionUnload(WorldEvent.Unload event) {
+    public static void onDimensionUnload(WorldEvent.Unload event) {
         if (ClaimedChunks.isActive() && event.world.provider.dimensionId != 0) {
             ClaimedChunks.instance.markDirty();
         }
@@ -58,12 +66,44 @@ public class ServerUtilitiesWorldEventHandler {
                 return !(entity instanceof EntityChicken) || entity.riddenByEntity == null;
             }
         }
+        EnumTristate blockClaimSpawn = ServerUtilitiesConfig.world.blockMobSpawningInClaims;
+
+        if (!(entity instanceof EntityLiving) || blockClaimSpawn.isFalse() || !ClaimedChunks.isActive()) {
+            return true;
+        }
+
+        ForgeTeam team = ClaimedChunks.instance.getChunkTeam(new ChunkDimPos(entity));
+        if (team == null) return true;
+
+        if (blockClaimSpawn.isTrue()) {
+            String[] mobTypes = ServerUtilitiesConfig.world.mobTypesToBlock;
+            if (mobTypes.length == 0) return false;
+            for (String string : mobTypes) {
+                EnumCreature creature = EnumCreature.NAME_MAP.getNullable(string.toLowerCase());
+                if (creature != null && creature.creatureType.getCreatureClass().isAssignableFrom(entity.getClass())) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        if (blockClaimSpawn.isDefault()) {
+            ServerUtilitiesTeamData data = ServerUtilitiesTeamData.get(team);
+            if (data.allowsMobSpawning()) return true;
+            Set<EnumCreature> creatures = data.blockedCreatures;
+            if (creatures.isEmpty() || creatures.size() >= EnumCreature.VALUES.length) {
+                return false;
+            } else {
+                return data.blockedCreatures.stream()
+                        .noneMatch(a -> a.creatureType.getCreatureClass().isAssignableFrom(entity.getClass()));
+            }
+        }
 
         return true;
     }
 
     @SubscribeEvent
-    public void onExplosionDetonate(ExplosionEvent.Detonate event) {
+    public static void onExplosionDetonate(ExplosionEvent.Detonate event) {
         World world = event.world;
 
         if (world.isRemote || event.getAffectedBlocks().isEmpty()) {
@@ -99,7 +139,7 @@ public class ServerUtilitiesWorldEventHandler {
     }
 
     @SubscribeEvent
-    public void onWorldLoad(WorldEvent.Load event) {
+    public static void onWorldLoad(WorldEvent.Load event) {
         if (!event.world.isRemote) {
             int dimensionId = event.world.provider.dimensionId;
             MinecraftServer server = MinecraftServer.getServer();
@@ -111,7 +151,7 @@ public class ServerUtilitiesWorldEventHandler {
     }
 
     @SubscribeEvent
-    public void onWorldUnload(WorldEvent.Unload event) {
+    public static void onWorldUnload(WorldEvent.Unload event) {
         if (!event.world.isRemote) {
             if (event.world.provider.dimensionId == ChunkLoaderManager.instance.getDimensionID()
                     && ChunkLoaderManager.instance.isGenerating()) {

@@ -22,6 +22,7 @@ import serverutils.lib.util.ServerUtils;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", configSubDirectory = "../serverutilities/")
 @Config.RequiresWorldRestart
+@Config.LangKeyPattern(fullyQualified = true)
 public class ServerUtilitiesConfig {
 
     public static final AutoShutdown auto_shutdown = new AutoShutdown();
@@ -32,13 +33,17 @@ public class ServerUtilitiesConfig {
     public static final RanksConfig ranks = new RanksConfig();
     public static final WorldConfig world = new WorldConfig();
     public static final Debugging debugging = new Debugging();
+    @Config.LangKey("serverutilities.gui.backup.button")
     public static final Backups backups = new Backups();
+    @Config.LangKey("stat.generalButton")
     public static final General general = new General();
     public static final Teams teams = new Teams();
     public static final Tasks tasks = new Tasks();
     public static final Pregen pregen = new Pregen();
     public static final Mixins mixins = new Mixins();
     public static final MOTD motd = new MOTD();
+    public static final Transfer transfer = new Transfer();
+    public static final Tab tab = new Tab();
 
     public static class General {
 
@@ -56,12 +61,17 @@ public class ServerUtilitiesConfig {
                 "Default value: 0 (off)" })
         @Config.DefaultBoolean(true)
         public boolean enable_max_tick_time_property;
+
+        @Config.Comment("Adds a button to toggle cheats to the world selection menu.")
+        @Config.DefaultBoolean(true)
+        public boolean enable_toggle_cheats_button;
     }
 
     public static class Teams {
 
         @Config.Comment("Disable teams entirely")
         @Config.DefaultBoolean(false)
+        @Config.Sync
         public boolean disable_teams;
 
         @Config.Comment("Automatically creates a team for player on multiplayer, based on their username and with a random color.")
@@ -136,10 +146,12 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Enables auto-shutdown.")
         @Config.DefaultBoolean(false)
+        @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
         @Config.Comment("Enables auto-shutdown in singleplayer worlds.")
         @Config.DefaultBoolean(false)
+        @Config.LangKey("serverutilities.config.enabled_singleplayer")
         public boolean enabled_singleplayer;
 
         @Config.Comment("""
@@ -154,10 +166,12 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Enables afk timer.")
         @Config.DefaultBoolean(true)
+        @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
         @Config.Comment("Enables afk timer in singleplayer.")
         @Config.DefaultBoolean(true)
+        @Config.LangKey("serverutilities.config.enabled_singleplayer")
         public boolean enabled_singleplayer;
 
         @Config.Comment("After how much time it will display notification to all players.")
@@ -212,6 +226,7 @@ public class ServerUtilitiesConfig {
         public boolean tpl;
 
         @Config.DefaultBoolean(true)
+        @Config.Sync
         public boolean trash_can;
 
         @Config.DefaultBoolean(true)
@@ -322,7 +337,7 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean need_online_players;
 
-        @Config.Comment("Silence backup notifications.")
+        @Config.Comment("Silence every backup notification except for critical errors.")
         @Config.DefaultBoolean(false)
         public boolean silent_backup;
 
@@ -362,6 +377,7 @@ public class ServerUtilitiesConfig {
         public boolean enable_starting_items;
 
         @Config.Comment("Message of the day. This will be displayed when player joins the server.")
+        @Config.Reloadable("login_motd")
         @Config.DefaultStringList("Hello player!")
         public String[] motd;
 
@@ -371,7 +387,7 @@ public class ServerUtilitiesConfig {
         public String[] starting_items;
 
         @Config.Ignore
-        private List<IChatComponent> motdComponents = null;
+        public List<IChatComponent> motdComponents = null;
 
         @Config.Ignore
         private List<ItemStack> startingItems = null;
@@ -417,6 +433,7 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("Enables Ranks.")
         @Config.DefaultBoolean(true)
+        @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
         @Config.Comment("Adds chat colors/rank-specific syntax.")
@@ -434,6 +451,7 @@ public class ServerUtilitiesConfig {
 
             @Config.Comment("Enables world logging.")
             @Config.DefaultBoolean(false)
+            @Config.LangKey("serverutilities.config.enabled")
             public boolean enabled;
 
             @Config.Comment("Includes creative players in world logging.")
@@ -476,8 +494,32 @@ public class ServerUtilitiesConfig {
 
         public final WorldLogging logging = new WorldLogging();
 
+        public static class RulesFlip {
+
+            @Config.Comment("""
+                    Enable flipping specific game rules when server is empty.
+                    Note: Flip state is stored on restart. If you disable it probably first stop the server in a unflipped state.""")
+            @Config.DefaultBoolean(false)
+            public boolean enable_flip_game_rules_when_empty;
+
+            @Config.Comment("Flip specific game rules when server is empty for x seconds.")
+            @Config.DefaultInt(60)
+            @Config.RangeInt(min = 0, max = 86400)
+            public int flip_game_rules_when_empty_seconds;
+
+            @Config.Comment("""
+                    Which game rules to flip when server is empty.
+                    Example: doDaylightCycle, doWeatherCycle , ...""")
+            @Config.DefaultStringList({ "" })
+            public String[] flip_game_rules_when_empty_rules;
+        }
+
+        @Config.Name("flip_game_rules_when_empty")
+        public final RulesFlip flip = new RulesFlip();
+
         @Config.Comment("Enables chunk claiming.")
         @Config.DefaultBoolean(true)
+        @Config.Sync
         public boolean chunk_claiming;
 
         @Config.Comment("Enables chunk loading. If chunk_claiming is set to false, changing this won't do anything.")
@@ -581,7 +623,7 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(false)
         public boolean show_playtime;
 
-        @Config.Comment("Enabled Player Sleeping Percentage to skip night. Use the gamerule playersSleepingPercentage to set the percentage.")
+        @Config.Comment("Enabled Player Sleeping Percentage to skip night. Use the gamerule playersSleepingPercentage to set the percentage. This feature automatically adapts to Witchery (Vampire).")
         @Config.DefaultBoolean(true)
         @Config.ModDetectedDefault(coremod = "ganymedes01.etfuturum.mixinplugin.EtFuturumEarlyMixins", value = "false")
         public boolean enable_player_sleeping_percentage;
@@ -590,6 +632,26 @@ public class ServerUtilitiesConfig {
         @Config.DefaultInt(50)
         @Config.RangeInt(min = 0, max = 100)
         public int player_sleeping_percentage;
+
+        @Config.Comment("The percentage of vampires in coffins required to sleep to night.")
+        @Config.DefaultInt(50)
+        @Config.RangeInt(min = 0, max = 100)
+        public int vampire_sleep_percent;
+
+        @Config.Comment("""
+                Allowed values:
+                DEFAULT = Teams can decide whether mob spawns are allowed in their claims.
+                TRUE = Block mob spawning in all claims.
+                FALSE = Allow mob spawning in all claims.""")
+        @Config.DefaultEnum("DEFAULT")
+        public EnumTristate blockMobSpawningInClaims;
+
+        @Config.Comment("""
+                Which enemy types to block when spawning in claims while blockMobSpawningInClaims is set to TRUE
+                Allowed values: AMBIENT, WATER_CREATURE, MOB, ANIMAL
+                """)
+        @Config.DefaultStringList({ "AMBIENT", "WATER_CREATURE", "MOB", "ANIMAL" })
+        public String[] mobTypesToBlock;
 
         @Config.Ignore
         private List<DisabledItem> disabledItems = null;
@@ -656,6 +718,7 @@ public class ServerUtilitiesConfig {
 
             @Config.Comment("Enables periodic removal of entities")
             @Config.DefaultBoolean(false)
+            @Config.LangKey("serverutilities.config.enabled")
             public boolean enabled;
 
             @Config.Comment("How often the cleanup should run in hours")
@@ -715,20 +778,70 @@ public class ServerUtilitiesConfig {
         @Config.Comment("Adds a permission node (serverutilities.bypass_player_limit) that allows for joining while server is full.")
         @Config.DefaultBoolean(true)
         public boolean bypassPlayerLimit;
+
+        @Config.Comment("Enable grief protection for farmland trampling.")
+        @Config.DefaultBoolean(true)
+        public boolean farmlandTramplingProtection;
+
+        @Config.Comment("Replaces the vanilla player list (TAB overlay) with a modern-style tab list featuring player heads, dynamic columns, and header/footer support.")
+        @Config.DefaultBoolean(true)
+        public boolean modernTabOverlay;
     }
 
     public static class MOTD {
 
         @Config.Comment("Enable custom configurable SERVER MOTD with color codes and variables")
         @Config.DefaultBoolean(false)
+        @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
         @Config.Comment("First line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
         @Config.DefaultString("§6§lMy Minecraft Server")
+        @Config.Reloadable("server_motd")
         public String line1;
 
         @Config.Comment("Second line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
         @Config.DefaultString("§aUptime: §f{uptime} §7| §bTPS: §f{tps}")
+        @Config.Reloadable("server_motd")
         public String line2;
+    }
+
+    public static class Transfer {
+
+        @Config.Comment("Enable the /transfer command and transfer packet.")
+        @Config.DefaultBoolean(true)
+        public boolean enabled;
+
+        @Config.Comment("Whitelist of allowed transfer hostnames. Empty = allow all.")
+        @Config.DefaultStringList({})
+        public String[] whitelist;
+    }
+
+    public static class Tab {
+
+        @Config.Comment("Show player head icons in the modern tab overlay.")
+        @Config.DefaultBoolean(true)
+        @Config.Sync
+        public boolean showPlayerHeads;
+
+        @Config.Comment("Show numeric ping value (e.g. 42ms) next to the signal bars.")
+        @Config.DefaultBoolean(true)
+        @Config.Sync
+        public boolean showPingNumber;
+
+        @Config.Comment("Show signal bars in the modern tab overlay.")
+        @Config.DefaultBoolean(true)
+        @Config.Sync
+        public boolean showPingBars;
+
+        @Config.Comment("Header text for the modern tab overlay. Use & for color/format codes, \\n for line breaks. Overridden by proxy plugin channel.")
+        @Config.DefaultString("&b&lGTNH Server\\n&7A modern tab list for 1.7.10")
+        @Config.Sync
+        public String headerText;
+
+        @Config.Comment("Footer text for the modern tab overlay. Use & for color/format codes, \\n for line breaks. Overridden by proxy plugin channel.")
+        @Config.DefaultString("&7Ping: &a< 150ms &e< 300ms &c< 600ms &4< 1000ms &8>= 1000ms\\n&8Powered by &dServerUtilities")
+        @Config.Sync
+        public String footerText;
     }
 }

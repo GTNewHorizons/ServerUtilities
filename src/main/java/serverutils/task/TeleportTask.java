@@ -57,6 +57,12 @@ public class TeleportTask extends Task {
         } else if (secondsLeft <= 1) {
             Entity mount = player.ridingEntity;
             player.mountEntity(null);
+
+            boolean prevFindingSpawnPoint = player.worldObj.findingSpawnPoint;
+            if (TeleportType.RTP.equals(teleportType)) {
+                player.worldObj.findingSpawnPoint = true;
+            }
+
             if (mount != null) {
                 teleporter.teleport(mount);
             }
@@ -71,6 +77,10 @@ public class TeleportTask extends Task {
 
             if (extraTask != null) {
                 extraTask.execute(universe);
+            }
+
+            if (TeleportType.RTP.equals(teleportType)) {
+                player.worldObj.findingSpawnPoint = prevFindingSpawnPoint;
             }
         } else {
             secondsLeft -= 1;

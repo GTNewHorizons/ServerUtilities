@@ -100,11 +100,14 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         };
     }
 
+    @EventBusSubscriber.Condition
+    public static boolean shouldEventBusSubscribe() {
+        return ServerUtilitiesConfig.backups.enable_backups;
+    }
+
     @SubscribeEvent(priority = EventPriority.LOWEST)
     @SuppressWarnings("unchecked")
     public static void onGuiInit(GuiScreenEvent.InitGuiEvent.Post event) {
-        if (!ServerUtilitiesConfig.backups.enable_backups) return;
-
         if (worldBackups == null) {
             worldBackups = new Object2ObjectOpenHashMap<>();
             preProcess();
@@ -117,17 +120,20 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                 preProcess();
             }
 
+            // Don't add the button if it's too big to fit on the screen
+            if (event.gui.width / 2 + 248 > event.gui.width) return;
+
             event.buttonList.add(
                     new GuiRestoreButton(
-                            event.gui.width / 2 + 4,
-                            event.gui.height - 28,
-                            72,
+                            event.gui.width - 90,
+                            event.gui.height - 52,
+                            82,
                             20,
                             StatCollector.translateToLocal("serverutilities.gui.backup.button"),
                             gui));
 
-            // Removes the "Re-Create" button along with Aroma's "Backup" button
-            gui.buttonList.removeIf(button -> button.id == 7 || button.id == 50);
+            // Removes Aroma's "Backup" button
+            gui.buttonList.removeIf(button -> button.id == 50);
         }
     }
 

@@ -18,15 +18,15 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 
+import com.gtnewhorizon.gtnhlib.util.FilesUtil;
+
+import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.events.client.CustomClickEvent;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.gui.misc.GuiLoading;
 import serverutils.lib.gui.misc.YesNoCallback;
-import serverutils.lib.util.NetUtils;
-import serverutils.lib.util.misc.BooleanConsumer;
 import serverutils.lib.util.misc.MouseButton;
 
 public abstract class GuiBase extends Panel implements IOpenableGui {
@@ -55,7 +55,7 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
     private boolean refreshWidgets;
     private ScaledResolution screen;
     public boolean fixUnicode;
-    private GuiScreen prevScreen;
+    protected GuiScreen prevScreen;
     public Panel contextMenu = null;
 
     public GuiBase() {
@@ -140,28 +140,21 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
         } else if (prevScreen instanceof GuiChat) {
             return null;
         }
-
         return prevScreen;
     }
 
     @Override
     public final void closeGui(boolean openPrevScreen) {
-        int mx = Mouse.getX();
-        int my = Mouse.getY();
-
         Minecraft mc = Minecraft.getMinecraft();
 
-        if (mc.thePlayer != null) {
+        if (openPrevScreen) {
+            mc.displayGuiScreen(getPrevScreen());
+        } else if (mc.thePlayer != null) {
             mc.thePlayer.closeScreen();
 
             if (mc.currentScreen == null) {
                 mc.setIngameFocus();
             }
-        }
-
-        if (openPrevScreen) {
-            mc.displayGuiScreen(getPrevScreen());
-            Mouse.setCursorPosition(mx, my);
         }
 
         onClosed();
@@ -386,7 +379,7 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
                         Minecraft.getMinecraft().displayGuiScreen(new GuiConfirmOpenLink((result, id) -> {
                             if (result) {
                                 try {
-                                    NetUtils.openURI(uri);
+                                    FilesUtil.openUri(uri);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
                                 }
@@ -394,7 +387,7 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
                             Minecraft.getMinecraft().displayGuiScreen(currentScreen);
                         }, scheme + ':' + path, 0, false));
                     } else {
-                        NetUtils.openURI(uri);
+                        FilesUtil.openUri(uri);
                     }
 
                     return true;
@@ -406,7 +399,7 @@ public abstract class GuiBase extends Panel implements IOpenableGui {
             }
             case "file": {
                 try {
-                    NetUtils.openURI(new URI("file:" + path));
+                    FilesUtil.openUri(new URI("file:" + path));
                     return true;
                 } catch (Exception ex) {
                     ex.printStackTrace();

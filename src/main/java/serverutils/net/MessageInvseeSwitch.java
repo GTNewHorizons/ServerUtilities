@@ -3,7 +3,8 @@ package serverutils.net;
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import serverutils.invsee.InvseeContainer;
-import serverutils.invsee.inventories.InvSeeInventories;
+import serverutils.invsee.inventories.IModdedInventory;
+import serverutils.invsee.inventories.InvSeeRegistry;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToServer;
@@ -11,22 +12,22 @@ import serverutils.lib.net.NetworkWrapper;
 
 public class MessageInvseeSwitch extends MessageToServer {
 
-    private InvSeeInventories inventory;
+    private IModdedInventory inventory;
 
     public MessageInvseeSwitch() {}
 
-    public MessageInvseeSwitch(InvSeeInventories inv) {
+    public MessageInvseeSwitch(IModdedInventory inv) {
         this.inventory = inv;
     }
 
     @Override
     public void writeData(DataOut data) {
-        data.writeVarInt(inventory.ordinal());
+        data.writeVarInt(InvSeeRegistry.getRegisteredInventories().indexOf(inventory));
     }
 
     @Override
     public void readData(DataIn data) {
-        inventory = InvSeeInventories.VALUES[data.readVarInt()];
+        inventory = InvSeeRegistry.getRegisteredInventories().get(data.readVarInt());
     }
 
     @Override

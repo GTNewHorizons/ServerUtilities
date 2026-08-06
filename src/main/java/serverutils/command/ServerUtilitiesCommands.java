@@ -28,6 +28,7 @@ public class ServerUtilitiesCommands {
     public static void registerCommands(FMLServerStartingEvent event) {
         event.registerServerCommand(new CmdMySettings());
         event.registerServerCommand(new CmdTeam());
+        event.registerServerCommand(new CmdMotd());
 
         if (commands.reload) {
             event.registerServerCommand(new CmdReload());
@@ -166,6 +167,10 @@ public class ServerUtilitiesCommands {
 
         if (ServerUtilitiesConfig.commands.pregen) {
             event.registerServerCommand(new CmdPregen());
+        }
+
+        if (ServerUtilitiesConfig.transfer.enabled) {
+            event.registerServerCommand(new TransferCommand());
         }
     }
 }

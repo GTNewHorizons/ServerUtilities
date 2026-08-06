@@ -13,18 +13,15 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 
 import net.minecraft.command.ICommandSender;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
-import net.minecraftforge.common.util.Constants;
 
 import serverutils.lib.icon.Color4I;
 import serverutils.lib.icon.Icon;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.math.MathUtils;
-import serverutils.lib.tile.EnumSaveType;
 import serverutils.lib.util.CommonUtils;
 import serverutils.lib.util.StringUtils;
 
@@ -214,37 +211,6 @@ public final class NameMap<E> implements Iterable<E>, DataIn.Deserializer<E>, Da
 
     public int getStringIndex(String s) {
         return getIndex(map.get(s));
-    }
-
-    public void writeToNBT(NBTTagCompound nbt, String name, EnumSaveType type, E value) {
-        if (value == defaultValue) {
-            return;
-        }
-
-        if (!type.save) {
-            int index = getIndex(value);
-
-            if (index == 0) {
-                return;
-            }
-
-            if (size() >= 128) {
-                nbt.setShort(name, (short) index);
-            } else {
-                nbt.setByte(name, (byte) index);
-            }
-        } else {
-            nbt.setString(name, getName(value));
-        }
-    }
-
-    public E readFromNBT(NBTTagCompound nbt, String name, EnumSaveType type) {
-        if (!nbt.hasKey(name)) {
-            return defaultValue;
-        }
-
-        return (!type.save || nbt.hasKey(name, Constants.NBT.TAG_ANY_NUMERIC)) ? get(nbt.getInteger(name))
-                : get(nbt.getString(name));
     }
 
     public E getRandom(Random rand) {

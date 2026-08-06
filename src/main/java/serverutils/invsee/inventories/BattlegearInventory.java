@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.Constants;
 
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +41,7 @@ public class BattlegearInventory implements IModdedInventory {
 
     @Override
     public @Nullable IInventory loadOfflineInventory(ForgePlayer player) {
-        return InvSeeInventories.MAIN.getInventory().loadOfflineInventory(player);
+        return InvSeeRegistry.getMainInventory().loadOfflineInventory(player);
     }
 
     @Override
@@ -55,7 +56,7 @@ public class BattlegearInventory implements IModdedInventory {
 
     @Override
     public @NotNull String getButtonText() {
-        return "Battlegear";
+        return StatCollector.translateToLocal("serverutilities.invsee.battlegear");
     }
 
     @Override

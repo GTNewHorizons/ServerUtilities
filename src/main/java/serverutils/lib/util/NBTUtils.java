@@ -1,10 +1,10 @@
 package serverutils.lib.util;
 
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -19,8 +19,6 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.util.Constants;
-
-import serverutils.lib.io.ByteCounterOutputStream;
 
 public class NBTUtils {
 
@@ -201,22 +199,6 @@ public class NBTUtils {
         }
     }
 
-    public static long getSizeInBytes(NBTTagCompound nbt, boolean compressed) {
-        try {
-            ByteCounterOutputStream byteCounter = new ByteCounterOutputStream();
-
-            if (compressed) {
-                CompressedStreamTools.writeCompressed(nbt, byteCounter);
-            } else {
-                CompressedStreamTools.write(nbt, new DataOutputStream(byteCounter));
-            }
-
-            return byteCounter.getSize();
-        } catch (Exception ex) {
-            return -1L;
-        }
-    }
-
     public static NBTTagCompound getPersistedData(EntityPlayer player, boolean createIfMissing) {
         NBTTagCompound tag = player.getEntityData().getCompoundTag(EntityPlayer.PERSISTED_NBT_TAG);
 
@@ -229,5 +211,9 @@ public class NBTUtils {
 
     public static boolean getBooleanOrTrue(NBTTagCompound nbt, String key) {
         return !nbt.hasKey(key) || nbt.getBoolean(key);
+    }
+
+    public static Set<String> getKeySet(NBTTagCompound nbt) {
+        return nbt.func_150296_c();
     }
 }

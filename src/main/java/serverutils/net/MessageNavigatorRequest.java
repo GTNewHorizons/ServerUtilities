@@ -4,6 +4,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ClaimedChunks;
+import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToServer;
@@ -46,6 +47,10 @@ public class MessageNavigatorRequest extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
+        ServerUtilitiesServerEventHandler.scheduleServerTask(() -> handleMessage(player));
+    }
+
+    private void handleMessage(EntityPlayerMP player) {
         if (ClaimedChunks.isActive()
                 && PermissionAPI.hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP)) {
             new MessageNavigatorUpdate(minX, maxX, minZ, maxZ, player).sendTo(player);

@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.gtnewhorizon.gtnhlib.config.ConfigException;
+import net.minecraft.launchwrapper.Launch;
+import net.minecraft.launchwrapper.LaunchClassLoader;
+
 import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
 import com.gtnewhorizon.gtnhmixins.builders.IMixins;
@@ -18,12 +20,9 @@ import serverutils.mixin.Mixins;
 public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     static {
-        try {
-            ConfigurationManager.registerConfig(ServerUtilitiesConfig.class);
-            ConfigurationManager.registerConfig(AuroraConfig.class);
-        } catch (ConfigException e) {
-            throw new RuntimeException(e);
-        }
+        removeBrigadierExceptions();
+        ConfigurationManager.registerConfig(ServerUtilitiesConfig.class);
+        ConfigurationManager.registerConfig(AuroraConfig.class);
     }
 
     @Override
@@ -57,5 +56,23 @@ public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader
     @Override
     public List<String> getMixins(Set<String> loadedCoreMods) {
         return IMixins.getEarlyMixins(Mixins.class, loadedCoreMods);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void removeBrigadierExceptions() {
+        try {
+            var clef = LaunchClassLoader.class.getDeclaredField("classLoaderExceptions");
+            clef.setAccessible(true);
+            var tef = LaunchClassLoader.class.getDeclaredField("transformerExceptions");
+            tef.setAccessible(true);
+            Set<String> loaderExceptions = (Set<String>) clef.get(Launch.classLoader);
+            Set<String> transformerExceptions = (Set<String>) tef.get(Launch.classLoader);
+            // Remove classloader exception added by FML
+            loaderExceptions.remove("com.mojang.");
+            // Remove transformer exception added by GTNHExtLib
+            transformerExceptions.remove("com.mojang.brigadier");
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

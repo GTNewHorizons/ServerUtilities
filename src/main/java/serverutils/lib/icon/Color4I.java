@@ -16,7 +16,6 @@ import com.google.gson.JsonPrimitive;
 import cpw.mods.fml.client.config.GuiUtils;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.lib.ATHelper;
 import serverutils.lib.EnumDyeColor;
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.client.IPixelBuffer;
@@ -119,7 +118,7 @@ public class Color4I extends Icon {
         int id = color.ordinal();
 
         if (DYE_TEXT_FORMATTING_COLORS[id] == null) {
-            char c = ATHelper.getEnumChatFormattingChar(ATHelper.getEnumChatFormattingFromDyeColor(color));
+            char c = color.chatFormatting.getFormattingCode();
             DYE_TEXT_FORMATTING_COLORS[id] = rgb(GuiUtils.getColorCode(c, true));
             DYE_TEXT_FORMATTING_COLORS[id + 16] = rgb(GuiUtils.getColorCode(c, false));
         }

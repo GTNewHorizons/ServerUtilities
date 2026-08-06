@@ -6,7 +6,8 @@ public enum EnumMessageLocation {
 
     OFF("options.off"),
     CHAT("options.chat.visibility"),
-    ACTION_BAR("action_bar");
+    ACTION_BAR("action_bar"),
+    TITLE("title");
 
     public static final NameMap<EnumMessageLocation> NAME_MAP = NameMap
             .createWithTranslation(CHAT, (sender, value) -> value.translationKey, values());

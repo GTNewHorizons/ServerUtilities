@@ -46,7 +46,6 @@ import serverutils.events.universe.UniverseClearCacheEvent;
 import serverutils.events.universe.UniverseClosedEvent;
 import serverutils.events.universe.UniverseLoadedEvent;
 import serverutils.events.universe.UniverseSavedEvent;
-import serverutils.lib.ATHelper;
 import serverutils.lib.EnumReloadType;
 import serverutils.lib.EnumTeamColor;
 import serverutils.lib.io.DataReader;
@@ -56,6 +55,7 @@ import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.ranks.Ranks;
 import serverutils.task.Task;
 
 public class Universe {
@@ -182,7 +182,7 @@ public class Universe {
             }
 
             if (universe.server.isSinglePlayer()) {
-                boolean cheats = ATHelper.areCommandsAllowedForAll(universe.server.getConfigurationManager());
+                boolean cheats = universe.server.getConfigurationManager().commandsAllowedForAll;
 
                 if (universe.prevCheats != cheats) {
                     universe.prevCheats = cheats;
@@ -212,6 +212,8 @@ public class Universe {
     private boolean prevCheats = false;
     public File dataFolder;
     public File latModFolder;
+    public boolean gameRulesFlipped;
+    public final Map<String, String> flippedRulesSaveState;
 
     public Universe(MinecraftServer s) {
         server = s;
@@ -226,6 +228,8 @@ public class Universe {
         checkSaving = true;
         taskList = new ArrayList<>();
         taskQueue = new ArrayList<>();
+        gameRulesFlipped = false;
+        flippedRulesSaveState = new HashMap<>();
     }
 
     public void markDirty() {
@@ -405,6 +409,15 @@ public class Universe {
 
         fakePlayerTeam.owner = fakePlayer;
 
+        if (universeData.hasKey("GameRulesState")) {
+            NBTTagCompound gameRulesState = universeData.getCompoundTag("GameRulesState");
+            gameRulesFlipped = gameRulesState.getBoolean("Flipped");
+            NBTTagCompound savedRules = gameRulesState.getCompoundTag("SavedRules");
+            for (String key : NBTUtils.getKeySet(savedRules)) {
+                flippedRulesSaveState.put(key, savedRules.getString(key));
+            }
+        }
+
         new UniverseLoadedEvent.Post(this, data).post();
 
         if (shouldLoadLatmod()) {
@@ -433,6 +446,14 @@ public class Universe {
             universeData.setString("UUID", StringUtils.fromUUID(getUUID()));
             universeData.setTag("FakePlayer", fakePlayer.serializeNBT());
             universeData.setTag("FakeTeam", fakePlayerTeam.serializeNBT());
+            NBTTagCompound gameRulesState = new NBTTagCompound();
+            gameRulesState.setBoolean("Flipped", gameRulesFlipped);
+            NBTTagCompound savedRules = new NBTTagCompound();
+            for (Map.Entry<String, String> entry : flippedRulesSaveState.entrySet()) {
+                savedRules.setString(entry.getKey(), entry.getValue());
+            }
+            gameRulesState.setTag("SavedRules", savedRules);
+            universeData.setTag("GameRulesState", gameRulesState);
             NBTUtils.writeNBTSafe(new File(dataFolder, "universe.dat"), universeData);
             needsSaving = false;
         }
@@ -602,7 +623,13 @@ public class Universe {
 
         if (player == null
                 && ServerUtilitiesConfig.general.merge_offline_mode_players.get(!server.isDedicatedServer())) {
-            player = getPlayer(profile.getName());
+            String profileName = profile.getName();
+            for (ForgePlayer p : players.values()) {
+                if (p.getName().equalsIgnoreCase(profileName)) {
+                    player = p;
+                    break;
+                }
+            }
 
             if (player != null) {
                 players.put(profile.getId(), player);
@@ -681,6 +708,9 @@ public class Universe {
         getTeams().forEach(ForgeTeam::clearCache);
         getPlayers().forEach(ForgePlayer::clearCache);
         fakePlayer.clearCache();
+        if (Ranks.INSTANCE != null) {
+            Ranks.INSTANCE.clearCache();
+        }
     }
 
     public void addTeam(ForgeTeam team) {

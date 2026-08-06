@@ -6,7 +6,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.server.S1FPacketSetExperience;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 
 import serverutils.ServerUtilities;
@@ -42,7 +41,7 @@ public class TeleporterDimPos {
         return new BlockDimPos(posX, posY, posZ, dim);
     }
 
-    public void placeEntity(World world, Entity entity, float yaw) {
+    public void placeEntity(Entity entity, float yaw) {
         entity.motionX = entity.motionY = entity.motionZ = 0D;
         entity.fallDistance = 0F;
 
@@ -51,6 +50,8 @@ public class TeleporterDimPos {
         } else {
             entity.setLocationAndAngles(posX, posY, posZ, yaw, entity.rotationPitch);
         }
+
+        entity.worldObj.updateEntityWithOptionalForce(entity, false);
     }
 
     @Nullable
@@ -61,15 +62,12 @@ public class TeleporterDimPos {
 
         if (ServerUtilitiesConfig.debugging.log_teleport) {
             ServerUtilities.LOGGER.info(
-                    "Teleporting '" + entity.getCommandSenderName()
-                            + "' to ["
-                            + posX
-                            + ','
-                            + posY
-                            + ','
-                            + posZ
-                            + "] in "
-                            + ServerUtils.getDimensionName(dim).getUnformattedText());
+                    "Teleporting '{}' to [{},{},{}] in {}",
+                    entity.getCommandSenderName(),
+                    posX,
+                    posY,
+                    posZ,
+                    ServerUtils.getDimensionName(dim).getUnformattedText());
         }
 
         if (dim != entity.dimension) {
@@ -96,7 +94,7 @@ public class TeleporterDimPos {
             }
         }
 
-        placeEntity(entity.worldObj, entity, entity.rotationYaw);
+        placeEntity(entity, entity.rotationYaw);
         return entity;
     }
 }

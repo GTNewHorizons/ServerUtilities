@@ -8,6 +8,7 @@ import net.minecraft.world.ChunkCoordIntPair;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ClaimedChunks;
+import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
@@ -59,6 +60,10 @@ public class MessageClaimedChunksModify extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
+        ServerUtilitiesServerEventHandler.scheduleServerTask(() -> handleMessage(player));
+    }
+
+    private void handleMessage(EntityPlayerMP player) {
         if (!ClaimedChunks.isActive()) {
             return;
         }

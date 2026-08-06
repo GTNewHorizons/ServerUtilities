@@ -19,6 +19,9 @@ import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.DimensionManager;
 
+import com.gtnewhorizon.gtnhlib.brigadier.BrigadierApi;
+import com.mojang.brigadier.tree.CommandNode;
+
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.data.ForgePlayer;
@@ -180,14 +183,32 @@ public class CommandUtils {
         if (!Ranks.isActive() || !ServerUtilitiesConfig.ranks.command_permissions) return Collections.emptyList();
         List<ICommandWithPermission> list = new ArrayList<>();
         for (ICommand cmd : ServerUtils.getServer().getCommandManager().getCommands().values()) {
-            ICommandWithPermission command = (ICommandWithPermission) cmd;
-            if (command instanceof CommandTreeBase tree) {
-                for (ICommand child : tree.getSubCommands()) {
-                    list.add((ICommandWithPermission) child);
+            addCommand(list, (ICommandWithPermission) cmd);
+        }
+
+        BrigadierApi.getCommandDispatcher().getRoot().getChildren().forEach((command) -> {
+            if (command instanceof ICommandWithPermission cmd) {
+                addCommand(list, cmd);
+            }
+        });
+        return list;
+    }
+
+    private static void addCommand(List<ICommandWithPermission> list, ICommandWithPermission command) {
+        list.add(command);
+
+        if (command instanceof CommandTreeBase tree) {
+            for (ICommand child : tree.getSubCommands()) {
+                list.add((ICommandWithPermission) child);
+            }
+        }
+
+        if (command instanceof CommandNode<?>node) {
+            for (CommandNode<?> child : node.getChildren()) {
+                if (child instanceof ICommandWithPermission cmdPerm) {
+                    addCommand(list, cmdPerm);
                 }
             }
-            list.add(command);
         }
-        return list;
     }
 }

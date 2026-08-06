@@ -1,13 +1,11 @@
 package serverutils.net;
 
-import javax.annotation.Nonnull;
-
 import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 import serverutils.integration.navigator.NavigatorIntegration;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
@@ -16,11 +14,11 @@ import serverutils.lib.net.NetworkWrapper;
 
 public class MessageNavigatorUpdateKnown extends MessageToClient {
 
-    private LongSet toRemove;
+    private LongList toRemove;
 
     public MessageNavigatorUpdateKnown() {}
 
-    public MessageNavigatorUpdateKnown(@Nonnull LongSet toRemove) {
+    public MessageNavigatorUpdateKnown(LongList toRemove) {
         this.toRemove = toRemove;
     }
 
@@ -38,7 +36,7 @@ public class MessageNavigatorUpdateKnown extends MessageToClient {
 
     @Override
     public void readData(DataIn data) {
-        toRemove = new LongOpenHashSet();
+        toRemove = new LongArrayList();
         while (data.isReadable()) {
             toRemove.add(data.readLong());
         }

@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 
 import serverutils.command.CmdEditNBT;
 import serverutils.lib.data.ForgePlayer;
@@ -13,7 +14,6 @@ import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToServer;
 import serverutils.lib.net.NetworkWrapper;
-import serverutils.lib.util.BlockUtils;
 
 public class MessageEditNBTResponse extends MessageToServer {
 
@@ -73,7 +73,8 @@ public class MessageEditNBTResponse extends MessageToServer {
                             mainNbt.setString("id", info.getString("id"));
                             tile.readFromNBT(mainNbt);
                             tile.markDirty();
-                            BlockUtils.notifyBlockUpdate(tile.getWorldObj(), x, y, z, null);
+                            World world = tile.getWorldObj();
+                            world.notifyBlockChange(x, y, z, world.getBlock(x, y, z));
                         }
                     }
 

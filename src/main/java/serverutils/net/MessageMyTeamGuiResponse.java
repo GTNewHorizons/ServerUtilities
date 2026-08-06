@@ -8,7 +8,7 @@ import net.minecraft.util.IChatComponent;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import serverutils.ServerUtilitiesCommon;
+import serverutils.ServerUtilitiesRegistry;
 import serverutils.lib.data.Action;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.gui.misc.GuiActionList;
@@ -29,7 +29,7 @@ public class MessageMyTeamGuiResponse extends MessageToClient {
         actions = new ArrayList<>();
         NBTTagCompound emptyData = new NBTTagCompound();
 
-        for (Action action : ServerUtilitiesCommon.TEAM_GUI_ACTIONS.values()) {
+        for (Action action : ServerUtilitiesRegistry.TEAM_GUI_ACTIONS.values()) {
             Action.Type type = action.getType(player, emptyData);
 
             if (type.isVisible()) {

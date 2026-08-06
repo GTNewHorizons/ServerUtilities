@@ -26,7 +26,6 @@ import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.BackwardsCompat;
@@ -529,7 +528,7 @@ public class Ranks {
                 String desc = DefaultPermissionHandler.INSTANCE.getNodeDescription(s);
                 boolean printNode = true;
 
-                for (NodeEntry entry : ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY) {
+                for (NodeEntry entry : ServerUtilitiesPermissions.getPrefixes()) {
                     if (s.startsWith(entry.getNode())) {
                         if (entry.level != null && level == entry.level && desc.isEmpty()) {
                             printNode = false;
@@ -544,7 +543,7 @@ public class Ranks {
                 }
             }
 
-            for (NodeEntry entry : ServerUtilitiesCommon.CUSTOM_PERM_PREFIX_REGISTRY) {
+            for (NodeEntry entry : ServerUtilitiesPermissions.getPrefixes()) {
                 permissionNodes.add(entry.node);
             }
 

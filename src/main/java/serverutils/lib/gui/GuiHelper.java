@@ -21,7 +21,6 @@ import net.minecraft.util.ResourceLocation;
 
 import org.lwjgl.opengl.GL11;
 
-import serverutils.lib.ClientATHelper;
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.icon.Color4I;
 
@@ -63,6 +62,10 @@ public class GuiHelper {
     private static final Stack<Scissor> SCISSOR = new Stack<>();
 
     public static final GuiBase BLANK_GUI = new GuiBase() {
+
+        {
+            prevScreen = null;
+        }
 
         @Override
         public void addWidgets() {}
@@ -237,7 +240,7 @@ public class GuiHelper {
         int mode = enabled ? GL11.GL_LINEAR : GL11.GL_NEAREST;
 
         for (int i = 0; i < 256; i++) {
-            ResourceLocation loc = ClientATHelper.getFontUnicodePage(i);
+            ResourceLocation loc = FontRenderer.unicodePageLocations[i];
 
             if (loc != null) {
                 textureManager.bindTexture(loc);

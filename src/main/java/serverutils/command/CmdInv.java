@@ -21,7 +21,7 @@ import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.invsee.InvseeContainer;
 import serverutils.invsee.inventories.IModdedInventory;
-import serverutils.invsee.inventories.InvSeeInventories;
+import serverutils.invsee.inventories.InvSeeRegistry;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.command.CmdTreeHelp;
@@ -61,11 +61,10 @@ public class CmdInv extends CmdTreeBase {
                 throw new CommandException("commands.generic.player.notFound", args[0]);
             }
 
-            Map<InvSeeInventories, IInventory> inventories = new LinkedHashMap<>();
-            for (InvSeeInventories inv : InvSeeInventories.getActiveInventories()) {
-                IModdedInventory modInv = inv.getInventory();
-                IInventory inventory = other.isOnline() ? modInv.loadOnlineInventory(other.getPlayer())
-                        : modInv.loadOfflineInventory(other);
+            Map<IModdedInventory, IInventory> inventories = new LinkedHashMap<>();
+            for (IModdedInventory inv : InvSeeRegistry.getRegisteredInventories()) {
+                IInventory inventory = other.isOnline() ? inv.loadOnlineInventory(other.getPlayer())
+                        : inv.loadOfflineInventory(other);
                 if (inventory != null) {
                     inventories.put(inv, inventory);
                 }

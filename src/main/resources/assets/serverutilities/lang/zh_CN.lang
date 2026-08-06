@@ -88,13 +88,14 @@ serverutilities.world.dimension.nether=下界
 
 # Config
 serverutilities=服务器实用工具
+serverutilities.config.enabled=启用
+serverutilities.config.enabled_singleplayer=在单人游戏中启用
+
 serverutilities.auto_shutdown=自动关服
-serverutilities.auto_shutdown.enabled_singleplayer=在单人游戏中启用
 serverutilities.auto_shutdown.times=关服时间
 
 serverutilities.afk=挂机时长
 serverutilities.afk_kicked=你将会在 %s 之后被踢出
-serverutilities.afk.enabled_singleplayer=在单人游戏中启用
 serverutilities.afk.notification_timer=通知定时器
 serverutilities.afk.log_afk=记录挂机时长
 
@@ -140,7 +141,6 @@ serverutilities.world.logging.block_broken=记录破坏方块
 serverutilities.world.logging.item_clicked_in_air=记录在空中使用的物品
 
 serverutilities.ranks=权限组
-serverutilities.ranks.enabled=启用
 serverutilities.ranks.override_chat=覆盖聊天
 serverutilities.ranks.crash_client_side_permissions=崩溃客户端权限
 serverutilities.ranks.load_from_config_folder=从配置文件夹加载

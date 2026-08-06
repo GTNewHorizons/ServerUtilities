@@ -6,15 +6,15 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.llamalad7.mixinextras.sugar.Local;
-
 import serverutils.watchdog.IMaxTickTimeMinecraftServer;
+import serverutils.watchdog.ServerHangWatchdog;
 
 @SuppressWarnings("unused")
 @Mixin(MinecraftServer.class)
-public class MixinMinecraftServer_MaxTickTime implements IMaxTickTimeMinecraftServer {
+public abstract class MixinMinecraftServer_MaxTickTime implements IMaxTickTimeMinecraftServer {
 
     @Unique
     protected long serverutilties$currentTime = System.currentTimeMillis();
@@ -24,23 +24,22 @@ public class MixinMinecraftServer_MaxTickTime implements IMaxTickTimeMinecraftSe
         return serverutilties$currentTime;
     }
 
-    @Inject(
+    @Redirect(
             method = "run",
-            at = @At(
-                    value = "INVOKE_ASSIGN",
-                    target = "Lnet/minecraft/server/MinecraftServer;getSystemTimeMillis()J",
-                    ordinal = 0))
-    public void serverutilities$run(CallbackInfo ci, @Local(name = "i") long i) {
-        serverutilties$currentTime = i;
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;getSystemTimeMillis()J"))
+    public long serverutilities$run() {
+        long ret = MinecraftServer.getSystemTimeMillis();
+        serverutilties$currentTime = ret;
+        return ret;
     }
 
     @Inject(
             method = "run",
             at = @At(
-                    value = "INVOKE_ASSIGN",
-                    target = "Lnet/minecraft/server/MinecraftServer;getSystemTimeMillis()J",
-                    ordinal = 1))
-    public void serverutilities$run2(CallbackInfo ci, @Local(name = "j") long j) {
-        serverutilties$currentTime = j;
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/server/MinecraftServer;func_147138_a(Lnet/minecraft/network/ServerStatusResponse;)V",
+                    shift = At.Shift.AFTER))
+    public void serverutilities$runWatchdog(CallbackInfo ci) {
+        ServerHangWatchdog.init();
     }
 }

@@ -12,7 +12,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import serverutils.invsee.GuiInvseeContainer;
-import serverutils.invsee.inventories.InvSeeInventories;
+import serverutils.invsee.inventories.IModdedInventory;
+import serverutils.invsee.inventories.InvSeeRegistry;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
@@ -24,19 +25,19 @@ public class MessageInvseeContainer extends MessageToClient {
 
     private String playerName;
     private String playerUUID;
-    private Object2IntMap<InvSeeInventories> inventoriesWithSize;
+    private Object2IntMap<IModdedInventory> inventoriesWithSize;
     private int windowId;
 
     public MessageInvseeContainer() {}
 
-    public MessageInvseeContainer(ForgePlayer player, Map<InvSeeInventories, IInventory> foundInventories,
+    public MessageInvseeContainer(ForgePlayer player, Map<IModdedInventory, IInventory> foundInventories,
             int windowId) {
         this.playerName = player.getName();
         this.playerUUID = StringUtils.fromUUID(player.getProfile().getId());
         this.windowId = windowId;
 
         inventoriesWithSize = new Object2IntLinkedOpenHashMap<>(foundInventories.size());
-        for (Map.Entry<InvSeeInventories, IInventory> entry : foundInventories.entrySet()) {
+        for (Map.Entry<IModdedInventory, IInventory> entry : foundInventories.entrySet()) {
             inventoriesWithSize.put(entry.getKey(), entry.getValue().getSizeInventory());
         }
     }
@@ -52,8 +53,8 @@ public class MessageInvseeContainer extends MessageToClient {
         data.writeString(playerName);
         data.writeString(playerUUID);
         data.writeVarInt(inventoriesWithSize.size());
-        for (Object2IntMap.Entry<InvSeeInventories> entry : inventoriesWithSize.object2IntEntrySet()) {
-            data.writeVarInt(entry.getKey().ordinal());
+        for (Object2IntMap.Entry<IModdedInventory> entry : inventoriesWithSize.object2IntEntrySet()) {
+            data.writeVarInt(InvSeeRegistry.getRegisteredInventories().indexOf(entry.getKey()));
             data.writeVarInt(entry.getIntValue());
         }
     }
@@ -66,7 +67,7 @@ public class MessageInvseeContainer extends MessageToClient {
         int size = data.readVarInt();
         inventoriesWithSize = new Object2IntLinkedOpenHashMap<>(size);
         for (int i = 0; i < size; i++) {
-            InvSeeInventories inv = InvSeeInventories.VALUES[data.readVarInt()];
+            IModdedInventory inv = InvSeeRegistry.getRegisteredInventories().get(data.readVarInt());
             inventoriesWithSize.put(inv, data.readVarInt());
         }
     }
@@ -75,10 +76,10 @@ public class MessageInvseeContainer extends MessageToClient {
     @Override
     public void onMessage() {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        Map<InvSeeInventories, IInventory> inventories = new LinkedHashMap<>();
-        for (Object2IntMap.Entry<InvSeeInventories> entry : inventoriesWithSize.object2IntEntrySet()) {
-            InvSeeInventories inv = entry.getKey();
-            IInventory inventory = inv.getInventory().createInventory(player, entry.getIntValue());
+        Map<IModdedInventory, IInventory> inventories = new LinkedHashMap<>();
+        for (Object2IntMap.Entry<IModdedInventory> entry : inventoriesWithSize.object2IntEntrySet()) {
+            IModdedInventory inv = entry.getKey();
+            IInventory inventory = inv.createInventory(player, entry.getIntValue());
             inventories.put(inv, inventory);
         }
 

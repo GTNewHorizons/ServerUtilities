@@ -8,9 +8,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.particle.EntityFX;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
-import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraftforge.client.ClientCommandHandler;
 
@@ -28,31 +26,12 @@ public class ClientUtils {
     public static final List<Runnable> RUN_LATER = new ArrayList<>();
 
     // assume opped until told otherwise
-    public static boolean is_op = true;
-    private static float lastBrightnessX, lastBrightnessY;
+    public static boolean isOP = true;
 
     public static PlayerHeadIcon localPlayerHead;
 
     public static int getDim() {
         return Minecraft.getMinecraft().theWorld != null ? Minecraft.getMinecraft().theWorld.provider.dimensionId : 0;
-    }
-
-    public static void spawnParticle(EntityFX particle) {
-        Minecraft.getMinecraft().effectRenderer.addEffect(particle);
-    }
-
-    public static void pushBrightness(int u, int t) {
-        lastBrightnessX = OpenGlHelper.lastBrightnessX;
-        lastBrightnessY = OpenGlHelper.lastBrightnessY;
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, u, t);
-    }
-
-    public static void pushMaxBrightness() {
-        pushBrightness(240, 240);
-    }
-
-    public static void popBrightness() {
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, lastBrightnessX, lastBrightnessY);
     }
 
     public static void execClientCommand(String command, boolean printChat) {
@@ -74,7 +53,7 @@ public class ClientUtils {
     }
 
     public static boolean isClientOpped() {
-        return is_op;
+        return isOP;
     }
 
     public static boolean areButtonsVisible(@Nullable GuiScreen gui) {
@@ -83,7 +62,7 @@ public class ClientUtils {
                 && !SidebarButtonManager.INSTANCE.groups.isEmpty();
     }
 
-    public static boolean isCreativePlusGui(GuiScreen gui) {
+    public static boolean isCreativePlusGui(@Nullable GuiScreen gui) {
         if (OtherMods.isNEILoaded()) {
             return gui instanceof GuiExtendedCreativeInv;
         }

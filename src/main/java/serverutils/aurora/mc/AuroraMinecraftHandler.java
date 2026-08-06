@@ -3,6 +3,8 @@ package serverutils.aurora.mc;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -11,12 +13,16 @@ import serverutils.aurora.AuroraHomePageEvent;
 import serverutils.aurora.AuroraPageEvent;
 import serverutils.aurora.page.HomePageEntry;
 
+@EventBusSubscriber
 public class AuroraMinecraftHandler {
 
-    public static final AuroraMinecraftHandler INST = new AuroraMinecraftHandler();
+    @SuppressWarnings("unused")
+    public static boolean condition() {
+        return AuroraConfig.general.enable;
+    }
 
     @SubscribeEvent
-    public void onHomeEvent(AuroraHomePageEvent event) {
+    public static void onHomeEvent(AuroraHomePageEvent event) {
         event.add(new HomePageEntry("Mod List", "modlist", "https://i.imgur.com/yQNrfg7.png"));
         event.add(
                 new HomePageEntry("Minecraft", "minecraft", "https://i.imgur.com/1aRpzK0.png")
@@ -43,7 +49,7 @@ public class AuroraMinecraftHandler {
     }
 
     @SubscribeEvent
-    public void onPageEvent(AuroraPageEvent event) {
+    public static void onPageEvent(AuroraPageEvent event) {
 
         if (event.checkPath("modlist", "*")) {
             HashSet<String> set = new HashSet<>(Arrays.asList(AuroraConfig.pages.modlist_excluded_mods));

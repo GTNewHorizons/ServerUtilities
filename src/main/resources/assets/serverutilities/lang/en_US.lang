@@ -51,6 +51,7 @@ cooldown=Cooldown
 cant_use_now=Can't use that right now!
 cant_use_now_cooldown=Can't use that right now! Cooldown: %s
 action_bar=Action Bar
+title=Title
 nothing_changed=Nothing changed!
 player_must_be_online=Player must be online!
 
@@ -91,6 +92,9 @@ serverutilities.world.dimension.nether=Nether
 
 # Config
 serverutilities=Server Utilities
+serverutilities.config.enabled=Enabled
+serverutilities.config.enabled_singleplayer=Enabled in Singleplayer
+
 serverutilities.auto_shutdown=Auto Shutdown
 serverutilities.auto_shutdown.enabled_singleplayer=Enabled in Singleplayer
 serverutilities.auto_shutdown.times=Shutdown Times
@@ -101,23 +105,54 @@ serverutilities.afk.enabled_singleplayer=Enabled in Singleplayer
 serverutilities.afk.notification_timer=Notification Timer
 serverutilities.afk.log_afk=Log AFK
 
-serverutilities.server_info=Server Info
-serverutilities.server_info.difficulty=Difficulty
-serverutilities.server_info.admin_quick_access=Admin Quick Access
+serverutilities.backups.enable_backups=Enable Backups
+serverutilities.backups.backup_timer=Backup Timer
+serverutilities.backups.backups_to_keep=Backups To Keep
+serverutilities.backups.compression_level=Compression Level
+serverutilities.backups.backup_folder_path=Backup Folder Path
+serverutilities.backups.additional_backup_files=Additional Backup Files
+serverutilities.backups.use_separate_thread=Use Separate Thread
+serverutilities.backups.display_file_size=Display File Size
+serverutilities.backups.need_online_players=Need Online Players
+serverutilities.backups.silent_backup=Silent Backup
+serverutilities.backups.max_folder_size=Max Folder Size
+serverutilities.backups.delete_custom_name_backups=Delete Custom Named Backups
+serverutilities.backups.only_backup_claimed_chunks=Only Backup Claimed Chunks
+serverutilities.backups.backup_entire_regions_with_claims=Include Entire Regions With Claims
 
 serverutilities.chat=Chat
 serverutilities.chat.add_nickname_tilde=Add Nickname Tilde
+serverutilities.chat.replace_tab_names=Replace Tab Names
 serverutilities.chat.format=%s
 
 serverutilities.commands=Commands
 
+serverutilities.debugging=Debugging
+serverutilities.debugging.special_commands=Special Commands
+serverutilities.debugging.print_more_info=Print More Info
+serverutilities.debugging.print_more_errors=Print More Errors
+serverutilities.debugging.log_network=Log Network IO
+serverutilities.debugging.log_teleport=Log Teleporting
+serverutilities.debugging.log_config_editing=Log Config Editing
+serverutilities.debugging.dev_sidebar_buttons=Dev-only Sidebar Buttons
+serverutilities.debugging.gui_widget_bounds=GUI Widget Bounds
+serverutilities.debugging.log_events=Log Events
+serverutilities.debugging.log_chunkloading=Log Chunkloading
+
 serverutilities.login=Login
 serverutilities.login.enable_motd=Enable MOTD
 serverutilities.login.enable_starting_items=Enable Starting Items
-serverutilities.login.enable_global_badges=Enable Global Badges
-serverutilities.login.enable_event_badges=Enable Event Badges
-serverutilities.login.motd=MOTD
+serverutilities.login.motd=Login MOTD
 serverutilities.login.starting_items=Starting Items
+
+serverutilities.mixins=Mixins
+serverutilities.mixins.endermen=Enable Endermen Mixin
+serverutilities.mixins.bypassplayerlimit=Enable Bypass Player Limit Mixin
+serverutilities.mixins.farmlandtramplingprotection=Enable Farmland Trampling Protection Mixin
+
+serverutilities.motd=Server MOTD
+serverutilities.motd.line1=First MOTD Line
+serverutilities.motd.line2=Second MOTD Line
 
 serverutilities.world=World
 serverutilities.world.blocked_claiming_dimensions=Blocked Claiming Dimensions
@@ -135,7 +170,19 @@ serverutilities.world.forced_spawn_dimension_weather=Forced Spawn Dimension Weat
 serverutilities.world.disable_player_suffocation_damage=Disable Player Suffocation Damage
 serverutilities.world.show_playtime=Show Playtime in Top-Left Corner
 serverutilities.world.players_sleeping=§f%s§6 is now sleeping. %s/%s (%s%%)
-serverutiltiies.world.skip_night=§6Wakey, wakey, rise and shine... Good Morning everyone!
+serverutilities.world.vampires_sleeping=§f%s§4 is resting in a coffin. %s/%s (%s%%)
+serverutilities.world.enable_explosions=Enable Explosion in Claimed Chunks
+serverutilities.world.enable_endermen=Enable Endermen in Claimed Chunks
+serverutilities.world.enable_pvp=Enable PvP
+serverutilities.world.disabled_right_click_items=Disabled Right Click Items
+serverutilities.world.enable_player_sleeping_percentage=Enable Player Sleeping Percentage
+serverutilities.world.player_sleeping_percentage=Player Sleeping Percentage Default Value
+serverutilities.world.vampire_sleep_percent=Vampire Sleep Percentage
+serverutilities.world.blockmobspawninginclaims=Block Mob Spawning in Claims
+serverutilities.world.mobtypestoblock=Mob Types to Block
+
+serverutilities.world.skip_night=§6Wakey, wakey, rise and shine... Good Morning everyone!
+serverutilities.world.skip_day=§4The sun has set, and the shadows grow long... The night is ours!
 
 serverutilities.world.logging=Logging
 serverutilities.world.logging.include_creative_players=Include Creative Players
@@ -143,38 +190,50 @@ serverutilities.world.logging.include_fake_players=Include Fake Players
 serverutilities.world.logging.block_placed=Block Placed
 serverutilities.world.logging.block_broken=Block Broken
 serverutilities.world.logging.item_clicked_in_air=Item Clicked in Air
+serverutilities.world.logging.entity_attacked=Entity Attacked
+serverutilities.world.logging.exclude_mob_entity=Exclude Hostile Entity
+serverutilities.world.logging.chat_enable=Enable Chat Log
 
 serverutilities.ranks=Ranks
-serverutilities.ranks.enabled=Enabled
 serverutilities.ranks.override_chat=Override Chat
-serverutilities.ranks.override_commands=Override Commands
-serverutilities.ranks.crash_client_side_permissions=Crash Client-Side Permissions
-serverutilities.ranks.load_from_config_folder=Load From Config Folder
-serverutilities.ranks.print_command_errors=Print Command Errors
+serverutilities.ranks.command_permissions=Command Permissions
 
 serverutilities.ranks.tags.default_player_rank=Default Player Rank
 serverutilities.ranks.tags.default_op_rank=Default OP Rank
 
-serverutilities.debugging.log_chunkloading=Log Chunkloading
-
-serverutilities.general.clientless_mode=Clientless Mode
-serverutilities.general.replace_reload_command=Replace /reload Command
 serverutilities.general.merge_offline_mode_players=Merge Offline Mode Players
+serverutilities.general.enable_pause_when_empty_property=Enable pause_when_empty Property
+serverutilities.general.enable_max_tick_time_property=Enable max_tick_time Property
+serverutilities.general.enable_toggle_cheats_button=Enable Toggle Cheats Button
+serverutilities.general.toggle_cheats=Toggle Cheats
+serverutilities.general.enable_cheats=Enable Cheats
+serverutilities.general.disable_cheats=Disable Cheats
 
 serverutilities.teams=Teams
 serverutilities.teams.autocreate_sp=Autocreate on Singleplayer
 serverutilities.teams.autocreate_mp=Autocreate on Multiplayer
+serverutilities.teams.hide_team_notification=Hide Team Notification
+serverutilities.teams.grief_protection=Grief Protection
+serverutilities.teams.interaction_protection=Interaction Protection
+serverutilities.teams.force_team_prefix=Force Team Prefix
+serverutilities.teams.disable_teams=Disable Teams
 
-serverutilities.debugging=Debugging
-serverutilities.debugging.special_commands=Special Commands
-serverutilities.debugging.print_more_info=Print More Info
-serverutilities.debugging.print_more_errors=Print More Errors
-serverutilities.debugging.log_network=Log Network IO
-serverutilities.debugging.log_teleport=Log Teleporting
-serverutilities.debugging.log_config_editing=Log Config Editing
-serverutilities.debugging.dev_sidebar_buttons=Dev-only Sidebar Buttons
-serverutilities.debugging.gui_widget_bounds=GUI Widget Bounds
-serverutilities.debugging.log_events=Log Events
+serverutilities.tasks=Tasks
+serverutilities.tasks.cleanup=Cleanup
+serverutilities.tasks.cleanup.interval=Interval
+serverutilities.tasks.cleanup.hostiles=Include Hostiles
+serverutilities.tasks.cleanup.passives=Include Passives
+serverutilities.tasks.cleanup.items=Include Items
+serverutilities.tasks.cleanup.experience=Include Experience Orbs
+serverutilities.tasks.cleanup.silent=Silent Cleanup
+
+serverutilities.pregen=Pregen
+serverutilities.pregen.chunkspertick=Chunks Per Tick
+serverutilities.pregen.timelimitms=Time Limit In ms
+
+serverutilities.server_info=Server Info
+serverutilities.server_info.difficulty=Difficulty
+serverutilities.server_info.admin_quick_access=Admin Quick Access
 
 # Client Config
 serverutilities_client=Client Config
@@ -317,6 +376,8 @@ team_config.serverutilities.use_items=Required Level for Using Items
 team_config.serverutilities.explosions=Enable Explosions in Claimed Chunks
 team_config.serverutilities.endermen=Enable Endermen Interacting With Blocks in Claimed Chunks
 team_config.serverutilities.fake_players=Allow Fake Players to Interact With Blocks
+team_config.serverutilities.mob_spawning=Disable Mob Spawns Within Claimed Chunks
+team_config.serverutilities.blocked_creatures=Creature Types To Block Within Claimed Chunks
 
 # Sidebar Buttons
 sidebar_button=Sidebar Buttons
@@ -360,6 +421,11 @@ serverutilities.admin_panel.edit_world=Edit World
 serverutilities.admin_panel.ranks.player_ranks=Player Ranks
 serverutilities.admin_panel.ranks.select_rank=Select Rank
 serverutilities.admin_panel.edit_rank=Edit Ranks
+serverutilities.admin_panel.edit_team=Edit Team
+serverutilities.admin_panel.claims.click_to_unclaim=Click to unclaim
+serverutilities.admin_panel.claims.shift_click_to_teleport=Shift-click to teleport here
+serverutilities.admin_panel.claims.ctrl_click_to_toggle_load=Ctrl-click to toggle chunkloading
+serverutilities.admin_panel.claims.unclaim_q=Unclaim this chunk?
 serverutilities.admin_panel.ranks.add_perm=Add Permission
 serverutilities.admin_panel.ranks.add_command=Add Command Permission
 serverutilities.admin_panel.ranks.cant_remove=Default rank can't be removed!
@@ -384,7 +450,7 @@ commands.sethome.usage=/sethome [home]
 commands.delhome.usage=/delhome [home]
 commands.server_info.usage=/server_info
 commands.loaded_chunks_list.usage=/loaded_chunks_list
-commands.tpl.usage=/tpl (<x> <y> <z>) | ([who] <player>)
+commands.tpl.usage=/tpl (<x> <y> <z> (<dim>)) | ([who] <player>)
 commands.trash_can.usage=/trash_can
 commands.back.usage=/back
 commands.spawn.usage=/spawn
@@ -483,6 +549,7 @@ commands.add_fake_player.usage=/add_fake_player <uuid> <name>
 commands.god.usage=/god <player>
 commands.rtp.usage=/rtp
 commands.dump_chunkloaders.usage=/dump_chunkloaders
+commands.dump_chunkloaders.unknown_dimension=Couldn't find dimension %d!
 commands.dump_permissions.usage=/dump_permissions
 commands.vanish.usage=/vanish
 commands.vanish.toggle.usage=/vanish toggle <on|off>
@@ -508,8 +575,8 @@ commands.vanish.damage_other=Damaging others while vanished
 commands.vanish.send_connection_msg=Send connection message on vanish
 commands.vanish.container_read_only=Container read-only
 commands.vanish.item_dropping=Item dropping while vanished
-commands.pregen.start.usage_server=/pregen start <x> <y> <radius>
-commands.pregen.start.usage_client=/pregen start <x> <y> <radius> or /pregen <radius>
+commands.pregen.start.usage_server=/pregen start <x> <z> <radius>
+commands.pregen.start.usage_client=/pregen start <x> <z> <radius> or /pregen start <radius>
 commands.pregen.stop.usage=/pregen stop
 commands.pregen.progress.usage=/pregen progress
 
@@ -588,6 +655,7 @@ cmd.backup_end_1=Server backup done in %s!
 cmd.backup_end_2=Server backup done in %s! (%s)
 cmd.backup_fail=Failed to save world! (%s)
 cmd.backup_manual_launch=%s launched a manual backup!
+cmd.backup_manual_launch_oc=%s launched a claimed only manual backup!
 cmd.backup_already_running=Backup in progress!
 cmd.backup_not_running=Backup is not running!
 cmd.backup_size=Current world size: %s, total backups folder size: %s
@@ -751,3 +819,15 @@ serverutilities.jm.own_team=Your Team
 serverutilities.jm.claim=Double click an empty chunk to claim.
 serverutilities.jm.load_hint=Double click a claimed chunk to load/unload
 serverutilities.jm.unclaim_hint=Press %s to unclaim
+
+# Invsee GUI
+serverutilities.invsee.title=%s's %s
+serverutilities.invsee.main=Main Inventory
+serverutilities.invsee.ender_chest=Ender Chest
+serverutilities.invsee.personal_backpack=Personal Backpack
+serverutilities.invsee.baubles=Baubles
+serverutilities.invsee.adventure_backpack=Adventure Backpack
+serverutilities.invsee.battlegear=Battlegear
+serverutilities.invsee.tic_bag=TiC Bag & Accessories
+serverutilities.invsee.galacticraft=Galacticraft
+serverutilities.invsee.gc_items=GC Items

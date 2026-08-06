@@ -6,6 +6,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryEnderChest;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import net.minecraftforge.common.util.Constants;
 
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +44,7 @@ public class EnderInventory implements IModdedInventory {
 
     @Override
     public @NotNull String getButtonText() {
-        return "Ender Chest";
+        return StatCollector.translateToLocal("serverutilities.invsee.ender_chest");
     }
 
     @Override

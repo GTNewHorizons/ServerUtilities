@@ -25,7 +25,7 @@ public class GuiManageModerators extends GuiManagePlayersBase {
         }
 
         @Override
-        Color4I getPlayerColor() {
+        protected Color4I getPlayerColor() {
             return entry.status.isEqualOrGreaterThan(EnumTeamStatus.MOD)
                     ? Color4I.getChatFormattingColor(EnumChatFormatting.DARK_GREEN)
                     : getDefaultPlayerColor();

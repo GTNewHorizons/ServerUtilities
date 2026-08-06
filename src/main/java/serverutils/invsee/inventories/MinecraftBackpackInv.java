@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.inventory.Slot;
+import net.minecraft.util.StatCollector;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +21,7 @@ import serverutils.lib.icon.ItemIcon;
 
 public class MinecraftBackpackInv implements IModdedInventory {
 
-    private static final Icon BACKPACK_ICON = ItemIcon.getItemIcon(ItemsBackpack.backpack);
+    private static Icon BACKPACK_ICON = null;
 
     @Override
     public @Nullable IInventory loadOnlineInventory(EntityPlayerMP player) {
@@ -39,12 +40,15 @@ public class MinecraftBackpackInv implements IModdedInventory {
 
     @Override
     public @NotNull Icon getButtonIcon() {
+        if (BACKPACK_ICON == null) {
+            BACKPACK_ICON = ItemIcon.getItemIcon(ItemsBackpack.backpack);
+        }
         return BACKPACK_ICON;
     }
 
     @Override
     public @NotNull String getButtonText() {
-        return "Personal Backpack";
+        return StatCollector.translateToLocal("serverutilities.invsee.personal_backpack");
     }
 
     @Override

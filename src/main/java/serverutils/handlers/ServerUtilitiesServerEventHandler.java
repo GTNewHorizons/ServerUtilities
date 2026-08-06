@@ -5,6 +5,8 @@ import static serverutils.ServerUtilitiesNotifications.PLAYER_AFK;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -14,9 +16,12 @@ import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
+import net.minecraft.world.GameRules;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.world.WorldEvent;
+
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.eventhandler.EventPriority;
@@ -30,7 +35,6 @@ import serverutils.ServerUtilitiesStats;
 import serverutils.data.ClaimedChunks;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
-import serverutils.events.universe.UniverseClearCacheEvent;
 import serverutils.lib.config.ConfigEnum;
 import serverutils.lib.config.RankConfigAPI;
 import serverutils.lib.data.ForgePlayer;
@@ -45,9 +49,19 @@ import serverutils.net.MessageUpdateTabName;
 import serverutils.pregenerator.ChunkLoaderManager;
 import serverutils.ranks.Ranks;
 
+@EventBusSubscriber
 public class ServerUtilitiesServerEventHandler {
 
-    public static final ServerUtilitiesServerEventHandler INST = new ServerUtilitiesServerEventHandler();
+    private static final Queue<Runnable> SERVER_TASKS = new ConcurrentLinkedQueue<>();
+
+    public static void scheduleServerTask(Runnable task) {
+        SERVER_TASKS.add(task);
+    }
+
+    public static void clearServerTasks() {
+        SERVER_TASKS.clear();
+    }
+
     private static final Pattern STRIKETHROUGH_PATTERN = Pattern.compile("~~(.+?)~~");
     private static final String STRIKETHROUGH_REPLACE = "&m$1&m";
     private static final Pattern BOLD_PATTERN = Pattern.compile("\\*\\*(.+?)\\*\\*|__(.+?)__");
@@ -55,15 +69,10 @@ public class ServerUtilitiesServerEventHandler {
     private static final Pattern ITALIC_PATTERN = Pattern.compile("\\*(.+?)\\*|_(.+?)_");
     private static final String ITALIC_REPLACE = "&o$1&o";
 
-    @SubscribeEvent
-    public void onCacheCleared(UniverseClearCacheEvent event) {
-        if (Ranks.INSTANCE != null) {
-            Ranks.INSTANCE.clearCache();
-        }
-    }
+    private static int emptyTicks = 0;
 
     @SubscribeEvent
-    public void loadWorldEvent(WorldEvent.Load event) {
+    public static void loadWorldEvent(WorldEvent.Load event) {
         if (ServerUtilitiesConfig.world.enable_player_sleeping_percentage) {
             if (!event.world.isRemote && !event.world.getGameRules().hasRule("playersSleepingPercentage")) {
                 event.world.getGameRules().addGameRule(
@@ -74,7 +83,7 @@ public class ServerUtilitiesServerEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onServerChatEvent(ServerChatEvent event) {
+    public static void onServerChatEvent(ServerChatEvent event) {
         if (!ServerUtilitiesConfig.ranks.override_chat || !Ranks.isActive()) {
             return;
         }
@@ -156,8 +165,50 @@ public class ServerUtilitiesServerEventHandler {
         event.component = new ChatComponentTranslation("serverutilities.chat.format", main);
     }
 
+    public static void flipGameRules(Universe universe, boolean flip) {
+        String[] rulesToFlip = ServerUtilitiesConfig.world.flip.flip_game_rules_when_empty_rules;
+
+        GameRules rules = universe.world.getGameRules();
+
+        if (flip) {
+            for (String rule : rulesToFlip) {
+                if (rule == null || rule.isEmpty()) continue;
+                if (!rules.hasRule(rule)) {
+                    ServerUtilities.LOGGER.warn("[Rules Flip] Game rule \"{}\" does not exist, skipping.", rule);
+                    continue;
+                }
+                boolean ruleValue = rules.getGameRuleBooleanValue(rule);
+                universe.flippedRulesSaveState.put(rule, String.valueOf(ruleValue));
+                rules.setOrCreateGameRule(rule, String.valueOf(!ruleValue));
+                ServerUtilities.LOGGER
+                        .info("[Rules Flip] Changed game rule \"{}\" from {} to {}.", rule, ruleValue, !ruleValue);
+            }
+        } else {
+            for (String rule : rulesToFlip) {
+                if (rule == null || rule.isEmpty()) continue;
+                String savedValue = universe.flippedRulesSaveState.get(rule);
+                rules.setOrCreateGameRule(rule, savedValue);
+                ServerUtilities.LOGGER
+                        .info("[Rules Flip] Restored game rule \"{}\" to {} from saved state.", rule, savedValue);
+            }
+            universe.flippedRulesSaveState.clear();
+        }
+        universe.markDirty();
+    }
+
     @SubscribeEvent
-    public void onServerTick(TickEvent.ServerTickEvent event) {
+    public static void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) {
+            Runnable task;
+            while ((task = SERVER_TASKS.poll()) != null) {
+                try {
+                    task.run();
+                } catch (RuntimeException e) {
+                    ServerUtilities.LOGGER.error("Error running scheduled server task", e);
+                }
+            }
+        }
+
         if (!Universe.loaded()) {
             return;
         }
@@ -238,11 +289,38 @@ public class ServerUtilitiesServerEventHandler {
             if (ChunkLoaderManager.instance.isGenerating()) {
                 ChunkLoaderManager.instance.queueChunks(pregen.chunksPerTick);
             }
+
+            if (ServerUtilitiesConfig.world.flip.enable_flip_game_rules_when_empty) {
+                boolean serverHasPlayer = false;
+                for (EntityPlayerMP player : universe.server.getConfigurationManager().playerEntityList) {
+                    if (!ServerUtils.isFake(player)) {
+                        serverHasPlayer = true;
+                        break;
+                    }
+                }
+
+                if (serverHasPlayer) {
+                    emptyTicks = 0;
+                    if (universe.gameRulesFlipped) {
+                        universe.gameRulesFlipped = false;
+                        flipGameRules(universe, false);
+                    }
+                } else {
+                    int beforeRulesFlipTick = ServerUtilitiesConfig.world.flip.flip_game_rules_when_empty_seconds * 20;
+                    if (!universe.gameRulesFlipped) {
+                        emptyTicks++;
+                        if (emptyTicks >= beforeRulesFlipTick) {
+                            universe.gameRulesFlipped = true;
+                            flipGameRules(universe, true);
+                        }
+                    }
+                }
+            }
         }
     }
 
     @SubscribeEvent
-    public void onWorldTick(TickEvent.WorldTickEvent event) {
+    public static void onWorldTick(TickEvent.WorldTickEvent event) {
         if (!event.world.isRemote && event.phase == TickEvent.Phase.START
                 && event.world.provider.dimensionId == ServerUtilitiesConfig.world.spawn_dimension) {
             if (ServerUtilitiesConfig.world.forced_spawn_dimension_time != -1) {
@@ -267,7 +345,7 @@ public class ServerUtilitiesServerEventHandler {
     }
 
     @SubscribeEvent
-    public void onServerChatEventLog(ServerChatEvent event) {
+    public static void onServerChatEventLog(ServerChatEvent event) {
         if (ServerUtilitiesConfig.world.logging.chat_enable) {
             ServerUtilitiesUniverseData.chatLog(String.format("From %s: %s", event.username, event.message));
         }

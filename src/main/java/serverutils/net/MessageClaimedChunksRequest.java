@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 
 import serverutils.data.ClaimedChunks;
+import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.lib.gui.misc.ChunkSelectorMap;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
@@ -47,6 +48,10 @@ public class MessageClaimedChunksRequest extends MessageToServer {
 
     @Override
     public void onMessage(EntityPlayerMP player) {
+        ServerUtilitiesServerEventHandler.scheduleServerTask(() -> handleMessage(player));
+    }
+
+    private void handleMessage(EntityPlayerMP player) {
         if (ClaimedChunks.isActive()) {
             new MessageClaimedChunksUpdate(startX, startZ, player).sendTo(player);
         }

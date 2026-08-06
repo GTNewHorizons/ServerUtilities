@@ -20,6 +20,7 @@ import serverutils.lib.gui.SimpleButton;
 import serverutils.lib.gui.Theme;
 import serverutils.lib.gui.Widget;
 import serverutils.lib.gui.WidgetLayout;
+import serverutils.lib.gui.WidgetType;
 import serverutils.lib.icon.Color4I;
 import serverutils.lib.icon.MutableColor4I;
 import serverutils.lib.util.misc.MouseButton;
@@ -81,10 +82,19 @@ public class GuiEditConfigList extends GuiBase {
             if (getMouseX() >= getX() + width - 19) {
                 if (originalConfigList.getCanEdit()) {
                     configList.list.remove(index);
+                    canAdd = true;
                     parent.refreshWidgets();
                 }
             } else {
-                inst.getValue().onClicked(getGui(), inst, button, () -> {});
+                ConfigValue value = inst.getValue();
+                if (configList.isDistinct() && !value.getVariants().isEmpty()) {
+                    value.getVariants().stream()
+                            .filter(variant -> configList.list.stream().noneMatch(v -> v.getString().equals(variant)))
+                            .findFirst().ifPresent(variant -> value.setValueFromString(null, variant, false));
+                } else {
+                    value.onClicked(getGui(), inst, button, () -> {});
+                }
+                valueString = null;
             }
         }
 
@@ -113,15 +123,28 @@ public class GuiEditConfigList extends GuiBase {
             if (mouseOver) {
                 Color4I.WHITE.withAlpha(33).draw(x, y, w, h);
             }
-
-            theme.drawString(getTitle(), x + 4, y + 2, theme.getContentColor(getWidgetType()), Theme.SHADOW);
+            Color4I color = theme.getContentColor(canAdd ? getWidgetType() : WidgetType.DISABLED);
+            theme.drawString(getTitle(), x + 4, y + 2, color, Theme.SHADOW);
             GlStateManager.color(1F, 1F, 1F, 1F);
         }
 
         @Override
         public void onClicked(MouseButton button) {
             GuiHelper.playClickSound();
-            configList.add(configList.type);
+            if (configList.isDistinct()) {
+                List<ConfigValue> list = configList.list;
+                configList.type.getVariants().stream()
+                        .filter(variant -> list.stream().noneMatch(v -> v.getString().equals(variant))).findFirst()
+                        .ifPresent(variant -> {
+                            ConfigValue value = configList.type.copy();
+                            if (value.setValueFromString(null, variant, false)) {
+                                list.add(value);
+                            }
+                        });
+                canAdd = list.size() < configList.type.getVariants().size();
+            } else {
+                configList.add(configList.type);
+            }
             parent.refreshWidgets();
         }
 
@@ -137,6 +160,7 @@ public class GuiEditConfigList extends GuiBase {
     private final Panel configPanel;
     private final Button buttonAccept, buttonCancel;
     private final PanelScrollBar scroll;
+    private static boolean canAdd = true;
 
     public GuiEditConfigList(ConfigValueInstance c, Runnable cb) {
         originalConfigList = c;

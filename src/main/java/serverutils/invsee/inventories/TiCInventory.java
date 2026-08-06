@@ -9,6 +9,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +28,7 @@ import tconstruct.library.accessory.IAccessory;
 
 public class TiCInventory implements IModdedInventory {
 
+    private static final Icon BUTTON_ICON = ItemIcon.getItemIcon(Items.diamond_chestplate);
     private static final Icon[] SLOT_OVERLAYS = new Icon[7];
     private static final int KNAPSACK_SIZE = new KnapsackInventory().getSizeInventory();
 
@@ -75,12 +77,12 @@ public class TiCInventory implements IModdedInventory {
 
     @Override
     public @NotNull Icon getButtonIcon() {
-        return ItemIcon.getItemIcon(Items.diamond_chestplate);
+        return BUTTON_ICON;
     }
 
     @Override
     public @NotNull String getButtonText() {
-        return "TiC Bag & Accessories";
+        return StatCollector.translateToLocal("serverutilities.invsee.tic_bag");
     }
 
     @Override

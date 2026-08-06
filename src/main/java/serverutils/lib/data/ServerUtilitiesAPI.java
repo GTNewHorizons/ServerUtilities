@@ -15,6 +15,7 @@ import net.minecraft.util.ResourceLocation;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
+import serverutils.ServerUtilitiesRegistry;
 import serverutils.events.IReloadHandler;
 import serverutils.events.ServerReloadEvent;
 import serverutils.lib.EnumReloadType;
@@ -40,7 +41,7 @@ public class ServerUtilitiesAPI {
         HashSet<ResourceLocation> failed = new HashSet<>();
         ServerReloadEvent event = new ServerReloadEvent(universe, sender, type, id, failed);
 
-        for (Map.Entry<ResourceLocation, IReloadHandler> entry : ServerUtilitiesCommon.RELOAD_IDS.entrySet()) {
+        for (Map.Entry<ResourceLocation, IReloadHandler> entry : ServerUtilitiesRegistry.RELOAD_IDS.entrySet()) {
             try {
                 if (event.reload(entry.getKey()) && !entry.getValue().onReload(event)) {
                     event.failedToReload(entry.getKey());
@@ -111,7 +112,7 @@ public class ServerUtilitiesAPI {
             return ConfigNull.INSTANCE;
         }
 
-        ConfigValueProvider provider = ServerUtilitiesCommon.CONFIG_VALUE_PROVIDERS.get(id);
+        ConfigValueProvider provider = ServerUtilitiesRegistry.CONFIG_VALUE_PROVIDERS.get(id);
         Objects.requireNonNull(provider, "Unknown Config ID: " + id);
         ConfigValue value = provider.get();
         return value == null || value.isNull() ? ConfigNull.INSTANCE : value;

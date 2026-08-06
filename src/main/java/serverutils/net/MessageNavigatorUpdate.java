@@ -35,43 +35,40 @@ public class MessageNavigatorUpdate extends MessageToClient {
                 .hasPermission(player, ServerUtilitiesPermissions.CLAIMS_JOURNEYMAP_OTHER);
         teams = new Short2ObjectOpenHashMap<>();
 
-        ChunkDimPos pos = new ChunkDimPos();
-        for (int chunkX = minX; chunkX <= maxX; chunkX++) {
-            for (int chunkZ = minZ; chunkZ <= maxZ; chunkZ++) {
-                ClaimedChunk chunk = ClaimedChunks.instance.getChunk(pos.set(chunkX, chunkZ, player.dimension));
-                if (chunk != null) {
-                    ForgeTeam chunkTeam = chunk.getTeam();
+        for (ClaimedChunk chunk : ClaimedChunks.instance.getAllChunks()) {
+            ChunkDimPos pos = chunk.getPos();
+            if (pos.dim != player.dimension || pos.posX < minX || pos.posX > maxX || pos.posZ < minZ || pos.posZ > maxZ)
+                continue;
+            ForgeTeam chunkTeam = chunk.getTeam();
 
-                    if (!chunkTeam.isValid()) {
-                        continue;
-                    }
+            if (!chunkTeam.isValid()) {
+                continue;
+            }
 
-                    if (!canSeeOtherJourneymap && !p.team.equalsTeam(chunkTeam)) {
-                        continue;
-                    }
+            if (!canSeeOtherJourneymap && !p.team.equalsTeam(chunkTeam)) {
+                continue;
+            }
 
-                    ClientClaimedChunks.Team team = teams.get(chunkTeam.getUID());
-                    boolean member = chunkTeam.isMember(p);
-                    int flags = 0;
+            ClientClaimedChunks.Team team = teams.get(chunkTeam.getUID());
+            boolean member = chunkTeam.isMember(p);
+            int flags = 0;
 
-                    if (team == null) {
-                        team = new ClientClaimedChunks.Team(chunkTeam.getUID());
-                        team.color = chunkTeam.getColor();
-                        team.nameComponent = chunkTeam.getTitle();
-                        team.isAlly = chunkTeam.isAlly(p);
-                        team.isMember = member;
-                        teams.put(chunkTeam.getUID(), team);
-                    }
+            if (team == null) {
+                team = new ClientClaimedChunks.Team(chunkTeam.getUID());
+                team.color = chunkTeam.getColor();
+                team.nameComponent = chunkTeam.getTitle();
+                team.isAlly = chunkTeam.isAlly(p);
+                team.isMember = member;
+                teams.put(chunkTeam.getUID(), team);
+            }
 
-                    if (canSeeChunkInfo || member) {
-                        if (chunk.isLoaded()) {
-                            flags = Bits.setFlag(flags, ClientClaimedChunks.ChunkData.LOADED, true);
-                        }
-                    }
-
-                    team.chunkPos.put(chunk.getPos(), new ClientClaimedChunks.ChunkData(team, flags));
+            if (canSeeChunkInfo || member) {
+                if (chunk.isLoaded()) {
+                    flags = Bits.setFlag(flags, ClientClaimedChunks.ChunkData.LOADED, true);
                 }
             }
+
+            team.chunkPos.put(pos, new ClientClaimedChunks.ChunkData(team, flags));
         }
     }
 

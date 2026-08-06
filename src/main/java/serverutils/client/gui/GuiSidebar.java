@@ -1,6 +1,5 @@
 package serverutils.client.gui;
 
-import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,9 +12,14 @@ import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.client.event.GuiScreenEvent;
 
 import org.lwjgl.opengl.GL11;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
 import serverutils.client.EnumPlacement;
 import serverutils.client.EnumSidebarLocation;
 import serverutils.client.ServerUtilitiesClientConfig;
@@ -23,9 +27,10 @@ import serverutils.lib.client.ClientUtils;
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.icon.Color4I;
 
+@EventBusSubscriber(side = Side.CLIENT)
 public class GuiSidebar extends GuiButton {
 
-    public static Rectangle lastDrawnArea = new Rectangle();
+    private static final List<String> sidebarButtonTooltip = new ArrayList<>();
     public static int dragOffsetX = 0, dragOffsetY = 0;
     private final GuiContainer gui;
     public final List<GuiButtonSidebar> buttons;
@@ -50,11 +55,11 @@ public class GuiSidebar extends GuiButton {
             clearButtons();
         }
 
-        this.setButtonLocations(mc, mx, my);
         if (buttons.isEmpty()) {
             addButtonsToSidebar();
         }
 
+        setButtonLocations(mc, mx, my);
         int x = Integer.MAX_VALUE;
         int y = Integer.MAX_VALUE;
         int maxX = Integer.MIN_VALUE;
@@ -119,8 +124,6 @@ public class GuiSidebar extends GuiButton {
         GlStateManager.disableDepth();
         GlStateManager.popMatrix();
         zLevel = 0F;
-
-        lastDrawnArea = new Rectangle(xPosition, yPosition, width, height);
     }
 
     public void addTooltip(List<String> textLines) {
@@ -275,6 +278,31 @@ public class GuiSidebar extends GuiButton {
             if (button.getTooltipHandler() != null) {
                 button.getTooltipHandler().accept(textLines);
             }
+        }
+    }
+
+    /**
+     * Renders sidebar button tooltips outside of {@link GuiSidebar#drawButton} so that other screen elements don't draw
+     * over it.
+     */
+    @SubscribeEvent
+    public static void onGuiScreenDraw(final GuiScreenEvent.DrawScreenEvent.Post event) {
+        if (ClientUtils.areButtonsVisible(event.gui)) {
+            event.gui.buttonList.forEach((GuiButton button) -> {
+                if (button instanceof GuiSidebar sidebar) {
+                    sidebarButtonTooltip.clear();
+                    sidebar.addTooltip(sidebarButtonTooltip);
+                    event.gui.func_146283_a(sidebarButtonTooltip, event.mouseX, event.mouseY);
+                }
+            });
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @SubscribeEvent
+    public static void onGuiInit(final GuiScreenEvent.InitGuiEvent.Post event) {
+        if (ClientUtils.areButtonsVisible(event.gui)) {
+            event.buttonList.add(new GuiSidebar((GuiContainer) event.gui));
         }
     }
 }

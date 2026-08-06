@@ -14,8 +14,8 @@ import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesCommon;
 import serverutils.ServerUtilitiesConfig;
+import serverutils.ServerUtilitiesRegistry;
 import serverutils.events.SyncGamerulesEvent;
 import serverutils.lib.client.ClientUtils;
 import serverutils.lib.data.ForgePlayer;
@@ -32,9 +32,6 @@ public class MessageSyncData extends MessageToClient {
 
     private static final int LOGIN = 1;
     private static final int OP = 2;
-    private static final int TRASH_CAN = 4;
-    private static final int CHUNK_CLAIM = 8;
-    private static final int TEAMS = 16;
 
     private int flags;
     private UUID universeId;
@@ -46,18 +43,12 @@ public class MessageSyncData extends MessageToClient {
 
     public MessageSyncData(boolean login, EntityPlayerMP player, ForgePlayer forgePlayer) {
         boolean op = MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile());
-        boolean trash = ServerUtilitiesConfig.commands.trash_can;
-        boolean claiming = ServerUtilitiesConfig.world.chunk_claiming;
-        boolean teams = ServerUtilitiesConfig.teams.disable_teams;
         flags = Bits.setFlag(0, LOGIN, login);
         flags = Bits.setFlag(flags, OP, op);
-        flags = Bits.setFlag(flags, TRASH_CAN, trash);
-        flags = Bits.setFlag(flags, CHUNK_CLAIM, claiming);
-        flags = Bits.setFlag(flags, TEAMS, !teams);
         universeId = forgePlayer.team.universe.getUUID();
         syncData = new NBTTagCompound();
 
-        for (Map.Entry<String, ISyncData> entry : ServerUtilitiesCommon.SYNCED_DATA.entrySet()) {
+        for (Map.Entry<String, ISyncData> entry : ServerUtilitiesRegistry.SYNCED_DATA.entrySet()) {
             syncData.setTag(entry.getKey(), entry.getValue().writeSyncData(player, forgePlayer));
         }
 
@@ -97,10 +88,8 @@ public class MessageSyncData extends MessageToClient {
     @Override
     @SideOnly(Side.CLIENT)
     public void onMessage() {
-        SidedUtils.UNIVERSE_UUID_CLIENT = universeId;
-
         for (String key : syncData.func_150296_c()) {
-            ISyncData nbt = ServerUtilitiesCommon.SYNCED_DATA.get(key);
+            ISyncData nbt = ServerUtilitiesRegistry.SYNCED_DATA.get(key);
 
             if (nbt != null) {
                 nbt.readSyncData(syncData.getCompoundTag(key));
@@ -112,14 +101,10 @@ public class MessageSyncData extends MessageToClient {
         }
 
         if (ServerUtilitiesConfig.debugging.print_more_info && Bits.getFlag(flags, LOGIN)) {
-            ServerUtilities.LOGGER
-                    .info("Synced data from universe " + StringUtils.fromUUID(SidedUtils.UNIVERSE_UUID_CLIENT));
+            ServerUtilities.LOGGER.info("Synced data from universe " + StringUtils.fromUUID(universeId));
         }
-        ClientUtils.is_op = Bits.getFlag(flags, OP);
+        ClientUtils.isOP = Bits.getFlag(flags, OP);
 
         SidedUtils.SERVER_MODS.putAll(modList);
-        SidedUtils.trashCan = Bits.getFlag(flags, TRASH_CAN);
-        SidedUtils.chunkClaiming = Bits.getFlag(flags, CHUNK_CLAIM);
-        SidedUtils.teams = Bits.getFlag(flags, TEAMS);
     }
 }
