@@ -43,10 +43,16 @@ public class InvseeContainer extends ContainerBase {
 
             List<Slot> inventorySlots = moddedInventorySlots
                     .computeIfAbsent(entry.getKey(), a -> new ArrayList<>(inventory.getSizeInventory()));
+            // the last row is always anchored at the bottom, rows are stacked upwards from there
+            IModdedInventory moddedInventory = entry.getKey();
+            int columns = moddedInventory.getColumns(inventory);
+            int lastRow = (inventory.getSizeInventory() - 1) / columns;
+            boolean bottomUp = moddedInventory.isBottomUpLayout();
             int slotsInRow = 0;
             for (int i = 0; i < inventory.getSizeInventory(); i++) {
-                if (slotsInRow == 9) slotsInRow = 0;
-                Slot slot = entry.getKey().getSlot(player, inventory, i, 8 + slotsInRow++ * 18, 54 - (i / 9) * 18);
+                if (slotsInRow == columns) slotsInRow = 0;
+                int row = bottomUp ? i / columns : lastRow - i / columns;
+                Slot slot = moddedInventory.getSlot(player, inventory, i, 8 + slotsInRow++ * 18, 54 - row * 18);
                 if (slot != null) {
                     inventorySlots.add(slot);
                 } else if (slotsInRow > 0) {

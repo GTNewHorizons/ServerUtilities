@@ -48,6 +48,12 @@ public class AdventureBackpackInv implements IModdedInventory {
     }
 
     @Override
+    public int getColumns(IInventory inventory) {
+        // main storage is laid out as 6 rows of 8, the 6 special slots follow it
+        return 8;
+    }
+
+    @Override
     public @NotNull Icon getButtonIcon() {
         if (BACKPACK_ICON == null) {
             BACKPACK_ICON = ItemIcon.getItemIcon(BackpackUtils.createBackpackStack(BackpackTypes.RAINBOW));
