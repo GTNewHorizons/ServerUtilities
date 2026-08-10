@@ -23,7 +23,10 @@ public class UpdateMOTDTask extends Task {
      */
     @Override
     public void execute(Universe universe) {
-        IChatComponent motd = MOTDFormatter.buildMOTD(universe.server);
-        universe.server.func_147134_at().func_151315_a(motd);
+    /**
+     * Handle the mod configuration being reloaded.
+     */
+    public void onConfigReload() {
+        this.interval = motd.updateFrequency;
     }
 }
