@@ -64,6 +64,9 @@ public class ServerUtilitiesCommon {
     public static final Map<UUID, ServerUtilitiesCommon.EditingConfig> TEMP_SERVER_CONFIG = new HashMap<>();
     private static final Map<String, Function<ForgePlayer, IChatComponent>> CHAT_FORMATTING_SUBSTITUTES = new HashMap<>();
 
+    @Nullable
+    private static UpdateMOTDTask updateMotDTask;
+
     public static Function<String, IChatComponent> chatFormattingSubstituteFunction(ForgePlayer player) {
         return s -> {
             Function<ForgePlayer, IChatComponent> sub = CHAT_FORMATTING_SUBSTITUTES.get(s);
@@ -131,7 +134,9 @@ public class ServerUtilitiesCommon {
         if (motd.enabled) {
             MinecraftServer server = event.getServer();
             IChatComponent motd = MOTDFormatter.buildMOTD(server);
-            server.func_147134_at().func_151315_a(motd);
+            server.func_147134_at()
+                .func_151315_a(motd);
+            updateMotDTask = new UpdateMOTDTask();
         }
         if (AuroraConfig.general.enable) {
             Aurora.start(event.getServer());
@@ -182,13 +187,11 @@ public class ServerUtilitiesCommon {
         universe.scheduleTask(new DecayTask(), world.chunk_claiming);
         universe.scheduleTask(new CleanupTask(), tasks.cleanup.enabled);
         universe.scheduleTask(new BackupTask(), backups.enable_backups);
-        if (auto_shutdown.enabled && auto_shutdown.times.length > 0
-                && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
-            universe.scheduleTask(new ShutdownTask());
-        }
-        if (motd.enabled) {
-            universe.scheduleTask(new UpdateMOTDTask());
-        }
+        universe.scheduleTask(updateMotDTask, motd.enabled);
+        universe.scheduleTask(
+            new ShutdownTask(),
+            auto_shutdown.enabled && auto_shutdown.times.length > 0
+                && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer()));
     }
 
     static boolean onReload(ServerReloadEvent event) {
