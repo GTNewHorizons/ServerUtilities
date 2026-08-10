@@ -94,22 +94,14 @@ public class ServerUtilitiesCommon {
         ServerUtilitiesStats.init();
         ServerUtilitiesNetHandler.init();
 
-        if (
-            !ForgeChunkManager.getConfig()
-                .hasCategory(ServerUtilities.MOD_ID)
-        ) {
-            ForgeChunkManager.getConfig()
-                .get(ServerUtilities.MOD_ID, "maximumChunksPerTicket", 1000000)
-                .setMinValue(0);
-            ForgeChunkManager.getConfig()
-                .get(ServerUtilities.MOD_ID, "maximumTicketCount", 1000000)
-                .setMinValue(0);
-            ForgeChunkManager.getConfig()
-                .save();
+        if (!ForgeChunkManager.getConfig().hasCategory(ServerUtilities.MOD_ID)) {
+            ForgeChunkManager.getConfig().get(ServerUtilities.MOD_ID, "maximumChunksPerTicket", 1000000).setMinValue(0);
+            ForgeChunkManager.getConfig().get(ServerUtilities.MOD_ID, "maximumTicketCount", 1000000).setMinValue(0);
+            ForgeChunkManager.getConfig().save();
         }
 
         ForgeChunkManager
-            .setForcedChunkLoadingCallback(ServerUtilities.INST, ServerUtilitiesLoadedChunkManager.INSTANCE);
+                .setForcedChunkLoadingCallback(ServerUtilities.INST, ServerUtilitiesLoadedChunkManager.INSTANCE);
 
         KAOMOJIS.put("shrug", "\u00AF\\_(\u30C4)_/\u00AF");
         KAOMOJIS.put("tableflip", "(\u256F\u00B0\u25A1\u00B0)\u256F \uFE35 \u253B\u2501\u253B");
@@ -124,10 +116,7 @@ public class ServerUtilitiesCommon {
     }
 
     public void postInit(FMLPostInitializationEvent event) {
-        if (
-            (Loader.isModLoaded("FTBU") || Loader.isModLoaded("FTBL")) && event.getSide()
-                .isServer()
-        ) {
+        if ((Loader.isModLoaded("FTBU") || Loader.isModLoaded("FTBL")) && event.getSide().isServer()) {
             throw new RuntimeException("FTBU/FTBL Detected, please remove them and start again.");
         }
     }
@@ -136,9 +125,7 @@ public class ServerUtilitiesCommon {
         ServerUtilitiesServerEventHandler.clearServerTasks();
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
-        FMLCommonHandler.instance()
-            .bus()
-            .register(Universe.get());
+        FMLCommonHandler.instance().bus().register(Universe.get());
     }
 
     public void onServerStarting(FMLServerStartingEvent event) {
@@ -147,8 +134,7 @@ public class ServerUtilitiesCommon {
         if (motd.enabled) {
             MinecraftServer server = event.getServer();
             IChatComponent motd = MOTDFormatter.buildMOTD(server);
-            server.func_147134_at()
-                .func_151315_a(motd);
+            server.func_147134_at().func_151315_a(motd);
             updateMotDTask = new UpdateMOTDTask();
         }
         if (AuroraConfig.general.enable) {
@@ -161,10 +147,8 @@ public class ServerUtilitiesCommon {
         registerTasks();
 
         if (ranks.enabled && ranks.command_permissions) {
-            for (CommandNode<?> node : BrigadierApi.getCommandDispatcher()
-                .getRoot()
-                .getChildren()) {
-                if (node instanceof LiteralCommandNode<?> literalNode) {
+            for (CommandNode<?> node : BrigadierApi.getCommandDispatcher().getRoot().getChildren()) {
+                if (node instanceof LiteralCommandNode<?>literalNode) {
                     registerBrigadierCommands(literalNode, (ICommandWithPermission) literalNode, null);
                 }
             }
@@ -172,16 +156,16 @@ public class ServerUtilitiesCommon {
     }
 
     private static void registerBrigadierCommands(LiteralCommandNode<?> literalNode, ICommandWithPermission cmdPerm,
-        @Nullable String parentNode) {
+            @Nullable String parentNode) {
         String node = parentNode == null
-            ? Rank.NODE_COMMAND + '.' + cmdPerm.serverutilities$getModId() + "." + literalNode.getLiteral()
-            : parentNode + "." + literalNode.getLiteral();
+                ? Rank.NODE_COMMAND + '.' + cmdPerm.serverutilities$getModId() + "." + literalNode.getLiteral()
+                : parentNode + "." + literalNode.getLiteral();
 
         cmdPerm.serverutilities$setPermissionNode(node.toLowerCase());
         cmdPerm.serverUtilities$registerPermissions();
 
         for (CommandNode<?> child : literalNode.getChildren()) {
-            if (child instanceof LiteralCommandNode<?> childLiteral) {
+            if (child instanceof LiteralCommandNode<?>childLiteral) {
                 registerBrigadierCommands(childLiteral, (ICommandWithPermission) childLiteral, node);
             }
         }
@@ -193,9 +177,7 @@ public class ServerUtilitiesCommon {
         Universe.onServerStopping(event);
         Aurora.stop();
         MinecraftForge.EVENT_BUS.unregister(oldUniverse);
-        FMLCommonHandler.instance()
-            .bus()
-            .unregister(oldUniverse);
+        FMLCommonHandler.instance().bus().unregister(oldUniverse);
         ServerUtilitiesServerEventHandler.clearServerTasks();
     }
 
@@ -206,19 +188,16 @@ public class ServerUtilitiesCommon {
         universe.scheduleTask(new BackupTask(), backups.enable_backups);
         universe.scheduleTask(updateMotDTask, motd.enabled);
         universe.scheduleTask(
-            new ShutdownTask(),
-            auto_shutdown.enabled && auto_shutdown.times.length > 0
-                && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer()));
+                new ShutdownTask(),
+                auto_shutdown.enabled && auto_shutdown.times.length > 0
+                        && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer()));
     }
 
     static boolean onReload(ServerReloadEvent event) {
         if (event.getUniverse() != null) {
             ServerUtilitiesLeaderboards.loadLeaderboards();
 
-            if (
-                event.getType()
-                    .command()
-            ) {
+            if (event.getType().command()) {
                 if (ServerUtilitiesConfig.login.enable_motd) {
                     ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "login_motd");
                     ServerUtilitiesConfig.login.motdComponents = null;
@@ -238,7 +217,6 @@ public class ServerUtilitiesCommon {
     public void handleClientMessage(MessageToClient message) {}
 
     public long getWorldTime() {
-        return ServerUtils.getServerWorld()
-            .getTotalWorldTime();
+        return ServerUtils.getServerWorld().getTotalWorldTime();
     }
 }
