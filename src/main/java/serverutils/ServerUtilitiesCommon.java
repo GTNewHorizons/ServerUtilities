@@ -203,6 +203,9 @@ public class ServerUtilitiesCommon {
 
                 if (ServerUtilitiesConfig.motd.enabled) {
                     ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "server_motd");
+                    if (updateMotDTask != null) {
+                        updateMotDTask.onConfigReload();
+                    }
                 }
             }
         }
