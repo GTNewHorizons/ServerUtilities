@@ -2,6 +2,7 @@ package serverutils.task;
 
 import net.minecraft.util.IChatComponent;
 
+import static serverutils.ServerUtilitiesConfig.motd;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.MOTDFormatter;
@@ -12,8 +13,7 @@ public class UpdateMOTDTask extends Task {
      * Create a new instance.
      */
     public UpdateMOTDTask() {
-        // -- Runs every 5 seconds
-        super(Ticks.getFromMillis(5000L));
+        super(Ticks.getFromMillis(motd.updateFrequency));
     }
 
     /**
@@ -23,6 +23,11 @@ public class UpdateMOTDTask extends Task {
      */
     @Override
     public void execute(Universe universe) {
+        IChatComponent motdComponents = MOTDFormatter.buildMOTD(universe.server);
+        universe.server.func_147134_at()
+            .func_151315_a(motdComponents);
+    }
+
     /**
      * Handle the mod configuration being reloaded.
      */
