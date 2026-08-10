@@ -1,8 +1,9 @@
 package serverutils.task;
 
+import static serverutils.ServerUtilitiesConfig.motd;
+
 import net.minecraft.util.IChatComponent;
 
-import static serverutils.ServerUtilitiesConfig.motd;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.MOTDFormatter;
@@ -24,8 +25,7 @@ public class UpdateMOTDTask extends Task {
     @Override
     public void execute(Universe universe) {
         IChatComponent motdComponents = MOTDFormatter.buildMOTD(universe.server);
-        universe.server.func_147134_at()
-            .func_151315_a(motdComponents);
+        universe.server.func_147134_at().func_151315_a(motdComponents);
     }
 
     /**
