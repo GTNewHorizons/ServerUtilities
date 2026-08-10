@@ -795,7 +795,12 @@ public class ServerUtilitiesConfig {
         @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
-        @Config.Comment("First line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
+        @Config.Comment("The rate at which the custom, configurable, server MotD updates (in milliseconds between updates)")
+        @Config.DefaultInt(5000)
+        @Config.Reloadable("server_motd")
+        public int updateFrequency;
+
+        @Config.Comment("First line of the MotD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
         @Config.DefaultString("§6§lMy Minecraft Server")
         @Config.Reloadable("server_motd")
         public String line1;
