@@ -170,6 +170,12 @@ serverutilities.debugging.dev_sidebar_buttons=仅开发者可见的侧边栏按�
 serverutilities.debugging.gui_widget_bounds=GUI组件边界
 serverutilities.debugging.log_events=记录事件
 
+# Multiplayer Browser "Message of the Day"
+serverutilities.motd=服务器 MotD
+serverutilities.motd.updateFrequency=MotD 更新频率（毫秒）
+serverutilities.motd.line1=MotD 第一行
+serverutilities.motd.line2=MotD 第二行
+
 # Client Config
 serverutilities_client=客户端配置
 serverutilities_client.render_badges=显示徽章
@@ -599,7 +605,7 @@ team_action.serverutilities.leave.confirmation=警告！离开组可能会导致
 team_action.serverutilities.transfer_ownership=转让所有权
 
 serverutilities.lang.team.gui.join_team=点击加入 '%s'
-serverutilities.lang.team.gui.request_invite=点击请求加入 '%s' 
+serverutilities.lang.team.gui.request_invite=点击请求加入 '%s'
 serverutilities.lang.team.gui.members.invite=点击邀请至你的组
 serverutilities.lang.team.gui.members.requesting_invite=这个玩家正在请求加入
 serverutilities.lang.team.gui.members.deny_request=右击拒绝请求

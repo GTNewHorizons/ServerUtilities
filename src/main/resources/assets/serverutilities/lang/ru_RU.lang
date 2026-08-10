@@ -120,6 +120,12 @@ serverutilities.login.enable_event_badges=Включить значки собы
 serverutilities.login.motd=MOTD
 serverutilities.login.starting_items=Стартовые предметы
 
+# Multiplayer Browser "Message of the Day"
+serverutilities.motd=Сервер MotD
+serverutilities.motd.updateFrequency=MotD Частота обновления (миллисекунды)
+serverutilities.motd.line1=MotD Первая линия
+serverutilities.motd.line2=MotD Вторая линия
+
 serverutilities.world=Мир
 serverutilities.world.blocked_claiming_dimensions=Заблокированные на занятость измерения
 serverutilities.world.chunk_claiming=Занятость чанка

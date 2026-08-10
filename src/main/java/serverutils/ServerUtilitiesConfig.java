@@ -790,17 +790,22 @@ public class ServerUtilitiesConfig {
 
     public static class MOTD {
 
-        @Config.Comment("Enable custom configurable SERVER MOTD with color codes and variables")
+        @Config.Comment("Whether the custom configurable server MotD, with color codes and variable support, is enabled")
         @Config.DefaultBoolean(false)
         @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
-        @Config.Comment("First line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
+        @Config.Comment("The rate at which the custom, configurable, server MotD updates (in milliseconds between updates)")
+        @Config.DefaultInt(5000)
+        @Config.Reloadable("server_motd")
+        public int updateFrequency;
+
+        @Config.Comment("First line of the MotD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
         @Config.DefaultString("§6§lMy Minecraft Server")
         @Config.Reloadable("server_motd")
         public String line1;
 
-        @Config.Comment("Second line of MOTD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
+        @Config.Comment("Second line of the MotD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
         @Config.DefaultString("§aUptime: §f{uptime} §7| §bTPS: §f{tps}")
         @Config.Reloadable("server_motd")
         public String line2;

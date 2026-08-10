@@ -117,6 +117,12 @@ serverutilities.debugging.dev_sidebar_buttons=Boutons latéraux pour les dévs. 
 serverutilities.debugging.gui_widget_bounds=Bornes du widget GUI
 serverutilities.debugging.log_events=Logger les événements
 
+# Multiplayer Browser "Message of the Day"
+serverutilities.motd=Serveur MotD
+serverutilities.motd.updateFrequency=MotD Fréquence de mise à jour (Millisecondes)
+serverutilities.motd.line1=MotD Première Ligne
+serverutilities.motd.line2=MotD Deuxième Ligne
+
 # Client Config
 serverutilities_client.item_ore_names=Afficher les noms des objets de l'OreDictionary
 serverutilities_client.item_ore_names.item_tooltip=Noms de l'OreDictionary :

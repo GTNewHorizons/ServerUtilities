@@ -11,88 +11,70 @@ import com.gtnewhorizon.gtnhmixins.builders.MixinBuilder;
 public enum Mixins implements IMixins {
 
     // spotless:off
-    COMMAND_PERMISSIONS(new MixinBuilder()
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> ranks.enabled && ranks.command_permissions)
-            .addCommonMixins(
-                    "minecraft.MixinCommandBase",
-                    "minecraft.MixinCommandHandler",
-                    "minecraft.MixinICommand")),
-    REPLACE_TAB_NAMES(new MixinBuilder()
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> !mixins.modernTabOverlay)
-            .addClientMixins("forge.MixinGuiIngameForge")),
-    VANILLA_TP_BACK_COMPAT(new MixinBuilder("/back compat for the vanilla /tp")
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> commands.back)
-            .addCommonMixins("minecraft.MixinCommandTeleport")),
-    VANISH_COMMAND(new MixinBuilder()
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> commands.vanish)
-            .addServerMixins(
-                    "minecraft.vanish.MixinServerConfigurationManager",
-                    "minecraft.vanish.MixinMinecraftServer",
-                    "minecraft.vanish.MixinEntityTrackerEntry",
-                    "minecraft.vanish.MixinNetHandlerPlayServer",
-                    "minecraft.vanish.MixinCommandListPlayers",
-                    "minecraft.vanish.MixinEntityPlayer",
-                    "minecraft.vanish.MixinEntityPlayerMP",
-                    "minecraft.vanish.MixinWorld",
-                    "minecraft.vanish.MixinItemInWorldManager")),
-    HIDE_VANISHED_FROM_DETECTOR(new MixinBuilder("Hide vanished players from the RandomThings online detector")
-            .addRequiredMod(RANDOMTHINGS)
+    COMMAND_PERMISSIONS(new MixinBuilder().setPhase(Phase.EARLY)
+        .setApplyIf(() -> ranks.enabled && ranks.command_permissions)
+        .addCommonMixins("minecraft.MixinCommandBase", "minecraft.MixinCommandHandler", "minecraft.MixinICommand")),
+    REPLACE_TAB_NAMES(new MixinBuilder().setPhase(Phase.EARLY)
+        .setApplyIf(() -> !mixins.modernTabOverlay)
+        .addClientMixins("forge.MixinGuiIngameForge")),
+    VANILLA_TP_BACK_COMPAT(new MixinBuilder("/back compat for the vanilla /tp").setPhase(Phase.EARLY)
+        .setApplyIf(() -> commands.back)
+        .addCommonMixins("minecraft.MixinCommandTeleport")),
+    VANISH_COMMAND(new MixinBuilder().setPhase(Phase.EARLY)
+        .setApplyIf(() -> commands.vanish)
+        .addServerMixins(
+            "minecraft.vanish.MixinServerConfigurationManager",
+            "minecraft.vanish.MixinMinecraftServer",
+            "minecraft.vanish.MixinEntityTrackerEntry",
+            "minecraft.vanish.MixinNetHandlerPlayServer",
+            "minecraft.vanish.MixinCommandListPlayers",
+            "minecraft.vanish.MixinEntityPlayer",
+            "minecraft.vanish.MixinEntityPlayerMP",
+            "minecraft.vanish.MixinWorld",
+            "minecraft.vanish.MixinItemInWorldManager")),
+    HIDE_VANISHED_FROM_DETECTOR(
+        new MixinBuilder("Hide vanished players from the RandomThings online detector").addRequiredMod(RANDOMTHINGS)
             .setPhase(Phase.LATE)
             .setApplyIf(() -> commands.vanish)
             .addServerMixins("randomthings.MixinWorldUtils")),
-    PAUSE_WHEN_EMPTY(new MixinBuilder("Pauses the server when empty after X seconds; Servers Only")
-            .setPhase(Phase.EARLY)
+    PAUSE_WHEN_EMPTY(
+        new MixinBuilder("Pauses the server when empty after X seconds; Servers Only").setPhase(Phase.EARLY)
             .addServerMixins(
-                    "minecraft.MixinMinecraftServer_PauseWhenEmpty",
-                    "minecraft.MixinDedicatedServer_PauseWhenEmpty")
+                "minecraft.MixinMinecraftServer_PauseWhenEmpty",
+                "minecraft.MixinDedicatedServer_PauseWhenEmpty")
             .setApplyIf(() -> general.enable_pause_when_empty_property)),
-    MAX_TICK_TIME(new MixinBuilder()
-            .setPhase(Phase.EARLY)
-            .addServerMixins("minecraft.MixinDedicatedServer_MaxTickTime", "minecraft.MixinMinecraftServer_MaxTickTime")
-            .addExcludedMod(TargetedMod.ULTRAMINE)
-            .setApplyIf(() -> general.enable_max_tick_time_property)),
-    PLAYERS_SLEEPING_PERCENTAGE(new MixinBuilder()
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> world.enable_player_sleeping_percentage)
-            .addCommonMixins("minecraft.MixinWorldServer_SleepPercentage")),
-    CANCEL_VAMPIRE_WAKEUP_EVENT(new MixinBuilder()
-            .setPhase(Phase.LATE)
-            .setApplyIf(() -> world.enable_player_sleeping_percentage)
-            .addRequiredMod(TargetedMod.WITCHERY)
-            .addServerMixins("witchery.MixinWitchery_CancelWakeUpEvents")),
-    DISABLE_ENDERMEN_GRIEFING(new MixinBuilder("Disable Endermen Griefing in Claimed Chunks")
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> mixins.endermen)
-            .addCommonMixins("minecraft.MixinEndermanGriefing")),
-    BYPASS_PLAYER_LIMIT(new MixinBuilder("Adds permission for bypassing player limit")
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> mixins.bypassPlayerLimit)
-            .addCommonMixins("minecraft.MixinNetHandlerLoginServer")),
-    CUSTOM_MOTD(new MixinBuilder("Custom configurable MOTD with color codes and variables")
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> motd.enabled)
-            .addServerMixins("minecraft.MixinMinecraftServer_CustomMotd")),
-    TOGGLE_CHEATS(new MixinBuilder("Helper method for toggling cheats in the world selection menu")
-            .setPhase(Phase.EARLY)
+    MAX_TICK_TIME(new MixinBuilder().setPhase(Phase.EARLY)
+        .addServerMixins("minecraft.MixinDedicatedServer_MaxTickTime", "minecraft.MixinMinecraftServer_MaxTickTime")
+        .addExcludedMod(TargetedMod.ULTRAMINE)
+        .setApplyIf(() -> general.enable_max_tick_time_property)),
+    PLAYERS_SLEEPING_PERCENTAGE(new MixinBuilder().setPhase(Phase.EARLY)
+        .setApplyIf(() -> world.enable_player_sleeping_percentage)
+        .addCommonMixins("minecraft.MixinWorldServer_SleepPercentage")),
+    CANCEL_VAMPIRE_WAKEUP_EVENT(new MixinBuilder().setPhase(Phase.LATE)
+        .setApplyIf(() -> world.enable_player_sleeping_percentage)
+        .addRequiredMod(TargetedMod.WITCHERY)
+        .addServerMixins("witchery.MixinWitchery_CancelWakeUpEvents")),
+    DISABLE_ENDERMEN_GRIEFING(new MixinBuilder("Disable Endermen Griefing in Claimed Chunks").setPhase(Phase.EARLY)
+        .setApplyIf(() -> mixins.endermen)
+        .addCommonMixins("minecraft.MixinEndermanGriefing")),
+    BYPASS_PLAYER_LIMIT(new MixinBuilder("Adds permission for bypassing player limit").setPhase(Phase.EARLY)
+        .setApplyIf(() -> mixins.bypassPlayerLimit)
+        .addCommonMixins("minecraft.MixinNetHandlerLoginServer")),
+    TOGGLE_CHEATS(
+        new MixinBuilder("Helper method for toggling cheats in the world selection menu").setPhase(Phase.EARLY)
             .setApplyIf(() -> general.enable_toggle_cheats_button)
             .addClientMixins("minecraft.AccessorSaveFormatComparator")),
-    FARMLAND_TRAMPLING_PROTECTION(new MixinBuilder("Make grief protection apply to farmland trampling")
-            .setPhase(Phase.EARLY)
+    FARMLAND_TRAMPLING_PROTECTION(
+        new MixinBuilder("Make grief protection apply to farmland trampling").setPhase(Phase.EARLY)
             .setApplyIf(() -> mixins.farmlandTramplingProtection)
             .addCommonMixins("minecraft.MixinBlockFarmland")),
-    BRIGADIER_COMMAND_PERMISSIONS(new MixinBuilder("Make command permissions work with Brigadier commands")
-            .setPhase(Phase.LATE)
+    BRIGADIER_COMMAND_PERMISSIONS(
+        new MixinBuilder("Make command permissions work with Brigadier commands").setPhase(Phase.LATE)
             .setApplyIf(() -> ranks.enabled && ranks.command_permissions)
             .addCommonMixins("brigadier.MixinCommandNode", "brigadier.MixinLiteralCommandNode")),
-    MODERN_TAB_OVERLAY(new MixinBuilder("Modern-style player list overlay")
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> mixins.modernTabOverlay)
-            .addClientMixins("forge.MixinGuiIngameForge_ModernTab")),
-    ;
+    MODERN_TAB_OVERLAY(new MixinBuilder("Modern-style player list overlay").setPhase(Phase.EARLY)
+        .setApplyIf(() -> mixins.modernTabOverlay)
+        .addClientMixins("forge.MixinGuiIngameForge_ModernTab"));
     // spotless:on
 
     private final MixinBuilder builder;

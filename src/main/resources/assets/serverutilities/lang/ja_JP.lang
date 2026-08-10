@@ -29,6 +29,12 @@ serverutilities.login.enable_event_badges=イベントバッジの有効化
 serverutilities.login.motd=MOTD
 serverutilities.login.starting_items=開始時アイテム
 
+# Multiplayer Browser "Message of the Day"
+serverutilities.motd=サーバ MotD
+serverutilities.motd.updateFrequency=MotD 更新頻度（ミリ秒）
+serverutilities.motd.line1=MotD 最初の行
+serverutilities.motd.line2=MotD セカンドライン
+
 serverutilities.world=ワールド
 serverutilities.world.blocked_claiming_dimensions=領有禁止ディメンション
 serverutilities.world.chunk_claiming=チャンクの領有

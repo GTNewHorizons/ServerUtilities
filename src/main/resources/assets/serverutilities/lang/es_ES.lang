@@ -121,6 +121,12 @@ serverutilities.debugging.dev_sidebar_buttons=Barra de botones para Devs
 serverutilities.debugging.gui_widget_bounds=GUI Widget Bounds
 serverutilities.debugging.log_events=Mostrar Eventos
 
+# Multiplayer Browser "Message of the Day"
+serverutilities.motd=Servidor MotD
+serverutilities.motd.updateFrequency=MotD Frecuencia de Actualización (Milisegundos)
+serverutilities.motd.line1=MotD Primera línea
+serverutilities.motd.line2=MotD Segunda línea
+
 # Client Config
 serverutilities_client.item_ore_names=Mostrar nombres Ore Dictionary de objetos
 serverutilities_client.item_ore_names.item_tooltip=Nombres Ore Dictionary:
@@ -222,8 +228,8 @@ redstone_mode.pulse=Pulso
 # IO Mode
 io_mode=Modo IO
 io_mode.io=IO
-io_mode.in=Solo entrada 
-io_mode.out=Solo salida 
+io_mode.in=Solo entrada
+io_mode.out=Solo salida
 io_mode.none=Desactivado
 
 # Click Actions
