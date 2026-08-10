@@ -150,8 +150,9 @@ serverutilities.mixins.endermen=Enable Endermen Mixin
 serverutilities.mixins.bypassplayerlimit=Enable Bypass Player Limit Mixin
 serverutilities.mixins.farmlandtramplingprotection=Enable Farmland Trampling Protection Mixin
 
+# Multiplayer Browser "Message of the Day"
 serverutilities.motd=Server MotD
-serverutilities.motd.updateFrequency=Motd Update Frequency (Milliseconds)
+serverutilities.motd.updateFrequency=MotD Update Frequency (Milliseconds)
 serverutilities.motd.line1=MotD First Line
 serverutilities.motd.line2=MotD Second Line
 

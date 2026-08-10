@@ -116,6 +116,12 @@ serverutilities.debugging.dev_sidebar_buttons=Nur-Entwickler Seitenleisten-Schal
 serverutilities.debugging.gui_widget_bounds=GUI-Widgetgrenzen
 serverutilities.debugging.log_events=Ereignisse loggen
 
+# Multiplayer Browser "Message of the Day"
+serverutilities.motd=Server MotD
+serverutilities.motd.updateFrequency=MotD Aktualisierungshäufigkeit (Millisekunden)
+serverutilities.motd.line1=MotD Erste Reihe
+serverutilities.motd.line2=MotD Zweite Reihe
+
 # Client Config
 serverutilities_client.item_ore_names=Item OreDictionary-Namen anzeigen
 serverutilities_client.item_ore_names.item_tooltip=OreDictionary Namen:
