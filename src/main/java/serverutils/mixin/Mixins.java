@@ -49,6 +49,7 @@ public enum Mixins implements IMixins {
             .addServerMixins(
                     "minecraft.MixinMinecraftServer_PauseWhenEmpty",
                     "minecraft.MixinDedicatedServer_PauseWhenEmpty")
+            .addExcludedMod(TargetedMod.ULTRAMINE)
             .setApplyIf(() -> general.enable_pause_when_empty_property)),
     MAX_TICK_TIME(new MixinBuilder()
             .setPhase(Phase.EARLY)
