@@ -51,7 +51,6 @@ public class ThreadBackup extends Thread {
     private final File src0;
     private final String customName;
     private final Set<ChunkDimPos> chunksToBackup;
-    public boolean isDone = false;
     private final ICompress compressor;
 
     public ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
@@ -63,9 +62,7 @@ public class ThreadBackup extends Thread {
     }
 
     public void run() {
-        isDone = false;
         doBackup(compressor, src0, customName, chunksToBackup);
-        isDone = true;
     }
 
     private static void addBaseFolderFiles(List<File> files, File saveFile) {

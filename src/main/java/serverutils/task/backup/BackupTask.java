@@ -194,12 +194,18 @@ public class BackupTask extends Task {
         }
     }
 
+    public static void stopBackupThread() {
+        if (thread == null) return;
+        thread.interrupt();
+        thread = null;
+    }
+
     private boolean hasOnlinePlayers(MinecraftServer server) {
         return !server.getConfigurationManager().playerEntityList.isEmpty();
     }
 
     private void postBackup(Universe universe) {
-        if (thread != null && !thread.isDone) {
+        if (thread != null && thread.isAlive()) {
             setNextTime(System.currentTimeMillis() + Ticks.SECOND.millis());
             universe.scheduleTask(this);
             return;

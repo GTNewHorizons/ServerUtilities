@@ -116,6 +116,7 @@ public class ServerUtilitiesCommon {
 
     public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
         ServerUtilitiesServerEventHandler.clearServerTasks();
+        BackupTask.stopBackupThread();
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());
@@ -166,6 +167,7 @@ public class ServerUtilitiesCommon {
         MinecraftForge.EVENT_BUS.unregister(oldUniverse);
         FMLCommonHandler.instance().bus().unregister(oldUniverse);
         ServerUtilitiesServerEventHandler.clearServerTasks();
+        BackupTask.stopBackupThread();
     }
 
     public void registerTasks() {
