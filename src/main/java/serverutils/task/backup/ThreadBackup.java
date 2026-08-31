@@ -8,6 +8,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
@@ -135,6 +136,9 @@ public class ThreadBackup extends Thread {
                     }
                 }
             }
+        } catch (InterruptedIOException e) {
+            ServerUtilities.LOGGER.info("Backup cancelled, deleting partial archive");
+            if (dstFile != null) FileUtils.delete(dstFile);
         } catch (Exception e) {
             ServerUtils.notifyChat(
                     ServerUtils.getServer(),
@@ -170,6 +174,8 @@ public class ThreadBackup extends Thread {
 
     private static void compressFile(String entryName, File file, ICompress compressor, int index, int totalFiles)
             throws IOException {
+        // interrupt() cannot abort java.io reads, so the backup has to bail out cooperatively
+        if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup cancelled");
         logProgress(index, totalFiles, file.getAbsolutePath());
         compressor.addFileToArchive(file, entryName);
     }
