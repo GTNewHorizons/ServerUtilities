@@ -197,8 +197,13 @@ public class ModernTabRenderer {
                 ResourceLocation skinLoc = TabSkinCache.INSTANCE.getOrLoadSkin(player.name);
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                 Minecraft.getMinecraft().getTextureManager().bindTexture(skinLoc);
-                Gui.func_152125_a(x, y, 8.0F, 8.0F, 8, 8, HEAD_SIZE, HEAD_SIZE, 64.0F, 32.0F);
-                Gui.func_152125_a(x, y, 40.0F, 8.0F, 8, 8, HEAD_SIZE, HEAD_SIZE, 64.0F, 32.0F);
+                // SimpleSkinBackport uploads 64x64; steve fallback is still 64x32
+                int texW = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_WIDTH);
+                int texH = GL11.glGetTexLevelParameteri(GL11.GL_TEXTURE_2D, 0, GL11.GL_TEXTURE_HEIGHT);
+                float tileW = texW >= 64 ? texW : 64.0F;
+                float tileH = texH >= 32 ? texH : 32.0F;
+                Gui.func_152125_a(x, y, 8.0F, 8.0F, 8, 8, HEAD_SIZE, HEAD_SIZE, tileW, tileH);
+                Gui.func_152125_a(x, y, 40.0F, 8.0F, 8, 8, HEAD_SIZE, HEAD_SIZE, tileW, tileH);
                 textX += HEAD_PADDING;
             }
 
