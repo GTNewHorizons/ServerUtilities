@@ -5,7 +5,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 
 public class TabSkinCache {
@@ -17,6 +19,18 @@ public class TabSkinCache {
     private TabSkinCache() {}
 
     public ResourceLocation getOrLoadSkin(String playerName) {
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.theWorld != null) {
+            EntityPlayer entity = mc.theWorld.getPlayerEntityByName(playerName);
+            if (entity instanceof AbstractClientPlayer acp) {
+                ResourceLocation live = acp.getLocationSkin();
+                if (live != null) {
+                    cache.put(playerName, live);
+                    return live;
+                }
+            }
+        }
+
         ResourceLocation loc = cache.get(playerName);
         if (loc == null) {
             loc = AbstractClientPlayer.getLocationSkin(playerName);
