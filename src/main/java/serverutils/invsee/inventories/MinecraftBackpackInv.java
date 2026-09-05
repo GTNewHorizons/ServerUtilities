@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.inventory.Slot;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +37,14 @@ public class MinecraftBackpackInv implements IModdedInventory {
     @Override
     public @NotNull IInventory createInventory(EntityPlayer player, int size) {
         return new InventoryBasic("", false, size);
+    }
+
+    @Override
+    public int getColumns(IInventory inventory) {
+        // backpacks that don't fit in 7 rows of 9 get a wider grid, the save only needs the size to tell us how wide
+        BackpackSave save = new BackpackSave(new NBTTagCompound());
+        save.setSize(inventory.getSizeInventory());
+        return save.getSlotsPerRow();
     }
 
     @Override

@@ -67,6 +67,11 @@ public class MainInventory implements IModdedInventory {
     }
 
     @Override
+    public boolean isBottomUpLayout() {
+        return true;
+    }
+
+    @Override
     public @Nullable Slot getSlot(EntityPlayer player, IInventory inventory, int index, int x, int y) {
         if (index >= inventory.getSizeInventory() - 4) {
             int armorSlot = getArmorSlotIndex(index, inventory);

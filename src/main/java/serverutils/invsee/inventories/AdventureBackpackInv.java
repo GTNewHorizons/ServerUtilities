@@ -25,6 +25,9 @@ import serverutils.lib.icon.ItemIcon;
 public class AdventureBackpackInv implements IModdedInventory {
 
     private static final String WEARABLE_TAG = "wearable";
+    // mirrors ContainerBackpack.BACK_INV_COLUMNS, which is private: the main storage is 6 rows of 8, the 6 special
+    // slots follow it
+    private static final int BACK_INV_COLUMNS = 8;
     private static Icon BACKPACK_ICON = null;
 
     @Override
@@ -45,6 +48,11 @@ public class AdventureBackpackInv implements IModdedInventory {
     @Override
     public @NotNull IInventory createInventory(EntityPlayer player, int size) {
         return new InventoryBasic("", false, size);
+    }
+
+    @Override
+    public int getColumns(IInventory inventory) {
+        return BACK_INV_COLUMNS;
     }
 
     @Override
