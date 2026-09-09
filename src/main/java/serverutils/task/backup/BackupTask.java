@@ -89,6 +89,7 @@ public class BackupTask extends Task {
             return;
         }
         if (isBackupRunning()) return;
+        if (!dimSaveStates.isEmpty()) postBackup(universe);
         boolean auto = sender == null;
 
         if (auto && !backups.enable_backups) return;
@@ -207,6 +208,7 @@ public class BackupTask extends Task {
     }
 
     private void postBackup(Universe universe) {
+        if (dimSaveStates.isEmpty()) return;
         if (isBackupRunning()) {
             setNextTime(System.currentTimeMillis() + Ticks.SECOND.millis());
             universe.scheduleTask(this);
@@ -234,5 +236,6 @@ public class BackupTask extends Task {
         } catch (Exception ex) {
             ServerUtilities.LOGGER.info("An error occurred while turning on auto-save.", ex);
         }
+        dimSaveStates.clear();
     }
 }
