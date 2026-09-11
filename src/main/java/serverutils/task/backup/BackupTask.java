@@ -8,7 +8,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -19,12 +21,11 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.world.MinecraftException;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.DimensionManager;
 
-import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
-import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunks;
@@ -42,7 +43,7 @@ public class BackupTask extends Task {
     public static final Pattern BACKUP_NAME_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
     public static final File BACKUP_FOLDER;
-    private static final Int2BooleanMap dimSaveStates = new Int2BooleanArrayMap();
+    private static final Map<WorldServer, Boolean> worldSaveStates = new IdentityHashMap<>();
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
     private ICommandSender sender;
@@ -89,7 +90,7 @@ public class BackupTask extends Task {
             return;
         }
         if (isBackupRunning()) return;
-        if (!dimSaveStates.isEmpty()) postBackup(universe);
+        if (!worldSaveStates.isEmpty()) postBackup(universe);
         boolean auto = sender == null;
 
         if (auto && !backups.enable_backups) return;
@@ -100,58 +101,66 @@ public class BackupTask extends Task {
             hadPlayer = false;
         }
 
-        dimSaveStates.clear();
-
-        // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
-        // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
-        server.getConfigurationManager().saveAllPlayerData();
-
+        boolean backupStarted = false;
         try {
-            for (int i = 0; i < server.worldServers.length; ++i) {
-                WorldServer world = server.worldServers[i];
-                if (world != null) {
-                    dimSaveStates.put(i, world.levelSaving);
-                    world.saveAllChunks(true, null);
-                    world.levelSaving = true;
-                }
+            // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
+            // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
+            server.getConfigurationManager().saveAllPlayerData();
+            saveAndDisableWorldSaving(server.worldServers);
+
+            // saveAllPlayerData and saveAllChunks queue writes on another thread, so wait for them to finish
+            ThreadedFileIOBase.threadedIOInstance.waitForFinish();
+
+            if (!backups.silent_backup) {
+                BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
             }
+            Set<ChunkDimPos> backupChunks = new HashSet<>();
+            if ((this.forceOnlyClaimed || backups.only_backup_claimed_chunks) && ClaimedChunks.isActive()) {
+                backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
+                // noinspection ResultOfMethodCallIgnored
+                BACKUP_TEMP_FOLDER.mkdirs();
+            }
+
+            File worldDir = DimensionManager.getCurrentSaveRootDirectory();
+            ICompress compressor = ICompress.createCompressor();
+            universe.scheduleTask(new BackupTask(true));
+            if (backups.use_separate_thread) {
+                thread = new ThreadBackup(compressor, worldDir, customName, backupChunks);
+                thread.start();
+            } else {
+                ThreadBackup.doBackup(compressor, worldDir, customName, backupChunks);
+            }
+            backupStarted = true;
         } catch (Exception ex) {
+            if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
             ServerUtils.notifyChat(
                     server,
                     null,
                     new ChatComponentText(
                             EnumChatFormatting.RED + "An error occurred while preparing backup. " + ex.getMessage()));
             ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", ex);
-            return;
+        } finally {
+            if (!backupStarted) restoreWorldSaving();
         }
+    }
 
-        // saveAllPlayerData and saveAllChunks queue writes on another thread, so wait for them to finish
+    static void saveAndDisableWorldSaving(WorldServer[] worlds) throws MinecraftException {
         try {
-            ThreadedFileIOBase.threadedIOInstance.waitForFinish();
-        } catch (InterruptedException ex) {
-            ServerUtilities.LOGGER.warn("Interrupted while flushing pending world writes before backup", ex);
-            Thread.currentThread().interrupt();
+            for (WorldServer world : worlds) {
+                if (world == null) continue;
+                worldSaveStates.putIfAbsent(world, world.levelSaving);
+                world.saveAllChunks(true, null);
+                world.levelSaving = true;
+            }
+        } catch (MinecraftException | RuntimeException ex) {
+            restoreWorldSaving();
+            throw ex;
         }
+    }
 
-        if (!backups.silent_backup) {
-            BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
-        }
-        Set<ChunkDimPos> backupChunks = new HashSet<>();
-        if ((this.forceOnlyClaimed || backups.only_backup_claimed_chunks) && ClaimedChunks.isActive()) {
-            backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
-            // noinspection ResultOfMethodCallIgnored
-            BACKUP_TEMP_FOLDER.mkdirs();
-        }
-
-        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
-        ICompress compressor = ICompress.createCompressor();
-        if (backups.use_separate_thread) {
-            thread = new ThreadBackup(compressor, worldDir, customName, backupChunks);
-            thread.start();
-        } else {
-            ThreadBackup.doBackup(compressor, worldDir, customName, backupChunks);
-        }
-        universe.scheduleTask(new BackupTask(true));
+    static void restoreWorldSaving() {
+        worldSaveStates.forEach((world, levelSaving) -> world.levelSaving = levelSaving);
+        worldSaveStates.clear();
     }
 
     public static void clearOldBackups() {
@@ -200,7 +209,22 @@ public class BackupTask extends Task {
     }
 
     public static void stopBackupThread() {
-        if (thread != null) thread.interrupt();
+        ThreadBackup backupThread = thread;
+        boolean interrupted = false;
+        if (backupThread != null) {
+            backupThread.interrupt();
+            while (backupThread.isAlive()) {
+                try {
+                    backupThread.join();
+                } catch (InterruptedException ex) {
+                    interrupted = true;
+                    backupThread.interrupt();
+                }
+            }
+        }
+        thread = null;
+        restoreWorldSaving();
+        if (interrupted) Thread.currentThread().interrupt();
     }
 
     private boolean hasOnlinePlayers(MinecraftServer server) {
@@ -208,34 +232,16 @@ public class BackupTask extends Task {
     }
 
     private void postBackup(Universe universe) {
-        if (dimSaveStates.isEmpty()) return;
+        if (worldSaveStates.isEmpty()) return;
         if (isBackupRunning()) {
             setNextTime(System.currentTimeMillis() + Ticks.SECOND.millis());
             universe.scheduleTask(this);
             return;
         }
 
+        thread = null;
+        restoreWorldSaving();
         clearOldBackups();
         FileUtils.delete(BACKUP_TEMP_FOLDER);
-
-        thread = null;
-        try {
-            MinecraftServer server = ServerUtils.getServer();
-
-            for (int i = 0; i < server.worldServers.length; ++i) {
-                WorldServer world = server.worldServers[i];
-                if (world != null) {
-                    if (dimSaveStates.containsKey(i)) {
-                        world.levelSaving = dimSaveStates.get(i);
-                    } else {
-                        world.levelSaving = false;
-                    }
-
-                }
-            }
-        } catch (Exception ex) {
-            ServerUtilities.LOGGER.info("An error occurred while turning on auto-save.", ex);
-        }
-        dimSaveStates.clear();
     }
 }

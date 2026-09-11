@@ -114,26 +114,23 @@ public class ThreadBackup extends Thread {
                     compressFiles(files, compressor);
                 }
 
-                String backupSize = FileUtils.getSizeString(dstFile);
-                ServerUtilities.LOGGER.info("Backup done in {} seconds ({})!", getDoneTime(start), backupSize);
-                ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
+            }
+            String backupSize = FileUtils.getSizeString(dstFile);
+            ServerUtilities.LOGGER.info("Backup done in {} seconds ({})!", getDoneTime(start), backupSize);
+            ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
 
-                if (!backups.silent_backup) {
-                    if (backups.display_file_size) {
-                        String sizeT = FileUtils.getSizeString(BackupTask.BACKUP_FOLDER);
-                        BACKUP.sendAll(
-                                StringUtils.color(
-                                        "cmd.backup_end_2",
-                                        EnumChatFormatting.LIGHT_PURPLE,
-                                        getDoneTime(start),
-                                        (backupSize.equals(sizeT) ? backupSize : (backupSize + " | " + sizeT))));
-                    } else {
-                        BACKUP.sendAll(
-                                StringUtils.color(
-                                        "cmd.backup_end_1",
-                                        EnumChatFormatting.LIGHT_PURPLE,
-                                        getDoneTime(start)));
-                    }
+            if (!backups.silent_backup) {
+                if (backups.display_file_size) {
+                    String sizeT = FileUtils.getSizeString(BackupTask.BACKUP_FOLDER);
+                    BACKUP.sendAll(
+                            StringUtils.color(
+                                    "cmd.backup_end_2",
+                                    EnumChatFormatting.LIGHT_PURPLE,
+                                    getDoneTime(start),
+                                    (backupSize.equals(sizeT) ? backupSize : (backupSize + " | " + sizeT))));
+                } else {
+                    BACKUP.sendAll(
+                            StringUtils.color("cmd.backup_end_1", EnumChatFormatting.LIGHT_PURPLE, getDoneTime(start)));
                 }
             }
         } catch (InterruptedIOException e) {
