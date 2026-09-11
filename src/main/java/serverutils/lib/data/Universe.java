@@ -487,7 +487,9 @@ public class Universe {
                     nbt.setShort("UID", team.getUID());
                     nbt.setString("Type", team.type.getName());
                     if (!NBTUtils.writeNBTChecked(file, nbt)) continue;
-                    new ForgeTeamSavedEvent(team).post();
+                    ForgeTeamSavedEvent saved = new ForgeTeamSavedEvent(team);
+                    saved.post();
+                    if (!saved.isSuccessful()) continue;
                 } else if (file.exists()) {
                     if (!file.delete()) continue;
                 }
