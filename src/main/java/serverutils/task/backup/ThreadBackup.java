@@ -245,7 +245,7 @@ public class ThreadBackup extends Thread {
         return files;
     }
 
-    private static boolean isBackupStorage(File file) throws IOException {
+    public static boolean isBackupStorage(File file) throws IOException {
         Path path = file.getCanonicalFile().toPath();
         return path.startsWith(BACKUP_TEMP_FOLDER.getCanonicalFile().toPath())
                 || path.startsWith(BackupTask.BACKUP_FOLDER.getCanonicalFile().toPath());

@@ -57,6 +57,7 @@ import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.lib.util.misc.MouseButton;
 import serverutils.task.backup.BackupTask;
+import serverutils.task.backup.ThreadBackup;
 
 @EventBusSubscriber(side = Side.CLIENT)
 public class GuiRestoreBackup extends GuiButtonListBase {
@@ -225,8 +226,12 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void renameAdditionalFiles(File previousRoot, boolean includeGlobal, Map<File, File> moved)
-            throws IOException {
+    private void renameAdditionalFiles(File previousRoot, boolean includeGlobal, Map<File, File> moved, File archive,
+            File preservedWorld) throws IOException {
+        Path archivePath = archive.getCanonicalFile().toPath();
+        Path recoveryPath = previousRoot.getCanonicalFile().toPath();
+        Path preservedWorldPath = preservedWorld.getCanonicalFile().toPath();
+        Path recoveryStorage = new File("backups_before_restore").getCanonicalFile().toPath();
         for (String pattern : backups.additional_backup_files) {
             if (!pattern.contains("$WORLDNAME") && !includeGlobal) {
                 continue;
@@ -259,6 +264,12 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
             // Move all old files into backup
             for (File file : previousFiles) {
+                Path path = file.getCanonicalFile().toPath();
+                if (path.equals(archivePath) || path.startsWith(recoveryPath)
+                        || path.startsWith(preservedWorldPath)
+                        || path.startsWith(recoveryStorage)
+                        || ThreadBackup.isBackupStorage(file))
+                    continue;
                 String pathRelative = FileUtils.getRelativePath(file);
                 File destFile = new File(previousRoot, pathRelative);
                 Files.createDirectories(destFile.toPath().getParent());
@@ -298,8 +309,13 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         try (ICompress compressor = ICompress.createCompressor()) {
             boolean isOldBackup = compressor.isOldBackup(file);
             ICompress.validateRestoreTargets(file, worldName, isOldBackup, includeGlobal);
+            Path worldPath = worldDir.getCanonicalFile().toPath();
+            Path archivePath = file.getCanonicalFile().toPath();
             Files.move(worldDir.toPath(), saveCopy.toPath());
             worldMoved = true;
+            if (archivePath.startsWith(worldPath)) {
+                file = new File(saveCopy, worldPath.relativize(archivePath).toString());
+            }
             if (!isOldBackup) {
                 File previousRoot = new File("backups_before_restore/");
                 Files.createDirectories(previousRoot.toPath());
@@ -307,7 +323,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                 previousRoot = Files
                         .createTempDirectory(previousRoot.getParentFile().toPath(), previousRoot.getName() + "-")
                         .toFile();
-                renameAdditionalFiles(previousRoot, includeGlobal, moved);
+                renameAdditionalFiles(previousRoot, includeGlobal, moved, file, saveCopy);
             }
             compressor.extractArchive(file, includeGlobal, isOldBackup);
             closeGui();
