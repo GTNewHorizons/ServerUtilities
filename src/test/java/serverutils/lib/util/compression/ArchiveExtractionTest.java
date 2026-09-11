@@ -59,6 +59,37 @@ public class ArchiveExtractionTest {
     }
 
     @Test
+    public void corruptStoredPayloadIsRejectedBeforeReplacement() throws Exception {
+        Path root = temporary.newFolder().toPath();
+        Files.write(root.resolve("value"), "original".getBytes(StandardCharsets.UTF_8));
+        Path archive = temporary.newFile().toPath();
+        byte[] payload = "payload".getBytes(StandardCharsets.UTF_8);
+        java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+        crc.update(payload);
+        try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(archive))) {
+            ZipEntry entry = new ZipEntry("value");
+            entry.setMethod(ZipEntry.STORED);
+            entry.setSize(payload.length);
+            entry.setCrc(crc.getValue());
+            zip.putNextEntry(entry);
+            zip.write(payload);
+            zip.closeEntry();
+        }
+        byte[] bytes = Files.readAllBytes(archive);
+        int payloadOffset = 30 + (bytes[26] & 255)
+                + ((bytes[27] & 255) << 8)
+                + (bytes[28] & 255)
+                + ((bytes[29] & 255) << 8);
+        bytes[payloadOffset] ^= 1;
+        Files.write(archive, bytes);
+        try {
+            ArchiveExtraction.extract(archive.toFile(), true, false, root);
+            fail("Accepted corrupt ZIP contents");
+        } catch (IOException expected) {}
+        assertEquals("original", new String(Files.readAllBytes(root.resolve("value")), StandardCharsets.UTF_8));
+    }
+
+    @Test
     public void invalidEntryCannotOverwriteEarlierDestination() throws Exception {
         for (String bad : new String[] { "../escape", "/absolute", "C:/absolute", "a/../../escape", "a/../value" }) {
             Path root = temporary.newFolder().toPath();

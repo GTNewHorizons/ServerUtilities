@@ -15,6 +15,8 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -92,8 +94,13 @@ final class ArchiveExtraction {
                     if (!seen.add(relative)) throw new IOException("Duplicate backup entry: " + name);
                     Path copy = staging.resolve("new").resolve(relative);
                     Files.createDirectories(copy.getParent());
-                    try (InputStream in = zip.getInputStream(entry)) {
-                        Files.copy(in, copy);
+                    CRC32 checksum = new CRC32();
+                    long size;
+                    try (InputStream in = new CheckedInputStream(zip.getInputStream(entry), checksum)) {
+                        size = Files.copy(in, copy);
+                    }
+                    if (size != entry.getSize() || checksum.getValue() != entry.getCrc()) {
+                        throw new IOException("Backup checksum or size mismatch: " + name);
                     }
                     targets.add(relative);
                 }
