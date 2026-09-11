@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -48,17 +47,7 @@ public class LegacyCompressor implements ICompress {
 
     @Override
     public boolean isOldBackup(File archive) throws IOException {
-        try (ZipFile zip = new ZipFile(archive)) {
-            Enumeration<? extends ZipEntry> entries = zip.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
-                if (entry.getName().replace('\\', '/').startsWith("saves/")) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+        return ArchiveExtraction.isOldBackup(archive);
     }
 
     @Override

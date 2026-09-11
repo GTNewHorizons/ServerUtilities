@@ -5,7 +5,6 @@ import static serverutils.ServerUtilitiesConfig.backups;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 
 import javax.annotation.Nullable;
@@ -14,9 +13,7 @@ import net.minecraftforge.common.DimensionManager;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.IOUtils;
 
 public class CommonsCompressor implements ICompress {
@@ -52,17 +49,7 @@ public class CommonsCompressor implements ICompress {
 
     @Override
     public boolean isOldBackup(File archive) throws IOException {
-        try (ZipFile zip = new ZipFile(archive)) {
-            boolean isOldBackup = true;
-            Enumeration<ZipArchiveEntry> entries = zip.getEntries();
-            while (entries.hasMoreElements()) {
-                ZipArchiveEntry entry = entries.nextElement();
-                if (entry.getName().replace('\\', '/').startsWith("saves/")) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return ArchiveExtraction.isOldBackup(archive);
     }
 
     @Override

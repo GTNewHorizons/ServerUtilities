@@ -23,6 +23,30 @@ import serverutils.lib.util.FileUtils;
 
 final class ArchiveExtraction {
 
+    static boolean isOldBackup(File archive) throws IOException {
+        try (ZipFile zip = new ZipFile(archive)) {
+            String worldName = zip.getComment();
+            boolean dedicated = false;
+            boolean singlePlayer = false;
+            boolean anySaves = false;
+            Enumeration<? extends ZipEntry> entries = zip.entries();
+            while (entries.hasMoreElements()) {
+                Path path = Paths.get(entries.nextElement().getName().replace('\\', '/')).normalize();
+                anySaves |= path.startsWith("saves");
+                if (worldName != null && !worldName.isEmpty()) {
+                    dedicated |= path.equals(Paths.get(worldName, "level.dat"))
+                            || path.equals(Paths.get(worldName, "level.dat_old"));
+                    singlePlayer |= path.equals(Paths.get("saves", worldName, "level.dat"))
+                            || path.equals(Paths.get("saves", worldName, "level.dat_old"));
+                }
+            }
+            if (dedicated && singlePlayer) throw new IOException("Backup contains two layouts for world " + worldName);
+            if (dedicated || singlePlayer) return dedicated;
+            // Archives without identifiable world metadata retain the original layout detection.
+            return !anySaves;
+        }
+    }
+
     static void validateRestoreTargets(File archive, String worldName, boolean legacy) throws IOException {
         Path world = Paths.get("saves", worldName).normalize();
         try (ZipFile zip = new ZipFile(archive)) {
