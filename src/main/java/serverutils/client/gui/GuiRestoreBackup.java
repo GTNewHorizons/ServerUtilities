@@ -297,7 +297,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
         try (ICompress compressor = ICompress.createCompressor()) {
             boolean isOldBackup = compressor.isOldBackup(file);
-            ICompress.validateRestoreTargets(file, worldName, isOldBackup);
+            ICompress.validateRestoreTargets(file, worldName, isOldBackup, includeGlobal);
             Files.move(worldDir.toPath(), saveCopy.toPath());
             worldMoved = true;
             if (!isOldBackup) {

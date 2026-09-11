@@ -23,6 +23,11 @@ public interface ICompress extends AutoCloseable {
         ArchiveExtraction.validateRestoreTargets(archive, worldName, legacy);
     }
 
+    static void validateRestoreTargets(File archive, String worldName, boolean legacy, boolean includeGlobal)
+            throws IOException {
+        ArchiveExtraction.validateRestoreTargets(archive, worldName, legacy, includeGlobal);
+    }
+
     @Nullable
     String getWorldName(File file) throws IOException;
 

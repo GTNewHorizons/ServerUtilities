@@ -77,6 +77,39 @@ public class ArchiveExtractionTest {
     }
 
     @Test
+    public void worldOnlyRestoreSurvivesChangedAdditionalFileConfig() throws Exception {
+        serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[0];
+        Path root = temporary.newFolder().toPath();
+        Path oldGlobal = root.resolve("old-config/settings.dat");
+        Files.createDirectories(oldGlobal.getParent());
+        Files.write(oldGlobal, "keep".getBytes(StandardCharsets.UTF_8));
+        Path archive = archiveWithComment(
+                "world",
+                "saves/world/level.dat",
+                "old-config/settings.dat",
+                "saves/world_old/level.dat");
+        ICompress.validateRestoreTargets(archive.toFile(), "world", false, false);
+        assertThrows(IOException.class, () -> ICompress.validateRestoreTargets(archive.toFile(), "world", false, true));
+        ArchiveExtraction.extract(archive.toFile(), false, false, root);
+        assertTrue(Files.isRegularFile(root.resolve("saves/world/level.dat")));
+        assertEquals("keep", new String(Files.readAllBytes(oldGlobal), StandardCharsets.UTF_8));
+        assertFalse(Files.exists(root.resolve("saves/world_old")));
+        Path unsafe = archiveWithComment("world", "saves/world/level.dat", "../escape");
+        assertThrows(IOException.class, () -> ArchiveExtraction.extract(unsafe.toFile(), false, false, root));
+
+        // A broad global pattern must not turn the selected world's own files into excluded globals.
+        serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[] { "saves/**" };
+        try {
+            Path otherRoot = temporary.newFolder().toPath();
+            ArchiveExtraction.extract(archive.toFile(), false, false, otherRoot);
+            assertTrue(Files.isRegularFile(otherRoot.resolve("saves/world/level.dat")));
+            assertFalse(Files.exists(otherRoot.resolve("saves/world_old")));
+        } finally {
+            serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[0];
+        }
+    }
+
+    @Test
     public void corruptStoredPayloadIsRejectedBeforeReplacement() throws Exception {
         Path root = temporary.newFolder().toPath();
         Files.write(root.resolve("value"), "original".getBytes(StandardCharsets.UTF_8));
@@ -191,8 +224,13 @@ public class ArchiveExtractionTest {
     }
 
     private Path archive(String... names) throws Exception {
+        return archiveWithComment(null, names);
+    }
+
+    private Path archiveWithComment(String worldName, String... names) throws Exception {
         Path archive = temporary.newFile().toPath();
         try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(archive))) {
+            if (worldName != null) zip.setComment(worldName);
             for (String name : names) {
                 zip.putNextEntry(new ZipEntry(name));
                 zip.write("new".getBytes(StandardCharsets.UTF_8));

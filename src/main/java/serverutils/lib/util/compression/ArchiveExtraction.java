@@ -48,25 +48,32 @@ final class ArchiveExtraction {
     }
 
     static void validateRestoreTargets(File archive, String worldName, boolean legacy) throws IOException {
-        Path world = Paths.get("saves", worldName).normalize();
+        validateRestoreTargets(archive, worldName, legacy, true);
+    }
+
+    static void validateRestoreTargets(File archive, String worldName, boolean legacy, boolean includeGlobal)
+            throws IOException {
         try (ZipFile zip = new ZipFile(archive)) {
             Enumeration<? extends ZipEntry> entries = zip.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 if (entry.isDirectory()) continue;
                 Path path = restorePath(entry.getName(), legacy, worldName);
-                if (path.startsWith(world) || isRankFile(path)) continue;
-                boolean additional = false;
-                for (String pattern : backups.additional_backup_files) {
-                    pattern = pattern.replace("$WORLDNAME", worldName);
-                    if (FileUtils.matchesBackupPath(path, pattern)) {
-                        additional = true;
-                        break;
-                    }
+                if (includeGlobal && !isAllowedTarget(path, worldName)) {
+                    throw new IOException(
+                            "Backup contains an unconfigured restore target: " + path
+                                    + "; restore the world only or enable the original additional_backup_files pattern");
                 }
-                if (!additional) throw new IOException("Backup contains an unexpected restore target: " + path);
             }
         }
+    }
+
+    private static boolean isAllowedTarget(Path path, String worldName) {
+        if (path.startsWith(Paths.get("saves", worldName).normalize()) || isRankFile(path)) return true;
+        for (String pattern : backups.additional_backup_files) {
+            if (FileUtils.matchesBackupPath(path, pattern.replace("$WORLDNAME", worldName))) return true;
+        }
+        return false;
     }
 
     private static boolean isRankFile(Path relative) {
@@ -112,7 +119,17 @@ final class ArchiveExtraction {
                         throw new IOException("Unsafe backup entry: " + name);
                     }
                     if (entry.isDirectory()) continue;
-                    if (!includeGlobal && isGlobal(relative)) continue;
+                    if (!includeGlobal) {
+                        String worldName = zip.getComment();
+                        boolean worldFile = worldName != null
+                                && relative.startsWith(Paths.get("saves", worldName).normalize());
+                        if (!worldFile && isGlobal(relative)) continue;
+                        if (worldName != null && !isAllowedTarget(relative, worldName)) {
+                            serverutils.ServerUtilities.LOGGER
+                                    .warn("Skipping unconfigured entry during world-only restore: {}", name);
+                            continue;
+                        }
+                    }
                     if (!seen.add(relative)) throw new IOException("Duplicate backup entry: " + name);
                     Path copy = staging.resolve("new").resolve(relative);
                     Files.createDirectories(copy.getParent());
