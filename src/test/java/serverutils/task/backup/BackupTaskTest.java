@@ -218,16 +218,38 @@ public class BackupTaskTest {
                 assertTrue(zip.getEntry(FileUtils.getRelativePath(customRegion)) != null);
             }
 
-            IllegalStateException unresolved = org.junit.Assert.assertThrows(
-                    IllegalStateException.class,
-                    () -> new ThreadBackup(
+            // A removed provider can leave region files in a custom folder that can no longer be resolved.
+            File removedModRegion = new File(source, "removed-mod/region/r.0.0.mca");
+            writeRegionChunk(removedModRegion, 0, 0, "recoverable");
+            for (boolean threaded : new boolean[] { false, true }) {
+                java.util.Set<serverutils.lib.math.ChunkDimPos> staleClaims = Collections
+                        .singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 999999));
+                if (threaded) {
+                    ThreadBackup stale = new ThreadBackup(
                             ICompress.createCompressor(),
                             source,
-                            "unresolved",
-                            Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 999999)),
+                            "unregistered",
+                            staleClaims,
                             null,
-                            true));
-            assertTrue(unresolved.getMessage().contains("999999"));
+                            true);
+                    stale.start();
+                    stale.join(TimeUnit.SECONDS.toMillis(5));
+                    assertFalse(stale.isAlive());
+                } else {
+                    ThreadBackup
+                            .doBackup(ICompress.createCompressor(), source, "unregistered", staleClaims, null, true);
+                }
+                try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "unregistered.zip"))) {
+                    assertTrue(zip.getEntry(FileUtils.getRelativePath(unclaimed)) != null);
+                    ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(removedModRegion));
+                    assertTrue(entry != null);
+                    try (InputStream in = zip.getInputStream(entry)) {
+                        org.junit.Assert.assertArrayEquals(
+                                Files.readAllBytes(removedModRegion.toPath()),
+                                IOUtils.toByteArray(in));
+                    }
+                }
+            }
             for (boolean empty : new boolean[] { false, true }) {
                 java.util.Set<serverutils.lib.math.ChunkDimPos> claims = empty ? Collections.emptySet()
                         : Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 0));

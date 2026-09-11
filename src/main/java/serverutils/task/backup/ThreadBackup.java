@@ -79,9 +79,9 @@ public class ThreadBackup extends Thread {
         chunksToBackup = new HashSet<>(backupChunks);
         compressor = compress;
         files = snapshot;
-        this.onlyClaimed = onlyClaimed;
         // Capture provider paths on the calling server thread before starting the backup worker.
         dimensionFolders = onlyClaimed ? resolveDimensionFolders(sourceFile, chunksToBackup) : Collections.emptyMap();
+        this.onlyClaimed = onlyClaimed && dimensionFolders != null;
         setPriority(7);
     }
 
@@ -148,7 +148,10 @@ public class ThreadBackup extends Thread {
             if (onlyClaimed && chunks.isEmpty()) {
                 ServerUtilities.LOGGER.warn("Claim-only backup has no claimed chunks; region files will be omitted");
             }
-            if (onlyClaimed && dimensionFolders == null) dimensionFolders = resolveDimensionFolders(src, chunks);
+            if (onlyClaimed && dimensionFolders == null) {
+                dimensionFolders = resolveDimensionFolders(src, chunks);
+                if (dimensionFolders == null) onlyClaimed = false;
+            }
             if (files == null) files = listWorldFiles(src);
             addBaseFolderFiles(files, src);
             long start = System.currentTimeMillis();
@@ -353,6 +356,7 @@ public class ThreadBackup extends Thread {
         }
     }
 
+    /** Returns null when stale claims require a full-world backup. */
     private static Map<Integer, File> resolveDimensionFolders(File src, Set<ChunkDimPos> chunks) {
         Map<Integer, File> folders = new HashMap<>();
         if (chunks.isEmpty()) return folders;
@@ -360,10 +364,14 @@ public class ThreadBackup extends Thread {
             if (world != null) folders.put(world.provider.dimensionId, world.getChunkSaveLocation());
         }
         for (ChunkDimPos pos : chunks) {
+            if (!folders.containsKey(pos.dim) && !DimensionManager.isDimensionRegistered(pos.dim)) {
+                ServerUtilities.LOGGER.warn(
+                        "Claimed dimension {} is no longer registered; making a full-world backup to preserve remaining files",
+                        pos.dim);
+                return null;
+            }
             folders.computeIfAbsent(pos.dim, dim -> {
                 try {
-                    if (!DimensionManager.isDimensionRegistered(dim))
-                        throw new IllegalStateException("Dimension is not registered");
                     String folder = DimensionManager.createProviderFor(dim).getSaveFolder();
                     return folder == null ? src : new File(src, folder);
                 } catch (RuntimeException e) {
