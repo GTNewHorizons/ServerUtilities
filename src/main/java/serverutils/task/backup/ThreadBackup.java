@@ -326,8 +326,8 @@ public class ThreadBackup extends Thread {
         }
     }
 
-    private static Object2ObjectMap<File, ObjectSet<ChunkDimPos>> mapClaimsToRegionFile(
-            Set<ChunkDimPos> chunksToBackup) {
+    private static Object2ObjectMap<File, ObjectSet<ChunkDimPos>> mapClaimsToRegionFile(Set<ChunkDimPos> chunksToBackup)
+            throws IOException {
         Int2ObjectMap<Long2ObjectMap<ObjectSet<ChunkDimPos>>> regionClaimsByDim = new Int2ObjectOpenHashMap<>();
         chunksToBackup.forEach(
                 pos -> regionClaimsByDim.computeIfAbsent(pos.dim, k -> new Long2ObjectOpenHashMap<>())
@@ -340,7 +340,7 @@ public class ThreadBackup extends Thread {
 
             int dim = worldserver.provider.dimensionId;
             File regionFolder = new File(worldserver.getChunkSaveLocation(), "region");
-            Long2ObjectMap<ObjectSet<ChunkDimPos>> regionClaims = regionClaimsByDim.get(dim);
+            Long2ObjectMap<ObjectSet<ChunkDimPos>> regionClaims = regionClaimsByDim.remove(dim);
             if (!regionFolder.exists() || regionClaims == null) continue;
 
             File[] regions = regionFolder.listFiles();
@@ -359,6 +359,11 @@ public class ThreadBackup extends Thread {
                 }
                 regionFilesToBackup.put(file, claims);
             }
+        }
+        if (!regionClaimsByDim.isEmpty()) {
+            throw new IOException(
+                    "Cannot back up claims in unloaded dimensions " + regionClaimsByDim.keySet()
+                            + "; load these dimensions before retrying the backup");
         }
         return regionFilesToBackup;
     }

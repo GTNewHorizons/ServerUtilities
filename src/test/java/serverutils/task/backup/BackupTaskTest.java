@@ -145,6 +145,27 @@ public class BackupTaskTest {
         when(side.getServer()).thenReturn(server);
         sidedDelegate.set(fml, side);
         try {
+            File unloadedRegion = new File(source, "DIM7/region/r.0.0.mca");
+            assertTrue(unloadedRegion.getParentFile().mkdirs());
+            Files.write(unloadedRegion.toPath(), new byte[] { 3 });
+            Map<String, File> unloadedFiles = new java.util.LinkedHashMap<>();
+            unloadedFiles.put(FileUtils.getRelativePath(unloadedRegion), unloadedRegion);
+            java.lang.reflect.Method filter = ThreadBackup.class
+                    .getDeclaredMethod("backupRegions", Map.class, File.class, java.util.Set.class, ICompress.class);
+            filter.setAccessible(true);
+            ICompress output = mock(ICompress.class);
+            java.lang.reflect.InvocationTargetException failure = org.junit.Assert.assertThrows(
+                    java.lang.reflect.InvocationTargetException.class,
+                    () -> filter.invoke(
+                            null,
+                            unloadedFiles,
+                            source,
+                            Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 7)),
+                            output));
+            assertTrue(failure.getCause() instanceof java.io.IOException);
+            assertTrue(failure.getCause().getMessage().contains("7"));
+            assertEquals(unloadedRegion, unloadedFiles.get(FileUtils.getRelativePath(unloadedRegion)));
+            org.mockito.Mockito.verifyNoInteractions(output);
             for (boolean empty : new boolean[] { false, true }) {
                 java.util.Set<serverutils.lib.math.ChunkDimPos> claims = empty ? Collections.emptySet()
                         : Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 0));
