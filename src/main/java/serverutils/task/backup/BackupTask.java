@@ -153,6 +153,7 @@ public class BackupTask extends Task {
             for (WorldServer world : worlds) {
                 if (world == null) continue;
                 worldSaveStates.putIfAbsent(world, world.levelSaving);
+                world.levelSaving = false;
                 world.saveAllChunks(true, null);
                 world.levelSaving = true;
             }
@@ -165,6 +166,17 @@ public class BackupTask extends Task {
     static void restoreWorldSaving() {
         worldSaveStates.forEach((world, levelSaving) -> world.levelSaving = levelSaving);
         worldSaveStates.clear();
+    }
+
+    public static boolean isWorldSavingSuspended() {
+        return !worldSaveStates.isEmpty();
+    }
+
+    public static void suspendNewWorldSaving(WorldServer world) {
+        if (isWorldSavingSuspended()) {
+            worldSaveStates.putIfAbsent(world, world.levelSaving);
+            world.levelSaving = true;
+        }
     }
 
     public static void clearOldBackups() {

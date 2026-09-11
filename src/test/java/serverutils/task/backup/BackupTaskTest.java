@@ -67,6 +67,49 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void protectsNewWorldsAndRejectsSaveCommandsUntilCleanup() throws Exception {
+        WorldServer world = mock(WorldServer.class);
+        WorldServer loadedLater = mock(WorldServer.class);
+        BackupTask.saveAndDisableWorldSaving(new WorldServer[] { world });
+        serverutils.handlers.ServerUtilitiesServerEventHandler
+                .loadWorldEvent(new net.minecraftforge.event.world.WorldEvent.Load(loadedLater));
+        assertTrue(loadedLater.levelSaving);
+        for (net.minecraft.command.ICommand command : new net.minecraft.command.ICommand[] {
+                new net.minecraft.command.server.CommandSaveAll(), new net.minecraft.command.server.CommandSaveOn(),
+                new net.minecraft.command.server.CommandSaveOff() }) {
+            net.minecraftforge.event.CommandEvent event = org.mockito.Mockito
+                    .spy(new net.minecraftforge.event.CommandEvent(command, mock(ICommandSender.class), new String[0]));
+            // Forge adds this override from @Cancelable when transforming CommandEvent at runtime.
+            when(event.isCancelable()).thenReturn(true);
+            serverutils.handlers.ServerUtilitiesServerEventHandler.onBackupSaveCommand(event);
+            assertTrue(event.isCanceled());
+            assertTrue(event.exception instanceof net.minecraft.command.CommandException);
+        }
+        BackupTask.stopBackupThread();
+        assertFalse(world.levelSaving);
+        assertFalse(loadedLater.levelSaving);
+        net.minecraftforge.event.CommandEvent event = new net.minecraftforge.event.CommandEvent(
+                new net.minecraft.command.server.CommandSaveAll(),
+                mock(ICommandSender.class),
+                new String[0]);
+        serverutils.handlers.ServerUtilitiesServerEventHandler.onBackupSaveCommand(event);
+        assertFalse(event.isCanceled());
+    }
+
+    @Test
+    public void backupSavesPreviouslyDisabledWorldAndRestoresItsFlag() throws Exception {
+        WorldServer world = mock(WorldServer.class);
+        world.levelSaving = true;
+        doAnswer(invocation -> {
+            assertFalse("Backup must force a current chunk snapshot", world.levelSaving);
+            return null;
+        }).when(world).saveAllChunks(true, null);
+        BackupTask.saveAndDisableWorldSaving(new WorldServer[] { world });
+        BackupTask.restoreWorldSaving();
+        assertTrue(world.levelSaving);
+    }
+
+    @Test
     public void nextBackupRestoresSavingBeforePreparingAgain() throws Exception {
         WorldServer world = mock(WorldServer.class);
         AtomicInteger saves = new AtomicInteger();
