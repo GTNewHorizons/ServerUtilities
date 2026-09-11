@@ -44,6 +44,21 @@ public class ArchiveExtractionTest {
     }
 
     @Test
+    public void successfulGlobalRestoreRetainsOriginalRanks() throws Exception {
+        Path root = temporary.newFolder().toPath();
+        String ranks = serverutils.ServerUtilities.SERVER_FOLDER + "ranks.txt";
+        Path target = root.resolve(ranks);
+        Files.createDirectories(target.getParent());
+        Files.write(target, "original".getBytes(StandardCharsets.UTF_8));
+        ArchiveExtraction.extract(archive(ranks).toFile(), true, false, root);
+        assertEquals("new", new String(Files.readAllBytes(target), StandardCharsets.UTF_8));
+        try (java.util.stream.Stream<Path> copies = Files.walk(root.resolve("backups_before_restore"))) {
+            Path copy = copies.filter(path -> path.endsWith(ranks)).findFirst().get();
+            assertEquals("original", new String(Files.readAllBytes(copy), StandardCharsets.UTF_8));
+        }
+    }
+
+    @Test
     public void invalidEntryCannotOverwriteEarlierDestination() throws Exception {
         for (String bad : new String[] { "../escape", "/absolute", "C:/absolute", "a/../../escape", "a/../value" }) {
             Path root = temporary.newFolder().toPath();

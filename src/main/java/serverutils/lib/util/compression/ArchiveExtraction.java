@@ -112,6 +112,14 @@ final class ArchiveExtraction {
                 Files.move(staging.resolve("new").resolve(relative), target);
                 installed.add(relative);
             }
+            Path originals = staging.resolve("old");
+            if (Files.exists(originals)) {
+                Path recoveryRoot = root.resolve("backups_before_restore");
+                Files.createDirectories(recoveryRoot);
+                Path recovery = Files.createTempDirectory(recoveryRoot, "restore-");
+                // The final move preserves replaced global files, including automatically included ranks.
+                Files.move(originals, recovery.resolve("files"));
+            }
         } catch (IOException | RuntimeException failure) {
             Collections.reverse(installed);
             for (Path relative : installed) {
