@@ -21,6 +21,10 @@ public class AtomicSaveTest {
     public void replacementPreservesPosixPermissions() throws Exception {
         Path target = temporary.newFile().toPath();
         org.junit.Assume.assumeTrue(Files.getFileStore(target).supportsFileAttributeView("posix"));
+        Path reference = Files.createFile(target.resolveSibling("ordinary-new-file"));
+        Path newTarget = target.resolveSibling("new-save.dat");
+        FileUtils.writeAtomic(newTarget.toFile(), new byte[] { 1 });
+        assertEquals(Files.getPosixFilePermissions(reference), Files.getPosixFilePermissions(newTarget));
         java.util.Set<java.nio.file.attribute.PosixFilePermission> permissions = java.nio.file.attribute.PosixFilePermissions
                 .fromString("rw-rw----");
         Files.setPosixFilePermissions(target, permissions);

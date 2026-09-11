@@ -72,6 +72,7 @@ public class FileUtils {
         Path target = file.toPath().toAbsolutePath();
         Files.createDirectories(target.getParent());
         boolean posix = Files.getFileAttributeView(target.getParent(), PosixFileAttributeView.class) != null;
+        // Initial POSIX permissions are filtered by umask; replacements keep the target's existing mode below.
         Path temporary = posix
                 ? Files.createTempFile(
                         target.getParent(),
