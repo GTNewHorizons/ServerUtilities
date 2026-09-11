@@ -18,6 +18,17 @@ public class AtomicSaveTest {
     public TemporaryFolder temporary = new TemporaryFolder();
 
     @Test
+    public void replacementPreservesPosixPermissions() throws Exception {
+        Path target = temporary.newFile().toPath();
+        org.junit.Assume.assumeTrue(Files.getFileStore(target).supportsFileAttributeView("posix"));
+        java.util.Set<java.nio.file.attribute.PosixFilePermission> permissions = java.nio.file.attribute.PosixFilePermissions
+                .fromString("rw-rw----");
+        Files.setPosixFilePermissions(target, permissions);
+        FileUtils.writeAtomic(target.toFile(), new byte[] { 1 });
+        assertEquals(permissions, Files.getPosixFilePermissions(target));
+    }
+
+    @Test
     public void failedSerializationPreservesPreviousSave() throws Exception {
         Path target = temporary.newFile().toPath();
         FileUtils.save(target.toFile(), "original");

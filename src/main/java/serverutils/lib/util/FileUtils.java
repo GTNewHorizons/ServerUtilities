@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,8 +70,18 @@ public class FileUtils {
     public static void writeAtomic(File file, byte[] data) throws IOException {
         Path target = file.toPath().toAbsolutePath();
         Files.createDirectories(target.getParent());
-        Path temporary = Files.createTempFile(target.getParent(), ".su-save-", ".tmp");
+        boolean posix = Files.getFileAttributeView(target.getParent(), PosixFileAttributeView.class) != null;
+        Path temporary = posix
+                ? Files.createTempFile(
+                        target.getParent(),
+                        ".su-save-",
+                        ".tmp",
+                        PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")))
+                : Files.createTempFile(target.getParent(), ".su-save-", ".tmp");
         try {
+            if (posix && Files.exists(target)) {
+                Files.setPosixFilePermissions(temporary, Files.getPosixFilePermissions(target));
+            }
             try (FileOutputStream output = new FileOutputStream(temporary.toFile())) {
                 output.write(data);
                 output.getFD().sync();
