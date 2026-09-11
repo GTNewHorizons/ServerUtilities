@@ -217,39 +217,70 @@ public class BackupTaskTest {
             try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "captured-path.zip"))) {
                 assertTrue(zip.getEntry(FileUtils.getRelativePath(customRegion)) != null);
             }
+            CustomFolderProvider.folder = "custom-moon";
 
             // A removed provider can leave region files in a custom folder that can no longer be resolved.
             File removedModRegion = new File(source, "removed-mod/region/r.0.0.mca");
             writeRegionChunk(removedModRegion, 0, 0, "recoverable");
-            for (boolean threaded : new boolean[] { false, true }) {
-                java.util.Set<serverutils.lib.math.ChunkDimPos> staleClaims = Collections
-                        .singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 999999));
-                if (threaded) {
-                    ThreadBackup stale = new ThreadBackup(
-                            ICompress.createCompressor(),
-                            source,
-                            "unregistered",
-                            staleClaims,
-                            null,
-                            true);
-                    stale.start();
-                    stale.join(TimeUnit.SECONDS.toMillis(5));
-                    assertFalse(stale.isAlive());
-                } else {
-                    ThreadBackup
-                            .doBackup(ICompress.createCompressor(), source, "unregistered", staleClaims, null, true);
-                }
-                try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "unregistered.zip"))) {
-                    assertTrue(zip.getEntry(FileUtils.getRelativePath(unclaimed)) != null);
-                    ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(removedModRegion));
-                    assertTrue(entry != null);
-                    try (InputStream in = zip.getInputStream(entry)) {
-                        org.junit.Assert.assertArrayEquals(
-                                Files.readAllBytes(removedModRegion.toPath()),
-                                IOUtils.toByteArray(in));
+            File nestedRegion = new File(regions, "unowned/r.0.0.mca");
+            writeRegionChunk(nestedRegion, 0, 0, "unknown-nested-folder");
+            for (boolean configured : new boolean[] { false, true }) {
+                ServerUtilitiesConfig.backups.only_backup_claimed_chunks = configured;
+                for (boolean entire : new boolean[] { false, true }) {
+                    ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = entire;
+                    for (boolean threaded : new boolean[] { false, true }) {
+                        java.util.Set<serverutils.lib.math.ChunkDimPos> staleClaims = new java.util.HashSet<>();
+                        staleClaims.add(new serverutils.lib.math.ChunkDimPos(0, 0, 999999));
+                        staleClaims.add(new serverutils.lib.math.ChunkDimPos(0, 0, 0));
+                        if (threaded) {
+                            Map<String, File> snapshot = ThreadBackup.snapshotFiles(source);
+                            ThreadBackup stale = configured
+                                    ? new ThreadBackup(
+                                            ICompress.createCompressor(),
+                                            source,
+                                            "unregistered",
+                                            staleClaims,
+                                            snapshot)
+                                    : new ThreadBackup(
+                                            ICompress.createCompressor(),
+                                            source,
+                                            "unregistered",
+                                            staleClaims,
+                                            snapshot,
+                                            true);
+                            stale.start();
+                            stale.join(TimeUnit.SECONDS.toMillis(5));
+                            assertFalse(stale.isAlive());
+                        } else if (configured) {
+                            ThreadBackup.doBackup(ICompress.createCompressor(), source, "unregistered", staleClaims);
+                        } else {
+                            ThreadBackup.doBackup(
+                                    ICompress.createCompressor(),
+                                    source,
+                                    "unregistered",
+                                    staleClaims,
+                                    null,
+                                    true);
+                        }
+                        try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "unregistered.zip"))) {
+                            assertArchivedChunks(zip, claimed, 0, 0, 1, "overworld", entire);
+                            assertNull(zip.getEntry(FileUtils.getRelativePath(unclaimed)));
+                            assertNull(zip.getEntry(FileUtils.getRelativePath(unloadedRegion)));
+                            assertNull(zip.getEntry(FileUtils.getRelativePath(customRegion)));
+                            for (File preserved : new File[] { removedModRegion, nestedRegion }) {
+                                ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(preserved));
+                                assertTrue(entry != null);
+                                try (InputStream in = zip.getInputStream(entry)) {
+                                    org.junit.Assert.assertArrayEquals(
+                                            Files.readAllBytes(preserved.toPath()),
+                                            IOUtils.toByteArray(in));
+                                }
+                            }
+                        }
                     }
                 }
             }
+            ServerUtilitiesConfig.backups.only_backup_claimed_chunks = false;
             for (boolean empty : new boolean[] { false, true }) {
                 java.util.Set<serverutils.lib.math.ChunkDimPos> claims = empty ? Collections.emptySet()
                         : Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 0));
@@ -257,6 +288,10 @@ public class BackupTaskTest {
                 try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "forced-claims.zip"))) {
                     assertEquals(!empty, zip.getEntry(FileUtils.getRelativePath(claimed)) != null);
                     assertNull(zip.getEntry(FileUtils.getRelativePath(unclaimed)));
+                    assertNull(zip.getEntry(FileUtils.getRelativePath(unloadedRegion)));
+                    assertNull(zip.getEntry(FileUtils.getRelativePath(customRegion)));
+                    assertTrue(zip.getEntry(FileUtils.getRelativePath(removedModRegion)) != null);
+                    assertTrue(zip.getEntry(FileUtils.getRelativePath(nestedRegion)) != null);
                 }
             }
 

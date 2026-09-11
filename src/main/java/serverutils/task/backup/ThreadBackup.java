@@ -80,8 +80,8 @@ public class ThreadBackup extends Thread {
         compressor = compress;
         files = snapshot;
         // Capture provider paths on the calling server thread before starting the backup worker.
-        dimensionFolders = onlyClaimed ? resolveDimensionFolders(sourceFile, chunksToBackup) : Collections.emptyMap();
-        this.onlyClaimed = onlyClaimed && dimensionFolders != null;
+        dimensionFolders = onlyClaimed ? resolveDimensionFolders(sourceFile) : Collections.emptyMap();
+        this.onlyClaimed = onlyClaimed;
         setPriority(7);
     }
 
@@ -146,11 +146,11 @@ public class ThreadBackup extends Thread {
         File dstFile = null;
         try {
             if (onlyClaimed && chunks.isEmpty()) {
-                ServerUtilities.LOGGER.warn("Claim-only backup has no claimed chunks; region files will be omitted");
+                ServerUtilities.LOGGER
+                        .warn("Claim-only backup has no claimed chunks; known dimension regions will be omitted");
             }
             if (onlyClaimed && dimensionFolders == null) {
-                dimensionFolders = resolveDimensionFolders(src, chunks);
-                if (dimensionFolders == null) onlyClaimed = false;
+                dimensionFolders = resolveDimensionFolders(src);
             }
             if (files == null) files = listWorldFiles(src);
             addBaseFolderFiles(files, src);
@@ -291,7 +291,23 @@ public class ThreadBackup extends Thread {
                 chunksToBackup,
                 dimensionFolders);
         Path world = src.toPath().toAbsolutePath().normalize();
-        files.entrySet().removeIf(entry -> isWorldRegionFile(entry.getValue(), world));
+        Set<Path> regionFolders = new HashSet<>();
+        for (File folder : dimensionFolders.values()) {
+            regionFolders.add(new File(folder, "region").toPath().toAbsolutePath().normalize());
+        }
+        Set<Path> unknownFolders = new HashSet<>();
+        files.entrySet().removeIf(entry -> {
+            File file = entry.getValue();
+            if (!isWorldRegionFile(file, world)) return false;
+            Path parent = file.toPath().toAbsolutePath().normalize().getParent();
+            if (regionFolders.contains(parent)) return true;
+            unknownFolders.add(parent);
+            return false;
+        });
+        for (Path folder : unknownFolders) {
+            ServerUtilities.LOGGER
+                    .warn("Cannot identify dimension for region files in {}; copying them unchanged", folder);
+        }
 
         int index = 0;
         int savedChunks = 0;
@@ -363,26 +379,19 @@ public class ThreadBackup extends Thread {
         }
     }
 
-    /** Returns null when stale claims require a full-world backup. */
-    private static Map<Integer, File> resolveDimensionFolders(File src, Set<ChunkDimPos> chunks) {
+    private static Map<Integer, File> resolveDimensionFolders(File src) {
         Map<Integer, File> folders = new HashMap<>();
-        if (chunks.isEmpty()) return folders;
         for (WorldServer world : ServerUtils.getServer().worldServers) {
             if (world != null) folders.put(world.provider.dimensionId, world.getChunkSaveLocation());
         }
-        for (ChunkDimPos pos : chunks) {
-            if (!folders.containsKey(pos.dim) && !DimensionManager.isDimensionRegistered(pos.dim)) {
-                ServerUtilities.LOGGER.warn(
-                        "Claimed dimension {} is no longer registered; making a full-world backup to preserve remaining files",
-                        pos.dim);
-                return null;
-            }
-            folders.computeIfAbsent(pos.dim, dim -> {
+        // Include dimensions with no claims so their unclaimed regions are still filtered out.
+        for (int dimension : DimensionManager.getStaticDimensionIDs()) {
+            folders.computeIfAbsent(dimension, dim -> {
                 try {
                     String folder = DimensionManager.createProviderFor(dim).getSaveFolder();
                     return folder == null ? src : new File(src, folder);
                 } catch (RuntimeException e) {
-                    throw new IllegalStateException("Cannot resolve save folder for claimed dimension " + dim, e);
+                    throw new IllegalStateException("Cannot resolve save folder for dimension " + dim, e);
                 }
             });
         }
@@ -393,9 +402,10 @@ public class ThreadBackup extends Thread {
             Map<Integer, File> dimensionFolders) throws IOException {
         Object2ObjectMap<File, ObjectSet<ChunkDimPos>> regions = new Object2ObjectOpenHashMap<>();
         for (ChunkDimPos pos : chunks) {
-            File file = new File(
-                    dimensionFolders.get(pos.dim),
-                    "region/r." + (pos.posX >> 5) + "." + (pos.posZ >> 5) + ".mca");
+            File folder = dimensionFolders.get(pos.dim);
+            // Removed dimensions have no reliable path; their unknown region folders are kept unchanged.
+            if (folder == null) continue;
+            File file = new File(folder, "region/r." + (pos.posX >> 5) + "." + (pos.posZ >> 5) + ".mca");
             regions.computeIfAbsent(file, key -> new ObjectOpenHashSet<>()).add(pos);
         }
         for (java.util.Iterator<File> it = regions.keySet().iterator(); it.hasNext();) {
