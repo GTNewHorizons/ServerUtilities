@@ -58,6 +58,7 @@ public class ThreadBackup extends Thread {
     private final Set<ChunkDimPos> chunksToBackup;
     private final ICompress compressor;
     private final Map<String, File> files;
+    private final boolean onlyClaimed;
 
     public ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
         this(compress, sourceFile, backupName, backupChunks, null);
@@ -65,17 +66,29 @@ public class ThreadBackup extends Thread {
 
     ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
             Map<String, File> snapshot) {
+        this(
+                compress,
+                sourceFile,
+                backupName,
+                backupChunks,
+                snapshot,
+                backups.only_backup_claimed_chunks || !backupChunks.isEmpty());
+    }
+
+    ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
+            Map<String, File> snapshot, boolean onlyClaimed) {
         src0 = sourceFile;
         customName = backupName;
         chunksToBackup = backupChunks;
         compressor = compress;
         files = snapshot;
+        this.onlyClaimed = onlyClaimed;
         setPriority(7);
     }
 
     public void run() {
         try {
-            doBackup(compressor, src0, customName, chunksToBackup, files);
+            doBackup(compressor, src0, customName, chunksToBackup, files, onlyClaimed);
         } finally {
             if (files != null) deleteSnapshot();
         }
@@ -119,6 +132,11 @@ public class ThreadBackup extends Thread {
 
     static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
             Map<String, File> files) {
+        doBackup(compressor, src, customName, chunks, files, backups.only_backup_claimed_chunks || !chunks.isEmpty());
+    }
+
+    static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
+            Map<String, File> files, boolean onlyClaimed) {
         String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         File dstFile = null;
@@ -131,7 +149,7 @@ public class ThreadBackup extends Thread {
             dstFile = FileUtils.newFile(new File(BackupTask.BACKUP_FOLDER, outName));
             try (compressor) {
                 compressor.createOutputStream(dstFile);
-                if (!chunks.isEmpty() && backups.only_backup_claimed_chunks) {
+                if (onlyClaimed) {
                     backupRegions(files, src, chunks, compressor);
                 } else {
                     compressFiles(files, compressor);

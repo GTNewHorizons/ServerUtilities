@@ -115,7 +115,9 @@ public class BackupTask extends Task {
                 BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
             }
             Set<ChunkDimPos> backupChunks = new HashSet<>();
-            if ((this.forceOnlyClaimed || backups.only_backup_claimed_chunks) && ClaimedChunks.isActive()) {
+            boolean onlyClaimed = this.forceOnlyClaimed || backups.only_backup_claimed_chunks;
+            if (onlyClaimed) {
+                if (!ClaimedChunks.isActive()) throw new IllegalStateException("Chunk claiming is not active");
                 backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
                 // noinspection ResultOfMethodCallIgnored
                 BACKUP_TEMP_FOLDER.mkdirs();
@@ -126,10 +128,10 @@ public class BackupTask extends Task {
             universe.scheduleTask(new BackupTask(true));
             if (backups.use_separate_thread) {
                 Map<String, File> snapshot = ThreadBackup.snapshotFiles(worldDir);
-                thread = new ThreadBackup(compressor, worldDir, customName, backupChunks, snapshot);
+                thread = new ThreadBackup(compressor, worldDir, customName, backupChunks, snapshot, onlyClaimed);
                 thread.start();
             } else {
-                ThreadBackup.doBackup(compressor, worldDir, customName, backupChunks);
+                ThreadBackup.doBackup(compressor, worldDir, customName, backupChunks, null, onlyClaimed);
             }
             backupStarted = true;
         } catch (Exception ex) {

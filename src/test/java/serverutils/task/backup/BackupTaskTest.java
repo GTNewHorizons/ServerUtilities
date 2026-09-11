@@ -110,6 +110,60 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void forcedClaimFilteringWorksWithConfigOffAndWithNoClaims() throws Exception {
+        File source = new File("build/test-claimed-backup-source");
+        File regions = new File(source, "region");
+        assertTrue(regions.mkdirs() || regions.isDirectory());
+        File claimed = new File(regions, "r.0.0.mca");
+        File unclaimed = new File(regions, "r.1.0.mca");
+        Files.write(claimed.toPath(), new byte[] { 1 });
+        Files.write(unclaimed.toPath(), new byte[] { 2 });
+        WorldServer world = mock(WorldServer.class);
+        Field provider = net.minecraft.world.World.class.getDeclaredField("provider");
+        provider.setAccessible(true);
+        provider.set(world, mock(net.minecraft.world.WorldProvider.class));
+        when(world.getChunkSaveLocation()).thenReturn(source);
+        MinecraftServer server = mock(MinecraftServer.class);
+        server.worldServers = new WorldServer[] { world };
+        ISaveFormat saveFormat = mock(ISaveFormat.class);
+        SaveHandler saveHandler = mock(SaveHandler.class);
+        when(server.getActiveAnvilConverter()).thenReturn(saveFormat);
+        when(saveFormat.getSaveLoader(server.getFolderName(), false)).thenReturn(saveHandler);
+        when(saveHandler.getWorldDirectory()).thenReturn(source);
+        setCurrentServer(server);
+        ServerUtilitiesConfig.backups.only_backup_claimed_chunks = false;
+        ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = true;
+        Field loaderInstance = cpw.mods.fml.common.Loader.class.getDeclaredField("instance");
+        loaderInstance.setAccessible(true);
+        Object previousLoader = loaderInstance.get(null);
+        loaderInstance.set(null, mock(cpw.mods.fml.common.Loader.class));
+        cpw.mods.fml.common.FMLCommonHandler fml = cpw.mods.fml.common.FMLCommonHandler.instance();
+        Field sidedDelegate = cpw.mods.fml.common.FMLCommonHandler.class.getDeclaredField("sidedDelegate");
+        sidedDelegate.setAccessible(true);
+        Object previousDelegate = sidedDelegate.get(fml);
+        cpw.mods.fml.common.IFMLSidedHandler side = mock(cpw.mods.fml.common.IFMLSidedHandler.class);
+        when(side.getServer()).thenReturn(server);
+        sidedDelegate.set(fml, side);
+        try {
+            for (boolean empty : new boolean[] { false, true }) {
+                java.util.Set<serverutils.lib.math.ChunkDimPos> claims = empty ? Collections.emptySet()
+                        : Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 0));
+                ThreadBackup.doBackup(ICompress.createCompressor(), source, "forced-claims", claims, null, true);
+                try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "forced-claims.zip"))) {
+                    assertEquals(!empty, zip.getEntry(FileUtils.getRelativePath(claimed)) != null);
+                    assertNull(zip.getEntry(FileUtils.getRelativePath(unclaimed)));
+                }
+            }
+        } finally {
+            sidedDelegate.set(fml, previousDelegate);
+            loaderInstance.set(null, previousLoader);
+            ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = false;
+            setCurrentServer(null);
+            FileUtils.delete(source);
+        }
+    }
+
+    @Test
     public void nextBackupRestoresSavingBeforePreparingAgain() throws Exception {
         WorldServer world = mock(WorldServer.class);
         AtomicInteger saves = new AtomicInteger();
