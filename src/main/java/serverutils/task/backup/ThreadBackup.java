@@ -69,7 +69,7 @@ public class ThreadBackup extends Thread {
                 backupName,
                 backupChunks,
                 snapshot,
-                backups.only_backup_claimed_chunks || !backupChunks.isEmpty());
+                backups.only_backup_claimed_chunks && !backupChunks.isEmpty());
     }
 
     ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
@@ -131,7 +131,7 @@ public class ThreadBackup extends Thread {
 
     static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
             Map<String, File> files) {
-        doBackup(compressor, src, customName, chunks, files, backups.only_backup_claimed_chunks || !chunks.isEmpty());
+        doBackup(compressor, src, customName, chunks, files, backups.only_backup_claimed_chunks && !chunks.isEmpty());
     }
 
     static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,

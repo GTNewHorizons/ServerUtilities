@@ -237,11 +237,40 @@ public class BackupTaskTest {
                     assertNull(zip.getEntry(FileUtils.getRelativePath(unclaimed)));
                 }
             }
+
+            for (boolean configured : new boolean[] { false, true }) {
+                ServerUtilitiesConfig.backups.only_backup_claimed_chunks = configured;
+                for (boolean empty : new boolean[] { false, true }) {
+                    java.util.Set<serverutils.lib.math.ChunkDimPos> claims = empty ? Collections.emptySet()
+                            : Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 0));
+                    for (boolean threaded : new boolean[] { false, true }) {
+                        if (threaded) {
+                            ThreadBackup legacy = new ThreadBackup(
+                                    ICompress.createCompressor(),
+                                    source,
+                                    "legacy-api",
+                                    claims);
+                            legacy.start();
+                            legacy.join(TimeUnit.SECONDS.toMillis(5));
+                            assertFalse(legacy.isAlive());
+                        } else {
+                            ThreadBackup.doBackup(ICompress.createCompressor(), source, "legacy-api", claims);
+                        }
+                        try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "legacy-api.zip"))) {
+                            assertTrue(zip.getEntry(FileUtils.getRelativePath(claimed)) != null);
+                            assertEquals(
+                                    !(configured && !empty),
+                                    zip.getEntry(FileUtils.getRelativePath(unclaimed)) != null);
+                        }
+                    }
+                }
+            }
         } finally {
             BackupTask.stopBackupThread();
             serverutils.data.ClaimedChunks.instance = previousClaims;
             ServerUtilitiesConfig.world.chunk_claiming = previousClaiming;
             ServerUtilitiesConfig.backups.use_separate_thread = true;
+            ServerUtilitiesConfig.backups.only_backup_claimed_chunks = false;
             CustomFolderProvider.folder = "custom-moon";
             net.minecraftforge.common.DimensionManager.unregisterDimension(7);
             net.minecraftforge.common.DimensionManager.unregisterDimension(8);
