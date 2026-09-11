@@ -208,6 +208,10 @@ public class ThreadBackup extends Thread {
         for (File file : FileUtils.listTree(src)) {
             files.put(FileUtils.getRelativePath(file), file);
         }
+        for (String name : new String[] { "ranks.txt", "players.txt" }) {
+            File file = new File(ServerUtilities.SERVER_FOLDER, name);
+            if (file.isFile()) files.put(FileUtils.getRelativePath(file), file);
+        }
         return files;
     }
 

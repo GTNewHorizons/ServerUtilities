@@ -19,6 +19,10 @@ public interface ICompress extends AutoCloseable {
 
     boolean isOldBackup(File archive) throws IOException;
 
+    static void validateRestoreTargets(File archive, String worldName, boolean legacy) throws IOException {
+        ArchiveExtraction.validateRestoreTargets(archive, worldName, legacy);
+    }
+
     @Nullable
     String getWorldName(File file) throws IOException;
 

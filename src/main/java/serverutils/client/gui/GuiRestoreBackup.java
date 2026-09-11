@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
@@ -15,7 +16,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -222,7 +225,8 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void renameAdditionalFiles(File previousRoot, boolean includeGlobal) {
+    private void renameAdditionalFiles(File previousRoot, boolean includeGlobal, Map<File, File> moved)
+            throws IOException {
         for (String pattern : backups.additional_backup_files) {
             if (!pattern.contains("$WORLDNAME") && !includeGlobal) {
                 continue;
@@ -256,8 +260,9 @@ public class GuiRestoreBackup extends GuiButtonListBase {
             for (File file : previousFiles) {
                 String pathRelative = FileUtils.getRelativePath(file);
                 File destFile = new File(previousRoot, pathRelative);
-                destFile.getParentFile().mkdirs();
-                file.renameTo(destFile);
+                Files.createDirectories(destFile.toPath().getParent());
+                Files.move(file.toPath(), destFile.toPath());
+                moved.put(file, destFile);
             }
         }
     }
@@ -286,21 +291,44 @@ public class GuiRestoreBackup extends GuiButtonListBase {
             saveCopy = new File(savesDir, saveCopy.getName() + "_old");
         }
 
-        worldDir.renameTo(saveCopy);
+        boolean worldMoved = false;
+        Map<File, File> moved = new LinkedHashMap<>();
 
         try (ICompress compressor = ICompress.createCompressor()) {
             boolean isOldBackup = compressor.isOldBackup(file);
+            ICompress.validateRestoreTargets(file, worldName, isOldBackup);
+            Files.move(worldDir.toPath(), saveCopy.toPath());
+            worldMoved = true;
             if (!isOldBackup) {
                 File previousRoot = new File("backups_before_restore/");
+                Files.createDirectories(previousRoot.toPath());
                 previousRoot = new File(previousRoot, DATE_FORMAT.format(Calendar.getInstance().getTime()));
-                renameAdditionalFiles(previousRoot, includeGlobal);
+                previousRoot = Files
+                        .createTempDirectory(previousRoot.getParentFile().toPath(), previousRoot.getName() + "-")
+                        .toFile();
+                renameAdditionalFiles(previousRoot, includeGlobal, moved);
             }
             compressor.extractArchive(file, includeGlobal, isOldBackup);
             closeGui();
         } catch (Exception e) {
-            ServerUtilities.LOGGER.error("Failed to restore backup", e);
-            FileUtils.delete(worldDir);
-            saveCopy.renameTo(worldDir);
+
+            if (worldMoved) {
+                try {
+                    if (worldDir.exists() && !FileUtils.delete(worldDir))
+                        throw new IOException("Could not remove partial restored world");
+                    Files.move(saveCopy.toPath(), worldDir.toPath());
+                } catch (IOException recovery) {
+                    e.addSuppressed(recovery);
+                }
+            }
+            for (Map.Entry<File, File> entry : moved.entrySet()) {
+                try {
+                    Files.move(entry.getValue().toPath(), entry.getKey().toPath());
+                } catch (IOException recovery) {
+                    e.addSuppressed(recovery);
+                }
+            }
+            ServerUtilities.LOGGER.error("Failed to restore backup; original files retained if recovery failed", e);
             Minecraft.getMinecraft().displayGuiScreen(
                     new GuiErrorScreen(
                             StatCollector.translateToLocal("serverutilities.gui.backup.error"),
