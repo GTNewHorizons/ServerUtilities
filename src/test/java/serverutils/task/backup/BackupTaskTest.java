@@ -410,15 +410,43 @@ public class BackupTaskTest {
         String entryName = FileUtils.getRelativePath(player);
         Map<String, File> snapshot = ThreadBackup.snapshotFiles(source);
         Files.write(player.toPath(), "after".getBytes(StandardCharsets.UTF_8));
-        ThreadBackup.doBackup(ICompress.createCompressor(), source, "snapshot-test", Collections.emptySet(), snapshot);
+        String[] previousPatterns = ServerUtilitiesConfig.backups.additional_backup_files;
+        File oldBackup = new File(BackupTask.BACKUP_FOLDER, "previous.zip");
+        Files.write(oldBackup.toPath(), new byte[] { 1 });
+        ServerUtilitiesConfig.backups.additional_backup_files = new String[] {
+                FileUtils.getRelativePath(BackupTask.BACKUP_TEMP_FOLDER) + "/**",
+                FileUtils.getRelativePath(BackupTask.BACKUP_FOLDER) + "/**" };
 
-        try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "snapshot-test.zip"))) {
-            ZipEntry entry = zip.getEntry(entryName);
-            assertTrue(entry != null);
-            try (InputStream in = zip.getInputStream(entry)) {
-                assertEquals("before", new String(IOUtils.toByteArray(in), StandardCharsets.UTF_8));
+        try {
+            // Wildcards and literal directories must both exclude backup-owned files.
+            for (boolean wildcard : new boolean[] { true, false }) {
+                if (!wildcard) {
+                    ServerUtilitiesConfig.backups.additional_backup_files = new String[] {
+                            BackupTask.BACKUP_TEMP_FOLDER.getPath(), BackupTask.BACKUP_FOLDER.getPath() };
+                }
+                ThreadBackup.doBackup(
+                        ICompress.createCompressor(),
+                        source,
+                        "snapshot-test",
+                        Collections.emptySet(),
+                        snapshot);
+                try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "snapshot-test.zip"))) {
+                    ZipEntry entry = zip.getEntry(entryName);
+                    assertTrue(entry != null);
+                    try (InputStream in = zip.getInputStream(entry)) {
+                        assertEquals("before", new String(IOUtils.toByteArray(in), StandardCharsets.UTF_8));
+                    }
+                    java.util.Enumeration<? extends ZipEntry> entries = zip.entries();
+                    while (entries.hasMoreElements()) {
+                        String name = entries.nextElement().getName();
+                        assertFalse(name.startsWith(FileUtils.getRelativePath(BackupTask.BACKUP_TEMP_FOLDER) + "/"));
+                        assertFalse(name.startsWith(FileUtils.getRelativePath(BackupTask.BACKUP_FOLDER) + "/"));
+                    }
+                }
             }
         } finally {
+            ServerUtilitiesConfig.backups.additional_backup_files = previousPatterns;
+            Files.deleteIfExists(oldBackup.toPath());
             FileUtils.delete(source);
             ThreadBackup.deleteSnapshot();
         }

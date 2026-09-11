@@ -93,7 +93,7 @@ public class ThreadBackup extends Thread {
         }
     }
 
-    private static void addBaseFolderFiles(Map<String, File> files, File saveFile) {
+    private static void addBaseFolderFiles(Map<String, File> files, File saveFile) throws IOException {
         String saveName = saveFile.getName();
 
         for (String pattern : backups.additional_backup_files) {
@@ -102,7 +102,7 @@ public class ThreadBackup extends Thread {
             int firstWildcardIndex = pattern.indexOf('*');
             if (firstWildcardIndex == -1) {
                 for (File file : FileUtils.listTree(new File(pattern))) {
-                    files.putIfAbsent(FileUtils.getRelativePath(file), file);
+                    if (!isBackupStorage(file)) files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
                 continue;
             }
@@ -118,7 +118,7 @@ public class ThreadBackup extends Thread {
             PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
             List<File> fileCandidates = FileUtils.listTree(rootFolder.toFile());
             for (File file : fileCandidates) {
-                if (matcher.matches(file.toPath().normalize())) {
+                if (matcher.matches(file.toPath().normalize()) && !isBackupStorage(file)) {
                     files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
             }
@@ -227,16 +227,22 @@ public class ThreadBackup extends Thread {
         FileUtils.delete(new File(BACKUP_TEMP_FOLDER, "snapshot"));
     }
 
-    private static Map<String, File> listWorldFiles(File src) {
+    private static Map<String, File> listWorldFiles(File src) throws IOException {
         Map<String, File> files = new LinkedHashMap<>();
         for (File file : FileUtils.listTree(src)) {
-            files.put(FileUtils.getRelativePath(file), file);
+            if (!isBackupStorage(file)) files.put(FileUtils.getRelativePath(file), file);
         }
         for (String name : new String[] { "ranks.txt", "players.txt" }) {
             File file = new File(ServerUtilities.SERVER_FOLDER, name);
             if (file.isFile()) files.put(FileUtils.getRelativePath(file), file);
         }
         return files;
+    }
+
+    private static boolean isBackupStorage(File file) throws IOException {
+        Path path = file.getCanonicalFile().toPath();
+        return path.startsWith(BACKUP_TEMP_FOLDER.getCanonicalFile().toPath())
+                || path.startsWith(BackupTask.BACKUP_FOLDER.getCanonicalFile().toPath());
     }
 
     private static boolean isWorldRegionFile(File file, Path world) {
