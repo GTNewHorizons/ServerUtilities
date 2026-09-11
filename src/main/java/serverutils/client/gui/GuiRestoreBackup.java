@@ -231,7 +231,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
             if (!pattern.contains("$WORLDNAME") && !includeGlobal) {
                 continue;
             }
-            pattern = pattern.replace("$WORLDNAME", worldName);
+            pattern = FileUtils.normalizeBackupPattern(pattern.replace("$WORLDNAME", worldName));
 
             // Gather list of all old files
             List<File> previousFiles;
@@ -245,12 +245,13 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                 if (firstWildcardIndex != 0 && (pattern.charAt(firstWildcardIndex - 1) != '/')) {
                     rootFolder = rootFolder.getParent();
                 }
+                if (rootFolder == null || rootFolder.toString().isEmpty()) rootFolder = Paths.get(".");
 
                 PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
                 List<File> fileCandidates = FileUtils.listTree(rootFolder.toFile());
                 previousFiles = new ArrayList<>();
                 for (File file : fileCandidates) {
-                    if (matcher.matches(file.toPath())) {
+                    if (matcher.matches(file.toPath().normalize())) {
                         previousFiles.add(file);
                     }
                 }

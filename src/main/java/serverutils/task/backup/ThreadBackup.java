@@ -85,7 +85,7 @@ public class ThreadBackup extends Thread {
         String saveName = saveFile.getName();
 
         for (String pattern : backups.additional_backup_files) {
-            pattern = pattern.replace("$WORLDNAME", saveName);
+            pattern = FileUtils.normalizeBackupPattern(pattern.replace("$WORLDNAME", saveName));
 
             int firstWildcardIndex = pattern.indexOf('*');
             if (firstWildcardIndex == -1) {
@@ -101,11 +101,12 @@ public class ThreadBackup extends Thread {
             if (firstWildcardIndex != 0 && (pattern.charAt(firstWildcardIndex - 1) != '/')) {
                 rootFolder = rootFolder.getParent();
             }
+            if (rootFolder == null || rootFolder.toString().isEmpty()) rootFolder = Paths.get(".");
 
             PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
             List<File> fileCandidates = FileUtils.listTree(rootFolder.toFile());
             for (File file : fileCandidates) {
-                if (matcher.matches(file.toPath())) {
+                if (matcher.matches(file.toPath().normalize())) {
                     files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
             }

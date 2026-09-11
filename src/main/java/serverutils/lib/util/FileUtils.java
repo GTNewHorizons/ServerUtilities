@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -254,5 +255,20 @@ public class FileUtils {
     public static String getRelativePath(File file) {
         Path filePath = file.toPath().toAbsolutePath();
         return Paths.get("").toAbsolutePath().relativize(filePath).toString().replace('\\', '/');
+    }
+
+    public static String normalizeBackupPattern(String pattern) {
+        pattern = pattern.replace('\\', '/');
+        while (pattern.startsWith("./")) pattern = pattern.substring(2);
+        while (pattern.contains("/./")) pattern = pattern.replace("/./", "/");
+        if (pattern.endsWith("/.")) pattern = pattern.substring(0, pattern.length() - 2);
+        return pattern;
+    }
+
+    public static boolean matchesBackupPath(Path path, String pattern) {
+        pattern = normalizeBackupPattern(pattern);
+        path = path.normalize();
+        return FileSystems.getDefault().getPathMatcher("glob:" + pattern).matches(path)
+                || (!pattern.contains("*") && path.startsWith(Paths.get(pattern).normalize()));
     }
 }

@@ -5,7 +5,6 @@ import static serverutils.ServerUtilitiesConfig.backups;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,8 +35,7 @@ final class ArchiveExtraction {
                 boolean additional = false;
                 for (String pattern : backups.additional_backup_files) {
                     pattern = pattern.replace("$WORLDNAME", worldName);
-                    if (FileSystems.getDefault().getPathMatcher("glob:" + pattern).matches(path)
-                            || (!pattern.contains("*") && path.startsWith(Paths.get(pattern)))) {
+                    if (FileUtils.matchesBackupPath(path, pattern)) {
                         additional = true;
                         break;
                     }
@@ -156,9 +154,7 @@ final class ArchiveExtraction {
     private static boolean isGlobal(Path relative) {
         if (isRankFile(relative)) return true;
         for (String pattern : backups.additional_backup_files) {
-            if (!pattern.contains("$WORLDNAME")
-                    && FileSystems.getDefault().getPathMatcher("glob:" + pattern).matches(relative))
-                return true;
+            if (!pattern.contains("$WORLDNAME") && FileUtils.matchesBackupPath(relative, pattern)) return true;
         }
         return false;
     }

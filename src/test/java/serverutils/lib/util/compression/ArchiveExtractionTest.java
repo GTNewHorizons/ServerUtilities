@@ -90,6 +90,21 @@ public class ArchiveExtractionTest {
     }
 
     @Test
+    public void dottedPatternsValidateAndExcludeGlobalFiles() throws Exception {
+        serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[] { "./saves/./NEI/global/**" };
+        try {
+            Path root = temporary.newFolder().toPath();
+            Path archive = archive("saves/world/level.dat", "saves/NEI/global/settings.dat");
+            ArchiveExtraction.validateRestoreTargets(archive.toFile(), "world", false);
+            ArchiveExtraction.extract(archive.toFile(), false, false, root);
+            assertTrue(Files.exists(root.resolve("saves/world/level.dat")));
+            assertFalse(Files.exists(root.resolve("saves/NEI/global/settings.dat")));
+        } finally {
+            serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[0];
+        }
+    }
+
+    @Test
     public void invalidEntryCannotOverwriteEarlierDestination() throws Exception {
         for (String bad : new String[] { "../escape", "/absolute", "C:/absolute", "a/../../escape", "a/../value" }) {
             Path root = temporary.newFolder().toPath();
