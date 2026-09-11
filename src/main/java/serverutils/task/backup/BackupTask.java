@@ -125,7 +125,8 @@ public class BackupTask extends Task {
             ICompress compressor = ICompress.createCompressor();
             universe.scheduleTask(new BackupTask(true));
             if (backups.use_separate_thread) {
-                thread = new ThreadBackup(compressor, worldDir, customName, backupChunks);
+                Map<String, File> snapshot = ThreadBackup.snapshotFiles(worldDir);
+                thread = new ThreadBackup(compressor, worldDir, customName, backupChunks, snapshot);
                 thread.start();
             } else {
                 ThreadBackup.doBackup(compressor, worldDir, customName, backupChunks);
@@ -140,7 +141,10 @@ public class BackupTask extends Task {
                             EnumChatFormatting.RED + "An error occurred while preparing backup. " + ex.getMessage()));
             ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", ex);
         } finally {
-            if (!backupStarted) restoreWorldSaving();
+            if (!backupStarted) {
+                restoreWorldSaving();
+                ThreadBackup.deleteSnapshot();
+            }
         }
     }
 

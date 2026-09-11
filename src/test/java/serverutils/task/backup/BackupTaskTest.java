@@ -1,5 +1,6 @@
 package serverutils.task.backup;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -9,11 +10,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
@@ -23,6 +30,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.ISaveFormat;
 import net.minecraft.world.storage.SaveHandler;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -31,6 +39,7 @@ import org.junit.Test;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.compression.ICompress;
 
 public class BackupTaskTest {
 
@@ -151,6 +160,30 @@ public class BackupTaskTest {
         assertFalse(worker.isAlive());
         assertFalse(world.levelSaving);
         assertNull(BackupTask.thread);
+    }
+
+    @Test
+    public void asynchronousBackupUsesPreparedPlayerSnapshot() throws Exception {
+        File source = new File("build/test-snapshot-world");
+        File player = new File(source, "playerdata/player.dat");
+        assertTrue(player.getParentFile().mkdirs() || player.getParentFile().isDirectory());
+        Files.write(player.toPath(), "before".getBytes(StandardCharsets.UTF_8));
+
+        String entryName = FileUtils.getRelativePath(player);
+        Map<String, File> snapshot = ThreadBackup.snapshotFiles(source);
+        Files.write(player.toPath(), "after".getBytes(StandardCharsets.UTF_8));
+        ThreadBackup.doBackup(ICompress.createCompressor(), source, "snapshot-test", Collections.emptySet(), snapshot);
+
+        try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "snapshot-test.zip"))) {
+            ZipEntry entry = zip.getEntry(entryName);
+            assertTrue(entry != null);
+            try (InputStream in = zip.getInputStream(entry)) {
+                assertEquals("before", new String(IOUtils.toByteArray(in), StandardCharsets.UTF_8));
+            }
+        } finally {
+            FileUtils.delete(source);
+            ThreadBackup.deleteSnapshot();
+        }
     }
 
     private static void waitForBackup() throws InterruptedException {

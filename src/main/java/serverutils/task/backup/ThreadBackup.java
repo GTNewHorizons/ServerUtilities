@@ -10,13 +10,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import net.minecraft.nbt.CompressedStreamTools;
@@ -53,20 +57,31 @@ public class ThreadBackup extends Thread {
     private final String customName;
     private final Set<ChunkDimPos> chunksToBackup;
     private final ICompress compressor;
+    private final Map<String, File> files;
 
     public ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
+        this(compress, sourceFile, backupName, backupChunks, null);
+    }
+
+    ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
+            Map<String, File> snapshot) {
         src0 = sourceFile;
         customName = backupName;
         chunksToBackup = backupChunks;
         compressor = compress;
+        files = snapshot;
         setPriority(7);
     }
 
     public void run() {
-        doBackup(compressor, src0, customName, chunksToBackup);
+        try {
+            doBackup(compressor, src0, customName, chunksToBackup, files);
+        } finally {
+            if (files != null) deleteSnapshot();
+        }
     }
 
-    private static void addBaseFolderFiles(List<File> files, File saveFile) {
+    private static void addBaseFolderFiles(Map<String, File> files, File saveFile) {
         String saveName = saveFile.getName();
 
         for (String pattern : backups.additional_backup_files) {
@@ -74,7 +89,9 @@ public class ThreadBackup extends Thread {
 
             int firstWildcardIndex = pattern.indexOf('*');
             if (firstWildcardIndex == -1) {
-                files.addAll(FileUtils.listTree(new File(pattern)));
+                for (File file : FileUtils.listTree(new File(pattern))) {
+                    files.putIfAbsent(FileUtils.getRelativePath(file), file);
+                }
                 continue;
             }
 
@@ -89,18 +106,23 @@ public class ThreadBackup extends Thread {
             List<File> fileCandidates = FileUtils.listTree(rootFolder.toFile());
             for (File file : fileCandidates) {
                 if (matcher.matches(file.toPath())) {
-                    files.add(file);
+                    files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
             }
         }
     }
 
     public static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks) {
+        doBackup(compressor, src, customName, chunks, null);
+    }
+
+    static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
+            Map<String, File> files) {
         String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         File dstFile = null;
         try {
-            List<File> files = FileUtils.listTree(src);
+            if (files == null) files = listWorldFiles(src);
             addBaseFolderFiles(files, src);
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
@@ -109,7 +131,7 @@ public class ThreadBackup extends Thread {
             try (compressor) {
                 compressor.createOutputStream(dstFile);
                 if (!chunks.isEmpty() && backups.only_backup_claimed_chunks) {
-                    backupRegions(files, chunks, compressor);
+                    backupRegions(files, src, chunks, compressor);
                 } else {
                     compressFiles(files, compressor);
                 }
@@ -147,6 +169,52 @@ public class ThreadBackup extends Thread {
         }
     }
 
+    static Map<String, File> snapshotFiles(File src) throws IOException {
+        deleteSnapshot();
+        if (!BACKUP_TEMP_FOLDER.mkdirs() && !BACKUP_TEMP_FOLDER.isDirectory()) {
+            throw new IOException("Could not create backup staging directory");
+        }
+
+        Map<String, File> files = listWorldFiles(src);
+        Path world = src.toPath().toAbsolutePath().normalize();
+        int index = 0;
+        try {
+            for (Map.Entry<String, File> entry : files.entrySet()) {
+                File file = entry.getValue();
+                if (isWorldRegionFile(file, world)) continue;
+
+                File copy = new File(BACKUP_TEMP_FOLDER, "snapshot/" + index++);
+                Files.createDirectories(copy.toPath().getParent());
+                Files.copy(
+                        file.toPath(),
+                        copy.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.COPY_ATTRIBUTES);
+                entry.setValue(copy);
+            }
+            return files;
+        } catch (IOException | RuntimeException ex) {
+            deleteSnapshot();
+            throw ex;
+        }
+    }
+
+    static void deleteSnapshot() {
+        FileUtils.delete(new File(BACKUP_TEMP_FOLDER, "snapshot"));
+    }
+
+    private static Map<String, File> listWorldFiles(File src) {
+        Map<String, File> files = new LinkedHashMap<>();
+        for (File file : FileUtils.listTree(src)) {
+            files.put(FileUtils.getRelativePath(file), file);
+        }
+        return files;
+    }
+
+    private static boolean isWorldRegionFile(File file, Path world) {
+        return file.getName().endsWith(".mca") && file.toPath().toAbsolutePath().normalize().startsWith(world);
+    }
+
     private static void logProgress(int i, int allFiles, String name) {
         long millis = System.currentTimeMillis();
         boolean first = i == 0;
@@ -161,11 +229,11 @@ public class ThreadBackup extends Thread {
         }
     }
 
-    private static void compressFiles(List<File> files, ICompress compressor) throws IOException {
+    private static void compressFiles(Map<String, File> files, ICompress compressor) throws IOException {
         int allFiles = files.size();
-        for (int i = 0; i < allFiles; i++) {
-            File file = files.get(i);
-            compressFile(FileUtils.getRelativePath(file), file, compressor, i, allFiles);
+        int index = 0;
+        for (Map.Entry<String, File> entry : files.entrySet()) {
+            compressFile(entry.getKey(), entry.getValue(), compressor, index++, allFiles);
         }
     }
 
@@ -177,10 +245,11 @@ public class ThreadBackup extends Thread {
         compressor.addFileToArchive(file, entryName);
     }
 
-    private static void backupRegions(List<File> files, Set<ChunkDimPos> chunksToBackup, ICompress compressor)
-            throws IOException {
+    private static void backupRegions(Map<String, File> files, File src, Set<ChunkDimPos> chunksToBackup,
+            ICompress compressor) throws IOException {
         Object2ObjectMap<File, ObjectSet<ChunkDimPos>> dimRegionClaims = mapClaimsToRegionFile(chunksToBackup);
-        files.removeIf(f -> f.getName().endsWith(".mca"));
+        Path world = src.toPath().toAbsolutePath().normalize();
+        files.entrySet().removeIf(entry -> isWorldRegionFile(entry.getValue(), world));
 
         int index = 0;
         int savedChunks = 0;
@@ -229,8 +298,8 @@ public class ThreadBackup extends Thread {
             ServerUtilities.LOGGER.info("Backed up {} regions containing {} claimed chunks", regionFiles, savedChunks);
         }
 
-        for (File file : files) {
-            compressFile(FileUtils.getRelativePath(file), file, compressor, index++, totalFiles);
+        for (Map.Entry<String, File> entry : files.entrySet()) {
+            compressFile(entry.getKey(), entry.getValue(), compressor, index++, totalFiles);
         }
     }
 
