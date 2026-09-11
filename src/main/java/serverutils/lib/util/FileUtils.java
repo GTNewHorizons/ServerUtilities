@@ -4,15 +4,16 @@ import static serverutils.lib.util.FileUtils.SizeUnit.GB;
 import static serverutils.lib.util.FileUtils.SizeUnit.KB;
 import static serverutils.lib.util.FileUtils.SizeUnit.MB;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,24 +56,29 @@ public class FileUtils {
     }
 
     public static void save(File file, Iterable<String> list) throws Exception {
-        OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(newFile(file)), StandardCharsets.UTF_8);
-        BufferedWriter br = new BufferedWriter(fw);
-
-        for (String s : list) {
-            br.write(s);
-            br.write('\n');
-        }
-
-        br.close();
-        fw.close();
+        StringBuilder text = new StringBuilder();
+        for (String line : list) text.append(line).append('\n');
+        save(file, text.toString());
     }
 
     public static void save(File file, String string) throws Exception {
-        OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(newFile(file)), StandardCharsets.UTF_8);
-        BufferedWriter br = new BufferedWriter(fw);
-        br.write(string);
-        br.close();
-        fw.close();
+        writeAtomic(file, string.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void writeAtomic(File file, byte[] data) throws IOException {
+        Path target = file.toPath().toAbsolutePath();
+        Files.createDirectories(target.getParent());
+        Path temporary = Files.createTempFile(target.getParent(), ".su-save-", ".tmp");
+        try {
+            try (FileOutputStream output = new FileOutputStream(temporary.toFile())) {
+                output.write(data);
+                output.getFD().sync();
+            }
+            // Fail closed if atomic replacement is unavailable; keep the previous complete save.
+            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
     }
 
     public static void saveSafe(final File file, final Iterable<String> list) {

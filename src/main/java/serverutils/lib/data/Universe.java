@@ -454,8 +454,7 @@ public class Universe {
             }
             gameRulesState.setTag("SavedRules", savedRules);
             universeData.setTag("GameRulesState", gameRulesState);
-            NBTUtils.writeNBTSafe(new File(dataFolder, "universe.dat"), universeData);
-            needsSaving = false;
+            needsSaving = !NBTUtils.writeNBTChecked(new File(dataFolder, "universe.dat"), universeData);
         }
 
         for (ForgePlayer player : players.values()) {
@@ -468,7 +467,7 @@ public class Universe {
                 nbt.setString("Name", player.getName());
                 nbt.setString("UUID", StringUtils.fromUUID(player.getId()));
                 nbt.setString("TeamID", player.team.getId());
-                NBTUtils.writeNBTSafe(player.getDataFile(), nbt);
+                if (!NBTUtils.writeNBTChecked(player.getDataFile(), nbt)) continue;
                 new ForgePlayerSavedEvent(player).post();
                 player.needsSaving = false;
             }
@@ -487,17 +486,18 @@ public class Universe {
                     nbt.setString("ID", team.getId());
                     nbt.setShort("UID", team.getUID());
                     nbt.setString("Type", team.type.getName());
-                    NBTUtils.writeNBTSafe(file, nbt);
+                    if (!NBTUtils.writeNBTChecked(file, nbt)) continue;
                     new ForgeTeamSavedEvent(team).post();
                 } else if (file.exists()) {
-                    file.delete();
+                    if (!file.delete()) continue;
                 }
 
                 team.needsSaving = false;
             }
         }
 
-        checkSaving = false;
+        checkSaving = needsSaving || players.values().stream().anyMatch(player -> player.needsSaving)
+                || getTeams().stream().anyMatch(team -> team.needsSaving);
     }
 
     public File getWorldDirectory() {
