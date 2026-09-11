@@ -145,6 +145,9 @@ public class ThreadBackup extends Thread {
                 + ".zip";
         File dstFile = null;
         try {
+            if (onlyClaimed && chunks.isEmpty()) {
+                ServerUtilities.LOGGER.warn("Claim-only backup has no claimed chunks; region files will be omitted");
+            }
             if (onlyClaimed && dimensionFolders == null) dimensionFolders = resolveDimensionFolders(src, chunks);
             if (files == null) files = listWorldFiles(src);
             addBaseFolderFiles(files, src);
