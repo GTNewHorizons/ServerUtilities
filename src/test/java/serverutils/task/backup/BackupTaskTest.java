@@ -110,14 +110,21 @@ public class BackupTaskTest {
     }
 
     @Test
-    public void forcedClaimFilteringWorksWithConfigOffAndWithNoClaims() throws Exception {
+    public void forcedClaimFilteringIncludesUnloadedDimensionsAndReconstructsChunks() throws Exception {
         File source = new File("build/test-claimed-backup-source");
         File regions = new File(source, "region");
         assertTrue(regions.mkdirs() || regions.isDirectory());
         File claimed = new File(regions, "r.0.0.mca");
         File unclaimed = new File(regions, "r.1.0.mca");
-        Files.write(claimed.toPath(), new byte[] { 1 });
-        Files.write(unclaimed.toPath(), new byte[] { 2 });
+        writeRegionChunk(claimed, 0, 0, "overworld");
+        writeRegionChunk(claimed, 1, 0, "unclaimed");
+        writeRegionChunk(unclaimed, 32, 0, "unclaimed-region");
+        File unloadedRegion = new File(source, "DIM7/region/r.-1.-1.mca");
+        File customRegion = new File(source, "custom-moon/region/r.-1.-1.mca");
+        writeRegionChunk(unloadedRegion, -1, -1, "unloaded");
+        writeRegionChunk(unloadedRegion, -2, -1, "unclaimed");
+        writeRegionChunk(customRegion, -1, -1, "custom-folder");
+        writeRegionChunk(customRegion, -2, -1, "unclaimed");
         WorldServer world = mock(WorldServer.class);
         Field provider = net.minecraft.world.World.class.getDeclaredField("provider");
         provider.setAccessible(true);
@@ -125,6 +132,7 @@ public class BackupTaskTest {
         when(world.getChunkSaveLocation()).thenReturn(source);
         MinecraftServer server = mock(MinecraftServer.class);
         server.worldServers = new WorldServer[] { world };
+        when(server.getConfigurationManager()).thenReturn(mock(ServerConfigurationManager.class));
         ISaveFormat saveFormat = mock(ISaveFormat.class);
         SaveHandler saveHandler = mock(SaveHandler.class);
         when(server.getActiveAnvilConverter()).thenReturn(saveFormat);
@@ -144,28 +152,82 @@ public class BackupTaskTest {
         cpw.mods.fml.common.IFMLSidedHandler side = mock(cpw.mods.fml.common.IFMLSidedHandler.class);
         when(side.getServer()).thenReturn(server);
         sidedDelegate.set(fml, side);
+        boolean previousClaiming = ServerUtilitiesConfig.world.chunk_claiming;
+        serverutils.data.ClaimedChunks previousClaims = serverutils.data.ClaimedChunks.instance;
+        net.minecraftforge.common.DimensionManager
+                .registerProviderType(7, net.minecraft.world.WorldProviderSurface.class, false);
+        net.minecraftforge.common.DimensionManager.registerDimension(7, 7);
+        net.minecraftforge.common.DimensionManager.registerProviderType(8, CustomFolderProvider.class, false);
+        net.minecraftforge.common.DimensionManager.registerDimension(8, 8);
         try {
-            File unloadedRegion = new File(source, "DIM7/region/r.0.0.mca");
-            assertTrue(unloadedRegion.getParentFile().mkdirs());
-            Files.write(unloadedRegion.toPath(), new byte[] { 3 });
-            Map<String, File> unloadedFiles = new java.util.LinkedHashMap<>();
-            unloadedFiles.put(FileUtils.getRelativePath(unloadedRegion), unloadedRegion);
-            java.lang.reflect.Method filter = ThreadBackup.class
-                    .getDeclaredMethod("backupRegions", Map.class, File.class, java.util.Set.class, ICompress.class);
-            filter.setAccessible(true);
-            ICompress output = mock(ICompress.class);
-            java.lang.reflect.InvocationTargetException failure = org.junit.Assert.assertThrows(
-                    java.lang.reflect.InvocationTargetException.class,
-                    () -> filter.invoke(
-                            null,
-                            unloadedFiles,
+            Universe universe = new Universe(server);
+            serverutils.lib.data.ForgeTeam team = new serverutils.lib.data.ForgeTeam(
+                    universe,
+                    (short) 1,
+                    "test",
+                    serverutils.lib.data.TeamType.SERVER);
+            universe.addTeam(team);
+            java.lang.reflect.Constructor<serverutils.data.ServerUtilitiesTeamData> dataConstructor = serverutils.data.ServerUtilitiesTeamData.class
+                    .getDeclaredConstructor(serverutils.lib.data.ForgeTeam.class);
+            dataConstructor.setAccessible(true);
+            serverutils.data.ServerUtilitiesTeamData teamData = dataConstructor.newInstance(team);
+            ServerUtilitiesConfig.world.chunk_claiming = true;
+            serverutils.data.ClaimedChunks.instance = new serverutils.data.ClaimedChunks(universe);
+            for (boolean async : new boolean[] { false, true }) {
+                for (boolean entire : new boolean[] { false, true }) {
+                    serverutils.data.ClaimedChunks.instance.clear();
+                    for (serverutils.lib.math.ChunkDimPos pos : new serverutils.lib.math.ChunkDimPos[] {
+                            new serverutils.lib.math.ChunkDimPos(0, 0, 0),
+                            new serverutils.lib.math.ChunkDimPos(-1, -1, 7),
+                            new serverutils.lib.math.ChunkDimPos(-1, -1, 8) }) {
+                        // Leave the claims queued: BackupTask must include newly claimed chunks too.
+                        serverutils.data.ClaimedChunks.instance
+                                .addChunk(new serverutils.data.ClaimedChunk(pos, teamData));
+                    }
+                    ServerUtilitiesConfig.backups.use_separate_thread = async;
+                    ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = entire;
+                    new BackupTask(mock(ICommandSender.class), "forced-claims", true).execute(universe);
+                    if (async) waitForBackup();
+                    new BackupTask(true).execute(universe);
+                    assertFalse(world.levelSaving);
+                    try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "forced-claims.zip"))) {
+                        assertArchivedChunks(zip, claimed, 0, 0, 1, "overworld", entire);
+                        assertArchivedChunks(zip, unloadedRegion, -1, -1, -2, "unloaded", entire);
+                        assertArchivedChunks(zip, customRegion, -1, -1, -2, "custom-folder", entire);
+                        assertNull(zip.getEntry(FileUtils.getRelativePath(unclaimed)));
+                    }
+                    assertNull(net.minecraftforge.common.DimensionManager.getWorld(7));
+                    assertNull(net.minecraftforge.common.DimensionManager.getWorld(8));
+                }
+            }
+
+            // The asynchronous worker uses the paths captured before it starts, not the live provider registry.
+            CustomFolderProvider.folder = "custom-moon";
+            ThreadBackup captured = new ThreadBackup(
+                    ICompress.createCompressor(),
+                    source,
+                    "captured-path",
+                    Collections.singleton(new serverutils.lib.math.ChunkDimPos(-1, -1, 8)),
+                    null,
+                    true);
+            CustomFolderProvider.folder = "wrong-folder";
+            captured.start();
+            captured.join(TimeUnit.SECONDS.toMillis(5));
+            assertFalse(captured.isAlive());
+            try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "captured-path.zip"))) {
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(customRegion)) != null);
+            }
+
+            IllegalStateException unresolved = org.junit.Assert.assertThrows(
+                    IllegalStateException.class,
+                    () -> new ThreadBackup(
+                            ICompress.createCompressor(),
                             source,
-                            Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 7)),
-                            output));
-            assertTrue(failure.getCause() instanceof java.io.IOException);
-            assertTrue(failure.getCause().getMessage().contains("7"));
-            assertEquals(unloadedRegion, unloadedFiles.get(FileUtils.getRelativePath(unloadedRegion)));
-            org.mockito.Mockito.verifyNoInteractions(output);
+                            "unresolved",
+                            Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 999999)),
+                            null,
+                            true));
+            assertTrue(unresolved.getMessage().contains("999999"));
             for (boolean empty : new boolean[] { false, true }) {
                 java.util.Set<serverutils.lib.math.ChunkDimPos> claims = empty ? Collections.emptySet()
                         : Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 0));
@@ -176,11 +238,69 @@ public class BackupTaskTest {
                 }
             }
         } finally {
+            BackupTask.stopBackupThread();
+            serverutils.data.ClaimedChunks.instance = previousClaims;
+            ServerUtilitiesConfig.world.chunk_claiming = previousClaiming;
+            ServerUtilitiesConfig.backups.use_separate_thread = true;
+            CustomFolderProvider.folder = "custom-moon";
+            net.minecraftforge.common.DimensionManager.unregisterDimension(7);
+            net.minecraftforge.common.DimensionManager.unregisterDimension(8);
+            net.minecraftforge.common.DimensionManager.unregisterProviderType(7);
+            net.minecraftforge.common.DimensionManager.unregisterProviderType(8);
             sidedDelegate.set(fml, previousDelegate);
             loaderInstance.set(null, previousLoader);
             ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = false;
             setCurrentServer(null);
             FileUtils.delete(source);
+        }
+    }
+
+    public static class CustomFolderProvider extends net.minecraft.world.WorldProviderSurface {
+
+        static String folder = "custom-moon";
+
+        @Override
+        public String getSaveFolder() {
+            return folder;
+        }
+    }
+
+    private static void writeRegionChunk(File file, int x, int z, String value) throws Exception {
+        Files.createDirectories(file.toPath().getParent());
+        net.minecraft.world.chunk.storage.RegionFile region = new net.minecraft.world.chunk.storage.RegionFile(file);
+        try (java.io.DataOutputStream out = region.getChunkDataOutputStream(x & 31, z & 31)) {
+            net.minecraft.nbt.NBTTagCompound tag = new net.minecraft.nbt.NBTTagCompound();
+            tag.setString("value", value);
+            net.minecraft.nbt.CompressedStreamTools.write(tag, out);
+        } finally {
+            region.close();
+        }
+    }
+
+    private static void assertArchivedChunks(ZipFile zip, File source, int x, int z, int otherX, String value,
+            boolean entire) throws Exception {
+        ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(source));
+        assertTrue("Missing " + source, entry != null);
+        java.nio.file.Path copy = Files.createTempFile("claimed-region-test-", ".mca");
+        try {
+            try (InputStream in = zip.getInputStream(entry)) {
+                Files.copy(in, copy, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+            net.minecraft.world.chunk.storage.RegionFile region = new net.minecraft.world.chunk.storage.RegionFile(
+                    copy.toFile());
+            try {
+                try (java.io.DataInputStream in = region.getChunkDataInputStream(x & 31, z & 31)) {
+                    assertTrue("Missing claimed chunk", in != null);
+                    assertEquals(value, net.minecraft.nbt.CompressedStreamTools.read(in).getString("value"));
+                }
+                try (java.io.DataInputStream in = region.getChunkDataInputStream(otherX & 31, z & 31)) {
+                    assertEquals("Unexpected unclaimed chunk contents", entire, in != null);
+                }
+            } finally {
+                region.close();
+            }
+        } finally {
+            Files.deleteIfExists(copy);
         }
     }
 

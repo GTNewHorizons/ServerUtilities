@@ -18,6 +18,9 @@ import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,20 +31,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.storage.RegionFile;
-import net.minecraft.world.chunk.storage.RegionFileCache;
+import net.minecraftforge.common.DimensionManager;
 
-import com.gtnewhorizon.gtnhlib.util.CoordinatePacker;
-
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
@@ -59,6 +55,7 @@ public class ThreadBackup extends Thread {
     private final ICompress compressor;
     private final Map<String, File> files;
     private final boolean onlyClaimed;
+    private final Map<Integer, File> dimensionFolders;
 
     public ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
         this(compress, sourceFile, backupName, backupChunks, null);
@@ -79,16 +76,18 @@ public class ThreadBackup extends Thread {
             Map<String, File> snapshot, boolean onlyClaimed) {
         src0 = sourceFile;
         customName = backupName;
-        chunksToBackup = backupChunks;
+        chunksToBackup = new HashSet<>(backupChunks);
         compressor = compress;
         files = snapshot;
         this.onlyClaimed = onlyClaimed;
+        // Capture provider paths on the calling server thread before starting the backup worker.
+        dimensionFolders = onlyClaimed ? resolveDimensionFolders(sourceFile, chunksToBackup) : Collections.emptyMap();
         setPriority(7);
     }
 
     public void run() {
         try {
-            doBackup(compressor, src0, customName, chunksToBackup, files, onlyClaimed);
+            doBackup(compressor, src0, customName, chunksToBackup, files, onlyClaimed, dimensionFolders);
         } finally {
             if (files != null) deleteSnapshot();
         }
@@ -137,10 +136,16 @@ public class ThreadBackup extends Thread {
 
     static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
             Map<String, File> files, boolean onlyClaimed) {
+        doBackup(compressor, src, customName, chunks, files, onlyClaimed, null);
+    }
+
+    private static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
+            Map<String, File> files, boolean onlyClaimed, Map<Integer, File> dimensionFolders) {
         String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         File dstFile = null;
         try {
+            if (onlyClaimed && dimensionFolders == null) dimensionFolders = resolveDimensionFolders(src, chunks);
             if (files == null) files = listWorldFiles(src);
             addBaseFolderFiles(files, src);
             long start = System.currentTimeMillis();
@@ -150,7 +155,7 @@ public class ThreadBackup extends Thread {
             try (compressor) {
                 compressor.createOutputStream(dstFile);
                 if (onlyClaimed) {
-                    backupRegions(files, src, chunks, compressor);
+                    backupRegions(files, src, chunks, compressor, dimensionFolders);
                 } else {
                     compressFiles(files, compressor);
                 }
@@ -269,8 +274,10 @@ public class ThreadBackup extends Thread {
     }
 
     private static void backupRegions(Map<String, File> files, File src, Set<ChunkDimPos> chunksToBackup,
-            ICompress compressor) throws IOException {
-        Object2ObjectMap<File, ObjectSet<ChunkDimPos>> dimRegionClaims = mapClaimsToRegionFile(chunksToBackup);
+            ICompress compressor, Map<Integer, File> dimensionFolders) throws IOException {
+        Object2ObjectMap<File, ObjectSet<ChunkDimPos>> dimRegionClaims = mapClaimsToRegionFile(
+                chunksToBackup,
+                dimensionFolders);
         Path world = src.toPath().toAbsolutePath().normalize();
         files.entrySet().removeIf(entry -> isWorldRegionFile(entry.getValue(), world));
 
@@ -295,28 +302,39 @@ public class ThreadBackup extends Thread {
             // Standard behavior: reconstruct temporary region files with only claimed chunks
             for (Object2ObjectMap.Entry<File, ObjectSet<ChunkDimPos>> entry : dimRegionClaims.object2ObjectEntrySet()) {
                 File file = entry.getKey();
-                File dimensionRoot = file.getParentFile().getParentFile();
-                File tempFile = FileUtils.newFile(new File(BACKUP_TEMP_FOLDER, file.getName()));
-                RegionFile tempRegion = new RegionFile(tempFile);
-                boolean hasData = false;
-
-                for (ChunkDimPos pos : entry.getValue()) {
-                    DataInputStream in = RegionFileCache.getChunkInputStream(dimensionRoot, pos.posX, pos.posZ);
-                    if (in == null) continue;
-                    savedChunks++;
-                    hasData = true;
-                    NBTTagCompound tag = CompressedStreamTools.read(in);
-                    DataOutputStream tempOut = tempRegion.getChunkDataOutputStream(pos.posX & 31, pos.posZ & 31);
-                    CompressedStreamTools.write(tag, tempOut);
-                    tempOut.close();
+                Files.createDirectories(BACKUP_TEMP_FOLDER.toPath());
+                File tempFile = Files.createTempFile(BACKUP_TEMP_FOLDER.toPath(), "claimed-", ".mca").toFile();
+                try {
+                    RegionFile sourceRegion = new RegionFile(file);
+                    RegionFile tempRegion = new RegionFile(tempFile);
+                    boolean hasData = false;
+                    try {
+                        for (ChunkDimPos pos : entry.getValue()) {
+                            try (DataInputStream in = sourceRegion
+                                    .getChunkDataInputStream(pos.posX & 31, pos.posZ & 31)) {
+                                if (in == null) continue;
+                                NBTTagCompound tag = CompressedStreamTools.read(in);
+                                try (DataOutputStream out = tempRegion
+                                        .getChunkDataOutputStream(pos.posX & 31, pos.posZ & 31)) {
+                                    CompressedStreamTools.write(tag, out);
+                                }
+                                savedChunks++;
+                                hasData = true;
+                            }
+                        }
+                    } finally {
+                        try {
+                            sourceRegion.close();
+                        } finally {
+                            tempRegion.close();
+                        }
+                    }
+                    if (hasData) {
+                        compressFile(FileUtils.getRelativePath(file), tempFile, compressor, index++, totalFiles);
+                    }
+                } finally {
+                    Files.deleteIfExists(tempFile.toPath());
                 }
-
-                tempRegion.close();
-                if (hasData) {
-                    compressFile(FileUtils.getRelativePath(file), tempFile, compressor, index++, totalFiles);
-                }
-
-                FileUtils.delete(tempFile);
             }
             ServerUtilities.LOGGER.info("Backed up {} regions containing {} claimed chunks", regionFiles, savedChunks);
         }
@@ -326,66 +344,46 @@ public class ThreadBackup extends Thread {
         }
     }
 
-    private static Object2ObjectMap<File, ObjectSet<ChunkDimPos>> mapClaimsToRegionFile(Set<ChunkDimPos> chunksToBackup)
-            throws IOException {
-        Int2ObjectMap<Long2ObjectMap<ObjectSet<ChunkDimPos>>> regionClaimsByDim = new Int2ObjectOpenHashMap<>();
-        chunksToBackup.forEach(
-                pos -> regionClaimsByDim.computeIfAbsent(pos.dim, k -> new Long2ObjectOpenHashMap<>())
-                        .computeIfAbsent(getRegionFromChunk(pos.posX, pos.posZ), k -> new ObjectOpenHashSet<>())
-                        .add(pos));
-
-        Object2ObjectMap<File, ObjectSet<ChunkDimPos>> regionFilesToBackup = new Object2ObjectOpenHashMap<>();
-        for (WorldServer worldserver : ServerUtils.getServer().worldServers) {
-            if (worldserver == null) continue;
-
-            int dim = worldserver.provider.dimensionId;
-            File regionFolder = new File(worldserver.getChunkSaveLocation(), "region");
-            Long2ObjectMap<ObjectSet<ChunkDimPos>> regionClaims = regionClaimsByDim.remove(dim);
-            if (!regionFolder.exists() || regionClaims == null) continue;
-
-            File[] regions = regionFolder.listFiles();
-            if (regions == null) continue;
-
-            for (File file : regions) {
-                int[] coords = getRegionCoords(file);
-                if (coords == null) continue;
-                long key = CoordinatePacker.pack(coords[0], 0, coords[1]);
-                ObjectSet<ChunkDimPos> claims = regionClaims.get(key);
-                if (claims == null) {
-                    if (ServerUtilitiesConfig.debugging.print_more_info) {
-                        ServerUtilities.LOGGER.info("Skipping region file {} from dimension {}", file.getName(), dim);
-                    }
-                    continue;
+    private static Map<Integer, File> resolveDimensionFolders(File src, Set<ChunkDimPos> chunks) {
+        Map<Integer, File> folders = new HashMap<>();
+        if (chunks.isEmpty()) return folders;
+        for (WorldServer world : ServerUtils.getServer().worldServers) {
+            if (world != null) folders.put(world.provider.dimensionId, world.getChunkSaveLocation());
+        }
+        for (ChunkDimPos pos : chunks) {
+            folders.computeIfAbsent(pos.dim, dim -> {
+                try {
+                    if (!DimensionManager.isDimensionRegistered(dim))
+                        throw new IllegalStateException("Dimension is not registered");
+                    String folder = DimensionManager.createProviderFor(dim).getSaveFolder();
+                    return folder == null ? src : new File(src, folder);
+                } catch (RuntimeException e) {
+                    throw new IllegalStateException("Cannot resolve save folder for claimed dimension " + dim, e);
                 }
-                regionFilesToBackup.put(file, claims);
-            }
+            });
         }
-        if (!regionClaimsByDim.isEmpty()) {
-            throw new IOException(
-                    "Cannot back up claims in unloaded dimensions " + regionClaimsByDim.keySet()
-                            + "; load these dimensions before retrying the backup");
-        }
-        return regionFilesToBackup;
+        return folders;
     }
 
-    private static int[] getRegionCoords(File file) {
-        if (!file.getName().endsWith(".mca")) return null;
-
-        String[] parts = file.getName().split("\\.");
-        try {
-            int x = Integer.parseInt(parts[1]);
-            int z = Integer.parseInt(parts[2]);
-            return new int[] { x, z };
-        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            return null;
+    private static Object2ObjectMap<File, ObjectSet<ChunkDimPos>> mapClaimsToRegionFile(Set<ChunkDimPos> chunks,
+            Map<Integer, File> dimensionFolders) throws IOException {
+        Object2ObjectMap<File, ObjectSet<ChunkDimPos>> regions = new Object2ObjectOpenHashMap<>();
+        for (ChunkDimPos pos : chunks) {
+            File file = new File(
+                    dimensionFolders.get(pos.dim),
+                    "region/r." + (pos.posX >> 5) + "." + (pos.posZ >> 5) + ".mca");
+            regions.computeIfAbsent(file, key -> new ObjectOpenHashSet<>()).add(pos);
         }
+        for (java.util.Iterator<File> it = regions.keySet().iterator(); it.hasNext();) {
+            File file = it.next();
+            if (Files.notExists(file.toPath())) it.remove();
+            else if (!file.isFile()) throw new IOException("Cannot read claimed region file " + file);
+        }
+        return regions;
     }
 
     private static String getDoneTime(long l) {
         return StringUtils.getTimeString(System.currentTimeMillis() - l);
     }
 
-    private static long getRegionFromChunk(int chunkX, int chunkZ) {
-        return CoordinatePacker.pack(chunkX >> 5, 0, chunkZ >> 5);
-    }
 }

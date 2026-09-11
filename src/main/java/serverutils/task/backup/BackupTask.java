@@ -118,6 +118,7 @@ public class BackupTask extends Task {
             boolean onlyClaimed = this.forceOnlyClaimed || backups.only_backup_claimed_chunks;
             if (onlyClaimed) {
                 if (!ClaimedChunks.isActive()) throw new IllegalStateException("Chunk claiming is not active");
+                ClaimedChunks.instance.processQueue();
                 backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
                 // noinspection ResultOfMethodCallIgnored
                 BACKUP_TEMP_FOLDER.mkdirs();
