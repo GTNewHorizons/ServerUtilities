@@ -29,7 +29,7 @@ final class ArchiveExtraction {
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 if (entry.isDirectory()) continue;
-                Path path = Paths.get((legacy ? "saves/" : "") + entry.getName().replace('\\', '/')).normalize();
+                Path path = restorePath(entry.getName(), legacy, worldName);
                 if (path.startsWith(world) || isRankFile(path)) continue;
                 boolean additional = false;
                 for (String pattern : backups.additional_backup_files) {
@@ -48,6 +48,15 @@ final class ArchiveExtraction {
     private static boolean isRankFile(Path relative) {
         return relative.equals(Paths.get(serverutils.ServerUtilities.SERVER_FOLDER, "ranks.txt"))
                 || relative.equals(Paths.get(serverutils.ServerUtilities.SERVER_FOLDER, "players.txt"));
+    }
+
+    private static Path restorePath(String name, boolean legacy, String worldName) {
+        Path path = Paths.get(name.replace('\\', '/')).normalize();
+        // Dedicated backups use a world-relative prefix alongside instance-relative global files.
+        if (legacy && !isRankFile(path) && (worldName == null || path.startsWith(Paths.get(worldName)))) {
+            return Paths.get("saves").resolve(path);
+        }
+        return path;
     }
 
     static void extract(File archive, boolean includeGlobal, boolean legacy) throws IOException {
@@ -72,7 +81,7 @@ final class ArchiveExtraction {
                     if (name.startsWith("/") || name.contains(":") || name.matches("(^|.*/)\\.\\.(/.*|$)")) {
                         throw new IOException("Unsafe backup entry: " + name);
                     }
-                    Path relative = Paths.get((legacy ? "saves/" : "") + name).normalize();
+                    Path relative = restorePath(name, legacy, zip.getComment());
                     Path target = root.resolve(relative);
                     if (relative.toString().isEmpty() || !target.toFile().getCanonicalFile().toPath().startsWith(root)
                             || target.startsWith(staging)) {

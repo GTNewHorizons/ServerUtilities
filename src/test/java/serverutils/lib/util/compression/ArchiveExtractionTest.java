@@ -19,6 +19,31 @@ public class ArchiveExtractionTest {
     public TemporaryFolder temporary = new TemporaryFolder();
 
     @Test
+    public void dedicatedArchiveKeepsGlobalFilesOutsideSaves() throws Exception {
+        serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[0];
+        Path root = temporary.newFolder().toPath();
+        Path archive = temporary.newFile().toPath();
+        String ranks = serverutils.ServerUtilities.SERVER_FOLDER + "ranks.txt";
+        try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(archive))) {
+            zip.setComment("world");
+            for (String name : new String[] { "world/level.dat", ranks }) {
+                zip.putNextEntry(new ZipEntry(name));
+                zip.write("new".getBytes(StandardCharsets.UTF_8));
+                zip.closeEntry();
+            }
+        }
+        for (ICompress compressor : new ICompress[] { new LegacyCompressor(), new CommonsCompressor() }) {
+            boolean legacy = compressor.isOldBackup(archive.toFile());
+            assertTrue(legacy);
+            ICompress.validateRestoreTargets(archive.toFile(), "world", legacy);
+            ArchiveExtraction.extract(archive.toFile(), true, legacy, root);
+            assertTrue(Files.exists(root.resolve("saves/world/level.dat")));
+            assertTrue(Files.exists(root.resolve(ranks)));
+            assertFalse(Files.exists(root.resolve("saves/" + ranks)));
+        }
+    }
+
+    @Test
     public void invalidEntryCannotOverwriteEarlierDestination() throws Exception {
         for (String bad : new String[] { "../escape", "/absolute", "C:/absolute", "a/../../escape", "a/../value" }) {
             Path root = temporary.newFolder().toPath();
