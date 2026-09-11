@@ -314,6 +314,13 @@ public class ThreadBackup extends Thread {
             // Standard behavior: reconstruct temporary region files with only claimed chunks
             for (Object2ObjectMap.Entry<File, ObjectSet<ChunkDimPos>> entry : dimRegionClaims.object2ObjectEntrySet()) {
                 File file = entry.getKey();
+                long size = Files.size(file.toPath());
+                if (size < 8192 || size % 4096 != 0) {
+                    // RegionFile opens read-write and pads malformed files in its constructor.
+                    ServerUtilities.LOGGER.warn("Cannot trim malformed region {}; copying it unchanged", file);
+                    compressFile(FileUtils.getRelativePath(file), file, compressor, index++, totalFiles);
+                    continue;
+                }
                 Files.createDirectories(BACKUP_TEMP_FOLDER.toPath());
                 File tempFile = Files.createTempFile(BACKUP_TEMP_FOLDER.toPath(), "claimed-", ".mca").toFile();
                 try {

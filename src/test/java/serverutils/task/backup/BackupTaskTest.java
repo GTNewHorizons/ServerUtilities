@@ -260,6 +260,32 @@ public class BackupTaskTest {
                 }
             }
 
+            for (boolean entire : new boolean[] { false, true }) {
+                ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = entire;
+                for (int size : new int[] { 0, 4096, 8193 }) {
+                    File malformed = new File(regions, "r.2.0.mca");
+                    byte[] original = new byte[size];
+                    java.util.Arrays.fill(original, (byte) 42);
+                    Files.write(malformed.toPath(), original);
+                    ThreadBackup.doBackup(
+                            ICompress.createCompressor(),
+                            source,
+                            "malformed-region",
+                            Collections.singleton(new serverutils.lib.math.ChunkDimPos(64, 0, 0)),
+                            null,
+                            true);
+                    org.junit.Assert.assertArrayEquals(original, Files.readAllBytes(malformed.toPath()));
+                    try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "malformed-region.zip"))) {
+                        ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(malformed));
+                        assertTrue(entry != null);
+                        try (InputStream in = zip.getInputStream(entry)) {
+                            org.junit.Assert.assertArrayEquals(original, IOUtils.toByteArray(in));
+                        }
+                    }
+                    Files.delete(malformed.toPath());
+                }
+            }
+
             for (boolean configured : new boolean[] { false, true }) {
                 ServerUtilitiesConfig.backups.only_backup_claimed_chunks = configured;
                 for (boolean empty : new boolean[] { false, true }) {
