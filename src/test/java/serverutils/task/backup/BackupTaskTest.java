@@ -158,6 +158,56 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void cancelledReconstructionSkipsChunkDecodingAndCleansTemporaryRegion() throws Exception {
+        File source = Files.createTempDirectory(new File("build").toPath(), "cancelled-region-").toFile();
+        File file = new File(source, "region/r.0.0.mca");
+        Files.createDirectories(file.toPath().getParent());
+        net.minecraft.world.chunk.storage.RegionFile region = new net.minecraft.world.chunk.storage.RegionFile(file);
+        try (java.io.DataOutputStream out = region.getChunkDataOutputStream(0, 0)) {
+            // An invalid NBT type makes decoding fail if cancellation is checked too late.
+            out.writeByte(99);
+        } finally {
+            region.close();
+        }
+        Files.createDirectories(BackupTask.BACKUP_TEMP_FOLDER.toPath());
+        java.util.Set<String> previousFiles = new java.util.HashSet<>(
+                java.util.Arrays.asList(BackupTask.BACKUP_TEMP_FOLDER.list()));
+        boolean previousEntire = ServerUtilitiesConfig.backups.backup_entire_regions_with_claims;
+        ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = false;
+        java.lang.reflect.Method reconstruct = ThreadBackup.class.getDeclaredMethod(
+                "backupRegions",
+                Map.class,
+                File.class,
+                java.util.Set.class,
+                ICompress.class,
+                Map.class);
+        reconstruct.setAccessible(true);
+        try {
+            Thread.currentThread().interrupt();
+            java.lang.reflect.InvocationTargetException failure = org.junit.Assert.assertThrows(
+                    java.lang.reflect.InvocationTargetException.class,
+                    () -> reconstruct.invoke(
+                            null,
+                            new java.util.HashMap<>(),
+                            source,
+                            Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 0)),
+                            mock(ICompress.class),
+                            Collections.singletonMap(0, source)));
+            assertTrue(
+                    "Cancellation must precede chunk decoding",
+                    failure.getCause() instanceof java.io.InterruptedIOException);
+            assertTrue(Thread.currentThread().isInterrupted());
+        } finally {
+            Thread.interrupted();
+            ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = previousEntire;
+            FileUtils.delete(source);
+        }
+        assertEquals(
+                previousFiles,
+                new java.util.HashSet<>(java.util.Arrays.asList(BackupTask.BACKUP_TEMP_FOLDER.list())));
+    }
+
+    @Test
     public void forcedClaimFilteringIncludesUnloadedDimensionsAndReconstructsChunks() throws Exception {
         File source = new File("build/test-claimed-backup-source");
         File regions = new File(source, "region");

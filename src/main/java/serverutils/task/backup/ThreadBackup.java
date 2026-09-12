@@ -353,6 +353,8 @@ public class ThreadBackup extends Thread {
                     boolean hasData = false;
                     try {
                         for (ChunkDimPos pos : entry.getValue()) {
+                            if (Thread.currentThread().isInterrupted())
+                                throw new InterruptedIOException("Backup cancelled");
                             try (DataInputStream in = sourceRegion
                                     .getChunkDataInputStream(pos.posX & 31, pos.posZ & 31)) {
                                 if (in == null) continue;
