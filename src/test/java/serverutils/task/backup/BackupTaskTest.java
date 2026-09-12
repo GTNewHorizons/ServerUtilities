@@ -105,6 +105,9 @@ public class BackupTaskTest {
                     }
                 }
             }
+            doThrow(new IllegalStateException("injected preparation failure")).when(manager).saveAllPlayerData();
+            new BackupTask(mock(ICommandSender.class), "invalid-source").execute(new Universe(server));
+            assertTrue("Failed preparation must not delete an unowned snapshot", sentinel.isFile());
         } finally {
             delegate.set(fml, previous);
             Files.deleteIfExists(sentinel.toPath());

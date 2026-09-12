@@ -102,6 +102,7 @@ public class BackupTask extends Task {
         }
 
         boolean backupStarted = false;
+        boolean snapshotPrepared = false;
         try {
             // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
             // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
@@ -129,6 +130,7 @@ public class BackupTask extends Task {
             universe.scheduleTask(new BackupTask(true));
             if (backups.use_separate_thread) {
                 Map<String, File> snapshot = ThreadBackup.snapshotFiles(worldDir);
+                snapshotPrepared = true;
                 thread = new ThreadBackup(compressor, worldDir, customName, backupChunks, snapshot, onlyClaimed);
                 thread.start();
             } else {
@@ -146,7 +148,7 @@ public class BackupTask extends Task {
         } finally {
             if (!backupStarted) {
                 restoreWorldSaving();
-                ThreadBackup.deleteSnapshot();
+                if (snapshotPrepared) ThreadBackup.deleteSnapshot();
             }
         }
     }
