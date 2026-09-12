@@ -19,6 +19,35 @@ public class ArchiveExtractionTest {
     public TemporaryFolder temporary = new TemporaryFolder();
 
     @Test
+    public void restorePreflightRequiresSelectedWorldMetadata() throws Exception {
+        String[] previous = serverutils.ServerUtilitiesConfig.backups.additional_backup_files;
+        serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[] { "**" };
+        try {
+            for (boolean dedicated : new boolean[] { false, true }) {
+                String prefix = dedicated ? "world/" : "saves/world/";
+                for (boolean global : new boolean[] { false, true }) {
+                    for (String[] contents : new String[][] { {},
+                            { serverutils.ServerUtilities.SERVER_FOLDER + "ranks.txt" },
+                            { "saves/other-world/level.dat" }, { prefix + "region/r.0.0.mca" },
+                            { prefix + "level.dat/" } }) {
+                        Path archive = archiveWithComment("world", contents);
+                        IOException failure = assertThrows(
+                                IOException.class,
+                                () -> ICompress.validateRestoreTargets(archive.toFile(), "world", dedicated, global));
+                        assertTrue(failure.getMessage().contains("no level.dat"));
+                    }
+                    for (String metadata : new String[] { "level.dat", "level.dat_old" }) {
+                        Path archive = archiveWithComment("world", prefix + metadata);
+                        ICompress.validateRestoreTargets(archive.toFile(), "world", dedicated, global);
+                    }
+                }
+            }
+        } finally {
+            serverutils.ServerUtilitiesConfig.backups.additional_backup_files = previous;
+        }
+    }
+
+    @Test
     public void dedicatedArchiveKeepsGlobalFilesOutsideSaves() throws Exception {
         for (boolean dedicated : new boolean[] { true, false }) {
             for (boolean extra : new boolean[] { false, true }) {

@@ -54,16 +54,22 @@ final class ArchiveExtraction {
     static void validateRestoreTargets(File archive, String worldName, boolean legacy, boolean includeGlobal)
             throws IOException {
         try (ZipFile zip = new ZipFile(archive)) {
+            boolean hasWorldMetadata = false;
             Enumeration<? extends ZipEntry> entries = zip.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
                 if (entry.isDirectory()) continue;
                 Path path = restorePath(entry.getName(), legacy, worldName);
+                hasWorldMetadata |= path.equals(Paths.get("saves", worldName, "level.dat"))
+                        || path.equals(Paths.get("saves", worldName, "level.dat_old"));
                 if (includeGlobal && !isAllowedTarget(path, worldName)) {
                     throw new IOException(
                             "Backup contains an unconfigured restore target: " + path
                                     + "; restore the world only or enable the original additional_backup_files pattern");
                 }
+            }
+            if (!hasWorldMetadata) {
+                throw new IOException("Backup contains no level.dat or level.dat_old for world " + worldName);
             }
         }
     }
