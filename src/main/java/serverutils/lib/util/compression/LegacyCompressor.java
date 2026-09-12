@@ -14,8 +14,6 @@ import javax.annotation.Nullable;
 
 import net.minecraftforge.common.DimensionManager;
 
-import org.apache.commons.io.IOUtils;
-
 public class LegacyCompressor implements ICompress {
 
     private ZipOutputStream output;
@@ -40,7 +38,7 @@ public class LegacyCompressor implements ICompress {
         ZipEntry entry = new ZipEntry(name);
         output.putNextEntry(entry);
         try (FileInputStream fis = new FileInputStream(file)) {
-            IOUtils.copy(fis, output);
+            ICompress.copyInterruptibly(fis, output);
         }
         output.closeEntry();
     }

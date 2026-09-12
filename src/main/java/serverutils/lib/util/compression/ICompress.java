@@ -2,6 +2,9 @@ package serverutils.lib.util.compression;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
 
 import javax.annotation.Nullable;
 
@@ -14,6 +17,16 @@ public interface ICompress extends AutoCloseable {
     void createOutputStream(File file) throws IOException;
 
     void addFileToArchive(File file, String name) throws IOException;
+
+    static void copyInterruptibly(InputStream input, OutputStream output) throws IOException {
+        byte[] buffer = new byte[8192];
+        while (true) {
+            if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup cancelled");
+            int length = input.read(buffer);
+            if (length == -1) return;
+            output.write(buffer, 0, length);
+        }
+    }
 
     void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup) throws IOException;
 

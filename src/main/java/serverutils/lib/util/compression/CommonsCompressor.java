@@ -14,7 +14,6 @@ import net.minecraftforge.common.DimensionManager;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.apache.commons.io.IOUtils;
 
 public class CommonsCompressor implements ICompress {
 
@@ -42,7 +41,7 @@ public class CommonsCompressor implements ICompress {
         ArchiveEntry entry = output.createArchiveEntry(file, name);
         output.putArchiveEntry(entry);
         try (FileInputStream fis = new FileInputStream(file)) {
-            IOUtils.copy(fis, output);
+            ICompress.copyInterruptibly(fis, output);
         }
         output.closeArchiveEntry();
     }
