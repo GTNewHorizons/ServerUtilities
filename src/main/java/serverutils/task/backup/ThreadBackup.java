@@ -145,6 +145,7 @@ public class ThreadBackup extends Thread {
                 + ".zip";
         File dstFile = null;
         try {
+            validateBackupSource(src);
             if (onlyClaimed && chunks.isEmpty()) {
                 ServerUtilities.LOGGER
                         .warn("Claim-only backup has no claimed chunks; known dimension regions will be omitted");
@@ -200,6 +201,7 @@ public class ThreadBackup extends Thread {
     }
 
     static Map<String, File> snapshotFiles(File src) throws IOException {
+        validateBackupSource(src);
         deleteSnapshot();
         if (!BACKUP_TEMP_FOLDER.mkdirs() && !BACKUP_TEMP_FOLDER.isDirectory()) {
             throw new IOException("Could not create backup staging directory");
@@ -249,6 +251,12 @@ public class ThreadBackup extends Thread {
         Path path = file.getCanonicalFile().toPath();
         return path.startsWith(BACKUP_TEMP_FOLDER.getCanonicalFile().toPath())
                 || path.startsWith(BackupTask.BACKUP_FOLDER.getCanonicalFile().toPath());
+    }
+
+    private static void validateBackupSource(File src) throws IOException {
+        if (isBackupStorage(src)) {
+            throw new IOException("Backup and temporary storage must not contain the world directory: " + src);
+        }
     }
 
     private static boolean isWorldRegionFile(File file, Path world) {

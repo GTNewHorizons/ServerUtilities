@@ -67,6 +67,51 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void rejectsWorldsInsideBackupStorageBeforePreparingOrWriting() throws Exception {
+        File sentinel = new File(BackupTask.BACKUP_TEMP_FOLDER, "snapshot/keep.dat");
+        Files.createDirectories(sentinel.toPath().getParent());
+        Files.write(sentinel.toPath(), new byte[] { 42 });
+        MinecraftServer server = mock(MinecraftServer.class);
+        ServerConfigurationManager manager = mock(ServerConfigurationManager.class);
+        Field players = ServerConfigurationManager.class.getDeclaredField("playerEntityList");
+        players.setAccessible(true);
+        players.set(manager, Collections.emptyList());
+        when(server.getConfigurationManager()).thenReturn(manager);
+        cpw.mods.fml.common.FMLCommonHandler fml = cpw.mods.fml.common.FMLCommonHandler.instance();
+        Field delegate = cpw.mods.fml.common.FMLCommonHandler.class.getDeclaredField("sidedDelegate");
+        delegate.setAccessible(true);
+        Object previous = delegate.get(fml);
+        cpw.mods.fml.common.IFMLSidedHandler side = mock(cpw.mods.fml.common.IFMLSidedHandler.class);
+        when(side.getServer()).thenReturn(server);
+        delegate.set(fml, side);
+        try {
+            for (File storage : new File[] { BackupTask.BACKUP_FOLDER, BackupTask.BACKUP_TEMP_FOLDER }) {
+                for (String relative : new String[] { "", "world", "world/.." }) {
+                    File source = new File(storage, relative);
+                    org.junit.Assert.assertThrows(java.io.IOException.class, () -> ThreadBackup.snapshotFiles(source));
+                    assertTrue("Validation must precede snapshot cleanup", sentinel.isFile());
+                    for (Map<String, File> snapshot : java.util.Arrays
+                            .<Map<String, File>>asList(null, Collections.emptyMap())) {
+                        ICompress compressor = mock(ICompress.class);
+                        ThreadBackup.doBackup(
+                                compressor,
+                                source,
+                                "invalid-source",
+                                Collections.emptySet(),
+                                snapshot,
+                                false);
+                        org.mockito.Mockito.verifyNoInteractions(compressor);
+                        assertFalse(new File(BackupTask.BACKUP_FOLDER, "invalid-source.zip").exists());
+                    }
+                }
+            }
+        } finally {
+            delegate.set(fml, previous);
+            Files.deleteIfExists(sentinel.toPath());
+        }
+    }
+
+    @Test
     public void protectsNewWorldsAndRejectsSaveCommandsUntilCleanup() throws Exception {
         WorldServer world = mock(WorldServer.class);
         WorldServer loadedLater = mock(WorldServer.class);
