@@ -14,6 +14,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.zip.CRC32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.ZipEntry;
@@ -98,23 +99,35 @@ final class ArchiveExtraction {
 
     static void extract(File archive, boolean includeGlobal, boolean legacy, File preserved, File recovery)
             throws IOException {
-        extract(archive, includeGlobal, legacy, Paths.get("").toAbsolutePath(), preserved, recovery);
+        extract(archive, includeGlobal, legacy, preserved, recovery, null);
+    }
+
+    static void extract(File archive, boolean includeGlobal, boolean legacy, File preserved, File recovery,
+            Callable<Void> beforeInstall) throws IOException {
+        extract(archive, includeGlobal, legacy, Paths.get("").toAbsolutePath(), preserved, recovery, beforeInstall);
     }
 
     static void extract(File archive, boolean includeGlobal, boolean legacy, Path root) throws IOException {
-        extract(archive, includeGlobal, legacy, root, null, null);
+        extract(archive, includeGlobal, legacy, root, null, null, null);
     }
 
     static void extract(File archive, boolean includeGlobal, boolean legacy, Path root, File preserved)
             throws IOException {
-        extract(archive, includeGlobal, legacy, root, preserved, null);
+        extract(archive, includeGlobal, legacy, root, preserved, null, null);
     }
 
     static void extract(File archive, boolean includeGlobal, boolean legacy, Path root, File preserved, File recovery)
             throws IOException {
+        extract(archive, includeGlobal, legacy, root, preserved, recovery, null);
+    }
+
+    static void extract(File archive, boolean includeGlobal, boolean legacy, Path root, File preserved, File recovery,
+            Callable<Void> beforeInstall) throws IOException {
         root = root.toRealPath();
         Path preservedWorld = preserved == null ? null : preserved.getCanonicalFile().toPath();
-        Path staging = Files.createTempDirectory(root, ".su-restore-");
+        Path stagingParent = beforeInstall != null && recovery != null ? recovery.getCanonicalFile().toPath() : root;
+        Files.createDirectories(stagingParent);
+        Path staging = Files.createTempDirectory(stagingParent, ".su-restore-");
         List<Path> targets = new ArrayList<>();
         List<Path> installed = new ArrayList<>();
         List<Path> moved = new ArrayList<>();
@@ -164,6 +177,15 @@ final class ArchiveExtraction {
                         throw new IOException("Backup checksum or size mismatch: " + name);
                     }
                     targets.add(relative);
+                }
+            }
+            if (beforeInstall != null) {
+                try {
+                    beforeInstall.call();
+                } catch (IOException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new IOException("Could not prepare restore", e);
                 }
             }
             for (Path relative : targets) {

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -200,10 +201,15 @@ public class ArchiveExtractionTest {
                 + ((bytes[29] & 255) << 8);
         bytes[payloadOffset] ^= 1;
         Files.write(archive, bytes);
+        AtomicBoolean prepared = new AtomicBoolean();
         try {
-            ArchiveExtraction.extract(archive.toFile(), true, false, root);
+            ArchiveExtraction.extract(archive.toFile(), true, false, root, null, null, () -> {
+                prepared.set(true);
+                return null;
+            });
             fail("Accepted corrupt ZIP contents");
         } catch (IOException expected) {}
+        assertFalse(prepared.get());
         assertEquals("original", new String(Files.readAllBytes(root.resolve("value")), StandardCharsets.UTF_8));
     }
 

@@ -51,6 +51,7 @@ public class GuiRestoreBackupTest {
                 File additionalRecovery = new File(previousRoot, "additional");
                 File previousWorld = new File(root, "previous-world");
                 File recoveryFile = write(new File(additionalRecovery, "existing.dat"), "recovery");
+                File stagedRestore = write(new File(previousRoot, ".su-restore-test/new/value"), "staged");
                 File oldWorldFile = write(new File(previousWorld, "level.dat"), "old-world");
                 File global = write(new File(root, "settings.dat"), "settings");
                 File archive = new File(root, "selected.zip");
@@ -80,6 +81,7 @@ public class GuiRestoreBackupTest {
                 assertTrue(otherBackup.isFile());
                 assertTrue(staged.isFile());
                 assertTrue(recoveryFile.isFile());
+                assertTrue(stagedRestore.isFile());
                 assertTrue(oldWorldFile.isFile());
                 try (ICompress compressor = ICompress.createCompressor()) {
                     compressor.extractArchive(archive, true, false, null, null);

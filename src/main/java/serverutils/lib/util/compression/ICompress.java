@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
+import java.util.concurrent.Callable;
 
 import javax.annotation.Nullable;
 
@@ -30,6 +31,11 @@ public interface ICompress extends AutoCloseable {
 
     void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup, File preserved, File recovery)
             throws IOException;
+
+    default void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup, File preserved, File recovery,
+            Callable<Void> beforeInstall) throws IOException {
+        ArchiveExtraction.extract(archive, includeGlobal, isOldBackup, preserved, recovery, beforeInstall);
+    }
 
     boolean isOldBackup(File archive) throws IOException;
 
