@@ -162,6 +162,9 @@ public class BackupTask extends Task {
                 world.saveAllChunks(true, null);
                 world.levelSaving = true;
             }
+            // A suspended world logs its usual "Saving chunks for level" line and then saves nothing, so record the
+            // suspension: a log with no matching resume is the fingerprint of world data that never reached disk.
+            ServerUtilities.LOGGER.info("Suspended world saving in {} dimensions for backup", worldSaveStates.size());
         } catch (MinecraftException | RuntimeException ex) {
             restoreWorldSaving();
             throw ex;
@@ -169,6 +172,9 @@ public class BackupTask extends Task {
     }
 
     static void restoreWorldSaving() {
+        if (!worldSaveStates.isEmpty()) {
+            ServerUtilities.LOGGER.info("Resumed world saving in {} dimensions after backup", worldSaveStates.size());
+        }
         worldSaveStates.forEach((world, levelSaving) -> world.levelSaving = levelSaving);
         worldSaveStates.clear();
     }
@@ -179,7 +185,11 @@ public class BackupTask extends Task {
 
     public static void suspendNewWorldSaving(WorldServer world) {
         if (isWorldSavingSuspended()) {
-            worldSaveStates.putIfAbsent(world, world.levelSaving);
+            if (worldSaveStates.putIfAbsent(world, world.levelSaving) == null) {
+                ServerUtilities.LOGGER.info(
+                        "Dimension {} loaded during a backup; world saving suspended there until it finishes",
+                        world.provider.dimensionId);
+            }
             world.levelSaving = true;
         }
     }

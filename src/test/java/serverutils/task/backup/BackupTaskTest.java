@@ -118,6 +118,9 @@ public class BackupTaskTest {
     public void protectsNewWorldsAndRejectsSaveCommandsUntilCleanup() throws Exception {
         WorldServer world = mock(WorldServer.class);
         WorldServer loadedLater = mock(WorldServer.class);
+        Field provider = net.minecraft.world.World.class.getDeclaredField("provider");
+        provider.setAccessible(true);
+        provider.set(loadedLater, mock(net.minecraft.world.WorldProvider.class));
         BackupTask.saveAndDisableWorldSaving(new WorldServer[] { world });
         serverutils.handlers.ServerUtilitiesServerEventHandler
                 .loadWorldEvent(new net.minecraftforge.event.world.WorldEvent.Load(loadedLater));
