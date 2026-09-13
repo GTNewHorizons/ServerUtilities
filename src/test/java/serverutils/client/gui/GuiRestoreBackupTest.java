@@ -48,8 +48,9 @@ public class GuiRestoreBackupTest {
             for (boolean wildcard : new boolean[] { false, true }) {
                 File root = temporary.newFolder();
                 File previousRoot = new File(root, "recovery");
+                File additionalRecovery = new File(previousRoot, "additional");
                 File previousWorld = new File(root, "previous-world");
-                File recoveryFile = write(new File(previousRoot, "existing.dat"), "recovery");
+                File recoveryFile = write(new File(additionalRecovery, "existing.dat"), "recovery");
                 File oldWorldFile = write(new File(previousWorld, "level.dat"), "old-world");
                 File global = write(new File(root, "settings.dat"), "settings");
                 File archive = new File(root, "selected.zip");
@@ -70,9 +71,10 @@ public class GuiRestoreBackupTest {
                         File.class,
                         File.class);
                 prepare.setAccessible(true);
-                prepare.invoke(gui("world"), previousRoot, true, moved, archive, previousWorld);
+                prepare.invoke(gui("world"), additionalRecovery, true, moved, archive, previousWorld);
                 assertEquals(1, moved.size());
                 assertTrue(moved.get(global).isFile());
+                assertTrue(moved.get(global).toPath().startsWith(additionalRecovery.toPath()));
                 assertFalse(global.exists());
                 assertArrayEquals(originalArchive, Files.readAllBytes(archive.toPath()));
                 assertTrue(otherBackup.isFile());

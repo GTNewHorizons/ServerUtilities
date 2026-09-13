@@ -318,12 +318,12 @@ public class GuiRestoreBackup extends GuiButtonListBase {
             }
             File recoveryStorage = new File("backups_before_restore/");
             Files.createDirectories(recoveryStorage.toPath());
-            // One directory per restore: displaced extras and replaced globals land side by side.
+            // One directory per restore, with separate roots for displaced extras and replaced globals.
             File previousRoot = Files.createTempDirectory(
                     recoveryStorage.toPath(),
                     DATE_FORMAT.format(Calendar.getInstance().getTime()) + "-").toFile();
             if (!isOldBackup) {
-                renameAdditionalFiles(previousRoot, includeGlobal, moved, file, saveCopy);
+                renameAdditionalFiles(new File(previousRoot, "additional"), includeGlobal, moved, file, saveCopy);
             }
             compressor.extractArchive(file, includeGlobal, isOldBackup, saveCopy, previousRoot);
             previousRoot.delete();
