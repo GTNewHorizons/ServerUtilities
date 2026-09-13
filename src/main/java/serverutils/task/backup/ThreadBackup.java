@@ -436,7 +436,10 @@ public class ThreadBackup extends Thread {
                     String folder = DimensionManager.createProviderFor(dim).getSaveFolder();
                     return folder == null ? src : new File(src, folder);
                 } catch (RuntimeException e) {
-                    throw new IllegalStateException("Cannot resolve save folder for dimension " + dim, e);
+                    // Leave it unresolved rather than failing every claim-only backup; its regions are kept whole.
+                    ServerUtilities.LOGGER
+                            .warn("Cannot resolve save folder for dimension {}; keeping its regions unchanged", dim, e);
+                    return null;
                 }
             });
         }

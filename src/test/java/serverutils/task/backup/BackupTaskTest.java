@@ -260,6 +260,8 @@ public class BackupTaskTest {
         net.minecraftforge.common.DimensionManager.registerDimension(7, 7);
         net.minecraftforge.common.DimensionManager.registerProviderType(8, CustomFolderProvider.class, false);
         net.minecraftforge.common.DimensionManager.registerDimension(8, 8);
+        net.minecraftforge.common.DimensionManager.registerProviderType(9, BrokenFolderProvider.class, false);
+        net.minecraftforge.common.DimensionManager.registerDimension(9, 9);
         try {
             Universe universe = new Universe(server);
             serverutils.lib.data.ForgeTeam team = new serverutils.lib.data.ForgeTeam(
@@ -325,6 +327,8 @@ public class BackupTaskTest {
             writeRegionChunk(removedModRegion, 0, 0, "recoverable");
             File nestedRegion = new File(regions, "unowned/r.0.0.mca");
             writeRegionChunk(nestedRegion, 0, 0, "unknown-nested-folder");
+            File brokenProviderRegion = new File(source, "DIM9/region/r.0.0.mca");
+            writeRegionChunk(brokenProviderRegion, 0, 0, "broken-provider");
             for (boolean configured : new boolean[] { false, true }) {
                 ServerUtilitiesConfig.backups.only_backup_claimed_chunks = configured;
                 for (boolean entire : new boolean[] { false, true }) {
@@ -368,7 +372,7 @@ public class BackupTaskTest {
                             assertNull(zip.getEntry(FileUtils.getRelativePath(unclaimed)));
                             assertNull(zip.getEntry(FileUtils.getRelativePath(unloadedRegion)));
                             assertNull(zip.getEntry(FileUtils.getRelativePath(customRegion)));
-                            for (File preserved : new File[] { removedModRegion, nestedRegion }) {
+                            for (File preserved : new File[] { removedModRegion, nestedRegion, brokenProviderRegion }) {
                                 ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(preserved));
                                 assertTrue(entry != null);
                                 try (InputStream in = zip.getInputStream(entry)) {
@@ -458,13 +462,23 @@ public class BackupTaskTest {
             CustomFolderProvider.folder = "custom-moon";
             net.minecraftforge.common.DimensionManager.unregisterDimension(7);
             net.minecraftforge.common.DimensionManager.unregisterDimension(8);
+            net.minecraftforge.common.DimensionManager.unregisterDimension(9);
             net.minecraftforge.common.DimensionManager.unregisterProviderType(7);
             net.minecraftforge.common.DimensionManager.unregisterProviderType(8);
+            net.minecraftforge.common.DimensionManager.unregisterProviderType(9);
             sidedDelegate.set(fml, previousDelegate);
             loaderInstance.set(null, previousLoader);
             ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = false;
             setCurrentServer(null);
             FileUtils.delete(source);
+        }
+    }
+
+    public static class BrokenFolderProvider extends net.minecraft.world.WorldProviderSurface {
+
+        @Override
+        public String getSaveFolder() {
+            throw new IllegalStateException("needs a registered world");
         }
     }
 
