@@ -96,12 +96,18 @@ final class ArchiveExtraction {
         return path;
     }
 
-    static void extract(File archive, boolean includeGlobal, boolean legacy) throws IOException {
-        extract(archive, includeGlobal, legacy, Paths.get("").toAbsolutePath());
+    static void extract(File archive, boolean includeGlobal, boolean legacy, File preserved) throws IOException {
+        extract(archive, includeGlobal, legacy, Paths.get("").toAbsolutePath(), preserved);
     }
 
     static void extract(File archive, boolean includeGlobal, boolean legacy, Path root) throws IOException {
+        extract(archive, includeGlobal, legacy, root, null);
+    }
+
+    static void extract(File archive, boolean includeGlobal, boolean legacy, Path root, File preserved)
+            throws IOException {
         root = root.toRealPath();
+        Path preservedWorld = preserved == null ? null : preserved.getCanonicalFile().toPath();
         Path staging = Files.createTempDirectory(root, ".su-restore-");
         List<Path> targets = new ArrayList<>();
         List<Path> installed = new ArrayList<>();
@@ -120,8 +126,11 @@ final class ArchiveExtraction {
                     }
                     Path relative = restorePath(name, legacy, zip.getComment());
                     Path target = root.resolve(relative);
-                    if (relative.toString().isEmpty() || !target.toFile().getCanonicalFile().toPath().startsWith(root)
-                            || target.startsWith(staging)) {
+                    Path canonical = target.toFile().getCanonicalFile().toPath();
+                    // The preserved world is the caller's only intact copy; no include pattern may write into it.
+                    if (relative.toString().isEmpty() || !canonical.startsWith(root)
+                            || target.startsWith(staging)
+                            || (preservedWorld != null && canonical.startsWith(preservedWorld))) {
                         throw new IOException("Unsafe backup entry: " + name);
                     }
                     if (entry.isDirectory()) continue;

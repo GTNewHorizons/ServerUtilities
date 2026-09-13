@@ -49,8 +49,9 @@ public class LegacyCompressor implements ICompress {
     }
 
     @Override
-    public void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup) throws IOException {
-        ArchiveExtraction.extract(archive, includeGlobal, isOldBackup);
+    public void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup, File preserved)
+            throws IOException {
+        ArchiveExtraction.extract(archive, includeGlobal, isOldBackup, preserved);
     }
 
     @Override

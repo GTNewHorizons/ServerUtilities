@@ -325,7 +325,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                         .toFile();
                 renameAdditionalFiles(previousRoot, includeGlobal, moved, file, saveCopy);
             }
-            compressor.extractArchive(file, includeGlobal, isOldBackup);
+            compressor.extractArchive(file, includeGlobal, isOldBackup, saveCopy);
             closeGui();
         } catch (Exception e) {
 

@@ -19,6 +19,27 @@ public class ArchiveExtractionTest {
     public TemporaryFolder temporary = new TemporaryFolder();
 
     @Test
+    public void includePatternsCannotWriteIntoThePreservedWorld() throws Exception {
+        String[] previous = serverutils.ServerUtilitiesConfig.backups.additional_backup_files;
+        serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[] { "saves/**" };
+        try {
+            Path root = temporary.newFolder().toPath();
+            Path preserved = root.resolve("saves/world_old");
+            Files.createDirectories(preserved);
+            Path intact = preserved.resolve("level.dat");
+            Files.write(intact, "preserved".getBytes(StandardCharsets.UTF_8));
+            Path archive = archive("saves/world/level.dat", "saves/world_old/level.dat");
+            assertThrows(
+                    IOException.class,
+                    () -> ArchiveExtraction.extract(archive.toFile(), true, false, root, preserved.toFile()));
+            assertEquals("preserved", new String(Files.readAllBytes(intact), StandardCharsets.UTF_8));
+            assertFalse(Files.exists(root.resolve("saves/world/level.dat")));
+        } finally {
+            serverutils.ServerUtilitiesConfig.backups.additional_backup_files = previous;
+        }
+    }
+
+    @Test
     public void restorePreflightRequiresSelectedWorldMetadata() throws Exception {
         String[] previous = serverutils.ServerUtilitiesConfig.backups.additional_backup_files;
         serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[] { "**" };
