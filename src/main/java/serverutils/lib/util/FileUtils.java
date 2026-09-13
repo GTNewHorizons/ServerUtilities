@@ -81,12 +81,13 @@ public class FileUtils {
                         PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")))
                 : Files.createTempFile(target.getParent(), ".su-save-", ".tmp");
         try {
-            if (posix && Files.exists(target)) {
-                Files.setPosixFilePermissions(temporary, Files.getPosixFilePermissions(target));
-            }
             try (FileOutputStream output = new FileOutputStream(temporary.toFile())) {
                 output.write(data);
                 output.getFD().sync();
+            }
+            // After writing: a target mode without owner write would otherwise block our own open.
+            if (posix && Files.exists(target)) {
+                Files.setPosixFilePermissions(temporary, Files.getPosixFilePermissions(target));
             }
             // Fail closed if atomic replacement is unavailable; keep the previous complete save.
             Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);

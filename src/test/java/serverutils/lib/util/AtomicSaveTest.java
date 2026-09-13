@@ -30,6 +30,13 @@ public class AtomicSaveTest {
         Files.setPosixFilePermissions(target, permissions);
         FileUtils.writeAtomic(target.toFile(), new byte[] { 1 });
         assertEquals(permissions, Files.getPosixFilePermissions(target));
+
+        java.util.Set<java.nio.file.attribute.PosixFilePermission> readOnlyOwner = java.nio.file.attribute.PosixFilePermissions
+                .fromString("r--rw-rw-");
+        Files.setPosixFilePermissions(target, readOnlyOwner);
+        FileUtils.writeAtomic(target.toFile(), new byte[] { 2 });
+        assertEquals(readOnlyOwner, Files.getPosixFilePermissions(target));
+        assertArrayEquals(new byte[] { 2 }, Files.readAllBytes(target));
     }
 
     @Test
