@@ -277,8 +277,10 @@ public class ThreadBackup extends Thread {
         File[] children = file.listFiles();
         if (children == null) return;
         for (File child : children) {
-            // Only a directory can bring backup storage into the walk; files below a checked one cannot.
-            if (child.isDirectory() && isBackupStorage(child, temp, output)) continue;
+            // Directories and links can bring backup storage into the walk; ordinary files below a checked directory
+            // cannot.
+            if ((child.isDirectory() || Files.isSymbolicLink(child.toPath())) && isBackupStorage(child, temp, output))
+                continue;
             collectOutsideBackupStorage(files, child, temp, output);
         }
     }

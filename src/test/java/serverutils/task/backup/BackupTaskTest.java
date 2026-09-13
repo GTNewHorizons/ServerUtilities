@@ -10,6 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
@@ -645,6 +646,31 @@ public class BackupTaskTest {
         } finally {
             Files.deleteIfExists(keep.toPath());
             ThreadBackup.deleteSnapshot();
+        }
+    }
+
+    @Test
+    public void fileSymlinkIntoBackupStorageIsPrunedFromTheWalk() throws Exception {
+        File source = new File("build/test-backup-storage-link");
+        File link = new File(source, "linked-backup.zip");
+        File target = new File(BackupTask.BACKUP_FOLDER, "linked-target.zip");
+        File archive = new File(BackupTask.BACKUP_FOLDER, "linked-storage.zip");
+        assertTrue(source.mkdirs() || source.isDirectory());
+        Files.write(target.toPath(), new byte[] { 1 });
+        try {
+            try {
+                Files.createSymbolicLink(link.toPath(), target.toPath().toAbsolutePath());
+            } catch (IOException | UnsupportedOperationException | SecurityException unsupported) {
+                org.junit.Assume.assumeNoException(unsupported);
+            }
+            ThreadBackup.doBackup(ICompress.createCompressor(), source, "linked-storage", Collections.emptySet());
+            try (ZipFile zip = new ZipFile(archive)) {
+                assertNull(zip.getEntry(FileUtils.getRelativePath(link)));
+            }
+        } finally {
+            FileUtils.delete(source);
+            Files.deleteIfExists(target.toPath());
+            Files.deleteIfExists(archive.toPath());
         }
     }
 
