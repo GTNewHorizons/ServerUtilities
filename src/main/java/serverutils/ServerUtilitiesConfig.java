@@ -321,7 +321,7 @@ public class ServerUtilitiesConfig {
         @Config.DefaultString("./backups/")
         public String backup_folder_path;
 
-        @Config.Comment("List of additional paths to include in backup. Use / as directory separator! Use * as wildcard, and $WORLDNAME for the save name. If specifying a folder, the path should end with \"/**\" to match all subfolders and files.")
+        @Config.Comment("List of additional paths to include in backup. Use / as directory separator! Use * as wildcard, and $WORLDNAME for the save name. If specifying a folder, the path should end with \"/**\" to match all subfolders and files. In async mode these paths are read while the server is running, so external writers may change them during backup.")
         @Config.DefaultStringList({ "saves/NEI/global/**", "saves/NEI/local/$WORLDNAME/**" })
         public String[] additional_backup_files;
 
