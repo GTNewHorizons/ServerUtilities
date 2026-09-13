@@ -112,6 +112,7 @@ final class ArchiveExtraction {
         List<Path> targets = new ArrayList<>();
         List<Path> installed = new ArrayList<>();
         List<Path> moved = new ArrayList<>();
+        List<Path> createdDirectories = new ArrayList<>();
         boolean recovered = true;
         try {
             // Read and validate the complete archive before modifying any destination.
@@ -161,7 +162,7 @@ final class ArchiveExtraction {
             }
             for (Path relative : targets) {
                 Path target = root.resolve(relative);
-                Files.createDirectories(target.getParent());
+                createDirectories(target.getParent(), createdDirectories);
                 if (Files.exists(target)) {
                     if (!Files.isRegularFile(target))
                         throw new IOException("Restore target is not a file: " + relative);
@@ -191,6 +192,15 @@ final class ArchiveExtraction {
                     recovered = false;
                 }
             }
+            // A directory left where a displaced original was a file would block its restore below.
+            Collections.reverse(createdDirectories);
+            for (Path directory : createdDirectories) {
+                try {
+                    Files.deleteIfExists(directory);
+                } catch (IOException ex) {
+                    failure.addSuppressed(ex);
+                }
+            }
             Collections.reverse(moved);
             for (Path relative : moved) {
                 try {
@@ -205,6 +215,13 @@ final class ArchiveExtraction {
         } finally {
             if (recovered) FileUtils.delete(staging.toFile());
         }
+    }
+
+    private static void createDirectories(Path directory, List<Path> created) throws IOException {
+        if (directory == null || Files.isDirectory(directory)) return;
+        createDirectories(directory.getParent(), created);
+        Files.createDirectory(directory);
+        created.add(directory);
     }
 
     private static boolean isGlobal(Path relative) {

@@ -234,6 +234,17 @@ public class ArchiveExtractionTest {
     }
 
     @Test
+    public void failedInstallRemovesDirectoriesItCreated() throws Exception {
+        Path root = temporary.newFolder().toPath();
+        Files.createDirectory(root.resolve("blocked"));
+        try {
+            ArchiveExtraction.extract(archive("displaced/deep/value", "blocked").toFile(), true, false, root);
+            fail("Expected a directory conflict");
+        } catch (IOException expected) {}
+        assertFalse(Files.exists(root.resolve("displaced")));
+    }
+
+    @Test
     public void restoreCannotOverwriteThePreservedWorld() throws Exception {
         serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[0];
         try {
