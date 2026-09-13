@@ -611,6 +611,27 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void backupStorageNestedInTheWorldIsPrunedFromTheWalk() throws Exception {
+        // BACKUP_TEMP_FOLDER lives under this directory, so walking it must prune staging partway down.
+        File source = BackupTask.BACKUP_TEMP_FOLDER.getParentFile();
+        File keep = new File(source, "nested-keep.dat");
+        File staged = new File(BackupTask.BACKUP_TEMP_FOLDER, "snapshot/deep/staged.dat");
+        assertTrue(staged.getParentFile().mkdirs() || staged.getParentFile().isDirectory());
+        Files.write(keep.toPath(), new byte[] { 1 });
+        Files.write(staged.toPath(), new byte[] { 2 });
+        try {
+            ThreadBackup.doBackup(ICompress.createCompressor(), source, "nested-storage", Collections.emptySet());
+            try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "nested-storage.zip"))) {
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(keep)) != null);
+                assertNull(zip.getEntry(FileUtils.getRelativePath(staged)));
+            }
+        } finally {
+            Files.deleteIfExists(keep.toPath());
+            ThreadBackup.deleteSnapshot();
+        }
+    }
+
+    @Test
     public void asynchronousBackupUsesPreparedPlayerSnapshot() throws Exception {
         File source = new File("build/test-snapshot-world");
         File player = new File(source, "playerdata/player.dat");

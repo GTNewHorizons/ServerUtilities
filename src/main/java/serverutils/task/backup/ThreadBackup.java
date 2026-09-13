@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -101,8 +102,8 @@ public class ThreadBackup extends Thread {
 
             int firstWildcardIndex = pattern.indexOf('*');
             if (firstWildcardIndex == -1) {
-                for (File file : FileUtils.listTree(new File(pattern))) {
-                    if (!isBackupStorage(file)) files.putIfAbsent(FileUtils.getRelativePath(file), file);
+                for (File file : listOutsideBackupStorage(new File(pattern))) {
+                    files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
                 continue;
             }
@@ -116,9 +117,9 @@ public class ThreadBackup extends Thread {
             if (rootFolder == null || rootFolder.toString().isEmpty()) rootFolder = Paths.get(".");
 
             PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-            List<File> fileCandidates = FileUtils.listTree(rootFolder.toFile());
+            List<File> fileCandidates = listOutsideBackupStorage(rootFolder.toFile());
             for (File file : fileCandidates) {
-                if (matcher.matches(file.toPath().normalize()) && !isBackupStorage(file)) {
+                if (matcher.matches(file.toPath().normalize())) {
                     files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
             }
@@ -237,8 +238,8 @@ public class ThreadBackup extends Thread {
 
     private static Map<String, File> listWorldFiles(File src) throws IOException {
         Map<String, File> files = new LinkedHashMap<>();
-        for (File file : FileUtils.listTree(src)) {
-            if (!isBackupStorage(file)) files.put(FileUtils.getRelativePath(file), file);
+        for (File file : listOutsideBackupStorage(src)) {
+            files.put(FileUtils.getRelativePath(file), file);
         }
         for (String name : new String[] { "ranks.txt", "players.txt" }) {
             File file = new File(ServerUtilities.SERVER_FOLDER, name);
@@ -248,9 +249,43 @@ public class ThreadBackup extends Thread {
     }
 
     public static boolean isBackupStorage(File file) throws IOException {
+        return isBackupStorage(
+                file,
+                BACKUP_TEMP_FOLDER.getCanonicalFile().toPath(),
+                BackupTask.BACKUP_FOLDER.getCanonicalFile().toPath());
+    }
+
+    /**
+     * Lists files below {@code root}, pruning backup output and staging directories as the walk descends.
+     * Canonicalizing every file instead costs about a millisecond each on Windows, where modern JDKs no longer cache
+     * canonical paths, and this runs on the server thread while world saving is suspended.
+     */
+    private static List<File> listOutsideBackupStorage(File root) throws IOException {
+        Path temp = BACKUP_TEMP_FOLDER.getCanonicalFile().toPath();
+        Path output = BackupTask.BACKUP_FOLDER.getCanonicalFile().toPath();
+        List<File> files = new ArrayList<>();
+        if (!isBackupStorage(root, temp, output)) collectOutsideBackupStorage(files, root, temp, output);
+        return files;
+    }
+
+    private static void collectOutsideBackupStorage(List<File> files, File file, Path temp, Path output)
+            throws IOException {
+        if (!file.isDirectory()) {
+            if (file.isFile()) files.add(file);
+            return;
+        }
+        File[] children = file.listFiles();
+        if (children == null) return;
+        for (File child : children) {
+            // Only a directory can bring backup storage into the walk; files below a checked one cannot.
+            if (child.isDirectory() && isBackupStorage(child, temp, output)) continue;
+            collectOutsideBackupStorage(files, child, temp, output);
+        }
+    }
+
+    private static boolean isBackupStorage(File file, Path temp, Path output) throws IOException {
         Path path = file.getCanonicalFile().toPath();
-        return path.startsWith(BACKUP_TEMP_FOLDER.getCanonicalFile().toPath())
-                || path.startsWith(BackupTask.BACKUP_FOLDER.getCanonicalFile().toPath());
+        return path.startsWith(temp) || path.startsWith(output);
     }
 
     private static void validateBackupSource(File src) throws IOException {
