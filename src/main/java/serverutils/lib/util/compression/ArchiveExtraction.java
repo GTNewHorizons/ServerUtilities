@@ -96,15 +96,21 @@ final class ArchiveExtraction {
         return path;
     }
 
-    static void extract(File archive, boolean includeGlobal, boolean legacy, File preserved) throws IOException {
-        extract(archive, includeGlobal, legacy, Paths.get("").toAbsolutePath(), preserved);
+    static void extract(File archive, boolean includeGlobal, boolean legacy, File preserved, File recovery)
+            throws IOException {
+        extract(archive, includeGlobal, legacy, Paths.get("").toAbsolutePath(), preserved, recovery);
     }
 
     static void extract(File archive, boolean includeGlobal, boolean legacy, Path root) throws IOException {
-        extract(archive, includeGlobal, legacy, root, null);
+        extract(archive, includeGlobal, legacy, root, null, null);
     }
 
     static void extract(File archive, boolean includeGlobal, boolean legacy, Path root, File preserved)
+            throws IOException {
+        extract(archive, includeGlobal, legacy, root, preserved, null);
+    }
+
+    static void extract(File archive, boolean includeGlobal, boolean legacy, Path root, File preserved, File recovery)
             throws IOException {
         root = root.toRealPath();
         Path preservedWorld = preserved == null ? null : preserved.getCanonicalFile().toPath();
@@ -176,11 +182,17 @@ final class ArchiveExtraction {
             }
             Path originals = staging.resolve("old");
             if (Files.exists(originals)) {
-                Path recoveryRoot = root.resolve("backups_before_restore");
-                Files.createDirectories(recoveryRoot);
-                Path recovery = Files.createTempDirectory(recoveryRoot, "restore-");
+                Path destination;
+                if (recovery != null) {
+                    destination = recovery.toPath();
+                    Files.createDirectories(destination);
+                } else {
+                    Path recoveryRoot = root.resolve("backups_before_restore");
+                    Files.createDirectories(recoveryRoot);
+                    destination = Files.createTempDirectory(recoveryRoot, "restore-");
+                }
                 // The final move preserves replaced global files, including automatically included ranks.
-                Files.move(originals, recovery.resolve("files"));
+                Files.move(originals, destination.resolve("files"));
             }
         } catch (IOException | RuntimeException failure) {
             Collections.reverse(installed);

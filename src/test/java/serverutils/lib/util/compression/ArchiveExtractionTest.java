@@ -127,6 +127,23 @@ public class ArchiveExtractionTest {
     }
 
     @Test
+    public void replacedFilesGoToTheSuppliedRecoveryDirectory() throws Exception {
+        Path root = temporary.newFolder().toPath();
+        String ranks = serverutils.ServerUtilities.SERVER_FOLDER + "ranks.txt";
+        Path target = root.resolve(ranks);
+        Files.createDirectories(target.getParent());
+        Files.write(target, "original".getBytes(StandardCharsets.UTF_8));
+        Path recovery = root.resolve("backups_before_restore/2026-01-01-00-00-00-abc");
+        ArchiveExtraction.extract(archive(ranks).toFile(), true, false, root, null, recovery.toFile());
+        assertEquals(
+                "original",
+                new String(Files.readAllBytes(recovery.resolve("files").resolve(ranks)), StandardCharsets.UTF_8));
+        try (java.util.stream.Stream<Path> entries = Files.list(root.resolve("backups_before_restore"))) {
+            assertEquals(1, entries.count());
+        }
+    }
+
+    @Test
     public void worldOnlyRestoreSurvivesChangedAdditionalFileConfig() throws Exception {
         serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[0];
         Path root = temporary.newFolder().toPath();

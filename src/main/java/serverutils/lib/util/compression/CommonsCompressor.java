@@ -52,10 +52,10 @@ public class CommonsCompressor implements ICompress {
     }
 
     @Override
-    public void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup, File preserved)
+    public void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup, File preserved, File recovery)
             throws IOException {
 
-        ArchiveExtraction.extract(archive, includeGlobal, isOldBackup, preserved);
+        ArchiveExtraction.extract(archive, includeGlobal, isOldBackup, preserved, recovery);
     }
 
     @Override

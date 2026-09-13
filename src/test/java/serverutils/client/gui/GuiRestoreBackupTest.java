@@ -80,7 +80,7 @@ public class GuiRestoreBackupTest {
                 assertTrue(recoveryFile.isFile());
                 assertTrue(oldWorldFile.isFile());
                 try (ICompress compressor = ICompress.createCompressor()) {
-                    compressor.extractArchive(archive, true, false, null);
+                    compressor.extractArchive(archive, true, false, null, null);
                 }
                 assertEquals("restored", new String(Files.readAllBytes(restored.toPath()), StandardCharsets.UTF_8));
             }

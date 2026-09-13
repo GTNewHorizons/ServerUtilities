@@ -316,16 +316,17 @@ public class GuiRestoreBackup extends GuiButtonListBase {
             if (archivePath.startsWith(worldPath)) {
                 file = new File(saveCopy, worldPath.relativize(archivePath).toString());
             }
+            File recoveryStorage = new File("backups_before_restore/");
+            Files.createDirectories(recoveryStorage.toPath());
+            // One directory per restore: displaced extras and replaced globals land side by side.
+            File previousRoot = Files.createTempDirectory(
+                    recoveryStorage.toPath(),
+                    DATE_FORMAT.format(Calendar.getInstance().getTime()) + "-").toFile();
             if (!isOldBackup) {
-                File previousRoot = new File("backups_before_restore/");
-                Files.createDirectories(previousRoot.toPath());
-                previousRoot = new File(previousRoot, DATE_FORMAT.format(Calendar.getInstance().getTime()));
-                previousRoot = Files
-                        .createTempDirectory(previousRoot.getParentFile().toPath(), previousRoot.getName() + "-")
-                        .toFile();
                 renameAdditionalFiles(previousRoot, includeGlobal, moved, file, saveCopy);
             }
-            compressor.extractArchive(file, includeGlobal, isOldBackup, saveCopy);
+            compressor.extractArchive(file, includeGlobal, isOldBackup, saveCopy, previousRoot);
+            previousRoot.delete();
             closeGui();
         } catch (Exception e) {
 

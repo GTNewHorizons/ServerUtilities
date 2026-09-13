@@ -28,7 +28,8 @@ public interface ICompress extends AutoCloseable {
         }
     }
 
-    void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup, File preserved) throws IOException;
+    void extractArchive(File archive, boolean includeGlobal, boolean isOldBackup, File preserved, File recovery)
+            throws IOException;
 
     boolean isOldBackup(File archive) throws IOException;
 
