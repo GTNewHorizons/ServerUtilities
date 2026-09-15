@@ -89,6 +89,7 @@ All of these are server-side and live with the existing backup config.
 | `external_hold_default_seconds` | `600` | Lease granted when `begin` is called without an explicit duration. |
 | `external_hold_max_seconds` | `1800` | Ceiling. A longer request is clamped to this and the response says so, so the script can shorten its work rather than discover the clamp at expiry. |
 | `external_hold_warn_seconds` | `300` | Log a WARN once a hold has been held this long, and periodically after, so a stuck script is visible in the log rather than only at expiry. |
+| `external_hold_prepare_timeout_seconds` | `120` | How long a command waits for the server thread before giving up with `TIMEOUT`. Not the lease; it only stops a wedged server from hanging an RCON client forever. |
 
 ## Why this is small
 
@@ -141,8 +142,13 @@ backup hold status
   `end` must not release a hold the admin has since started. It is not a secret
   and is not authentication; RCON and console access remain the trust boundary.
 - Responses are short single-line plain text with a stable leading token, no
-  colour codes and no localised text. Proposed: `OK`, `BUSY`, `DENIED`,
+  colour codes and no localised text: `OK`, `BUSY`, `DENIED`, `INVALID_ARGUMENT`,
   `DISABLED`, `EXPIRED`, `NO_HOLD`, `BAD_TOKEN`, `SAVE_FAILED`, `TIMEOUT`.
+- `INVALID_ARGUMENT` is separate from `DENIED` so a script author who mistypes a
+  duration is not sent to debug RCON permissions.
+- `BUSY` also covers a hold that is still being prepared, and a release that has
+  not yet confirmed. Neither has a token to report, and both are states a client
+  should wait out rather than act on.
 - `EXPIRED` covers every way a hold can stop being valid while a script still
   believes it holds one: the lease running out, an admin running `backup stop`,
   and shutdown. The script's correct response is the same in all three cases,
@@ -188,6 +194,14 @@ The watchdog is the existing `onServerTick` handler. If a hold is active and
 its monotonic deadline has passed, release it and log loudly. No new thread,
 and world mutation stays on the server thread where it belongs. Use
 `System.nanoTime`, not ticks or wall-clock.
+
+Track "saving is suspended for us" separately from the hold state, and have the
+watchdog retry whenever that flag is set with no hold recorded. Without it, a
+release whose dispatch never confirms clears the hold, leaves saving suspended
+and disarms the very watchdog that should recover it: the server then stops
+persisting data silently until someone restarts it. That failure is worse than
+anything this feature prevents, so the flag, not the state, is what says
+whether saving needs putting back.
 
 Shutdown, normal and crash, releases any hold before the final save. The
 existing `MixinMinecraftServer_BackupShutdown` path covers this. A hard process
@@ -257,12 +271,19 @@ dispatched to the server thread hangs forever. External backups run at night,
 when the server is empty and paused, so this is the normal case rather than an
 edge case.
 
-SU already has the fix: `serverUtilities$setPauseWhenEmptyMaskSeconds`, exposed
-via `CmdPauseWhenEmptyMask`. The paused server keeps calling `tick()` and only
-cancels at the top, so arming the mask from the RCON thread before dispatching
-means the very next tick proceeds and the server thread wakes within about
-50ms. Re-arm the mask each tick while a hold is active so the server cannot
-pause underneath a hold.
+The existing `serverUtilities$setPauseWhenEmptyMaskSeconds` mask looks like the
+answer but is the wrong shape for this. It is a countdown, so it has to be
+re-armed every tick and nothing clears it on release, leaving the server awake
+for the remainder of the last armed lease after a snapshot that took seconds.
+It is also the same field `CmdPauseWhenEmptyMask` writes, so a hold would
+silently overwrite an administrator's own mask twenty times a second.
+
+Inhibit instead. The mixin's `@Inject` is at `tick` HEAD and runs even while
+paused, so adding `!ExternalBackupHold.INSTANCE.isHeld()` to the pause condition
+wakes the server on the very next tick, needs no countdown, no cross-thread
+field write, no per-tick re-arming, and leaves no residue when the hold ends.
+Because `isHeld()` also covers preparation and an unconfirmed release, the
+server stays awake for exactly as long as the work needs it.
 
 ## Interaction with the internal backup
 

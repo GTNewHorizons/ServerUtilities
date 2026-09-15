@@ -359,6 +359,37 @@ public class ServerUtilitiesConfig {
         public boolean only_backup_claimed_chunks;
 
         @Config.Comment("""
+                Let an external backup tool suspend world saving over RCON while it snapshots or copies the server files.
+                Only the console and RCON can use it, never players. Off by default; turn it on if you back up with your
+                own scripts, filesystem snapshots or VM images instead of the built-in backup.""")
+        @Config.DefaultBoolean(false)
+        public boolean enable_external_holds;
+
+        @Config.Comment("How long an external backup hold lasts when no duration is requested, in seconds.")
+        @Config.DefaultInt(600)
+        @Config.RangeInt(min = 1)
+        public int external_hold_default_seconds;
+
+        @Config.Comment("""
+                Longest an external backup hold may last, in seconds. Longer requests are clamped to this and told so.
+                World saving is suspended for the whole hold, so anything unsaved is lost if the server dies meanwhile.""")
+        @Config.DefaultInt(1800)
+        @Config.RangeInt(min = 1)
+        public int external_hold_max_seconds;
+
+        @Config.Comment("Warn in the server log once an external backup hold has lasted this long, in seconds.")
+        @Config.DefaultInt(300)
+        @Config.RangeInt(min = 1)
+        public int external_hold_warn_seconds;
+
+        @Config.Comment("""
+                How long an external backup hold command waits for the server thread before giving up, in seconds.
+                This is not the lease; it only stops a wedged server from hanging an RCON client forever.""")
+        @Config.DefaultInt(120)
+        @Config.RangeInt(min = 1)
+        public int external_hold_prepare_timeout_seconds;
+
+        @Config.Comment("""
                 Backup entire regions that contain at least one claimed chunk.
                 This backs up complete .mca files instead of reconstructing temporary files with only claimed chunks.
                 Requires only_backup_claimed_chunks to be enabled.""")

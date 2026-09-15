@@ -10,6 +10,7 @@ import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
 import serverutils.task.backup.BackupTask;
+import serverutils.task.backup.ExternalBackupHold;
 
 public class CmdBackup extends CmdTreeBase {
 
@@ -18,6 +19,15 @@ public class CmdBackup extends CmdTreeBase {
         addSubcommand(new CmdBackupStart("start"));
         addSubcommand(new CmdBackupStop("stop"));
         addSubcommand(new CmdBackupGetSize("getsize"));
+    }
+
+    /**
+     * External holds are dedicated-server only: they exist for RCON backup scripts, and the pause-when-empty handling
+     * they rely on does not apply to an integrated server. Registered from ServerUtilitiesCommands, next to the other
+     * dedicated-server commands.
+     */
+    public void addHoldCommands() {
+        addSubcommand(new CmdBackupHold());
     }
 
     public static class CmdBackupStart extends CmdBase {
@@ -34,7 +44,9 @@ public class CmdBackup extends CmdTreeBase {
 
             final BackupTask task = new BackupTask(sender, target, oc);
 
-            if (!BackupTask.isBackupRunning()) {
+            if (ExternalBackupHold.INSTANCE.isHeld()) {
+                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_hold_active"));
+            } else if (!BackupTask.isBackupRunning()) {
                 task.execute(Universe.get());
                 sender.addChatMessage(
                         ServerUtilities
@@ -53,7 +65,12 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            if (BackupTask.isBackupRunning()) {
+            if (ExternalBackupHold.INSTANCE.isHeld()) {
+                // Deliberate admin action; the external client learns its hold is gone and discards that backup.
+                // Routed through the server thread, since this may be running on the RCON thread.
+                ExternalBackupHold.INSTANCE.forceRelease("released by " + sender.getCommandSenderName());
+                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_hold_released"));
+            } else if (BackupTask.isBackupRunning()) {
                 BackupTask.stopBackupThread();
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_stop"));
             } else {
