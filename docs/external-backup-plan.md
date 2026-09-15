@@ -24,10 +24,12 @@ covered paths and the response-code rules are documented in the README.
 ## Limits
 
 Vanilla chunk I/O does not report write failures or fsync region files.
-When Hodgepodge's `threadedWorldDataSaving` is active, the hold calls
-`WorldDataSaver.flush()` and returns `SAVE_FAILED` if world-data writes
-still fail. Other mods with independent background writers are outside
-SU's barrier. `begin` stalls a server tick while saving dirty chunks.
+When Hodgepodge's `threadedWorldDataSaving` is active and its version provides
+`WorldDataSaver.flush()`, the hold returns `SAVE_FAILED` if world-data writes
+still fail. Older versions, including 2.7.153, provide only the queued-I/O
+barrier and cannot confirm write failures. Other mods with independent
+background writers are outside SU's barrier. `begin` stalls a server tick
+while saving dirty chunks.
 Vanilla RCON shares one output buffer, so two backup scripts must not run
 concurrently.
 
