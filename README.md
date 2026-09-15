@@ -40,8 +40,10 @@ edits are deferred until the hold ends; a player who logged out during a hold
 cannot reconnect while that save is deferred. Arbitrary mods writing
 from their own threads are outside the hold. Vanilla queued chunk writes do not
 report failures or fsync region files. When Hodgepodge's
-`threadedWorldDataSaving` is active, its world-data flush retries failed writes
-and causes `begin` to return `SAVE_FAILED` if they still fail.
+`threadedWorldDataSaving` is active and its version provides
+`WorldDataSaver.flush()`, the flush retries failed world-data writes and makes
+`begin` return `SAVE_FAILED` if they still fail. Older versions without the
+method only provide the queued-I/O barrier and cannot confirm write failures.
 
 Renew before the reported lease runs out and publish a capture only when `end`
 returns `OK`. Discard it after `EXPIRED`, `BAD_TOKEN`, `SAVE_FAILED`, `TIMEOUT`,

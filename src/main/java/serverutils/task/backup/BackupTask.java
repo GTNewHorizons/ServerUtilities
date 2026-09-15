@@ -6,6 +6,7 @@ import static serverutils.lib.util.FileUtils.SizeUnit;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -193,9 +194,17 @@ public class BackupTask extends Task {
             return;
         }
         Class<?> saver = Class.forName("com.mitchej123.hodgepodge.util.WorldDataSaver");
+        Method flush;
+        try {
+            flush = saver.getMethod("flush");
+        } catch (NoSuchMethodException ex) {
+            ServerUtilities.LOGGER.warn(
+                    "Hodgepodge WorldDataSaver has no flush(); queued writes drained, but write failures cannot be confirmed");
+            return;
+        }
         Object instance = saver.getField("INSTANCE").get(null);
         try {
-            saver.getMethod("flush").invoke(instance);
+            flush.invoke(instance);
         } catch (InvocationTargetException ex) {
             Throwable cause = ex.getCause();
             if (cause instanceof InterruptedException) throw (InterruptedException) cause;
