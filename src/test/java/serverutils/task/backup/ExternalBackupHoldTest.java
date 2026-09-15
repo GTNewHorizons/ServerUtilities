@@ -128,6 +128,12 @@ public class ExternalBackupHoldTest {
     }
 
     @Test
+    public void singletonKeepsItsLiveBackend() {
+        hold.resetForTests();
+        assertNotNull(hold.backend);
+    }
+
+    @Test
     public void beginGrantsAHoldAndSuspendsSaving() {
         HoldResponse response = hold.begin(0);
 

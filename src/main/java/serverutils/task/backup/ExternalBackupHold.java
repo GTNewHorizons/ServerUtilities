@@ -27,8 +27,6 @@ import serverutils.ranks.Ranks;
 /** External backup lease. World mutation runs on the server thread; queued I/O drains on a bounded worker. */
 public final class ExternalBackupHold {
 
-    public static final ExternalBackupHold INSTANCE = new ExternalBackupHold();
-
     /** World operations, replaceable in tests. */
     interface Backend {
 
@@ -71,6 +69,8 @@ public final class ExternalBackupHold {
             return BackupTask.isBackupRunning() || BackupTask.isWorldSavingSuspended();
         }
     };
+
+    public static final ExternalBackupHold INSTANCE = new ExternalBackupHold();
 
     private final SecureRandom random = new SecureRandom();
     private final Object lock = new Object();
