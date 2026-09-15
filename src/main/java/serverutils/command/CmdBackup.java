@@ -11,6 +11,7 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
 import serverutils.task.backup.BackupTask;
 import serverutils.task.backup.ExternalBackupHold;
+import serverutils.task.backup.HoldResponse;
 
 public class CmdBackup extends CmdTreeBase {
 
@@ -21,11 +22,7 @@ public class CmdBackup extends CmdTreeBase {
         addSubcommand(new CmdBackupGetSize("getsize"));
     }
 
-    /**
-     * External holds are dedicated-server only: they exist for RCON backup scripts, and the pause-when-empty handling
-     * they rely on does not apply to an integrated server. Registered from ServerUtilitiesCommands, next to the other
-     * dedicated-server commands.
-     */
+    /** Called only during dedicated-server command registration. */
     public void addHoldCommands() {
         addSubcommand(new CmdBackupHold());
     }
@@ -66,10 +63,12 @@ public class CmdBackup extends CmdTreeBase {
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
             if (ExternalBackupHold.INSTANCE.isHeld()) {
-                // Deliberate admin action; the external client learns its hold is gone and discards that backup.
-                // Routed through the server thread, since this may be running on the RCON thread.
-                ExternalBackupHold.INSTANCE.forceRelease("released by " + sender.getCommandSenderName());
-                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_hold_released"));
+                HoldResponse response = ExternalBackupHold.INSTANCE
+                        .forceRelease("released by " + sender.getCommandSenderName());
+                sender.addChatMessage(
+                        ServerUtilities.lang(
+                                sender,
+                                response.isOk() ? "cmd.backup_hold_released" : "cmd.backup_hold_release_unconfirmed"));
             } else if (BackupTask.isBackupRunning()) {
                 BackupTask.stopBackupThread();
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_stop"));

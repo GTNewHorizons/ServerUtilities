@@ -9,10 +9,7 @@ import serverutils.task.backup.ExternalBackupHold;
 import serverutils.task.backup.HoldResponse;
 import serverutils.task.backup.HoldResult;
 
-/**
- * {@code /backup hold ...}, the external backup hold protocol. Replies are plain single-line ASCII rather than
- * localised chat, because the caller is a script reading an RCON response.
- */
+/** {@code /backup hold ...}; scripts receive plain response codes. */
 public class CmdBackupHold extends CmdTreeBase {
 
     public CmdBackupHold() {

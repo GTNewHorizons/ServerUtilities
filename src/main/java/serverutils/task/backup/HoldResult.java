@@ -8,7 +8,7 @@ public enum HoldResult {
 
     /** The request succeeded. */
     OK,
-    /** Another hold or a backup owns world saving. */
+    /** Another hold, backup, or unfinished drain owns saving. */
     BUSY,
     /** The sender is not the console or RCON. */
     DENIED,
@@ -24,10 +24,10 @@ public enum HoldResult {
     EXPIRED,
     /** No hold is active. Only meaningful for status against an idle server. */
     NO_HOLD,
-    /** The token does not match the active hold, which means the caller's hold ended. Discard, as for EXPIRED. */
+    /** The token does not match the active hold. Discard, as for EXPIRED. */
     BAD_TOKEN,
-    /** The world could not be saved or flushed, so no consistent point exists. */
+    /** The world could not be saved or queued writes could not be drained. */
     SAVE_FAILED,
-    /** The server thread did not answer in time. Nothing can be assumed about world state. */
+    /** Saving, draining, or releasing did not confirm in time. The capture must be discarded. */
     TIMEOUT
 }

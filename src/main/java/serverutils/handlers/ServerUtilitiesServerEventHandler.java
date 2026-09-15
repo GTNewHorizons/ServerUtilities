@@ -97,8 +97,6 @@ public class ServerUtilitiesServerEventHandler {
                 && (event.command instanceof CommandSaveAll || event.command instanceof CommandSaveOn
                         || event.command instanceof CommandSaveOff)) {
             event.setCanceled(true);
-            // Saying "backup in progress" during an external hold sends admins looking for a backup that is not
-            // running, and often to /backup stop, which would kill the hold.
             event.exception = new CommandException(
                     ExternalBackupHold.INSTANCE.isHeld() ? "cmd.backup_hold_active" : "cmd.backup_already_running");
         }
@@ -229,8 +227,7 @@ public class ServerUtilitiesServerEventHandler {
                     ServerUtilities.LOGGER.error("Error running scheduled server task", e);
                 }
             }
-            // Resumes saving if an external backup tool died holding it. Runs before the Universe check below because
-            // a hold must be released even if the universe is gone.
+            // Keep the lease watchdog running even after Universe unloads.
             ExternalBackupHold.INSTANCE.tick();
         }
 

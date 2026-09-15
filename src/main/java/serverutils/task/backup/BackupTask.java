@@ -5,6 +5,7 @@ import static serverutils.ServerUtilitiesNotifications.BACKUP;
 import static serverutils.lib.util.FileUtils.SizeUnit;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -29,6 +30,7 @@ import net.minecraftforge.common.DimensionManager;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunks;
+import serverutils.lib.OtherMods;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
@@ -166,13 +168,41 @@ public class BackupTask extends Task {
      * Shared with {@link ExternalBackupHold} so the ordering lives in one place. Server thread only.
      */
     static void saveAndSuspendForSnapshot(MinecraftServer server) throws MinecraftException {
+        saveAndSuspendForSnapshot(server, () -> {});
+    }
+
+    static void saveAndSuspendForSnapshot(MinecraftServer server, Runnable beforeWorldSave) throws MinecraftException {
         server.getConfigurationManager().saveAllPlayerData();
+        beforeWorldSave.run();
         saveAndDisableWorldSaving(server.worldServers);
     }
 
-    /** saveAllPlayerData and saveAllChunks queue writes on another thread, so wait for them to reach disk. */
-    static void drainQueuedWrites() throws InterruptedException {
+    /** Wait for queued writes and report Hodgepodge world-data failures when its threaded saver is active. */
+    static void drainQueuedWrites() throws Exception {
         ThreadedFileIOBase.threadedIOInstance.waitForFinish();
+        if (!OtherMods.isHodgepodgeLoaded()) return;
+        Class<?> tweaks;
+        try {
+            tweaks = Class.forName("com.mitchej123.hodgepodge.config.TweaksConfig");
+        } catch (ClassNotFoundException ex) {
+            return; // Older Hodgepodge versions have no threaded world-data saver.
+        }
+        try {
+            if (!tweaks.getField("threadedWorldDataSaving").getBoolean(null)) return;
+        } catch (NoSuchFieldException ex) {
+            return;
+        }
+        Class<?> saver = Class.forName("com.mitchej123.hodgepodge.util.WorldDataSaver");
+        Object instance = saver.getField("INSTANCE").get(null);
+        try {
+            saver.getMethod("flush").invoke(instance);
+        } catch (InvocationTargetException ex) {
+            Throwable cause = ex.getCause();
+            if (cause instanceof InterruptedException) throw (InterruptedException) cause;
+            if (cause instanceof Exception) throw (Exception) cause;
+            if (cause instanceof Error) throw (Error) cause;
+            throw new IllegalStateException(cause);
+        }
     }
 
     // worldSaveStates is read from the RCON thread by external backup holds, so every access synchronizes on it to

@@ -660,6 +660,7 @@ cmd.backup_already_running=Backup in progress!
 cmd.backup_not_running=Backup is not running!
 cmd.backup_hold_active=An external backup hold is active!
 cmd.backup_hold_released=External backup hold released!
+cmd.backup_hold_release_unconfirmed=External backup hold release was not confirmed; check status and the server log.
 cmd.backup_size=Current world size: %s, total backups folder size: %s
 serverutilities.gui.backup.title=Restore Backup (%s)
 serverutilities.gui.backup.button=Backups
