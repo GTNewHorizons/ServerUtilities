@@ -6,6 +6,22 @@ preparation, release races, player and rank writes, and Hodgepodge error
 reporting. The feature is dedicated-server only and defaults off behind
 `enable_external_holds`.
 
+## Why a hold
+
+The manual `save-off` / `save-all` / sleep / `save-on` sequence guesses when
+queued writes finish. If its script dies, saving may stay off; logout saves,
+newly loaded dimensions, and SU's rank files can also change during the copy.
+A leased hold prepares the save and I/O drain before answering, then resumes
+saving on release or expiry. The external tool remains responsible for the
+snapshot or copy. The operator sequence and coverage are in the
+[usage guide](external-backup-usage.md).
+
+SU stages no second copy and emits no manifest: filesystem snapshots, VM
+images, and direct file copies choose different layouts, so the external tool
+must decide what to capture. The leased token keeps a late script from
+releasing a newer hold; the watchdog, admin stop, and shutdown paths restore
+saving if the owner disappears.
+
 ## Behavior
 
 Console and RCON use `backup hold begin [seconds]`, `renew <token> [seconds]`,
@@ -19,7 +35,7 @@ skip a hold; a rejected hold cannot resume an internal backup.
 Player and stats saves from the normal player-save path, and rank-file
 writes, are deferred until release. A player with a deferred logout save
 cannot reconnect and load stale player data before that release. The
-covered paths and the response-code rules are documented in the README.
+covered paths and the response-code rules are documented in the usage guide.
 
 ## Limits
 
@@ -34,6 +50,10 @@ Vanilla RCON shares one output buffer, so two backup scripts must not run
 concurrently.
 
 ## Before release
+
+Dedicated-server console smoke checks passed for `begin`, `status`, and `end`
+without Hodgepodge and with Hodgepodge 2.7.153
+(`threadedWorldDataSaving=true`).
 
 Validate the built mod on a dedicated server over real RCON, with and
 without Hodgepodge. Exercise an empty paused server, active players,
