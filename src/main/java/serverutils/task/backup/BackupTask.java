@@ -50,7 +50,8 @@ public class BackupTask extends Task {
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
     public static final File BACKUP_FOLDER;
     private static final Map<WorldServer, Boolean> worldSaveStates = new IdentityHashMap<>();
-    public static ThreadBackup thread;
+    // Volatile: external backup holds read this from the RCON thread to decide whether a backup already owns saving.
+    public static volatile ThreadBackup thread;
     public static boolean hadPlayer = false;
     private ICommandSender sender;
     private String customName = "";
@@ -93,6 +94,15 @@ public class BackupTask extends Task {
 
     @Override
     public void execute(Universe universe) {
+        // An external hold owns the saving states this task would otherwise restore, so nothing here may run while one
+        // is active, including the cleanup pass.
+        if (ExternalBackupHold.INSTANCE.isHeld()) {
+            if (!post) {
+                ServerUtilities.LOGGER.warn(
+                        "Skipping backup: an external backup hold is active. This occurrence is not rescheduled.");
+            }
+            return;
+        }
         if (post) {
             postBackup(universe);
             return;
@@ -216,18 +226,37 @@ public class BackupTask extends Task {
         ThreadedFileIOBase.threadedIOInstance.waitForFinish();
     }
 
+    /**
+     * Saves everything a consistent snapshot needs and leaves world saving suspended. Player data must be written
+     * before saveAllChunks so level.dat carries the current host inventory, otherwise the single-player host's
+     * inventory in the backup is stale and items can dupe or vanish on restore.
+     * <p>
+     * Shared with {@link ExternalBackupHold} so the ordering lives in one place. Server thread only.
+     */
+    static void saveAndSuspendForSnapshot(MinecraftServer server) throws Exception {
+        server.getConfigurationManager().saveAllPlayerData();
+        saveAndDisableWorldSaving(server.worldServers);
+        flushChunkSaves(server.worldServers);
+        Universe.get().saveForBackup();
+    }
+
+    // worldSaveStates is read from the RCON thread by external backup holds, so every access synchronizes on it to
+    // publish the change. Without this an external hold can observe an empty map mid-backup and start on top of it.
     static void saveAndDisableWorldSaving(WorldServer[] worlds) throws MinecraftException {
         try {
-            for (WorldServer world : worlds) {
-                if (world == null) continue;
-                worldSaveStates.putIfAbsent(world, world.levelSaving);
-                world.levelSaving = false;
-                world.saveAllChunks(true, null);
-                world.levelSaving = true;
+            synchronized (worldSaveStates) {
+                for (WorldServer world : worlds) {
+                    if (world == null) continue;
+                    worldSaveStates.putIfAbsent(world, world.levelSaving);
+                    world.levelSaving = false;
+                    world.saveAllChunks(true, null);
+                    world.levelSaving = true;
+                }
+                // A suspended world logs its usual "Saving chunks for level" line and then saves nothing, so record
+                // the suspension: a log with no matching resume is the fingerprint of data that never reached disk.
+                ServerUtilities.LOGGER
+                        .info("Suspended world saving in {} dimensions for backup", worldSaveStates.size());
             }
-            // A suspended world logs its usual "Saving chunks for level" line and then saves nothing, so record the
-            // suspension so missing state restoration can be diagnosed from the log.
-            ServerUtilities.LOGGER.info("Suspended world saving in {} dimensions for backup", worldSaveStates.size());
         } catch (MinecraftException | RuntimeException ex) {
             restoreWorldSaving();
             throw ex;
@@ -235,21 +264,26 @@ public class BackupTask extends Task {
     }
 
     static void restoreWorldSaving() {
-        if (!worldSaveStates.isEmpty()) {
-            ServerUtilities.LOGGER.info(
-                    "Restored previous world-saving states in {} dimensions after backup",
-                    worldSaveStates.size());
+        synchronized (worldSaveStates) {
+            if (!worldSaveStates.isEmpty()) {
+                ServerUtilities.LOGGER.info(
+                        "Restored previous world-saving states in {} dimensions after backup",
+                        worldSaveStates.size());
+            }
+            worldSaveStates.forEach((world, levelSaving) -> world.levelSaving = levelSaving);
+            worldSaveStates.clear();
         }
-        worldSaveStates.forEach((world, levelSaving) -> world.levelSaving = levelSaving);
-        worldSaveStates.clear();
     }
 
     public static boolean isWorldSavingSuspended() {
-        return !worldSaveStates.isEmpty();
+        synchronized (worldSaveStates) {
+            return !worldSaveStates.isEmpty();
+        }
     }
 
     public static void suspendNewWorldSaving(WorldServer world) {
-        if (isWorldSavingSuspended()) {
+        synchronized (worldSaveStates) {
+            if (worldSaveStates.isEmpty()) return;
             if (worldSaveStates.putIfAbsent(world, world.levelSaving) == null) {
                 ServerUtilities.LOGGER.info(
                         "Dimension {} loaded during a backup; world saving suspended there until it finishes",

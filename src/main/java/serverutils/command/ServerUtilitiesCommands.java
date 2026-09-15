@@ -130,7 +130,11 @@ public class ServerUtilitiesCommands {
         }
 
         if (commands.backup) {
-            event.registerServerCommand(new CmdBackup());
+            CmdBackup backup = new CmdBackup();
+            if (event.getServer().isDedicatedServer()) {
+                backup.addHoldCommands();
+            }
+            event.registerServerCommand(backup);
         }
 
         if (commands.rtp) {

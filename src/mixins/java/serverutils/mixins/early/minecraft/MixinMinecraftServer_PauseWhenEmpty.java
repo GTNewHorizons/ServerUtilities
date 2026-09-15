@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import serverutils.ServerUtilities;
 import serverutils.data.IPauseWhenEmptyServer;
 import serverutils.data.IPauseWhenEmptyServerConfig;
+import serverutils.task.backup.ExternalBackupHold;
 
 @Mixin(MinecraftServer.class)
 public abstract class MixinMinecraftServer_PauseWhenEmpty implements IPauseWhenEmptyServer {
@@ -60,8 +61,13 @@ public abstract class MixinMinecraftServer_PauseWhenEmpty implements IPauseWhenE
             }
 
             // Pause if and only if the server has been empty for `pauseTicks` ticks and the mask (if any) has expired.
+            // An external backup hold must keep ticking: a paused server cancels this method at HEAD, so the server
+            // thread would never run the work that releases the hold. Inhibiting rather than arming the mask means
+            // nothing to clear afterwards and no interference with an administrator's own mask.
             int pauseTicks = sc.serverUtilities$getPauseWhenEmptySeconds() * 20;
-            if (pauseTicks > 0 && serverUtilities$emptyTicks >= pauseTicks && serverUtilities$maskTicks == 0) {
+            if (pauseTicks > 0 && serverUtilities$emptyTicks >= pauseTicks
+                    && serverUtilities$maskTicks == 0
+                    && !ExternalBackupHold.INSTANCE.isHeld()) {
                 if (!serverUtilities$wasPaused) {
                     ServerUtilities.LOGGER.info(
                             "Server empty for {} seconds, saving and pausing",
