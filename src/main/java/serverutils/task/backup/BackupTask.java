@@ -234,7 +234,12 @@ public class BackupTask extends Task {
      * Shared with {@link ExternalBackupHold} so the ordering lives in one place. Server thread only.
      */
     static void saveAndSuspendForSnapshot(MinecraftServer server) throws Exception {
+        saveAndSuspendForSnapshot(server, () -> {});
+    }
+
+    static void saveAndSuspendForSnapshot(MinecraftServer server, Runnable beforeWorldSave) throws Exception {
         server.getConfigurationManager().saveAllPlayerData();
+        beforeWorldSave.run();
         saveAndDisableWorldSaving(server.worldServers);
         flushChunkSaves(server.worldServers);
         Universe.get().saveForBackup();

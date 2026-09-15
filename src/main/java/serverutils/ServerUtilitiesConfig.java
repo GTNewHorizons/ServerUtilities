@@ -383,8 +383,8 @@ public class ServerUtilitiesConfig {
         public int external_hold_warn_seconds;
 
         @Config.Comment("""
-                How long an external backup hold command waits for the server thread before giving up, in seconds.
-                This is not the lease; it only stops a wedged server from hanging an RCON client forever.""")
+                Maximum time for an external backup hold to save and drain queued writes before giving up, in seconds.
+                This is not the lease; it prevents a stuck save or I/O queue from suspending saving indefinitely.""")
         @Config.DefaultInt(120)
         @Config.RangeInt(min = 1)
         public int external_hold_prepare_timeout_seconds;

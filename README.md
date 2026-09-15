@@ -24,6 +24,32 @@ The ServerUtilities configuration files are found in `.minecraft/serverutilities
 
 For server admins, there is much more that ServerUtilities can do, refer to the FTBU documentation for now.
 
+## External backup holds (dedicated servers)
+
+Enable `enable_external_holds` in the backup config to let a console or RCON
+script hold world saving while it takes a filesystem snapshot or copies files.
+The commands are `backup hold begin [seconds]`, `backup hold renew <token>
+[seconds]`, `backup hold end <token>`, and `backup hold status`. `begin` returns
+`OK <token> <seconds-left>` only after player and world saves and queued I/O
+complete. A request above `external_hold_max_seconds` is clamped and adds
+`CLAMPED` to the reply.
+
+Capture the world save directory and, if needed, `serverutilities/server/ranks.txt`
+and `players.txt`. SU stages and copies nothing. Player logout saves and rank
+edits are deferred until the hold ends; a player who logged out during a hold
+cannot reconnect while that save is deferred. Arbitrary mods writing
+from their own threads are outside the hold. Vanilla queued chunk writes do not
+report failures or fsync region files. When Hodgepodge's
+`threadedWorldDataSaving` is active, its world-data flush retries failed writes
+and causes `begin` to return `SAVE_FAILED` if they still fail.
+
+Renew before the reported lease runs out and publish a capture only when `end`
+returns `OK`. Discard it after `EXPIRED`, `BAD_TOKEN`, `SAVE_FAILED`, `TIMEOUT`,
+or a lost RCON reply. `begin` can stall a server tick while it saves dirty
+chunks. Run one backup script at a time: vanilla RCON shares one output buffer
+between clients. Restore an external backup by placing its files on a stopped
+server.
+
 ### License
 
 GTNH Modifications Copyright (C) 2021-2024 The GTNH Team

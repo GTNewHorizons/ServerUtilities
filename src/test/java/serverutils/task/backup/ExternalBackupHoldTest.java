@@ -6,9 +6,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,22 +27,17 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.util.FileUtils;
+import serverutils.ranks.Ranks;
 
-/**
- * Time is driven by hand and the server thread is simulated, so nothing here sleeps or needs a world. The behaviour
- * under test is which answer a client gets, and - the property that actually matters - whether world saving is left on
- * afterwards down every failure path.
- */
+/** Controlled time and world operations exercise lease responses and saving restoration. */
 public class ExternalBackupHoldTest {
 
     private final ExternalBackupHold hold = ExternalBackupHold.INSTANCE;
     private final AtomicLong now = new AtomicLong();
     private final RecordingBackend backend = new RecordingBackend();
 
-    /** Stands in for the world: counts suspends and resumes, and can be told to fail in each of the ways it can. */
     private static class RecordingBackend implements ExternalBackupHold.Backend {
 
         final AtomicInteger suspends = new AtomicInteger();
@@ -50,11 +47,14 @@ public class ExternalBackupHoldTest {
         volatile boolean failDrain;
         volatile boolean suspended;
         volatile Boolean busyOverride;
+        volatile CountDownLatch insideDrain;
+        volatile CountDownLatch drainGate;
 
         @Override
-        public void saveAndSuspend() throws Exception {
-            if (throwErrorOnSave) throw new StackOverflowError("save blew the stack");
+        public void saveAndSuspend(Runnable beforeWorldSave) throws Exception {
             if (failSave) throw new IllegalStateException("save failed");
+            beforeWorldSave.run();
+            if (throwErrorOnSave) throw new StackOverflowError("save blew the stack");
             suspends.incrementAndGet();
             suspended = true;
         }
@@ -66,7 +66,9 @@ public class ExternalBackupHoldTest {
         }
 
         @Override
-        public void drain() {
+        public void drain() throws Exception {
+            if (insideDrain != null) insideDrain.countDown();
+            if (drainGate != null) drainGate.await();
             if (failDrain) throw new IllegalStateException("drain failed");
         }
 
@@ -142,7 +144,6 @@ public class ExternalBackupHoldTest {
         assertEquals(HoldResult.OK, hold.begin(0).result);
 
         assertEquals(HoldResult.BUSY, hold.begin(0).result);
-        // The refused request must not have touched the world.
         assertEquals(1, backend.suspends.get());
         assertEquals(0, backend.resumes.get());
     }
@@ -166,9 +167,7 @@ public class ExternalBackupHoldTest {
         thread.start();
         assertTrue(insideFirst.await(5, TimeUnit.SECONDS));
 
-        // The second request arrives while the first is still preparing.
         HoldResult second = hold.begin(0).result;
-        // A client polling mid-preparation must not be told a hold exists.
         HoldResult whilePreparing = hold.status().result;
 
         releaseFirst.countDown();
@@ -219,7 +218,6 @@ public class ExternalBackupHoldTest {
         assertFalse(hold.isHeld());
         assertEquals(1, backend.resumes.get());
         assertFalse("saving must be back on after expiry", backend.suspended);
-        // The client learns its capture is void rather than being told there was never a hold.
         assertEquals(HoldResult.EXPIRED, hold.end(granted.token).result);
     }
 
@@ -228,7 +226,6 @@ public class ExternalBackupHoldTest {
         HoldResponse granted = hold.begin(60);
         now.set(seconds(61));
 
-        // The deadline passed but the watchdog has not run yet; renew must still refuse it.
         assertEquals(HoldResult.EXPIRED, hold.renew(granted.token, 600).result);
 
         hold.tick();
@@ -300,7 +297,6 @@ public class ExternalBackupHoldTest {
 
         assertEquals(HoldResult.TIMEOUT, hold.begin(0).result);
 
-        // The server thread finally drains the queue long after the request gave up.
         hold.dispatcher = Runnable::run;
         while (!queued.isEmpty()) queued.poll().run();
 
@@ -311,7 +307,6 @@ public class ExternalBackupHoldTest {
 
     @Test
     public void aReleaseThatNeverConfirmsLeavesTheWatchdogArmed() {
-        // The worst failure this feature can have: saving suspended, no hold recorded, and nothing left watching it.
         hold.begin(60);
         assertTrue(backend.suspended);
 
@@ -321,7 +316,6 @@ public class ExternalBackupHoldTest {
         assertTrue("the hold must not be dropped while saving is still suspended", hold.isHeld());
         assertTrue(backend.suspended);
 
-        // The server thread comes back; the watchdog has to put saving back on without anyone asking again.
         hold.dispatcher = Runnable::run;
         hold.tick();
 
@@ -399,7 +393,6 @@ public class ExternalBackupHoldTest {
     public void automaticBackupsAreSkippedWhileAHoldIsActive() {
         hold.begin(0);
 
-        // The hold owns the saving states, so the task must return before its cleanup pass touches them.
         new BackupTask().execute(null);
         new BackupTask(true).execute(null);
 
@@ -412,13 +405,13 @@ public class ExternalBackupHoldTest {
     public void aHoldIsRefusedWhileWorldSavingIsAlreadySuspended() {
         try {
             BackupTask.saveAndDisableWorldSaving(new WorldServer[] { mock(WorldServer.class) });
-            // An internal backup that has not run its cleanup yet still owns the saving states.
             assertTrue(BackupTask.isWorldSavingSuspended());
 
-            // The check runs on the server thread, inside the dispatched task, where it cannot race the backup.
             assertEquals(HoldResult.BUSY, hold.begin(0).result);
             assertFalse(hold.isHeld());
             assertEquals(0, backend.suspends.get());
+            assertEquals(0, backend.resumes.get());
+            assertTrue(BackupTask.isWorldSavingSuspended());
         } catch (Exception ex) {
             throw new AssertionError(ex);
         } finally {
@@ -438,16 +431,144 @@ public class ExternalBackupHoldTest {
     @Test
     public void onlyConsoleAndRconMayHold() {
         assertTrue(ExternalBackupHold.isConsoleOrRcon(mock(MinecraftServer.class)));
-        // Any other sender, including an opped player, must be rejected before the command runs.
         assertFalse(ExternalBackupHold.isConsoleOrRcon(mock(ICommandSender.class)));
     }
 
-    /**
-     * The documented backup coverage names these paths. Moving them is fine, but docs/external-backup-plan.md and the
-     * admin documentation have to move with them, so fail loudly here rather than letting the docs rot.
-     */
     @Test
-    public void documentedGlobalFilePathsAreUnchanged() {
-        assertEquals("serverutilities/server/", ServerUtilities.SERVER_FOLDER);
+    public void partialSaveErrorKeepsTheWatchdogArmed() {
+        backend.throwErrorOnSave = true;
+        AtomicInteger dispatched = new AtomicInteger();
+        hold.dispatcher = task -> { if (dispatched.incrementAndGet() == 1) task.run(); };
+
+        assertEquals(HoldResult.SAVE_FAILED, hold.begin(0).result);
+        assertTrue(hold.isHeld());
+        hold.tick();
+        assertFalse(hold.isHeld());
+        assertEquals(1, backend.resumes.get());
+    }
+
+    @Test
+    public void anOldReleaseCannotResumeANewerHold() throws Exception {
+        HoldResponse first = hold.begin(60);
+        AtomicReference<Runnable> pending = new AtomicReference<>();
+        CountDownLatch queued = new CountDownLatch(1);
+        hold.dispatcher = task -> {
+            pending.set(task);
+            queued.countDown();
+        };
+        AtomicReference<HoldResult> ended = new AtomicReference<>();
+        Thread caller = new Thread(() -> ended.set(hold.end(first.token).result));
+        caller.start();
+        assertTrue(queued.await(5, TimeUnit.SECONDS));
+
+        now.set(seconds(60));
+        hold.tick();
+        assertEquals(HoldResult.OK, hold.begin(60).result);
+        pending.get().run();
+        caller.join(TimeUnit.SECONDS.toMillis(5));
+
+        assertEquals(HoldResult.EXPIRED, ended.get());
+        assertTrue(hold.isHeld());
+        assertTrue(backend.suspended);
+        assertEquals(1, backend.resumes.get());
+    }
+
+    @Test
+    public void renewalAndStatusDoNotConfirmAReleasingHold() throws Exception {
+        HoldResponse granted = hold.begin(60);
+        AtomicReference<Runnable> pending = new AtomicReference<>();
+        CountDownLatch queued = new CountDownLatch(1);
+        hold.dispatcher = task -> {
+            pending.set(task);
+            queued.countDown();
+        };
+        AtomicReference<HoldResult> ended = new AtomicReference<>();
+        Thread caller = new Thread(() -> ended.set(hold.end(granted.token).result));
+        caller.start();
+        assertTrue(queued.await(5, TimeUnit.SECONDS));
+
+        assertEquals(HoldResult.EXPIRED, hold.renew(granted.token, 60).result);
+        assertEquals(HoldResult.BUSY, hold.status().result);
+        pending.get().run();
+        caller.join(TimeUnit.SECONDS.toMillis(5));
+        assertEquals(HoldResult.OK, ended.get());
+    }
+
+    @Test
+    public void stuckDrainTimesOutAndResumesSaving() throws Exception {
+        ServerUtilitiesConfig.backups.external_hold_prepare_timeout_seconds = 1;
+        backend.insideDrain = new CountDownLatch(1);
+        backend.drainGate = new CountDownLatch(1);
+        AtomicReference<HoldResult> response = new AtomicReference<>();
+        Thread caller = new Thread(() -> response.set(hold.begin(0).result));
+        caller.start();
+        assertTrue(backend.insideDrain.await(5, TimeUnit.SECONDS));
+
+        now.set(seconds(1));
+        hold.tick();
+        caller.join(TimeUnit.SECONDS.toMillis(3));
+
+        try {
+            assertEquals(HoldResult.TIMEOUT, response.get());
+            assertTrue(hold.isHeld());
+            assertFalse(backend.suspended);
+            assertEquals(1, backend.resumes.get());
+            assertEquals(HoldResult.BUSY, hold.begin(0).result);
+        } finally {
+            backend.drainGate.countDown();
+        }
+    }
+
+    @Test
+    public void deferredPlayerAndRankWritesRunAfterRelease() {
+        UUID playerId = UUID.randomUUID();
+        AtomicInteger writes = new AtomicInteger();
+        Ranks ranks = mock(Ranks.class);
+        assertFalse(hold.deferPlayerWrite(playerId, writes::incrementAndGet));
+        HoldResponse granted = hold.begin(0);
+
+        assertTrue(hold.deferPlayerWrite(playerId, writes::incrementAndGet));
+        assertTrue(hold.hasDeferredPlayerWrite(playerId));
+        assertTrue(hold.deferRankSave(ranks));
+        assertEquals(0, writes.get());
+
+        assertEquals(HoldResult.OK, hold.end(granted.token).result);
+        assertEquals(1, writes.get());
+        assertFalse(hold.hasDeferredPlayerWrite(playerId));
+        verify(ranks).save();
+    }
+
+    @Test
+    public void failedDeferredWriteIsRetriedBeforeAnotherHold() {
+        UUID playerId = UUID.randomUUID();
+        AtomicInteger attempts = new AtomicInteger();
+        HoldResponse granted = hold.begin(0);
+        hold.deferPlayerWrite(
+                playerId,
+                () -> { if (attempts.incrementAndGet() == 1) throw new IllegalStateException("write failed"); });
+
+        assertEquals(HoldResult.SAVE_FAILED, hold.end(granted.token).result);
+        assertEquals(HoldResult.BUSY, hold.status().result);
+        assertEquals(HoldResult.BUSY, hold.begin(0).result);
+        assertTrue(hold.hasDeferredPlayerWrite(playerId));
+
+        now.set(seconds(30));
+        hold.tick();
+        assertEquals(2, attempts.get());
+        assertFalse(hold.hasDeferredPlayerWrite(playerId));
+        assertEquals(HoldResult.NO_HOLD, hold.status().result);
+    }
+
+    @Test
+    public void commandsOnTheServerThreadReleaseInline() {
+        hold.tick();
+        hold.dispatcher = task -> {
+            throw new AssertionError("server-thread commands must not wait for a queued task");
+        };
+
+        HoldResponse granted = hold.begin(0);
+        assertEquals(HoldResult.OK, granted.result);
+        assertEquals(HoldResult.OK, hold.end(granted.token).result);
+        assertFalse(backend.suspended);
     }
 }

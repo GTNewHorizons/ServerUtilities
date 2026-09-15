@@ -3,8 +3,15 @@ package serverutils.task.backup;
 import static serverutils.ServerUtilitiesConfig.backups;
 
 import java.security.SecureRandom;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -15,27 +22,17 @@ import net.minecraft.server.MinecraftServer;
 
 import serverutils.ServerUtilities;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
+import serverutils.ranks.Ranks;
 
-/**
- * Lets an external backup tool suspend world saving while it snapshots or copies the server files, and resumes saving
- * on its own if that tool dies. See docs/external-backup-plan.md.
- * <p>
- * Commands arrive on the RCON thread, which in 1.7.10 executes them inline rather than queueing them to the server
- * thread, so every entry point here blocks until the server thread has answered. Only world mutation is dispatched; the
- * drain runs on the caller because a suspended world cannot change underneath it.
- * <p>
- * The safety property that matters is that world saving is never left suspended with nothing watching it. That is why
- * {@link #savingSuspended} is tracked separately from {@link #state}: a release whose dispatch never confirms leaves
- * the flag set, and {@link #tick()} retries it every tick until saving is genuinely back on.
- */
+/** External backup lease. World mutation runs on the server thread; queued I/O drains on a bounded worker. */
 public final class ExternalBackupHold {
 
     public static final ExternalBackupHold INSTANCE = new ExternalBackupHold();
 
-    /** Server-thread work, separated so tests can inject failures without a world. */
+    /** World operations, replaceable in tests. */
     interface Backend {
 
-        void saveAndSuspend() throws Exception;
+        void saveAndSuspend(Runnable beforeWorldSave) throws Exception;
 
         void resume();
 
@@ -48,14 +45,15 @@ public final class ExternalBackupHold {
     private enum State {
         IDLE,
         PREPARING,
-        HELD
+        HELD,
+        RELEASING
     }
 
     private static final Backend LIVE_BACKEND = new Backend() {
 
         @Override
-        public void saveAndSuspend() throws Exception {
-            BackupTask.saveAndSuspendForSnapshot(MinecraftServer.getServer());
+        public void saveAndSuspend(Runnable beforeWorldSave) throws Exception {
+            BackupTask.saveAndSuspendForSnapshot(MinecraftServer.getServer(), beforeWorldSave);
         }
 
         @Override
@@ -82,13 +80,17 @@ public final class ExternalBackupHold {
     private long deadlineNanos;
     private long nextWarnNanos;
     private long startedNanos;
-    /** Bumped on every transition so a task that outlived its request cannot act on a newer hold. */
+    /** Bumped on every transition to identify stale requests. */
     private long generation;
-    /** True whenever the backend has saving suspended for us, independent of state. Cleared only by a real resume. */
+    /** Tracks a possible partial suspension separately from the lease state. */
     private boolean savingSuspended;
+    private FutureTask<Void> pendingDrain;
+    private Ranks deferredRanks;
+    private final Map<UUID, Runnable> deferredPlayerWrites = new LinkedHashMap<>();
+    private long nextDeferredRetryNanos;
+    private volatile Thread serverThread;
 
-    // Seams. Package-private so tests can drive time and failure without sleeping or booting a server. Volatile
-    // because tests install them from one thread and the dispatched tasks read them from another.
+    // Test seams read by dispatched tasks on another thread.
     volatile LongSupplier clock = System::nanoTime;
     volatile Backend backend = LIVE_BACKEND;
     volatile Consumer<Runnable> dispatcher = ServerUtilitiesServerEventHandler::scheduleServerTask;
@@ -101,13 +103,36 @@ public final class ExternalBackupHold {
         return "net.minecraft.network.rcon.RConConsoleSource".equals(sender.getClass().getName());
     }
 
-    /**
-     * True while an external tool owns world saving, or while a release is still outstanding. Backups must not run and
-     * nothing else may resume saving while this holds.
-     */
+    /** Blocks backup and pause while a lease, drain, or deferred save remains. */
     public boolean isHeld() {
         synchronized (lock) {
-            return state != State.IDLE || savingSuspended;
+            return state != State.IDLE || savingSuspended
+                    || pendingDrain != null && !pendingDrain.isDone()
+                    || !deferredPlayerWrites.isEmpty()
+                    || deferredRanks != null;
+        }
+    }
+
+    /** Defer a player save, including stats, until world saving resumes. */
+    public boolean deferPlayerWrite(UUID playerId, Runnable write) {
+        synchronized (lock) {
+            if (!savingSuspended) return false;
+            deferredPlayerWrites.put(playerId, write);
+            return true;
+        }
+    }
+
+    public boolean hasDeferredPlayerWrite(UUID playerId) {
+        synchronized (lock) {
+            return deferredPlayerWrites.containsKey(playerId);
+        }
+    }
+
+    public boolean deferRankSave(Ranks ranks) {
+        synchronized (lock) {
+            if (state == State.IDLE && !savingSuspended) return false;
+            deferredRanks = ranks;
+            return true;
         }
     }
 
@@ -118,13 +143,22 @@ public final class ExternalBackupHold {
         int seconds = Math.min(requested, backups.external_hold_max_seconds);
 
         final long myGeneration;
+        final long prepareDeadline;
         synchronized (lock) {
-            if (state != State.IDLE || savingSuspended) return HoldResponse.of(HoldResult.BUSY);
+            if (state != State.IDLE || savingSuspended
+                    || pendingDrain != null && !pendingDrain.isDone()
+                    || !deferredPlayerWrites.isEmpty()
+                    || deferredRanks != null) {
+                return HoldResponse.of(HoldResult.BUSY);
+            }
             state = State.PREPARING;
             myGeneration = ++generation;
+            prepareDeadline = clock.getAsLong()
+                    + TimeUnit.SECONDS.toNanos(backups.external_hold_prepare_timeout_seconds);
+            deadlineNanos = prepareDeadline;
         }
 
-        HoldResult failure = prepare(myGeneration, seconds);
+        HoldResult failure = prepare(myGeneration, seconds, prepareDeadline);
         if (failure != null) return HoldResponse.of(failure);
 
         synchronized (lock) {
@@ -133,16 +167,13 @@ public final class ExternalBackupHold {
         }
     }
 
-    /**
-     * Saves and suspends on the server thread, then drains on this thread. Returns null on success, or the result to
-     * report. Every failure path hands the suspension back for release.
-     */
-    private HoldResult prepare(long myGeneration, int seconds) {
+    /** Saves on the server thread and drains on a bounded worker. Returns null on success. */
+    private HoldResult prepare(long myGeneration, int seconds, long prepareDeadline) {
         AtomicReference<Throwable> saveFailure = new AtomicReference<>();
         AtomicBoolean busy = new AtomicBoolean();
         CountDownLatch saved = new CountDownLatch(1);
 
-        dispatcher.accept(() -> {
+        Runnable save = () -> {
             try {
                 synchronized (lock) {
                     // The request was abandoned while this sat in the queue; leave the world alone.
@@ -154,10 +185,11 @@ public final class ExternalBackupHold {
                     busy.set(true);
                     return;
                 }
-                backend.saveAndSuspend();
-                synchronized (lock) {
-                    savingSuspended = true;
-                }
+                backend.saveAndSuspend(() -> {
+                    synchronized (lock) {
+                        savingSuspended = true;
+                    }
+                });
             } catch (Throwable ex) {
                 // Throwable, not Exception: an Error escaping here would otherwise look exactly like success and
                 // hand out a hold over a world that was never suspended.
@@ -165,11 +197,13 @@ public final class ExternalBackupHold {
             } finally {
                 saved.countDown();
             }
-        });
+        };
+        if (Thread.currentThread() == serverThread) save.run();
+        else dispatcher.accept(save);
 
         try {
-            if (!saved.await(backups.external_hold_prepare_timeout_seconds, TimeUnit.SECONDS)) {
-                // The task may still be queued and may still suspend; abandon() leaves the resume to the watchdog.
+            long remaining = prepareDeadline - clock.getAsLong();
+            if (remaining <= 0 || !saved.await(remaining, TimeUnit.NANOSECONDS)) {
                 abandon(myGeneration);
                 return HoldResult.TIMEOUT;
             }
@@ -189,15 +223,29 @@ public final class ExternalBackupHold {
             return HoldResult.BUSY;
         }
 
-        try {
+        FutureTask<Void> drain = new FutureTask<>(() -> {
             backend.drain();
+            return null;
+        });
+        synchronized (lock) {
+            pendingDrain = drain;
+        }
+        Thread drainThread = new Thread(drain, "ServerUtilities backup hold drain");
+        drainThread.setDaemon(true);
+        drainThread.start();
+        try {
+            long remaining = prepareDeadline - clock.getAsLong();
+            if (remaining <= 0) throw new TimeoutException();
+            drain.get(remaining, TimeUnit.NANOSECONDS);
+        } catch (TimeoutException ex) {
+            abandon(myGeneration);
+            return HoldResult.TIMEOUT;
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             abandon(myGeneration);
-            return HoldResult.SAVE_FAILED;
-        } catch (Throwable ex) {
-            // Hodgepodge's threaded world data saving reports write failures here rather than silently losing them.
-            ServerUtilities.LOGGER.error("External backup hold could not flush world data", ex);
+            return HoldResult.TIMEOUT;
+        } catch (ExecutionException ex) {
+            ServerUtilities.LOGGER.error("External backup hold could not drain queued writes", ex.getCause());
             abandon(myGeneration);
             return HoldResult.SAVE_FAILED;
         }
@@ -242,22 +290,23 @@ public final class ExternalBackupHold {
         synchronized (lock) {
             HoldResult invalid = validate(suppliedToken, now);
             if (invalid != null) return HoldResponse.of(invalid);
-            // Carried forward so the release cannot clear a different hold granted while it was in flight.
             myGeneration = generation;
+            state = State.RELEASING;
         }
 
-        // Only report release once saving is actually back on, so a client that sees OK knows the server is writing.
-        if (!release(myGeneration)) return HoldResponse.of(HoldResult.TIMEOUT);
-        ServerUtilities.LOGGER.info("External backup hold released");
-        return HoldResponse.of(HoldResult.OK);
+        HoldResult result = release(myGeneration, true);
+        if (result == HoldResult.OK) ServerUtilities.LOGGER.info("External backup hold released");
+        return HoldResponse.of(result);
     }
 
     public HoldResponse status() {
         if (!backups.enable_external_holds) return HoldResponse.of(HoldResult.DISABLED);
         long now = clock.getAsLong();
         synchronized (lock) {
-            // A hold is being prepared, or a release has not confirmed yet; either way no token exists to report.
-            if (state == State.PREPARING || savingSuspended && state == State.IDLE) {
+            if (state == State.PREPARING || state == State.RELEASING
+                    || state == State.IDLE && (savingSuspended || pendingDrain != null && !pendingDrain.isDone()
+                            || !deferredPlayerWrites.isEmpty()
+                            || deferredRanks != null)) {
                 return HoldResponse.of(HoldResult.BUSY);
             }
             if (state == State.IDLE) return HoldResponse.of(HoldResult.NO_HOLD);
@@ -266,24 +315,30 @@ public final class ExternalBackupHold {
         }
     }
 
-    /**
-     * Server thread. Expires a hold whose client stopped renewing, and retries a release that never confirmed. This is
-     * the only thing standing between a dead backup script and a server that silently stops saving.
-     */
+    /** Server-thread lease expiry and retry for an unconfirmed release. */
     public void tick() {
-        boolean resume = false;
+        serverThread = Thread.currentThread();
+        long releaseGeneration = -1L;
         synchronized (lock) {
             if (state == State.IDLE) {
-                // A release whose dispatch was dropped or timed out. Nothing else is watching this.
-                resume = savingSuspended;
+                if (savingSuspended) releaseGeneration = generation;
+                else if ((!deferredPlayerWrites.isEmpty() || deferredRanks != null)
+                        && clock.getAsLong() >= nextDeferredRetryNanos)
+                    flushDeferredLocked();
+            } else if (state == State.RELEASING) {
+                releaseGeneration = generation;
+            } else if (state == State.PREPARING && clock.getAsLong() >= deadlineNanos) {
+                ServerUtilities.LOGGER.warn("External backup hold preparation timed out; resuming world saving");
+                state = State.RELEASING;
+                releaseGeneration = generation;
             } else if (state == State.HELD) {
                 long now = clock.getAsLong();
                 if (now >= deadlineNanos) {
                     ServerUtilities.LOGGER.warn(
                             "External backup hold expired without being released; resuming world saving. "
                                     + "Any backup taken from it is incomplete and must be discarded.");
-                    clearLocked();
-                    resume = true;
+                    state = State.RELEASING;
+                    releaseGeneration = generation;
                 } else if (now >= nextWarnNanos) {
                     ServerUtilities.LOGGER.warn(
                             "External backup hold has held world saving for {} seconds",
@@ -292,7 +347,7 @@ public final class ExternalBackupHold {
                 }
             }
         }
-        if (resume) resumeNow();
+        if (releaseGeneration >= 0) finishRelease(releaseGeneration, false);
     }
 
     /**
@@ -302,12 +357,16 @@ public final class ExternalBackupHold {
     public HoldResponse forceRelease(String reason) {
         final long myGeneration;
         synchronized (lock) {
-            if (state == State.IDLE && !savingSuspended) return HoldResponse.of(HoldResult.NO_HOLD);
+            if (state == State.IDLE && !savingSuspended && deferredPlayerWrites.isEmpty() && deferredRanks == null) {
+                return HoldResponse.of(HoldResult.NO_HOLD);
+            }
             myGeneration = generation;
+            state = State.RELEASING;
         }
-        boolean confirmed = release(myGeneration);
-        ServerUtilities.LOGGER.warn("External backup hold released: {}", reason);
-        return HoldResponse.of(confirmed ? HoldResult.OK : HoldResult.TIMEOUT);
+        HoldResult result = release(myGeneration, false);
+        ServerUtilities.LOGGER
+                .warn("External backup hold {}: {}", result == HoldResult.OK ? "released" : "release pending", reason);
+        return HoldResponse.of(result);
     }
 
     /**
@@ -315,14 +374,16 @@ public final class ExternalBackupHold {
      * would never run.
      */
     public void forceReleaseNow(String reason) {
-        boolean had;
+        long myGeneration;
         synchronized (lock) {
-            had = state != State.IDLE || savingSuspended;
-            if (state != State.IDLE) clearLocked();
+            if (state == State.IDLE && !savingSuspended && deferredPlayerWrites.isEmpty() && deferredRanks == null)
+                return;
+            state = State.RELEASING;
+            myGeneration = generation;
         }
-        if (!had) return;
-        resumeNow();
-        ServerUtilities.LOGGER.warn("External backup hold released: {}", reason);
+        HoldResult result = finishRelease(myGeneration, false);
+        ServerUtilities.LOGGER
+                .warn("External backup hold {}: {}", result == HoldResult.OK ? "released" : "release failed", reason);
     }
 
     private HoldResult validate(String suppliedToken, long now) {
@@ -331,63 +392,87 @@ public final class ExternalBackupHold {
         // shutdown already took it away; that is EXPIRED, not NO_HOLD, which is reserved for status on an idle server.
         if (state != State.HELD) return HoldResult.EXPIRED;
         if (now >= deadlineNanos) return HoldResult.EXPIRED;
-        // A token from a hold that already ended means another may have started since; the caller must discard either
-        // way, so this is reported the same as expiry.
         if (token == null || !token.equals(suppliedToken)) return HoldResult.BAD_TOKEN;
         return null;
     }
 
     private void abandon(long myGeneration) {
+        long releaseGeneration;
+        boolean resume;
         synchronized (lock) {
             if (generation != myGeneration) return;
+            resume = savingSuspended;
             clearLocked();
+            releaseGeneration = generation;
+            if (!resume) flushDeferredLocked();
         }
-        // The dispatched task may have suspended, or may still be queued and about to. Ask for a resume either way;
-        // savingSuspended keeps tick() retrying until one lands.
-        dispatchResume();
+        if (resume) {
+            Runnable release = () -> finishRelease(releaseGeneration, false);
+            if (Thread.currentThread() == serverThread) release.run();
+            else dispatcher.accept(release);
+        }
     }
 
-    /**
-     * Resumes saving through the server thread, then retires the hold. Returns false if the server thread never
-     * confirmed, in which case the hold is left for the watchdog rather than being silently dropped.
-     */
-    private boolean release(long myGeneration) {
-        boolean confirmed = dispatchResume();
-        synchronized (lock) {
-            if (generation != myGeneration) return confirmed;
-            if (confirmed) {
-                clearLocked();
-            } else if (state == State.HELD) {
-                // Bring the deadline forward so the watchdog retries the resume on the next tick.
-                deadlineNanos = clock.getAsLong();
-            }
-        }
-        return confirmed;
-    }
-
-    private boolean dispatchResume() {
+    private HoldResult release(long myGeneration, boolean checkDeadline) {
+        if (Thread.currentThread() == serverThread) return finishRelease(myGeneration, checkDeadline);
         CountDownLatch released = new CountDownLatch(1);
+        AtomicReference<HoldResult> result = new AtomicReference<>(HoldResult.TIMEOUT);
         dispatcher.accept(() -> {
             try {
-                resumeNow();
+                result.set(finishRelease(myGeneration, checkDeadline));
             } finally {
                 released.countDown();
             }
         });
         try {
-            return released.await(backups.external_hold_prepare_timeout_seconds, TimeUnit.SECONDS);
+            return released.await(backups.external_hold_prepare_timeout_seconds, TimeUnit.SECONDS) ? result.get()
+                    : HoldResult.TIMEOUT;
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            return false;
+            return HoldResult.TIMEOUT;
         }
     }
 
-    /** Server thread only. */
-    private void resumeNow() {
-        backend.resume();
+    /** Server thread only. The generation check and resume are atomic against a new begin. */
+    private HoldResult finishRelease(long myGeneration, boolean checkDeadline) {
         synchronized (lock) {
+            if (generation != myGeneration) return HoldResult.EXPIRED;
+            try {
+                if (savingSuspended) backend.resume();
+            } catch (Throwable ex) {
+                ServerUtilities.LOGGER.error("External backup hold could not resume world saving", ex);
+                return HoldResult.SAVE_FAILED;
+            }
             savingSuspended = false;
+            boolean expired = checkDeadline && clock.getAsLong() >= deadlineNanos;
+            clearLocked();
+            flushDeferredLocked();
+            if (!deferredPlayerWrites.isEmpty() || deferredRanks != null) return HoldResult.SAVE_FAILED;
+            return expired ? HoldResult.EXPIRED : HoldResult.OK;
         }
+    }
+
+    private void flushDeferredLocked() {
+        Iterator<Map.Entry<UUID, Runnable>> writes = deferredPlayerWrites.entrySet().iterator();
+        while (writes.hasNext()) {
+            Map.Entry<UUID, Runnable> entry = writes.next();
+            try {
+                entry.getValue().run();
+                writes.remove();
+            } catch (Throwable ex) {
+                ServerUtilities.LOGGER.error("Could not write deferred player data after backup hold", ex);
+            }
+        }
+        if (deferredRanks != null) {
+            try {
+                deferredRanks.save();
+                deferredRanks = null;
+            } catch (Throwable ex) {
+                ServerUtilities.LOGGER.error("Could not write deferred ranks after backup hold", ex);
+            }
+        }
+        nextDeferredRetryNanos = deferredPlayerWrites.isEmpty() && deferredRanks == null ? 0L
+                : clock.getAsLong() + TimeUnit.SECONDS.toNanos(30);
     }
 
     private void clearLocked() {
@@ -420,7 +505,12 @@ public final class ExternalBackupHold {
             clearLocked();
             savingSuspended = false;
             generation = 0L;
+            deferredPlayerWrites.clear();
+            deferredRanks = null;
+            pendingDrain = null;
+            nextDeferredRetryNanos = 0L;
         }
+        serverThread = null;
         clock = System::nanoTime;
         backend = LIVE_BACKEND;
         dispatcher = ServerUtilitiesServerEventHandler::scheduleServerTask;

@@ -42,6 +42,7 @@ import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.permission.DefaultPermissionHandler;
 import serverutils.lib.util.permission.DefaultPermissionLevel;
 import serverutils.lib.util.permission.PermissionAPI;
+import serverutils.task.backup.ExternalBackupHold;
 
 public class Ranks {
 
@@ -334,6 +335,7 @@ public class Ranks {
 
     public void save() {
         universe.clearCache();
+        if (ExternalBackupHold.INSTANCE.deferRankSave(this)) return;
 
         List<String> list = new ArrayList<>();
         list.add("// For more info visit https://github.com/GTNewHorizons/ServerUtilities");

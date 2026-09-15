@@ -61,9 +61,7 @@ public abstract class MixinMinecraftServer_PauseWhenEmpty implements IPauseWhenE
             }
 
             // Pause if and only if the server has been empty for `pauseTicks` ticks and the mask (if any) has expired.
-            // An external backup hold must keep ticking: a paused server cancels this method at HEAD, so the server
-            // thread would never run the work that releases the hold. Inhibiting rather than arming the mask means
-            // nothing to clear afterwards and no interference with an administrator's own mask.
+            // A paused tick cannot dispatch hold work or run the lease watchdog.
             int pauseTicks = sc.serverUtilities$getPauseWhenEmptySeconds() * 20;
             if (pauseTicks > 0 && serverUtilities$emptyTicks >= pauseTicks
                     && serverUtilities$maskTicks == 0

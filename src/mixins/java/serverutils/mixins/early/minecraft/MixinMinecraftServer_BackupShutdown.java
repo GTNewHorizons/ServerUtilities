@@ -16,9 +16,7 @@ public abstract class MixinMinecraftServer_BackupShutdown {
     // Crash shutdown skips FMLServerStoppingEvent, but still calls stopServer before its final save.
     @Inject(method = "stopServer", at = @At("HEAD"))
     private void serverutilities$stopBackup(CallbackInfo ci) {
-        // An external tool may still be reading; its capture is void either way, and saving must be back on before
-        // the final save runs. Released inline because the tick loop has stopped, so a dispatched release would
-        // sit in the queue forever.
+        // Release inline before the final save; the tick loop has stopped.
         ExternalBackupHold.INSTANCE.forceReleaseNow("server is shutting down");
         BackupTask.stopBackupThread();
     }
