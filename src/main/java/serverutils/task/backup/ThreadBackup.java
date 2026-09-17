@@ -251,8 +251,8 @@ public class ThreadBackup extends Thread {
     public static boolean isBackupStorage(File file) throws IOException {
         return isBackupStorage(
                 file,
-                BACKUP_TEMP_FOLDER.getCanonicalFile().toPath(),
-                BackupTask.BACKUP_FOLDER.getCanonicalFile().toPath());
+                FileUtils.resolveRealPath(BACKUP_TEMP_FOLDER.toPath()),
+                FileUtils.resolveRealPath(BackupTask.BACKUP_FOLDER.toPath()));
     }
 
     /**
@@ -261,8 +261,8 @@ public class ThreadBackup extends Thread {
      * canonical paths, and this runs on the server thread while world saving is suspended.
      */
     private static List<File> listOutsideBackupStorage(File root) throws IOException {
-        Path temp = BACKUP_TEMP_FOLDER.getCanonicalFile().toPath();
-        Path output = BackupTask.BACKUP_FOLDER.getCanonicalFile().toPath();
+        Path temp = FileUtils.resolveRealPath(BACKUP_TEMP_FOLDER.toPath());
+        Path output = FileUtils.resolveRealPath(BackupTask.BACKUP_FOLDER.toPath());
         List<File> files = new ArrayList<>();
         if (!isBackupStorage(root, temp, output)) collectOutsideBackupStorage(files, root, temp, output);
         return files;
@@ -286,7 +286,7 @@ public class ThreadBackup extends Thread {
     }
 
     private static boolean isBackupStorage(File file, Path temp, Path output) throws IOException {
-        Path path = file.getCanonicalFile().toPath();
+        Path path = FileUtils.resolveRealPath(file.toPath());
         return path.startsWith(temp) || path.startsWith(output);
     }
 

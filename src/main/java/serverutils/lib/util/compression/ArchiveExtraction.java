@@ -124,8 +124,9 @@ final class ArchiveExtraction {
     static void extract(File archive, boolean includeGlobal, boolean legacy, Path root, File preserved, File recovery,
             Callable<Void> beforeInstall) throws IOException {
         root = root.toRealPath();
-        Path preservedWorld = preserved == null ? null : preserved.getCanonicalFile().toPath();
-        Path stagingParent = beforeInstall != null && recovery != null ? recovery.getCanonicalFile().toPath() : root;
+        Path preservedWorld = preserved == null ? null : FileUtils.resolveRealPath(preserved.toPath());
+        Path stagingParent = beforeInstall != null && recovery != null ? FileUtils.resolveRealPath(recovery.toPath())
+                : root;
         Files.createDirectories(stagingParent);
         Path staging = Files.createTempDirectory(stagingParent, ".su-restore-");
         List<Path> targets = new ArrayList<>();
@@ -190,6 +191,7 @@ final class ArchiveExtraction {
                 }
             }
             // Recheck every destination after relocation, before installing even the first file.
+            preservedWorld = preserved == null ? null : FileUtils.resolveRealPath(preserved.toPath());
             for (Path relative : targets) {
                 validateDestination(root, staging, preservedWorld, relative);
             }
@@ -258,7 +260,7 @@ final class ArchiveExtraction {
 
     private static void validateDestination(Path root, Path staging, Path preservedWorld, Path relative)
             throws IOException {
-        Path canonical = root.resolve(relative).toFile().getCanonicalFile().toPath();
+        Path canonical = FileUtils.resolveRealPath(root.resolve(relative));
         if (!canonical.startsWith(root) || canonical.startsWith(staging)
                 || (preservedWorld != null && canonical.startsWith(preservedWorld))) {
             throw new IOException("Unsafe backup entry: " + relative);

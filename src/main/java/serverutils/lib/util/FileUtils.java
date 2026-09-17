@@ -12,6 +12,8 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -263,6 +265,18 @@ public class FileUtils {
     public static String getRelativePath(File file) {
         Path filePath = file.toPath().toAbsolutePath();
         return Paths.get("").toAbsolutePath().relativize(filePath).toString().replace('\\', '/');
+    }
+
+    /** Resolves links and Windows junctions, including existing ancestors of a not-yet-created file. */
+    public static Path resolveRealPath(Path path) throws IOException {
+        Path absolute = path.toAbsolutePath().normalize();
+        try {
+            return absolute.toRealPath();
+        } catch (NoSuchFileException missing) {
+            // A dangling link is not an ordinary new file, and must not bypass containment checks.
+            if (absolute.getParent() == null || Files.exists(absolute, LinkOption.NOFOLLOW_LINKS)) throw missing;
+            return resolveRealPath(absolute.getParent()).resolve(absolute.getFileName());
+        }
     }
 
     public static String normalizeBackupPattern(String pattern) {

@@ -57,8 +57,8 @@ public class ArchiveExtractionTest {
             });
             assertTrue(Files.isRegularFile(world.resolve("level.dat")));
             assertTrue(Files.isRegularFile(world.resolve("DIM-1/region/r.0.0.mca")));
-            assertFalse(Files.isSymbolicLink(world.resolve("DIM-1")));
-            assertTrue(Files.isSymbolicLink(preserved.resolve("DIM-1")));
+            assertFalse(Files.isSameFile(world.resolve("DIM-1"), outside));
+            assertTrue(Files.isSameFile(preserved.resolve("DIM-1"), outside));
             assertArrayEquals(new byte[] { 42 }, Files.readAllBytes(outside.resolve("keep")));
             assertFalse(Files.exists(outside.resolve("region")));
         }
@@ -102,11 +102,57 @@ public class ArchiveExtractionTest {
 
     private static void symbolicDirectory(Path link, Path destination) throws Exception {
         Files.createDirectories(link.getParent());
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            // Junctions need no symlink privilege and exercise the Windows containment regression.
+            Process process = new ProcessBuilder(
+                    "cmd.exe",
+                    "/c",
+                    "mklink",
+                    "/J",
+                    link.toAbsolutePath().toString(),
+                    destination.toAbsolutePath().toString()).redirectErrorStream(true).start();
+            assertEquals("Could not create test junction", 0, process.waitFor());
+            assertTrue(Files.isSameFile(link, destination));
+            return;
+        }
         try {
             Files.createSymbolicLink(link, destination.toAbsolutePath());
         } catch (IOException | UnsupportedOperationException | SecurityException unavailable) {
             org.junit.Assume.assumeNoException("Directory symlinks unavailable", unavailable);
         }
+    }
+
+    @Test
+    public void directoryAliasesCannotOverwritePreservedFiles() throws Exception {
+        Path root = temporary.newFolder().toPath();
+        Path preserved = Files.createDirectories(root.resolve("saves/world_old"));
+        Path keep = Files.write(preserved.resolve("keep"), new byte[] { 42 });
+        symbolicDirectory(root.resolve("global"), preserved);
+        Path archive = archiveWithComment("world", "saves/world/level.dat", "global/keep");
+        assertThrows(
+                IOException.class,
+                () -> ArchiveExtraction.extract(archive.toFile(), true, false, root, preserved.toFile()));
+        assertArrayEquals(new byte[] { 42 }, Files.readAllBytes(keep));
+        assertFalse(Files.exists(root.resolve("saves/world/level.dat")));
+    }
+
+    @Test
+    public void relocatedWorldLinkStillProtectsItsOriginalContents() throws Exception {
+        Path root = temporary.newFolder().toPath();
+        Path actual = Files.createDirectory(root.resolve("actual"));
+        Path keep = Files.write(actual.resolve("keep"), new byte[] { 42 });
+        Path world = root.resolve("saves/world");
+        Path preserved = root.resolve("saves/world_old");
+        symbolicDirectory(world, actual);
+        Path archive = archiveWithComment("world", "saves/world/level.dat", "actual/keep");
+        assertThrows(
+                IOException.class,
+                () -> ArchiveExtraction.extract(archive.toFile(), true, false, root, preserved.toFile(), null, () -> {
+                    Files.move(world, preserved);
+                    return null;
+                }));
+        assertArrayEquals(new byte[] { 42 }, Files.readAllBytes(keep));
+        assertFalse(Files.exists(world.resolve("level.dat")));
     }
 
     @Test

@@ -228,10 +228,10 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void renameAdditionalFiles(File previousRoot, boolean includeGlobal, Map<File, File> moved, File archive,
             File preservedWorld) throws IOException {
-        Path archivePath = archive.getCanonicalFile().toPath();
-        Path recoveryPath = previousRoot.getParentFile().getCanonicalFile().toPath();
-        Path preservedWorldPath = preservedWorld.getCanonicalFile().toPath();
-        Path recoveryStorage = new File("backups_before_restore").getCanonicalFile().toPath();
+        Path archivePath = FileUtils.resolveRealPath(archive.toPath());
+        Path recoveryPath = FileUtils.resolveRealPath(previousRoot.getParentFile().toPath());
+        Path preservedWorldPath = FileUtils.resolveRealPath(preservedWorld.toPath());
+        Path recoveryStorage = FileUtils.resolveRealPath(Paths.get("backups_before_restore"));
         for (String pattern : backups.additional_backup_files) {
             if (!pattern.contains("$WORLDNAME") && !includeGlobal) {
                 continue;
@@ -264,7 +264,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
             // Move all old files into backup
             for (File file : previousFiles) {
-                Path path = file.getCanonicalFile().toPath();
+                Path path = FileUtils.resolveRealPath(file.toPath());
                 if (path.equals(archivePath) || path.startsWith(recoveryPath)
                         || path.startsWith(preservedWorldPath)
                         || path.startsWith(recoveryStorage)
@@ -311,8 +311,8 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         try (ICompress compressor = ICompress.createCompressor()) {
             boolean isOldBackup = compressor.isOldBackup(file);
             ICompress.validateRestoreTargets(file, worldName, isOldBackup, includeGlobal);
-            Path worldPath = worldDir.getCanonicalFile().toPath();
-            Path archivePath = file.getCanonicalFile().toPath();
+            Path worldPath = FileUtils.resolveRealPath(worldDir.toPath());
+            Path archivePath = FileUtils.resolveRealPath(file.toPath());
             File movedArchive = archivePath.startsWith(worldPath)
                     ? new File(preservedWorld, worldPath.relativize(archivePath).toString())
                     : file;
