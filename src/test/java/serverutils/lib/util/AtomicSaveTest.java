@@ -40,6 +40,23 @@ public class AtomicSaveTest {
     }
 
     @Test
+    public void replacementStagingStartsPrivateAndWritable() throws Exception {
+        Path target = temporary.newFile().toPath();
+        org.junit.Assume.assumeTrue(Files.getFileStore(target).supportsFileAttributeView("posix"));
+        Files.setPosixFilePermissions(target, java.nio.file.attribute.PosixFilePermissions.fromString("r--------"));
+        Path staged = FileUtils.createSaveTemporary(target);
+        try {
+            assertEquals(
+                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------"),
+                    Files.getPosixFilePermissions(staged));
+            Files.write(staged, new byte[] { 1 });
+            assertArrayEquals(new byte[] { 1 }, Files.readAllBytes(staged));
+        } finally {
+            Files.deleteIfExists(staged);
+        }
+    }
+
+    @Test
     public void failedSerializationPreservesPreviousSave() throws Exception {
         Path target = temporary.newFile().toPath();
         FileUtils.save(target.toFile(), "original");

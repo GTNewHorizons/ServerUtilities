@@ -72,14 +72,7 @@ public class FileUtils {
         Path target = file.toPath().toAbsolutePath();
         Files.createDirectories(target.getParent());
         boolean posix = Files.getFileAttributeView(target.getParent(), PosixFileAttributeView.class) != null;
-        // Initial POSIX permissions are filtered by umask; replacements keep the target's existing mode below.
-        Path temporary = posix
-                ? Files.createTempFile(
-                        target.getParent(),
-                        ".su-save-",
-                        ".tmp",
-                        PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-rw-rw-")))
-                : Files.createTempFile(target.getParent(), ".su-save-", ".tmp");
+        Path temporary = createSaveTemporary(target);
         try {
             try (FileOutputStream output = new FileOutputStream(temporary.toFile())) {
                 output.write(data);
@@ -94,6 +87,19 @@ public class FileUtils {
         } finally {
             Files.deleteIfExists(temporary);
         }
+    }
+
+    static Path createSaveTemporary(Path target) throws IOException {
+        // Keep replacement contents private until their final permissions are applied after writing.
+        // New files retain ordinary creation permissions, filtered by umask.
+        return Files.getFileAttributeView(target.getParent(), PosixFileAttributeView.class) != null
+                ? Files.createTempFile(
+                        target.getParent(),
+                        ".su-save-",
+                        ".tmp",
+                        PosixFilePermissions.asFileAttribute(
+                                PosixFilePermissions.fromString(Files.exists(target) ? "rw-------" : "rw-rw-rw-")))
+                : Files.createTempFile(target.getParent(), ".su-save-", ".tmp");
     }
 
     public static void saveSafe(final File file, final Iterable<String> list) {
