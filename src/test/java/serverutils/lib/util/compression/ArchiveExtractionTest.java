@@ -158,7 +158,7 @@ public class ArchiveExtractionTest {
                 "saves/world_old/level.dat");
         ICompress.validateRestoreTargets(archive.toFile(), "world", false, false);
         assertThrows(IOException.class, () -> ICompress.validateRestoreTargets(archive.toFile(), "world", false, true));
-        ArchiveExtraction.extract(archive.toFile(), false, false, root);
+        ArchiveExtraction.extract(archive.toFile(), false, false, root, root.resolve("saves/world_old").toFile());
         assertTrue(Files.isRegularFile(root.resolve("saves/world/level.dat")));
         assertEquals("keep", new String(Files.readAllBytes(oldGlobal), StandardCharsets.UTF_8));
         assertFalse(Files.exists(root.resolve("saves/world_old")));
@@ -169,7 +169,8 @@ public class ArchiveExtractionTest {
         serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[] { "saves/**" };
         try {
             Path otherRoot = temporary.newFolder().toPath();
-            ArchiveExtraction.extract(archive.toFile(), false, false, otherRoot);
+            ArchiveExtraction
+                    .extract(archive.toFile(), false, false, otherRoot, otherRoot.resolve("saves/world_old").toFile());
             assertTrue(Files.isRegularFile(otherRoot.resolve("saves/world/level.dat")));
             assertFalse(Files.exists(otherRoot.resolve("saves/world_old")));
         } finally {

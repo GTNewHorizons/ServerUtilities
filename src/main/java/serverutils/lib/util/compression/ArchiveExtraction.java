@@ -147,10 +147,7 @@ final class ArchiveExtraction {
                     Path relative = restorePath(name, legacy, zip.getComment());
                     Path target = root.resolve(relative);
                     Path canonical = target.toFile().getCanonicalFile().toPath();
-                    // The preserved world is the caller's only intact copy; no include pattern may write into it.
-                    if (relative.toString().isEmpty() || !canonical.startsWith(root)
-                            || target.startsWith(staging)
-                            || (preservedWorld != null && canonical.startsWith(preservedWorld))) {
+                    if (relative.toString().isEmpty() || !canonical.startsWith(root) || target.startsWith(staging)) {
                         throw new IOException("Unsafe backup entry: " + name);
                     }
                     if (entry.isDirectory()) continue;
@@ -164,6 +161,10 @@ final class ArchiveExtraction {
                                     .warn("Skipping unconfigured entry during world-only restore: {}", name);
                             continue;
                         }
+                    }
+                    // Only installed entries can overwrite the caller's preserved world.
+                    if (preservedWorld != null && canonical.startsWith(preservedWorld)) {
+                        throw new IOException("Unsafe backup entry: " + name);
                     }
                     if (!seen.add(relative)) throw new IOException("Duplicate backup entry: " + name);
                     Path copy = staging.resolve("new").resolve(relative);
