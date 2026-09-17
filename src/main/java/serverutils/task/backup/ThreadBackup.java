@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -271,18 +272,21 @@ public class ThreadBackup extends Thread {
         Path temp = FileUtils.resolveRealPath(BACKUP_TEMP_FOLDER.toPath());
         Path output = FileUtils.resolveRealPath(BackupTask.BACKUP_FOLDER.toPath());
         List<File> files = new ArrayList<>();
+        // Missing optional include paths are normal; inaccessible paths must still reach the checked read below.
+        if (Files.notExists(root.toPath())) return files;
         if (!isBackupStorage(root, temp, output)) collectOutsideBackupStorage(files, root, temp, output);
         return files;
     }
 
     private static void collectOutsideBackupStorage(List<File> files, File file, Path temp, Path output)
             throws IOException {
-        if (!file.isDirectory()) {
-            if (file.isFile()) files.add(file);
+        BasicFileAttributes attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+        if (!attributes.isDirectory()) {
+            if (attributes.isRegularFile()) files.add(file);
             return;
         }
         File[] children = file.listFiles();
-        if (children == null) return;
+        if (children == null) throw new IOException("Cannot list backup directory: " + file);
         for (File child : children) {
             // Directories and links can bring backup storage into the walk; ordinary files below a checked directory
             // cannot.
@@ -300,6 +304,9 @@ public class ThreadBackup extends Thread {
     private static void validateBackupSource(File src) throws IOException {
         if (isBackupStorage(src)) {
             throw new IOException("Backup and temporary storage must not contain the world directory: " + src);
+        }
+        if (!Files.readAttributes(src.toPath(), BasicFileAttributes.class).isDirectory()) {
+            throw new IOException("World backup source is not a directory: " + src);
         }
     }
 

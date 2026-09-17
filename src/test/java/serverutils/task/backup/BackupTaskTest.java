@@ -903,6 +903,36 @@ public class BackupTaskTest {
         }
     }
 
+    @Test
+    public void unreadableWorldDirectoryFailsButMissingOptionalIncludesAreAllowed() throws Exception {
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "enumeration-");
+        File unreadable = mock(File.class);
+        when(unreadable.toPath()).thenReturn(root);
+        when(unreadable.listFiles()).thenReturn(null);
+        String[] previous = ServerUtilitiesConfig.backups.additional_backup_files;
+        try {
+            IOException failure = org.junit.Assert
+                    .assertThrows(IOException.class, () -> ThreadBackup.snapshotFiles(unreadable));
+            assertTrue(failure.getMessage().contains("Cannot list backup directory"));
+            org.junit.Assert.assertThrows(
+                    IOException.class,
+                    () -> ThreadBackup.snapshotFiles(root.resolve("missing-world").toFile()));
+            File payload = root.resolve("level.dat").toFile();
+            Files.write(payload.toPath(), new byte[] { 42 });
+            ServerUtilitiesConfig.backups.additional_backup_files = new String[] {
+                    root.resolve("missing-optional").toString().replace('\\', '/') + "/**" };
+            ThreadBackup
+                    .doBackup(ICompress.createCompressor(), root.toFile(), "missing-optional", Collections.emptySet());
+            try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "missing-optional.zip"))) {
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(payload)) != null);
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.additional_backup_files = previous;
+            FileUtils.delete(root.toFile());
+            ThreadBackup.deleteSnapshot();
+        }
+    }
+
     private static void setCurrentServer(MinecraftServer server) throws ReflectiveOperationException {
         Field field = MinecraftServer.class.getDeclaredField("mcServer");
         field.setAccessible(true);
