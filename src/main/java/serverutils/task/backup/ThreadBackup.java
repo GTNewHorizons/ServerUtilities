@@ -145,6 +145,7 @@ public class ThreadBackup extends Thread {
         String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         File dstFile = null;
+        Path temporary = null;
         try {
             validateBackupSource(src);
             if (onlyClaimed && chunks.isEmpty()) {
@@ -159,9 +160,12 @@ public class ThreadBackup extends Thread {
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
 
-            dstFile = FileUtils.newFile(new File(BackupTask.BACKUP_FOLDER, outName));
+            dstFile = new File(BackupTask.BACKUP_FOLDER, outName);
+            Path destination = dstFile.toPath().toAbsolutePath();
+            Files.createDirectories(destination.getParent());
+            temporary = Files.createTempFile(destination.getParent(), ".su-backup-", ".tmp");
             try (compressor) {
-                compressor.createOutputStream(dstFile);
+                compressor.createOutputStream(temporary.toFile());
                 if (onlyClaimed) {
                     backupRegions(files, src, chunks, compressor, dimensionFolders);
                 } else {
@@ -169,6 +173,9 @@ public class ThreadBackup extends Thread {
                 }
 
             }
+            if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup cancelled");
+            Files.move(temporary, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            temporary = null;
             String backupSize = FileUtils.getSizeString(dstFile);
             ServerUtilities.LOGGER.info("Backup done in {} seconds ({})!", getDoneTime(start), backupSize);
             ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
@@ -189,7 +196,6 @@ public class ThreadBackup extends Thread {
             }
         } catch (InterruptedIOException e) {
             ServerUtilities.LOGGER.info("Backup cancelled, deleting partial archive");
-            if (dstFile != null) FileUtils.delete(dstFile);
         } catch (Exception e) {
             ServerUtils.notifyChat(
                     ServerUtils.getServer(),
@@ -197,7 +203,8 @@ public class ThreadBackup extends Thread {
                     StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, e.getMessage()));
             ServerUtilities.LOGGER.error("Error while backing up", e);
 
-            if (dstFile != null) FileUtils.delete(dstFile);
+        } finally {
+            if (temporary != null) FileUtils.delete(temporary.toFile());
         }
     }
 

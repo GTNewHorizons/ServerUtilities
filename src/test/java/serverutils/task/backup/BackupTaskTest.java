@@ -858,6 +858,51 @@ public class BackupTaskTest {
         assertFalse("Backup worker did not stop", worker.isAlive());
     }
 
+    @Test
+    public void archiveReplacementKeepsPreviousBackupUntilCloseSucceeds() throws Exception {
+        File source = Files.createTempDirectory(new File("build").toPath(), "archive-replace-").toFile();
+        File payload = new File(source, "level.dat");
+        Files.write(payload.toPath(), new byte[] { 42 });
+        Files.createDirectories(BackupTask.BACKUP_FOLDER.toPath());
+        File previous = new File(BackupTask.BACKUP_FOLDER, "reused-name.zip");
+        byte[] original = { 1, 2, 3 };
+        try {
+            for (boolean failOnClose : new boolean[] { false, true }) {
+                Files.write(previous.toPath(), original);
+                ICompress compressor = new serverutils.lib.util.compression.LegacyCompressor() {
+
+                    @Override
+                    public void addFileToArchive(File file, String name) throws IOException {
+                        super.addFileToArchive(file, name);
+                        org.junit.Assert.assertArrayEquals(original, Files.readAllBytes(previous.toPath()));
+                        if (!failOnClose) throw new java.io.InterruptedIOException("cancelled while writing");
+                    }
+
+                    @Override
+                    public void close() throws Exception {
+                        super.close();
+                        if (failOnClose) throw new java.io.InterruptedIOException("cancelled during close");
+                    }
+                };
+                ThreadBackup.doBackup(compressor, source, "reused-name", Collections.emptySet());
+                org.junit.Assert.assertArrayEquals(original, Files.readAllBytes(previous.toPath()));
+                try (java.util.stream.Stream<java.nio.file.Path> paths = Files
+                        .list(BackupTask.BACKUP_FOLDER.toPath())) {
+                    assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith(".su-backup-")));
+                }
+            }
+            ThreadBackup.doBackup(ICompress.createCompressor(), source, "reused-name", Collections.emptySet());
+            try (ZipFile zip = new ZipFile(previous)) {
+                try (InputStream in = zip.getInputStream(zip.getEntry(FileUtils.getRelativePath(payload)))) {
+                    org.junit.Assert.assertArrayEquals(new byte[] { 42 }, IOUtils.toByteArray(in));
+                }
+            }
+        } finally {
+            FileUtils.delete(source);
+            Files.deleteIfExists(previous.toPath());
+        }
+    }
+
     private static void setCurrentServer(MinecraftServer server) throws ReflectiveOperationException {
         Field field = MinecraftServer.class.getDeclaredField("mcServer");
         field.setAccessible(true);
