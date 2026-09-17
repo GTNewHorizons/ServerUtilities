@@ -334,6 +334,7 @@ public class BackupTaskTest {
         net.minecraftforge.common.DimensionManager.registerDimension(9, 9);
         try {
             Universe universe = new Universe(server);
+            universe.dataFolder = new File(source, "serverutilities");
             serverutils.lib.data.ForgeTeam team = new serverutils.lib.data.ForgeTeam(
                     universe,
                     (short) 1,
