@@ -146,15 +146,14 @@ final class ArchiveExtraction {
                     }
                     Path relative = restorePath(name, legacy, zip.getComment());
                     Path target = root.resolve(relative);
-                    Path canonical = target.toFile().getCanonicalFile().toPath();
-                    if (relative.toString().isEmpty() || !canonical.startsWith(root) || target.startsWith(staging)) {
+                    if (relative.toString().isEmpty() || !target.startsWith(root) || target.startsWith(staging)) {
                         throw new IOException("Unsafe backup entry: " + name);
                     }
                     if (entry.isDirectory()) continue;
+                    String worldName = zip.getComment();
+                    boolean worldFile = worldName != null
+                            && relative.startsWith(Paths.get("saves", worldName).normalize());
                     if (!includeGlobal) {
-                        String worldName = zip.getComment();
-                        boolean worldFile = worldName != null
-                                && relative.startsWith(Paths.get("saves", worldName).normalize());
                         if (!worldFile && isGlobal(relative)) continue;
                         if (worldName != null && !isAllowedTarget(relative, worldName)) {
                             serverutils.ServerUtilities.LOGGER
@@ -162,9 +161,10 @@ final class ArchiveExtraction {
                             continue;
                         }
                     }
-                    // Only installed entries can overwrite the caller's preserved world.
-                    if (preservedWorld != null && canonical.startsWith(preservedWorld)) {
-                        throw new IOException("Unsafe backup entry: " + name);
+                    // The callback moves the old world (and its directory links) away before installation.
+                    // Global destinations still refer to the existing filesystem and must be checked now.
+                    if (beforeInstall == null || !worldFile) {
+                        validateDestination(root, staging, preservedWorld, relative);
                     }
                     if (!seen.add(relative)) throw new IOException("Duplicate backup entry: " + name);
                     Path copy = staging.resolve("new").resolve(relative);
@@ -188,6 +188,10 @@ final class ArchiveExtraction {
                 } catch (Exception e) {
                     throw new IOException("Could not prepare restore", e);
                 }
+            }
+            // Recheck every destination after relocation, before installing even the first file.
+            for (Path relative : targets) {
+                validateDestination(root, staging, preservedWorld, relative);
             }
             for (Path relative : targets) {
                 Path target = root.resolve(relative);
@@ -249,6 +253,15 @@ final class ArchiveExtraction {
             throw failure;
         } finally {
             if (recovered) FileUtils.delete(staging.toFile());
+        }
+    }
+
+    private static void validateDestination(Path root, Path staging, Path preservedWorld, Path relative)
+            throws IOException {
+        Path canonical = root.resolve(relative).toFile().getCanonicalFile().toPath();
+        if (!canonical.startsWith(root) || canonical.startsWith(staging)
+                || (preservedWorld != null && canonical.startsWith(preservedWorld))) {
+            throw new IOException("Unsafe backup entry: " + relative);
         }
     }
 

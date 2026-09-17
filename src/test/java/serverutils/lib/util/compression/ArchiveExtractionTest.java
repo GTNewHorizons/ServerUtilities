@@ -41,6 +41,75 @@ public class ArchiveExtractionTest {
     }
 
     @Test
+    public void restoreReplacesWorldDirectoryLinksAfterStaging() throws Exception {
+        for (boolean dedicated : new boolean[] { false, true }) {
+            Path root = temporary.newFolder().toPath();
+            Path outside = temporary.newFolder().toPath();
+            Path world = root.resolve("saves/world");
+            Path preserved = root.resolve("saves/world_old");
+            symbolicDirectory(world.resolve("DIM-1"), outside);
+            Files.write(outside.resolve("keep"), new byte[] { 42 });
+            String prefix = dedicated ? "world/" : "saves/world/";
+            Path archive = archiveWithComment("world", prefix + "level.dat", prefix + "DIM-1/region/r.0.0.mca");
+            ArchiveExtraction.extract(archive.toFile(), false, dedicated, root, preserved.toFile(), null, () -> {
+                Files.move(world, preserved);
+                return null;
+            });
+            assertTrue(Files.isRegularFile(world.resolve("level.dat")));
+            assertTrue(Files.isRegularFile(world.resolve("DIM-1/region/r.0.0.mca")));
+            assertFalse(Files.isSymbolicLink(world.resolve("DIM-1")));
+            assertTrue(Files.isSymbolicLink(preserved.resolve("DIM-1")));
+            assertArrayEquals(new byte[] { 42 }, Files.readAllBytes(outside.resolve("keep")));
+            assertFalse(Files.exists(outside.resolve("region")));
+        }
+    }
+
+    @Test
+    public void globalDirectoryLinksAreRejectedBeforeRelocation() throws Exception {
+        Path root = temporary.newFolder().toPath();
+        Path outside = temporary.newFolder().toPath();
+        symbolicDirectory(root.resolve("global"), outside);
+        Path archive = archiveWithComment("world", "saves/world/level.dat", "global/value");
+        AtomicBoolean prepared = new AtomicBoolean();
+        assertThrows(
+                IOException.class,
+                () -> ArchiveExtraction.extract(archive.toFile(), true, false, root, null, null, () -> {
+                    prepared.set(true);
+                    return null;
+                }));
+        assertFalse(prepared.get());
+        assertFalse(Files.exists(outside.resolve("value")));
+    }
+
+    @Test
+    public void destinationsAreRecheckedAfterRelocationBeforeAnyInstall() throws Exception {
+        Path root = temporary.newFolder().toPath();
+        Path outside = temporary.newFolder().toPath();
+        Path link = root.resolve("link");
+        symbolicDirectory(link, outside);
+        Path world = root.resolve("saves/world");
+        Path archive = archiveWithComment("world", "saves/world/level.dat", "saves/world/DIM-1/value");
+        assertThrows(
+                IOException.class,
+                () -> ArchiveExtraction.extract(archive.toFile(), false, false, root, null, null, () -> {
+                    Files.createDirectories(world);
+                    Files.move(link, world.resolve("DIM-1"));
+                    return null;
+                }));
+        assertFalse(Files.exists(world.resolve("level.dat")));
+        assertFalse(Files.exists(outside.resolve("value")));
+    }
+
+    private static void symbolicDirectory(Path link, Path destination) throws Exception {
+        Files.createDirectories(link.getParent());
+        try {
+            Files.createSymbolicLink(link, destination.toAbsolutePath());
+        } catch (IOException | UnsupportedOperationException | SecurityException unavailable) {
+            org.junit.Assume.assumeNoException("Directory symlinks unavailable", unavailable);
+        }
+    }
+
+    @Test
     public void restorePreflightRequiresSelectedWorldMetadata() throws Exception {
         String[] previous = serverutils.ServerUtilitiesConfig.backups.additional_backup_files;
         serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[] { "**" };
