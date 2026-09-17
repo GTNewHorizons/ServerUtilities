@@ -109,8 +109,7 @@ public class BackupTask extends Task {
             server.getConfigurationManager().saveAllPlayerData();
             saveAndDisableWorldSaving(server.worldServers);
 
-            // saveAllPlayerData and saveAllChunks queue writes on another thread, so wait for them to finish
-            ThreadedFileIOBase.threadedIOInstance.waitForFinish();
+            flushChunkSaves(server.worldServers);
 
             if (!backups.silent_backup) {
                 BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
@@ -151,6 +150,23 @@ public class BackupTask extends Task {
                 if (snapshotPrepared) ThreadBackup.deleteSnapshot();
             }
         }
+    }
+
+    static void flushChunkSaves(WorldServer[] worlds) throws InterruptedException {
+        // Let the worker finish first: concurrent writers can commit older chunk data last.
+        ThreadedFileIOBase.threadedIOInstance.waitForFinish();
+        for (WorldServer world : worlds) {
+            if (world == null) continue;
+            boolean suspended = world.levelSaving;
+            try {
+                world.levelSaving = false;
+                // Vanilla can remove a loader just after new work is submitted to it. Drain that stranded work too.
+                world.saveChunkData();
+            } finally {
+                world.levelSaving = suspended;
+            }
+        }
+        ThreadedFileIOBase.threadedIOInstance.waitForFinish();
     }
 
     static void saveAndDisableWorldSaving(WorldServer[] worlds) throws MinecraftException {

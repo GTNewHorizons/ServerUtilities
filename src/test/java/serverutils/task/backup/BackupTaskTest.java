@@ -149,6 +149,75 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void chunkFlushDrainsStrandedWorkAndRestoresFlagsOnFailure() throws Exception {
+        WorldServer world = mock(WorldServer.class);
+        world.levelSaving = true;
+        File root = Files.createTempDirectory(new File("build").toPath(), "stranded-chunk-").toFile();
+        CountDownLatch idle = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        class Loader extends net.minecraft.world.chunk.storage.AnvilChunkLoader {
+
+            private boolean paused;
+
+            Loader() {
+                super(root);
+            }
+
+            void enqueue(int x) {
+                net.minecraft.nbt.NBTTagCompound tag = new net.minecraft.nbt.NBTTagCompound();
+                tag.setInteger("value", x);
+                addChunkToPending(new net.minecraft.world.ChunkCoordIntPair(x, 0), tag);
+            }
+
+            @Override
+            public boolean writeNextIO() {
+                boolean more = super.writeNextIO();
+                if (!more && !paused) {
+                    paused = true;
+                    idle.countDown();
+                    try {
+                        if (!release.await(10, TimeUnit.SECONDS)) throw new AssertionError("Producer timed out");
+                    } catch (InterruptedException e) {
+                        throw new AssertionError(e);
+                    }
+                }
+                return more;
+            }
+        }
+        Loader loader = new Loader();
+        doAnswer(invocation -> {
+            assertFalse(world.levelSaving);
+            loader.saveExtraData();
+            return null;
+        }).when(world).saveChunkData();
+        try {
+            loader.enqueue(0);
+            try {
+                assertTrue(idle.await(10, TimeUnit.SECONDS));
+                loader.enqueue(1);
+            } finally {
+                release.countDown();
+            }
+            BackupTask.flushChunkSaves(new WorldServer[] { null, world });
+            assertTrue(world.levelSaving);
+            try (java.io.DataInputStream in = net.minecraft.world.chunk.storage.RegionFileCache
+                    .getChunkInputStream(root, 1, 0)) {
+                assertTrue("Stranded chunk must reach disk", in != null);
+                assertEquals(1, net.minecraft.nbt.CompressedStreamTools.read(in).getInteger("value"));
+            }
+            doThrow(new IllegalStateException("flush failed")).when(world).saveChunkData();
+            org.junit.Assert.assertThrows(
+                    IllegalStateException.class,
+                    () -> BackupTask.flushChunkSaves(new WorldServer[] { world }));
+            assertTrue(world.levelSaving);
+        } finally {
+            release.countDown();
+            net.minecraft.world.chunk.storage.RegionFileCache.clearRegionFileReferences();
+            FileUtils.delete(root);
+        }
+    }
+
+    @Test
     public void backupSavesPreviouslyDisabledWorldAndRestoresItsFlag() throws Exception {
         WorldServer world = mock(WorldServer.class);
         world.levelSaving = true;
