@@ -5,6 +5,8 @@ import static serverutils.ServerUtilitiesNotifications.BACKUP;
 import static serverutils.lib.util.FileUtils.SizeUnit;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -29,6 +31,7 @@ import net.minecraftforge.common.DimensionManager;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunks;
+import serverutils.lib.OtherMods;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
@@ -124,6 +127,8 @@ public class BackupTask extends Task {
                 BACKUP_TEMP_FOLDER.mkdirs();
             }
 
+            universe.saveForBackup();
+            drainQueuedWrites();
             File worldDir = DimensionManager.getCurrentSaveRootDirectory();
             ICompress compressor = ICompress.createCompressor();
             universe.scheduleTask(new BackupTask(true));
@@ -149,6 +154,43 @@ public class BackupTask extends Task {
                 restoreWorldSaving();
                 if (snapshotPrepared) ThreadBackup.deleteSnapshot();
             }
+        }
+    }
+
+    /** Reports retained Hodgepodge failures without requiring that mod, or its newer flush API. */
+    static void drainQueuedWrites() throws Exception {
+        ThreadedFileIOBase.threadedIOInstance.waitForFinish();
+        if (!OtherMods.isHodgepodgeLoaded()) return;
+        Class<?> tweaks;
+        try {
+            tweaks = Class.forName("com.mitchej123.hodgepodge.config.TweaksConfig");
+        } catch (ClassNotFoundException e) {
+            return;
+        }
+        try {
+            if (!tweaks.getField("threadedWorldDataSaving").getBoolean(null)) return;
+        } catch (NoSuchFieldException e) {
+            return;
+        }
+        flushWorldDataSaver(Class.forName("com.mitchej123.hodgepodge.util.WorldDataSaver"));
+    }
+
+    static void flushWorldDataSaver(Class<?> saver) throws Exception {
+        Method flush;
+        try {
+            flush = saver.getMethod("flush");
+        } catch (NoSuchMethodException e) {
+            ServerUtilities.LOGGER.warn(
+                    "Hodgepodge WorldDataSaver has no flush(); queued writes drained, but write failures cannot be confirmed");
+            return;
+        }
+        try {
+            flush.invoke(saver.getField("INSTANCE").get(null));
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Exception) throw (Exception) cause;
+            if (cause instanceof Error) throw (Error) cause;
+            throw new IllegalStateException(cause);
         }
     }
 

@@ -3,7 +3,7 @@ package serverutils.data;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
-import java.lang.reflect.Method;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -52,15 +52,13 @@ public class ClaimSaveTest {
         int busId = busIdField.getInt(MinecraftForge.EVENT_BUS);
         ListenerList listeners = new ForgeTeamSavedEvent(team).getListenerList();
         listeners.register(busId, EventPriority.NORMAL, subscriber);
-        Method save = Universe.class.getDeclaredMethod("save");
-        save.setAccessible(true);
         try {
             team.markDirty();
-            save.invoke(universe);
+            assertThrows(IOException.class, universe::saveForBackup);
             assertTrue(team.needsSaving);
             Files.delete(blocker);
             Files.delete(target);
-            save.invoke(universe);
+            universe.saveForBackup();
             assertFalse(team.needsSaving);
             assertEquals("saved", NBTUtils.readNBT(target.toFile()).getString("claims"));
 
@@ -69,10 +67,10 @@ public class ClaimSaveTest {
             blocker = Files.write(target.resolve("keep"), new byte[] { 1 });
             data.removeTag("claims");
             team.markDirty();
-            save.invoke(universe);
+            assertThrows(IOException.class, universe::saveForBackup);
             assertTrue(team.needsSaving);
             Files.delete(blocker);
-            save.invoke(universe);
+            universe.saveForBackup();
             assertFalse(team.needsSaving);
             assertFalse(Files.exists(target));
         } finally {

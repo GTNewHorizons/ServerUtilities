@@ -1,6 +1,7 @@
 package serverutils.lib.data;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -427,6 +428,11 @@ public class Universe {
         new UniverseLoadedEvent.Finished(this).post();
 
         ServerUtilitiesAPI.reloadServer(this, server, EnumReloadType.CREATED, ServerReloadEvent.ALL);
+    }
+
+    public void saveForBackup() throws IOException {
+        save();
+        if (checkSaving) throw new IOException("ServerUtilities world, player or team data could not be saved");
     }
 
     private void save() {

@@ -657,6 +657,63 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void failedUniverseSaveAbortsBeforeStartingTheWorker() throws Exception {
+        MinecraftServer server = mock(MinecraftServer.class);
+        ServerConfigurationManager manager = mock(ServerConfigurationManager.class);
+        Field players = ServerConfigurationManager.class.getDeclaredField("playerEntityList");
+        players.setAccessible(true);
+        players.set(manager, Collections.emptyList());
+        when(server.getConfigurationManager()).thenReturn(manager);
+        WorldServer world = mock(WorldServer.class);
+        server.worldServers = new WorldServer[] { world };
+        Universe universe = new Universe(server) {
+
+            @Override
+            public void saveForBackup() throws IOException {
+                throw new IOException("injected save failure");
+            }
+        };
+        new BackupTask(mock(ICommandSender.class), "failed-universe").execute(universe);
+        assertFalse(world.levelSaving);
+        assertFalse(BackupTask.isWorldSavingSuspended());
+        assertNull(BackupTask.thread);
+        assertFalse(new File(BackupTask.BACKUP_FOLDER, "failed-universe.zip").exists());
+    }
+
+    @Test
+    public void optionalSaverPropagatesFailuresAndAllowsOlderVersions() throws Exception {
+        CompatibleSaver saver = CompatibleSaver.INSTANCE;
+        try {
+            saver.failure = null;
+            BackupTask.flushWorldDataSaver(CompatibleSaver.class);
+            IOException diskError = new IOException("disk failure");
+            saver.failure = diskError;
+            org.junit.Assert.assertSame(
+                    diskError,
+                    org.junit.Assert.assertThrows(
+                            IOException.class,
+                            () -> BackupTask.flushWorldDataSaver(CompatibleSaver.class)));
+            saver.failure = new InterruptedException("cancelled");
+            org.junit.Assert.assertThrows(
+                    InterruptedException.class,
+                    () -> BackupTask.flushWorldDataSaver(CompatibleSaver.class));
+            BackupTask.flushWorldDataSaver(Object.class); // Older saver has no flush API.
+        } finally {
+            saver.failure = null;
+        }
+    }
+
+    public static class CompatibleSaver {
+
+        public static final CompatibleSaver INSTANCE = new CompatibleSaver();
+        Exception failure;
+
+        public void flush() throws Exception {
+            if (failure != null) throw failure;
+        }
+    }
+
+    @Test
     public void restoresCapturedWorldsByIdentity() throws Exception {
         WorldServer first = mock(WorldServer.class);
         WorldServer second = mock(WorldServer.class);
