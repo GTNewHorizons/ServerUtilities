@@ -258,8 +258,12 @@ public class BackupTask extends Task {
         File[] files = BACKUP_FOLDER.listFiles();
         if (files == null || files.length == 0) return;
 
-        List<File> backupFiles = Arrays.stream(files).filter(
-                file -> backups.delete_custom_name_backups || BACKUP_NAME_PATTERN.matcher(file.getName()).matches())
+        List<File> backupFiles = Arrays.stream(files)
+                // Interrupted process shutdown can leave staging files; they are not completed backups.
+                .filter(file -> !(file.getName().startsWith(".su-save-") && file.getName().endsWith(".tmp")))
+                .filter(
+                        file -> backups.delete_custom_name_backups
+                                || BACKUP_NAME_PATTERN.matcher(file.getName()).matches())
                 .sorted(Comparator.comparingLong(File::lastModified)).collect(Collectors.toList());
 
         long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();

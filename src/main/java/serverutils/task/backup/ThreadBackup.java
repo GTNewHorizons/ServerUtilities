@@ -16,6 +16,7 @@ import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -164,7 +165,7 @@ public class ThreadBackup extends Thread {
             dstFile = new File(BackupTask.BACKUP_FOLDER, outName);
             Path destination = dstFile.toPath().toAbsolutePath();
             Files.createDirectories(destination.getParent());
-            temporary = Files.createTempFile(destination.getParent(), ".su-backup-", ".tmp");
+            temporary = FileUtils.createSaveTemporary(destination);
             try (compressor) {
                 compressor.createOutputStream(temporary.toFile());
                 if (onlyClaimed) {
@@ -175,6 +176,10 @@ public class ThreadBackup extends Thread {
 
             }
             if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup cancelled");
+            if (Files.exists(destination)
+                    && Files.getFileAttributeView(destination, PosixFileAttributeView.class) != null) {
+                Files.setPosixFilePermissions(temporary, Files.getPosixFilePermissions(destination));
+            }
             Files.move(temporary, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             temporary = null;
             String backupSize = FileUtils.getSizeString(dstFile);

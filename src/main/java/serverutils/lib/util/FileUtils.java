@@ -91,7 +91,7 @@ public class FileUtils {
         }
     }
 
-    static Path createSaveTemporary(Path target) throws IOException {
+    public static Path createSaveTemporary(Path target) throws IOException {
         // Keep replacement contents private until their final permissions are applied after writing.
         // New files retain ordinary creation permissions, filtered by umask.
         return Files.getFileAttributeView(target.getParent(), PosixFileAttributeView.class) != null

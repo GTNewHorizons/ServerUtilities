@@ -888,7 +888,7 @@ public class BackupTaskTest {
                 org.junit.Assert.assertArrayEquals(original, Files.readAllBytes(previous.toPath()));
                 try (java.util.stream.Stream<java.nio.file.Path> paths = Files
                         .list(BackupTask.BACKUP_FOLDER.toPath())) {
-                    assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith(".su-backup-")));
+                    assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith(".su-save-")));
                 }
             }
             ThreadBackup.doBackup(ICompress.createCompressor(), source, "reused-name", Collections.emptySet());
@@ -930,6 +930,38 @@ public class BackupTaskTest {
             ServerUtilitiesConfig.backups.additional_backup_files = previous;
             FileUtils.delete(root.toFile());
             ThreadBackup.deleteSnapshot();
+        }
+    }
+
+    @Test
+    public void publishedArchivesKeepOrdinaryAndExistingPosixPermissions() throws Exception {
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "backup-mode-");
+        try {
+            org.junit.Assume.assumeTrue(Files.getFileStore(root).supportsFileAttributeView("posix"));
+            File payload = root.resolve("level.dat").toFile();
+            Files.write(payload.toPath(), new byte[] { 42 });
+            java.nio.file.Path archive = new File(BackupTask.BACKUP_FOLDER, "posix-permissions.zip").toPath();
+            try {
+                ThreadBackup.doBackup(
+                        ICompress.createCompressor(),
+                        root.toFile(),
+                        "posix-permissions",
+                        Collections.emptySet());
+                assertEquals(Files.getPosixFilePermissions(payload.toPath()), Files.getPosixFilePermissions(archive));
+                java.util.Set<java.nio.file.attribute.PosixFilePermission> permissions = java.nio.file.attribute.PosixFilePermissions
+                        .fromString("rw-r-----");
+                Files.setPosixFilePermissions(archive, permissions);
+                ThreadBackup.doBackup(
+                        ICompress.createCompressor(),
+                        root.toFile(),
+                        "posix-permissions",
+                        Collections.emptySet());
+                assertEquals(permissions, Files.getPosixFilePermissions(archive));
+            } finally {
+                Files.deleteIfExists(archive);
+            }
+        } finally {
+            FileUtils.delete(root.toFile());
         }
     }
 
