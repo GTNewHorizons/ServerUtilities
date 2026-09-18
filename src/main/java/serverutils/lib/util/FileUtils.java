@@ -4,15 +4,21 @@ import static serverutils.lib.util.FileUtils.SizeUnit.GB;
 import static serverutils.lib.util.FileUtils.SizeUnit.KB;
 import static serverutils.lib.util.FileUtils.SizeUnit.MB;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,24 +61,49 @@ public class FileUtils {
     }
 
     public static void save(File file, Iterable<String> list) throws Exception {
-        OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(newFile(file)), StandardCharsets.UTF_8);
-        BufferedWriter br = new BufferedWriter(fw);
-
-        for (String s : list) {
-            br.write(s);
-            br.write('\n');
-        }
-
-        br.close();
-        fw.close();
+        StringBuilder text = new StringBuilder();
+        for (String line : list) text.append(line).append('\n');
+        save(file, text.toString());
     }
 
     public static void save(File file, String string) throws Exception {
-        OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(newFile(file)), StandardCharsets.UTF_8);
-        BufferedWriter br = new BufferedWriter(fw);
-        br.write(string);
-        br.close();
-        fw.close();
+        writeAtomic(file, string.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void writeAtomic(File file, byte[] data) throws IOException {
+        Path target = file.toPath().toAbsolutePath();
+        // Replace a file link's destination, not the link. Dangling or cyclic links fail before staging.
+        if (Files.isSymbolicLink(target)) target = target.toRealPath();
+        Files.createDirectories(target.getParent());
+        boolean posix = Files.getFileAttributeView(target.getParent(), PosixFileAttributeView.class) != null;
+        Path temporary = createSaveTemporary(target);
+        try {
+            try (FileOutputStream output = new FileOutputStream(temporary.toFile())) {
+                output.write(data);
+                output.getFD().sync();
+            }
+            // After writing: a target mode without owner write would otherwise block our own open.
+            if (posix && Files.exists(target)) {
+                Files.setPosixFilePermissions(temporary, Files.getPosixFilePermissions(target));
+            }
+            // Fail closed if atomic replacement is unavailable; keep the previous complete save.
+            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+    }
+
+    public static Path createSaveTemporary(Path target) throws IOException {
+        // Keep replacement contents private until their final permissions are applied after writing.
+        // New files retain ordinary creation permissions, filtered by umask.
+        return Files.getFileAttributeView(target.getParent(), PosixFileAttributeView.class) != null
+                ? Files.createTempFile(
+                        target.getParent(),
+                        ".su-save-",
+                        ".tmp",
+                        PosixFilePermissions.asFileAttribute(
+                                PosixFilePermissions.fromString(Files.exists(target) ? "rw-------" : "rw-rw-rw-")))
+                : Files.createTempFile(target.getParent(), ".su-save-", ".tmp");
     }
 
     public static void saveSafe(final File file, final Iterable<String> list) {
@@ -236,5 +267,32 @@ public class FileUtils {
     public static String getRelativePath(File file) {
         Path filePath = file.toPath().toAbsolutePath();
         return Paths.get("").toAbsolutePath().relativize(filePath).toString().replace('\\', '/');
+    }
+
+    /** Resolves links and Windows junctions, including existing ancestors of a not-yet-created file. */
+    public static Path resolveRealPath(Path path) throws IOException {
+        Path absolute = path.toAbsolutePath().normalize();
+        try {
+            return absolute.toRealPath();
+        } catch (NoSuchFileException missing) {
+            // A dangling link is not an ordinary new file, and must not bypass containment checks.
+            if (absolute.getParent() == null || Files.exists(absolute, LinkOption.NOFOLLOW_LINKS)) throw missing;
+            return resolveRealPath(absolute.getParent()).resolve(absolute.getFileName());
+        }
+    }
+
+    public static String normalizeBackupPattern(String pattern) {
+        pattern = pattern.replace('\\', '/');
+        while (pattern.startsWith("./")) pattern = pattern.substring(2);
+        while (pattern.contains("/./")) pattern = pattern.replace("/./", "/");
+        if (pattern.endsWith("/.")) pattern = pattern.substring(0, pattern.length() - 2);
+        return pattern;
+    }
+
+    public static boolean matchesBackupPath(Path path, String pattern) {
+        pattern = normalizeBackupPattern(pattern);
+        path = path.normalize();
+        return FileSystems.getDefault().getPathMatcher("glob:" + pattern).matches(path)
+                || (!pattern.contains("*") && path.startsWith(Paths.get(pattern).normalize()));
     }
 }

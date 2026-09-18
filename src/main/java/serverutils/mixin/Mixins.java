@@ -11,6 +11,9 @@ import com.gtnewhorizon.gtnhmixins.builders.MixinBuilder;
 public enum Mixins implements IMixins {
 
     // spotless:off
+    BACKUP_SHUTDOWN(new MixinBuilder()
+            .setPhase(Phase.EARLY)
+            .addCommonMixins("minecraft.MixinMinecraftServer_BackupShutdown")),
     COMMAND_PERMISSIONS(new MixinBuilder()
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> ranks.enabled && ranks.command_permissions)

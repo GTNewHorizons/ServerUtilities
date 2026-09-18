@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
@@ -15,7 +16,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -54,6 +57,7 @@ import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.lib.util.misc.MouseButton;
 import serverutils.task.backup.BackupTask;
+import serverutils.task.backup.ThreadBackup;
 
 @EventBusSubscriber(side = Side.CLIENT)
 public class GuiRestoreBackup extends GuiButtonListBase {
@@ -222,12 +226,17 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void renameAdditionalFiles(File previousRoot, boolean includeGlobal) {
+    private void renameAdditionalFiles(File previousRoot, boolean includeGlobal, Map<File, File> moved, File archive,
+            File preservedWorld) throws IOException {
+        Path archivePath = FileUtils.resolveRealPath(archive.toPath());
+        Path recoveryPath = FileUtils.resolveRealPath(previousRoot.getParentFile().toPath());
+        Path preservedWorldPath = FileUtils.resolveRealPath(preservedWorld.toPath());
+        Path recoveryStorage = FileUtils.resolveRealPath(Paths.get("backups_before_restore"));
         for (String pattern : backups.additional_backup_files) {
             if (!pattern.contains("$WORLDNAME") && !includeGlobal) {
                 continue;
             }
-            pattern = pattern.replace("$WORLDNAME", worldName);
+            pattern = FileUtils.normalizeBackupPattern(pattern.replace("$WORLDNAME", worldName));
 
             // Gather list of all old files
             List<File> previousFiles;
@@ -241,12 +250,13 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                 if (firstWildcardIndex != 0 && (pattern.charAt(firstWildcardIndex - 1) != '/')) {
                     rootFolder = rootFolder.getParent();
                 }
+                if (rootFolder == null || rootFolder.toString().isEmpty()) rootFolder = Paths.get(".");
 
                 PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
                 List<File> fileCandidates = FileUtils.listTree(rootFolder.toFile());
                 previousFiles = new ArrayList<>();
                 for (File file : fileCandidates) {
-                    if (matcher.matches(file.toPath())) {
+                    if (matcher.matches(file.toPath().normalize())) {
                         previousFiles.add(file);
                     }
                 }
@@ -254,10 +264,17 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
             // Move all old files into backup
             for (File file : previousFiles) {
+                Path path = FileUtils.resolveRealPath(file.toPath());
+                if (path.equals(archivePath) || path.startsWith(recoveryPath)
+                        || path.startsWith(preservedWorldPath)
+                        || path.startsWith(recoveryStorage)
+                        || ThreadBackup.isBackupStorage(file))
+                    continue;
                 String pathRelative = FileUtils.getRelativePath(file);
                 File destFile = new File(previousRoot, pathRelative);
-                destFile.getParentFile().mkdirs();
-                file.renameTo(destFile);
+                Files.createDirectories(destFile.toPath().getParent());
+                Files.move(file.toPath(), destFile.toPath());
+                moved.put(file, destFile);
             }
         }
     }
@@ -285,22 +302,62 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         while (saveCopy.exists()) {
             saveCopy = new File(savesDir, saveCopy.getName() + "_old");
         }
+        File preservedWorld = saveCopy;
 
-        worldDir.renameTo(saveCopy);
+        boolean[] worldMoved = { false };
+        Map<File, File> moved = new LinkedHashMap<>();
+        File previousRoot = null;
 
         try (ICompress compressor = ICompress.createCompressor()) {
             boolean isOldBackup = compressor.isOldBackup(file);
-            if (!isOldBackup) {
-                File previousRoot = new File("backups_before_restore/");
-                previousRoot = new File(previousRoot, DATE_FORMAT.format(Calendar.getInstance().getTime()));
-                renameAdditionalFiles(previousRoot, includeGlobal);
-            }
-            compressor.extractArchive(file, includeGlobal, isOldBackup);
+            ICompress.validateRestoreTargets(file, worldName, isOldBackup, includeGlobal);
+            Path worldPath = FileUtils.resolveRealPath(worldDir.toPath());
+            Path archivePath = FileUtils.resolveRealPath(file.toPath());
+            File movedArchive = archivePath.startsWith(worldPath)
+                    ? new File(preservedWorld, worldPath.relativize(archivePath).toString())
+                    : file;
+            File recoveryStorage = new File("backups_before_restore/");
+            Files.createDirectories(recoveryStorage.toPath());
+            // One directory per restore, with separate roots for displaced extras and replaced globals.
+            previousRoot = Files.createTempDirectory(
+                    recoveryStorage.toPath(),
+                    DATE_FORMAT.format(Calendar.getInstance().getTime()) + "-").toFile();
+            File recovery = previousRoot;
+            compressor.extractArchive(file, includeGlobal, isOldBackup, preservedWorld, recovery, () -> {
+                Files.move(worldDir.toPath(), preservedWorld.toPath());
+                worldMoved[0] = true;
+                if (!isOldBackup) {
+                    renameAdditionalFiles(
+                            new File(recovery, "additional"),
+                            includeGlobal,
+                            moved,
+                            movedArchive,
+                            preservedWorld);
+                }
+                return null;
+            });
+            previousRoot.delete();
             closeGui();
         } catch (Exception e) {
-            ServerUtilities.LOGGER.error("Failed to restore backup", e);
-            FileUtils.delete(worldDir);
-            saveCopy.renameTo(worldDir);
+
+            if (worldMoved[0]) {
+                try {
+                    if (worldDir.exists() && !FileUtils.delete(worldDir))
+                        throw new IOException("Could not remove partial restored world");
+                    Files.move(preservedWorld.toPath(), worldDir.toPath());
+                } catch (IOException recovery) {
+                    e.addSuppressed(recovery);
+                }
+            }
+            for (Map.Entry<File, File> entry : moved.entrySet()) {
+                try {
+                    Files.move(entry.getValue().toPath(), entry.getKey().toPath());
+                } catch (IOException recovery) {
+                    e.addSuppressed(recovery);
+                }
+            }
+            if (previousRoot != null) previousRoot.delete();
+            ServerUtilities.LOGGER.error("Failed to restore backup; original files retained if recovery failed", e);
             Minecraft.getMinecraft().displayGuiScreen(
                     new GuiErrorScreen(
                             StatCollector.translateToLocal("serverutilities.gui.backup.error"),
