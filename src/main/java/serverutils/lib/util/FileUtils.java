@@ -72,6 +72,8 @@ public class FileUtils {
 
     public static void writeAtomic(File file, byte[] data) throws IOException {
         Path target = file.toPath().toAbsolutePath();
+        // Replace a file link's destination, not the link. Dangling or cyclic links fail before staging.
+        if (Files.isSymbolicLink(target)) target = target.toRealPath();
         Files.createDirectories(target.getParent());
         boolean posix = Files.getFileAttributeView(target.getParent(), PosixFileAttributeView.class) != null;
         Path temporary = createSaveTemporary(target);
