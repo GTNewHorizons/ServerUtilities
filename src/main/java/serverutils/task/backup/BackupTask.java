@@ -5,8 +5,11 @@ import static serverutils.ServerUtilitiesNotifications.BACKUP;
 import static serverutils.lib.util.FileUtils.SizeUnit;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -58,6 +61,8 @@ public class BackupTask extends Task {
         BACKUP_FOLDER = backups.backup_folder_path.isEmpty() ? new File("/backups/")
                 : new File(backups.backup_folder_path);
         if (!BACKUP_FOLDER.exists()) BACKUP_FOLDER.mkdirs();
+        // Class initialization runs before any backup worker can own an archive staging file.
+        deleteAbandonedArchives(BACKUP_FOLDER);
         clearOldBackups();
         ServerUtilities.LOGGER.info("Backups folder - {}", BACKUP_FOLDER.getAbsolutePath());
     }
@@ -254,13 +259,30 @@ public class BackupTask extends Task {
         }
     }
 
+    static void deleteAbandonedArchives(File folder) {
+        File[] files = folder.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (!isArchiveStagingFile(file) || !Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS)) continue;
+            try {
+                Files.delete(file.toPath());
+            } catch (IOException ex) {
+                ServerUtilities.LOGGER.warn("Could not delete abandoned backup staging file {}", file, ex);
+            }
+        }
+    }
+
+    private static boolean isArchiveStagingFile(File file) {
+        return file.getName().startsWith(".su-save-") && file.getName().endsWith(".tmp");
+    }
+
     public static void clearOldBackups() {
         File[] files = BACKUP_FOLDER.listFiles();
         if (files == null || files.length == 0) return;
 
         List<File> backupFiles = Arrays.stream(files)
-                // Interrupted process shutdown can leave staging files; they are not completed backups.
-                .filter(file -> !(file.getName().startsWith(".su-save-") && file.getName().endsWith(".tmp")))
+                // Only startup reclaims staging files: a running worker may still own one here.
+                .filter(file -> !isArchiveStagingFile(file))
                 .filter(
                         file -> backups.delete_custom_name_backups
                                 || BACKUP_NAME_PATTERN.matcher(file.getName()).matches())

@@ -905,6 +905,42 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void startupReclaimsOnlyAbandonedArchiveFiles() throws Exception {
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "archive-cleanup-");
+        try {
+            java.nio.file.Path orphan = Files.write(root.resolve(".su-save-123.tmp"), new byte[] { 1 });
+            java.nio.file.Path archive = Files.write(root.resolve("completed.zip"), new byte[] { 2 });
+            java.nio.file.Path unrelated = Files.write(root.resolve("other.tmp"), new byte[] { 3 });
+            java.nio.file.Path directory = Files.createDirectory(root.resolve(".su-save-directory.tmp"));
+            java.nio.file.Path contents = Files.write(directory.resolve("keep"), new byte[] { 4 });
+            BackupTask.deleteAbandonedArchives(root.toFile());
+            assertFalse(Files.exists(orphan));
+            assertTrue(Files.exists(archive));
+            assertTrue(Files.exists(unrelated));
+            assertTrue(Files.exists(contents));
+            BackupTask.deleteAbandonedArchives(root.toFile());
+            assertTrue(Files.exists(archive));
+        } finally {
+            FileUtils.delete(root.toFile());
+        }
+
+        java.nio.file.Path active = FileUtils
+                .createSaveTemporary(new File(BackupTask.BACKUP_FOLDER, "active.zip").toPath());
+        int previousCount = ServerUtilitiesConfig.backups.backups_to_keep;
+        boolean previousCustom = ServerUtilitiesConfig.backups.delete_custom_name_backups;
+        try {
+            ServerUtilitiesConfig.backups.backups_to_keep = 0;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
+            BackupTask.clearOldBackups();
+            assertTrue("Ordinary retention must leave worker-owned staging alone", Files.exists(active));
+        } finally {
+            ServerUtilitiesConfig.backups.backups_to_keep = previousCount;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = previousCustom;
+            Files.deleteIfExists(active);
+        }
+    }
+
+    @Test
     public void unreadableWorldDirectoryFailsButMissingOptionalIncludesAreAllowed() throws Exception {
         java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "enumeration-");
         File unreadable = mock(File.class);
