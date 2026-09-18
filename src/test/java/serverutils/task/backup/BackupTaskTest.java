@@ -734,6 +734,8 @@ public class BackupTaskTest {
         WorldServer world = mock(WorldServer.class);
         BackupTask.saveAndDisableWorldSaving(new WorldServer[] { world });
         CountDownLatch started = new CountDownLatch(1);
+        CountDownLatch cancelled = new CountDownLatch(1);
+        CountDownLatch finish = new CountDownLatch(1);
         ThreadBackup worker = new ThreadBackup(null, null, "", Collections.emptySet()) {
 
             @Override
@@ -741,18 +743,45 @@ public class BackupTaskTest {
                 started.countDown();
                 try {
                     new CountDownLatch(1).await();
-                } catch (InterruptedException ignored) {}
+                } catch (InterruptedException ignored) {
+                    cancelled.countDown();
+                }
+                // Cancellation starts shutdown, but the worker still owns the world files until it exits.
+                boolean finished = false;
+                while (!finished) {
+                    try {
+                        finish.await();
+                        finished = true;
+                    } catch (InterruptedException ignored) {}
+                }
             }
         };
         BackupTask.thread = worker;
-        worker.start();
-        assertTrue(started.await(5, TimeUnit.SECONDS));
+        java.util.concurrent.ExecutorService stopper = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            worker.start();
+            assertTrue(started.await(5, TimeUnit.SECONDS));
+            java.util.concurrent.Future<?> stopped = stopper.submit(BackupTask::stopBackupThread);
+            assertTrue(cancelled.await(5, TimeUnit.SECONDS));
+            org.junit.Assert.assertThrows(
+                    java.util.concurrent.TimeoutException.class,
+                    () -> stopped.get(200, TimeUnit.MILLISECONDS));
+            assertTrue(worker.isAlive());
+            assertTrue("Saving must stay suspended while the worker exits", world.levelSaving);
+            assertTrue(BackupTask.isWorldSavingSuspended());
 
-        BackupTask.stopBackupThread();
-
-        assertFalse(worker.isAlive());
-        assertFalse(world.levelSaving);
-        assertNull(BackupTask.thread);
+            finish.countDown();
+            stopped.get(5, TimeUnit.SECONDS);
+            assertFalse(worker.isAlive());
+            assertFalse(world.levelSaving);
+            assertNull(BackupTask.thread);
+        } finally {
+            finish.countDown();
+            worker.interrupt();
+            worker.join(TimeUnit.SECONDS.toMillis(5));
+            stopper.shutdownNow();
+            assertTrue(stopper.awaitTermination(5, TimeUnit.SECONDS));
+        }
     }
 
     @Test
