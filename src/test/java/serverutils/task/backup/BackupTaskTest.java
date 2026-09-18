@@ -941,6 +941,111 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void globTraversalSkipsUnrelatedUnreadableDirectories() throws Exception {
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "glob-traversal-");
+        try {
+            File selected = root.resolve("server.cfg").toFile();
+            Files.write(selected.toPath(), new byte[] { 42 });
+            File unreadable = mock(File.class);
+            when(unreadable.toPath()).thenReturn(Files.createDirectory(root.resolve("private")));
+            when(unreadable.listFiles()).thenReturn(null);
+            File matchingDirectory = mock(File.class);
+            when(matchingDirectory.toPath()).thenReturn(Files.createDirectory(root.resolve("private.cfg")));
+            when(matchingDirectory.isDirectory()).thenReturn(true);
+            when(matchingDirectory.listFiles()).thenReturn(null);
+            File directory = mock(File.class);
+            when(directory.toPath()).thenReturn(root);
+            when(directory.listFiles()).thenReturn(new File[] { selected, unreadable, matchingDirectory });
+            String pattern = root.toString().replace('\\', '/') + "/*.cfg";
+            java.util.List<File> files = new java.util.ArrayList<>();
+            ThreadBackup.collectOutsideBackupStorage(
+                    files,
+                    directory,
+                    root.resolve("temp"),
+                    root.resolve("backups"),
+                    java.nio.file.FileSystems.getDefault().getPathMatcher("glob:" + pattern),
+                    ThreadBackup.backupGlobTraversal(pattern));
+            assertEquals(Collections.singletonList(selected), files);
+            org.mockito.Mockito.verify(unreadable, org.mockito.Mockito.never()).listFiles();
+            org.mockito.Mockito.verify(matchingDirectory, org.mockito.Mockito.never()).listFiles();
+            org.junit.Assert.assertThrows(
+                    IOException.class,
+                    () -> ThreadBackup.collectOutsideBackupStorage(
+                            files,
+                            directory,
+                            root.resolve("temp"),
+                            root.resolve("backups"),
+                            path -> true,
+                            ThreadBackup.backupGlobTraversal(root.toString().replace('\\', '/') + "/**")));
+        } finally {
+            FileUtils.delete(root.toFile());
+        }
+    }
+
+    @Test
+    public void additionalGlobsIncludeOnlySelectedFilesInArchive() throws Exception {
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "glob-archive-");
+        String[] previous = ServerUtilitiesConfig.backups.additional_backup_files;
+        File archive = new File(BackupTask.BACKUP_FOLDER, "glob-selection.zip");
+        try {
+            java.nio.file.Path world = Files.createDirectory(root.resolve("world"));
+            Files.write(world.resolve("level.dat"), new byte[] { 1 });
+            java.nio.file.Path config = Files.createDirectory(root.resolve("config"));
+            java.nio.file.Path selected = Files.write(config.resolve("server.cfg"), new byte[] { 2 });
+            java.nio.file.Path ignored = Files.createDirectory(config.resolve("private.cfg")).resolve("hidden.cfg");
+            Files.write(ignored, new byte[] { 3 });
+            java.nio.file.Path maps = Files.createDirectories(root.resolve("maps/user/world_1/dimension"));
+            java.nio.file.Path selectedMap = Files.write(maps.resolve("map.dat"), new byte[] { 4 });
+            java.nio.file.Path other = Files.createDirectories(root.resolve("maps/user/other_world"))
+                    .resolve("map.dat");
+            Files.write(other, new byte[] { 5 });
+            String prefix = root.toString().replace('\\', '/');
+            ServerUtilitiesConfig.backups.additional_backup_files = new String[] { prefix + "/config/*.cfg",
+                    prefix + "/maps/*/world_*/**" };
+            ThreadBackup
+                    .doBackup(ICompress.createCompressor(), world.toFile(), "glob-selection", Collections.emptySet());
+            try (ZipFile zip = new ZipFile(archive)) {
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(selected.toFile())) != null);
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(selectedMap.toFile())) != null);
+                assertNull(zip.getEntry(FileUtils.getRelativePath(ignored.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(other.toFile())));
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.additional_backup_files = previous;
+            FileUtils.delete(root.toFile());
+            Files.deleteIfExists(archive.toPath());
+        }
+    }
+
+    @Test
+    public void globTraversalKeepsMatchingAncestorsAndRecursivePatterns() {
+        java.nio.file.PathMatcher selectedWorld = ThreadBackup
+                .backupGlobTraversal("visualprospecting/client/*/world_*/**");
+        for (String path : new String[] { "visualprospecting/client/user", "visualprospecting/client/user/world_1",
+                "visualprospecting/client/user/world_1/dimension/data" }) {
+            assertTrue(path, selectedWorld.matches(java.nio.file.Paths.get(path)));
+        }
+        assertFalse(selectedWorld.matches(java.nio.file.Paths.get("visualprospecting/client/user/other_world")));
+        assertFalse(
+                ThreadBackup.backupGlobTraversal("config/*.cfg").matches(java.nio.file.Paths.get("config/private")));
+        assertTrue(
+                ThreadBackup.backupGlobTraversal("config/**/settings.cfg")
+                        .matches(java.nio.file.Paths.get("config/a/b")));
+        assertTrue(
+                ThreadBackup.backupGlobTraversal("config/name**tail/settings.cfg")
+                        .matches(java.nio.file.Paths.get("config/name/a/b")));
+        assertTrue(
+                ThreadBackup.backupGlobTraversal("config/{one,two}/*/settings.cfg")
+                        .matches(java.nio.file.Paths.get("config/two/sub")));
+        assertTrue(
+                ThreadBackup.backupGlobTraversal("config/{one/sub,two}/settings.cfg")
+                        .matches(java.nio.file.Paths.get("config/one")));
+        assertTrue(
+                ThreadBackup.backupGlobTraversal("config/[ab]/*/settings.cfg")
+                        .matches(java.nio.file.Paths.get("config/a/sub")));
+    }
+
+    @Test
     public void unreadableWorldDirectoryFailsButMissingOptionalIncludesAreAllowed() throws Exception {
         java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "enumeration-");
         File unreadable = mock(File.class);

@@ -119,13 +119,46 @@ public class ThreadBackup extends Thread {
             if (rootFolder == null || rootFolder.toString().isEmpty()) rootFolder = Paths.get(".");
 
             PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-            List<File> fileCandidates = listOutsideBackupStorage(rootFolder.toFile());
+            List<File> fileCandidates = listOutsideBackupStorage(
+                    rootFolder.toFile(),
+                    matcher,
+                    backupGlobTraversal(pattern));
             for (File file : fileCandidates) {
                 if (matcher.matches(file.toPath().normalize())) {
                     files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
             }
         }
+    }
+
+    /** Matches directories that can contain selected files. The full glob separately selects the files themselves. */
+    static PathMatcher backupGlobTraversal(String pattern) {
+        List<PathMatcher> prefixes = new ArrayList<>();
+        int group = -1;
+        boolean characterClass = false;
+        for (int i = 0; i < pattern.length(); i++) {
+            char c = pattern.charAt(i);
+            if (c == '[') characterClass = true;
+            if (c == ']') characterClass = false;
+            if (characterClass) continue;
+            if (c == '{') group = i;
+            if (c == '}') group = -1;
+            // A recursive wildcard can consume separators. Alternatives containing separators need the same
+            // conservative traversal from their opening brace; the full matcher still selects the actual files.
+            if ((c == '*' && i + 1 < pattern.length() && pattern.charAt(i + 1) == '*') || (c == '/' && group >= 0)) {
+                prefixes.add(
+                        FileSystems.getDefault()
+                                .getPathMatcher("glob:" + pattern.substring(0, group >= 0 ? group : i) + "**"));
+                break;
+            }
+            if (c == '/' && i > 0) {
+                prefixes.add(FileSystems.getDefault().getPathMatcher("glob:" + pattern.substring(0, i)));
+            }
+        }
+        return path -> {
+            Path normalized = path.normalize();
+            return prefixes.stream().anyMatch(prefix -> prefix.matches(normalized));
+        };
     }
 
     public static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks) {
@@ -274,30 +307,46 @@ public class ThreadBackup extends Thread {
      * canonical paths, and this runs on the server thread while world saving is suspended.
      */
     private static List<File> listOutsideBackupStorage(File root) throws IOException {
+        return listOutsideBackupStorage(root, path -> true, path -> true);
+    }
+
+    private static List<File> listOutsideBackupStorage(File root, PathMatcher selection, PathMatcher traversal)
+            throws IOException {
         Path temp = FileUtils.resolveRealPath(BACKUP_TEMP_FOLDER.toPath());
         Path output = FileUtils.resolveRealPath(BackupTask.BACKUP_FOLDER.toPath());
         List<File> files = new ArrayList<>();
         // Missing optional include paths are normal; inaccessible paths must still reach the checked read below.
         if (Files.notExists(root.toPath())) return files;
-        if (!isBackupStorage(root, temp, output)) collectOutsideBackupStorage(files, root, temp, output);
+        Path rootPath = root.toPath().normalize();
+        if (!isBackupStorage(root, temp, output)) collectOutsideBackupStorage(
+                files,
+                root,
+                temp,
+                output,
+                selection,
+                path -> path.normalize().equals(rootPath) || traversal.matches(path));
         return files;
     }
 
-    private static void collectOutsideBackupStorage(List<File> files, File file, Path temp, Path output)
-            throws IOException {
+    static void collectOutsideBackupStorage(List<File> files, File file, Path temp, Path output, PathMatcher selection,
+            PathMatcher traversal) throws IOException {
         BasicFileAttributes attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
         if (!attributes.isDirectory()) {
-            if (attributes.isRegularFile()) files.add(file);
+            if (attributes.isRegularFile() && selection.matches(file.toPath().normalize())) files.add(file);
             return;
         }
+        if (!traversal.matches(file.toPath())) return;
         File[] children = file.listFiles();
         if (children == null) throw new IOException("Cannot list backup directory: " + file);
         for (File child : children) {
+            boolean descend = traversal.matches(child.toPath());
+            if (!descend && !selection.matches(child.toPath().normalize())) continue;
+            boolean directory = child.isDirectory();
+            if (directory && !descend) continue;
             // Directories and links can bring backup storage into the walk; ordinary files below a checked directory
             // cannot.
-            if ((child.isDirectory() || Files.isSymbolicLink(child.toPath())) && isBackupStorage(child, temp, output))
-                continue;
-            collectOutsideBackupStorage(files, child, temp, output);
+            if ((directory || Files.isSymbolicLink(child.toPath())) && isBackupStorage(child, temp, output)) continue;
+            collectOutsideBackupStorage(files, child, temp, output, selection, traversal);
         }
     }
 
