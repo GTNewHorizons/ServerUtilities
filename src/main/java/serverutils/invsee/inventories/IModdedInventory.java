@@ -39,6 +39,20 @@ public interface IModdedInventory {
         return null;
     }
 
+    /**
+     * How many slots the inventory lays out per row in its own gui.
+     */
+    default int getColumns(IInventory inventory) {
+        return 9;
+    }
+
+    /**
+     * Whether slot index 0 belongs to the bottom row instead of the top one, like the player hotbar does.
+     */
+    default boolean isBottomUpLayout() {
+        return false;
+    }
+
     default String getInventoryName() {
         return getButtonText();
     }
