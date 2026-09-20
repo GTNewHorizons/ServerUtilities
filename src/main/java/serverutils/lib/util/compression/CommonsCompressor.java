@@ -5,6 +5,7 @@ import static serverutils.ServerUtilitiesConfig.backups;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.zip.ZipEntry;
 
 import javax.annotation.Nullable;
@@ -13,6 +14,7 @@ import net.minecraftforge.common.DimensionManager;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 
 public class CommonsCompressor implements ICompress {
@@ -21,7 +23,26 @@ public class CommonsCompressor implements ICompress {
 
     @Override
     public void createOutputStream(File file) throws IOException {
-        ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(file);
+        ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(file) {
+
+            @Override
+            public void close() throws IOException {
+                try {
+                    super.close();
+                } catch (IOException | RuntimeException | Error failure) {
+                    // Commons Compress 1.8 skips closing the file when finish() rejects an incomplete entry.
+                    finished = true;
+                    try {
+                        super.close();
+                    } catch (IOException cleanup) {
+                        failure.addSuppressed(cleanup);
+                    }
+                    throw failure;
+                } finally {
+                    def.end();
+                }
+            }
+        };
         if (backups.compression_level == 0) {
             zaos.setMethod(ZipEntry.STORED);
         } else {
@@ -43,6 +64,18 @@ public class CommonsCompressor implements ICompress {
         try (FileInputStream fis = new FileInputStream(file)) {
             ICompress.copyInterruptibly(fis, output);
         }
+        output.closeArchiveEntry();
+    }
+
+    @Override
+    public void addStreamToArchive(InputStream input, ZipEntry entry) throws IOException {
+        // Older Commons Compress rejects a ZipEntry whose compression method is still unset.
+        ZipArchiveEntry captured = new ZipArchiveEntry(entry.getName());
+        captured.setSize(entry.getSize());
+        captured.setTime(entry.getTime());
+        captured.setCrc(entry.getCrc());
+        output.putArchiveEntry(captured);
+        ICompress.copyEntry(input, output, entry);
         output.closeArchiveEntry();
     }
 

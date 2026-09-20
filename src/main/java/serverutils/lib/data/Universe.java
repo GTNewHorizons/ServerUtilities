@@ -110,7 +110,10 @@ public class Universe {
 
     @SubscribeEvent
     public void onWorldSaved(WorldEvent.Save event) {
-        if (loaded()) {
+        // Every dimension emits this event. Retry failed automatic saves at most once per server tick.
+        // Explicit backup and shutdown saves still call save() directly and must retry immediately.
+        if (loaded() && (INSTANCE.lastFailedSaveTick == null
+                || INSTANCE.lastFailedSaveTick != INSTANCE.server.getTickCounter())) {
             INSTANCE.save();
         }
     }
@@ -205,6 +208,7 @@ public class Universe {
     private UUID uuid;
     private boolean needsSaving;
     boolean checkSaving;
+    private Integer lastFailedSaveTick;
     public ForgeTeam fakePlayerTeam;
     public FakeForgePlayer fakePlayer;
     private final List<Task> taskList;
@@ -506,6 +510,7 @@ public class Universe {
 
         checkSaving = needsSaving || players.values().stream().anyMatch(player -> player.needsSaving)
                 || getTeams().stream().anyMatch(team -> team.needsSaving);
+        lastFailedSaveTick = checkSaving ? server.getTickCounter() : null;
     }
 
     public File getWorldDirectory() {

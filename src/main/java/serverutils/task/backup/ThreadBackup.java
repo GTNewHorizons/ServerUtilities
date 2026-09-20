@@ -4,16 +4,25 @@ import static serverutils.ServerUtilitiesConfig.backups;
 import static serverutils.ServerUtilitiesNotifications.BACKUP;
 import static serverutils.task.backup.BackupTask.BACKUP_TEMP_FOLDER;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.io.OutputStream;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFileAttributeView;
@@ -28,6 +37,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedInputStream;
+import java.util.zip.ZipEntry;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -56,7 +68,7 @@ public class ThreadBackup extends Thread {
     private final String customName;
     private final Set<ChunkDimPos> chunksToBackup;
     private final ICompress compressor;
-    private final Map<String, File> files;
+    private final Snapshot snapshot;
     private final boolean onlyClaimed;
     private final Map<Integer, File> dimensionFolders;
 
@@ -65,7 +77,7 @@ public class ThreadBackup extends Thread {
     }
 
     ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
-            Map<String, File> snapshot) {
+            Snapshot snapshot) {
         this(
                 compress,
                 sourceFile,
@@ -76,12 +88,12 @@ public class ThreadBackup extends Thread {
     }
 
     ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
-            Map<String, File> snapshot, boolean onlyClaimed) {
+            Snapshot snapshot, boolean onlyClaimed) {
         src0 = sourceFile;
         customName = backupName;
         chunksToBackup = new HashSet<>(backupChunks);
         compressor = compress;
-        files = snapshot;
+        this.snapshot = snapshot;
         // Capture provider paths on the calling server thread before starting the backup worker.
         dimensionFolders = onlyClaimed ? resolveDimensionFolders(sourceFile) : Collections.emptyMap();
         this.onlyClaimed = onlyClaimed;
@@ -90,9 +102,9 @@ public class ThreadBackup extends Thread {
 
     public void run() {
         try {
-            doBackup(compressor, src0, customName, chunksToBackup, files, onlyClaimed, dimensionFolders);
+            doBackup(compressor, src0, customName, chunksToBackup, snapshot, onlyClaimed, dimensionFolders);
         } finally {
-            if (files != null) deleteSnapshot();
+            if (snapshot != null) deleteSnapshot();
         }
     }
 
@@ -104,7 +116,7 @@ public class ThreadBackup extends Thread {
 
             int firstWildcardIndex = pattern.indexOf('*');
             if (firstWildcardIndex == -1) {
-                for (File file : listOutsideBackupStorage(new File(pattern))) {
+                for (File file : listOutsideBackupStorage(new File(pattern)).keySet()) {
                     files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
                 continue;
@@ -119,11 +131,11 @@ public class ThreadBackup extends Thread {
             if (rootFolder == null || rootFolder.toString().isEmpty()) rootFolder = Paths.get(".");
 
             PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-            List<File> fileCandidates = listOutsideBackupStorage(
+            Map<File, BasicFileAttributes> fileCandidates = listOutsideBackupStorage(
                     rootFolder.toFile(),
                     matcher,
                     backupGlobTraversal(pattern));
-            for (File file : fileCandidates) {
+            for (File file : fileCandidates.keySet()) {
                 if (matcher.matches(file.toPath().normalize())) {
                     files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
@@ -166,17 +178,23 @@ public class ThreadBackup extends Thread {
     }
 
     static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
-            Map<String, File> files) {
-        doBackup(compressor, src, customName, chunks, files, backups.only_backup_claimed_chunks && !chunks.isEmpty());
+            Snapshot snapshot) {
+        doBackup(
+                compressor,
+                src,
+                customName,
+                chunks,
+                snapshot,
+                backups.only_backup_claimed_chunks && !chunks.isEmpty());
     }
 
-    static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
-            Map<String, File> files, boolean onlyClaimed) {
-        doBackup(compressor, src, customName, chunks, files, onlyClaimed, null);
+    static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks, Snapshot snapshot,
+            boolean onlyClaimed) {
+        doBackup(compressor, src, customName, chunks, snapshot, onlyClaimed, null);
     }
 
     private static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
-            Map<String, File> files, boolean onlyClaimed, Map<Integer, File> dimensionFolders) {
+            Snapshot snapshot, boolean onlyClaimed, Map<Integer, File> dimensionFolders) {
         String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         File dstFile = null;
@@ -190,7 +208,8 @@ public class ThreadBackup extends Thread {
             if (onlyClaimed && dimensionFolders == null) {
                 dimensionFolders = resolveDimensionFolders(src);
             }
-            if (files == null) files = listWorldFiles(src);
+            Map<String, File> files = snapshot == null ? listWorldFiles(src, null)
+                    : new LinkedHashMap<>(snapshot.files);
             addBaseFolderFiles(files, src);
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
@@ -201,10 +220,11 @@ public class ThreadBackup extends Thread {
             temporary = FileUtils.createSaveTemporary(destination);
             try (compressor) {
                 compressor.createOutputStream(temporary.toFile());
+                int captured = snapshot == null ? 0 : compressSnapshot(snapshot, files, compressor);
                 if (onlyClaimed) {
-                    backupRegions(files, src, chunks, compressor, dimensionFolders);
+                    backupRegions(files, src, chunks, compressor, dimensionFolders, captured);
                 } else {
-                    compressFiles(files, compressor);
+                    compressFiles(files, compressor, captured);
                 }
 
             }
@@ -236,60 +256,123 @@ public class ThreadBackup extends Thread {
         } catch (InterruptedIOException e) {
             ServerUtilities.LOGGER.info("Backup cancelled, deleting partial archive");
         } catch (Exception e) {
+            ServerUtilities.LOGGER.error("Error while backing up", e);
             ServerUtils.notifyChat(
                     ServerUtils.getServer(),
                     null,
                     StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, e.getMessage()));
-            ServerUtilities.LOGGER.error("Error while backing up", e);
 
         } finally {
             if (temporary != null) FileUtils.delete(temporary.toFile());
         }
     }
 
-    static Map<String, File> snapshotFiles(File src) throws IOException {
+    static final class Snapshot {
+
+        final Map<String, File> files;
+        final File spool;
+        final List<ZipEntry> entries = new ArrayList<>();
+
+        Snapshot(Map<String, File> files, File spool) {
+            this.files = files;
+            this.spool = spool;
+        }
+    }
+
+    static Snapshot snapshotFiles(File src) throws IOException {
         validateBackupSource(src);
         deleteSnapshot();
         if (!BACKUP_TEMP_FOLDER.mkdirs() && !BACKUP_TEMP_FOLDER.isDirectory()) {
             throw new IOException("Could not create backup staging directory");
         }
 
-        Map<String, File> files = listWorldFiles(src);
+        Map<File, BasicFileAttributes> listedAttributes = new HashMap<>();
+        Map<String, File> files = listWorldFiles(src, listedAttributes);
         Path world = src.toPath().toAbsolutePath().normalize();
-        int index = 0;
+        Path realWorld = world.toRealPath();
+        Map<Path, Boolean> deferredDirectories = new HashMap<>();
+        Snapshot snapshot = new Snapshot(files, new File(BACKUP_TEMP_FOLDER, "snapshot/world-data.bin"));
         try {
-            for (Map.Entry<String, File> entry : files.entrySet()) {
-                File file = entry.getValue();
-                if (isWorldRegionFile(file, world)) continue;
-
-                File copy = new File(BACKUP_TEMP_FOLDER, "snapshot/" + index++);
-                Files.createDirectories(copy.toPath().getParent());
-                Files.copy(
-                        file.toPath(),
-                        copy.toPath(),
-                        StandardCopyOption.REPLACE_EXISTING,
-                        StandardCopyOption.COPY_ATTRIBUTES);
-                entry.setValue(copy);
+            Files.createDirectories(snapshot.spool.toPath().getParent());
+            byte[] buffer = new byte[64 * 1024];
+            try (OutputStream output = new BufferedOutputStream(
+                    Files.newOutputStream(snapshot.spool.toPath()),
+                    buffer.length)) {
+                for (Map.Entry<String, File> entry : files.entrySet()) {
+                    File file = entry.getValue();
+                    if (isWorldRegionFile(file, world)) continue;
+                    // Reuse the walk's type and timestamp; read the size from the opened file when copying.
+                    BasicFileAttributes attributes = listedAttributes.get(file);
+                    if (canDeferWorldData(file, world, realWorld, attributes, deferredDirectories)) {
+                        continue;
+                    }
+                    if (attributes.isSymbolicLink() || attributes.isOther()) {
+                        attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                    }
+                    ZipEntry captured = new ZipEntry(entry.getKey());
+                    captured.setTime(attributes.lastModifiedTime().toMillis());
+                    copySnapshotFile(file, captured, output, buffer);
+                    snapshot.entries.add(captured);
+                }
             }
-            return files;
+            return snapshot;
         } catch (IOException | RuntimeException ex) {
             deleteSnapshot();
             throw ex;
         }
     }
 
+    static void copySnapshotFile(File file, ZipEntry captured, OutputStream output, byte[] buffer) throws IOException {
+        try (FileInputStream source = new FileInputStream(file)) {
+            // NTFS directory enumeration can retain an old size while another writer keeps the file open.
+            captured.setSize(source.getChannel().size());
+            CheckedInputStream input = new CheckedInputStream(source, new CRC32());
+            ICompress.copyExactly(input, output, captured.getSize(), buffer);
+            if (input.read() != -1) throw new IOException("File grew during backup snapshot: " + file);
+            captured.setCrc(input.getChecksum().getValue());
+        } catch (ClosedByInterruptException ex) {
+            InterruptedIOException cancelled = new InterruptedIOException("Backup cancelled");
+            cancelled.initCause(ex);
+            throw cancelled;
+        }
+    }
+
+    private static int compressSnapshot(Snapshot snapshot, Map<String, File> files, ICompress compressor)
+            throws IOException {
+        int index = 0;
+        int total = files.size();
+        try (InputStream input = new BufferedInputStream(new FileInputStream(snapshot.spool), 64 * 1024)) {
+            for (ZipEntry entry : snapshot.entries) {
+                if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup cancelled");
+                logProgress(index++, total, entry.getName());
+                compressor.addStreamToArchive(input, new ZipEntry(entry));
+                files.remove(entry.getName());
+            }
+            if (input.read() != -1) throw new IOException("Unexpected trailing data in backup snapshot");
+        }
+        return index;
+    }
+
     static void deleteSnapshot() {
         FileUtils.delete(new File(BACKUP_TEMP_FOLDER, "snapshot"));
     }
 
-    private static Map<String, File> listWorldFiles(File src) throws IOException {
+    private static Map<String, File> listWorldFiles(File src, Map<File, BasicFileAttributes> attributes)
+            throws IOException {
         Map<String, File> files = new LinkedHashMap<>();
-        for (File file : listOutsideBackupStorage(src)) {
+        Map<File, BasicFileAttributes> listed = listOutsideBackupStorage(src);
+        if (attributes != null) attributes.putAll(listed);
+        for (File file : listed.keySet()) {
             files.put(FileUtils.getRelativePath(file), file);
         }
         for (String name : new String[] { "ranks.txt", "players.txt" }) {
             File file = new File(ServerUtilities.SERVER_FOLDER, name);
-            if (file.isFile()) files.put(FileUtils.getRelativePath(file), file);
+            if (file.isFile()) {
+                files.put(FileUtils.getRelativePath(file), file);
+                if (attributes != null) {
+                    attributes.put(file, Files.readAttributes(file.toPath(), BasicFileAttributes.class));
+                }
+            }
         }
         return files;
     }
@@ -306,15 +389,47 @@ public class ThreadBackup extends Thread {
      * Canonicalizing every file instead costs about a millisecond each on Windows, where modern JDKs no longer cache
      * canonical paths, and this runs on the server thread while world saving is suspended.
      */
-    private static List<File> listOutsideBackupStorage(File root) throws IOException {
-        return listOutsideBackupStorage(root, path -> true, path -> true);
-    }
-
-    private static List<File> listOutsideBackupStorage(File root, PathMatcher selection, PathMatcher traversal)
-            throws IOException {
+    private static Map<File, BasicFileAttributes> listOutsideBackupStorage(File root) throws IOException {
         Path temp = FileUtils.resolveRealPath(BACKUP_TEMP_FOLDER.toPath());
         Path output = FileUtils.resolveRealPath(BackupTask.BACKUP_FOLDER.toPath());
-        List<File> files = new ArrayList<>();
+        Map<File, BasicFileAttributes> files = new LinkedHashMap<>();
+        if (Files.notExists(root.toPath()) || isBackupStorage(root, temp, output)) return files;
+        // On Windows, the walker reuses attributes returned by directory enumeration instead of querying each file.
+        Files.walkFileTree(root.toPath(), new SimpleFileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult visitFileFailed(Path path, IOException failure) throws IOException {
+                // The walker opens directories before preVisitDirectory, even ones we would exclude.
+                if (isBackupStorage(path.toFile(), temp, output)) return FileVisitResult.CONTINUE;
+                throw failure;
+            }
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes) throws IOException {
+                return isBackupStorage(dir.toFile(), temp, output) ? FileVisitResult.SKIP_SUBTREE
+                        : FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attributes) throws IOException {
+                File file = path.toFile();
+                if (attributes.isSymbolicLink() || attributes.isOther()) {
+                    // Keep following ordinary links and excluding backup aliases, without losing link identity.
+                    collectOutsideBackupStorage(files, file, temp, output, entry -> true, entry -> true);
+                } else if (attributes.isRegularFile()) {
+                    files.put(file, attributes);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return files;
+    }
+
+    private static Map<File, BasicFileAttributes> listOutsideBackupStorage(File root, PathMatcher selection,
+            PathMatcher traversal) throws IOException {
+        Path temp = FileUtils.resolveRealPath(BACKUP_TEMP_FOLDER.toPath());
+        Path output = FileUtils.resolveRealPath(BackupTask.BACKUP_FOLDER.toPath());
+        Map<File, BasicFileAttributes> files = new LinkedHashMap<>();
         // Missing optional include paths are normal; inaccessible paths must still reach the checked read below.
         if (Files.notExists(root.toPath())) return files;
         Path rootPath = root.toPath().normalize();
@@ -328,24 +443,29 @@ public class ThreadBackup extends Thread {
         return files;
     }
 
-    static void collectOutsideBackupStorage(List<File> files, File file, Path temp, Path output, PathMatcher selection,
-            PathMatcher traversal) throws IOException {
-        BasicFileAttributes attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+    static void collectOutsideBackupStorage(Map<File, BasicFileAttributes> files, File file, Path temp, Path output,
+            PathMatcher selection, PathMatcher traversal) throws IOException {
+        Path path = file.toPath();
+        boolean descend = traversal.matches(path);
+        if (!descend && !selection.matches(path.normalize())) return;
+        BasicFileAttributes attributes = Files
+                .readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+        // Windows junctions may be reported as other reparse points rather than symbolic links.
+        boolean link = attributes.isSymbolicLink() || attributes.isOther();
+        BasicFileAttributes linkAttributes = attributes;
+        if (link) attributes = Files.readAttributes(path, BasicFileAttributes.class);
+        if (attributes.isDirectory() && !descend) return;
+        // Directories and links can bring backup storage into the walk; ordinary files below a checked directory
+        // cannot.
+        if ((attributes.isDirectory() || link) && isBackupStorage(file, temp, output)) return;
         if (!attributes.isDirectory()) {
-            if (attributes.isRegularFile() && selection.matches(file.toPath().normalize())) files.add(file);
+            // Preserve link identity so snapshot deferral never treats a link as stable mod data.
+            if (attributes.isRegularFile() && selection.matches(path.normalize())) files.put(file, linkAttributes);
             return;
         }
-        if (!traversal.matches(file.toPath())) return;
         File[] children = file.listFiles();
         if (children == null) throw new IOException("Cannot list backup directory: " + file);
         for (File child : children) {
-            boolean descend = traversal.matches(child.toPath());
-            if (!descend && !selection.matches(child.toPath().normalize())) continue;
-            boolean directory = child.isDirectory();
-            if (directory && !descend) continue;
-            // Directories and links can bring backup storage into the walk; ordinary files below a checked directory
-            // cannot.
-            if ((directory || Files.isSymbolicLink(child.toPath())) && isBackupStorage(child, temp, output)) continue;
             collectOutsideBackupStorage(files, child, temp, output, selection, traversal);
         }
     }
@@ -368,6 +488,36 @@ public class ThreadBackup extends Thread {
         return file.getName().endsWith(".mca") && file.toPath().toAbsolutePath().normalize().startsWith(world);
     }
 
+    private static boolean canDeferWorldData(File file, Path world, Path realWorld, BasicFileAttributes attributes,
+            Map<Path, Boolean> directories) throws IOException {
+        if (!attributes.isRegularFile()) return false;
+        Path path = file.toPath().toAbsolutePath().normalize();
+        if (!path.startsWith(world)) return false;
+        Path relative = world.relativize(path);
+        String name = file.getName();
+        // AE2 flushes meteor spawn data on world saves and shutdown, not on ordinary gameplay updates.
+        // World saving stays suspended, and the shutdown hook joins the worker before mod stopping events.
+        boolean stable = relative.getNameCount() == 3 && relative.startsWith(Paths.get("AE2", "spawndata"))
+                && name.endsWith(".dat");
+        // BQ's versioned migration copies are written during database loading. Live BQ files remain captured.
+        if (relative.getNameCount() == 4 && relative.startsWith(Paths.get("betterquesting", "backup"))) {
+            String suffix = "_backup_" + relative.getName(2) + ".json";
+            for (String database : new String[] { "QuestDatabase", "QuestProgress", "QuestingParties", "NameCache",
+                    "LifeDatabase" }) {
+                if (name.equals(database + suffix)) stable = true;
+            }
+        }
+        if (!stable) return false;
+        Path parent = path.getParent();
+        Boolean ordinaryDirectory = directories.get(parent);
+        if (ordinaryDirectory == null) {
+            // Check once per directory, including its ancestors, without canonicalizing thousands of files.
+            ordinaryDirectory = parent.toRealPath().equals(realWorld.resolve(world.relativize(parent)));
+            directories.put(parent, ordinaryDirectory);
+        }
+        return ordinaryDirectory;
+    }
+
     private static void logProgress(int i, int allFiles, String name) {
         long millis = System.currentTimeMillis();
         boolean first = i == 0;
@@ -382,9 +532,9 @@ public class ThreadBackup extends Thread {
         }
     }
 
-    private static void compressFiles(Map<String, File> files, ICompress compressor) throws IOException {
-        int allFiles = files.size();
-        int index = 0;
+    private static void compressFiles(Map<String, File> files, ICompress compressor, int captured) throws IOException {
+        int allFiles = files.size() + captured;
+        int index = captured;
         for (Map.Entry<String, File> entry : files.entrySet()) {
             compressFile(entry.getKey(), entry.getValue(), compressor, index++, allFiles);
         }
@@ -399,7 +549,7 @@ public class ThreadBackup extends Thread {
     }
 
     private static void backupRegions(Map<String, File> files, File src, Set<ChunkDimPos> chunksToBackup,
-            ICompress compressor, Map<Integer, File> dimensionFolders) throws IOException {
+            ICompress compressor, Map<Integer, File> dimensionFolders, int captured) throws IOException {
         Object2ObjectMap<File, ObjectSet<ChunkDimPos>> dimRegionClaims = mapClaimsToRegionFile(
                 chunksToBackup,
                 dimensionFolders);
@@ -422,10 +572,10 @@ public class ThreadBackup extends Thread {
                     .warn("Cannot identify dimension for region files in {}; copying them unchanged", folder);
         }
 
-        int index = 0;
+        int index = captured;
         int savedChunks = 0;
         int regionFiles = dimRegionClaims.size();
-        int totalFiles = files.size() + regionFiles;
+        int totalFiles = files.size() + regionFiles + captured;
 
         if (backups.backup_entire_regions_with_claims) {
             // Backup entire region files that contain claimed chunks
