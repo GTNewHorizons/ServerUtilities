@@ -288,6 +288,10 @@ public class ThreadBackup extends Thread {
         Map<String, File> files = listWorldFiles(src, listedAttributes);
         long listed = System.nanoTime();
         Path world = src.toPath().toAbsolutePath().normalize();
+        Path realWorld = world.toRealPath();
+        Map<Path, Boolean> deferredDirectories = new HashMap<>();
+        int deferredFiles = 0;
+        long deferredBytes = 0;
         Snapshot snapshot = new Snapshot(files, new File(BACKUP_TEMP_FOLDER, "snapshot/world-data.bin"));
         try {
             Files.createDirectories(snapshot.spool.toPath().getParent());
@@ -300,6 +304,14 @@ public class ThreadBackup extends Thread {
                     if (isWorldRegionFile(file, world)) continue;
                     // Reuse the walk's attributes; exact-length copying still rejects files that grow or shrink.
                     BasicFileAttributes attributes = listedAttributes.get(file);
+                    if (canDeferWorldData(file, world, realWorld, attributes, deferredDirectories)) {
+                        deferredFiles++;
+                        deferredBytes += attributes.size();
+                        continue;
+                    }
+                    if (attributes.isSymbolicLink() || attributes.isOther()) {
+                        attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                    }
                     ZipEntry captured = new ZipEntry(entry.getKey());
                     captured.setSize(attributes.size());
                     captured.setTime(attributes.lastModifiedTime().toMillis());
@@ -312,12 +324,14 @@ public class ThreadBackup extends Thread {
                 }
             }
             ServerUtilities.LOGGER.info(
-                    "Backup snapshot: {} files listed in {} ms; {} non-region files spooled in {} ms ({} bytes)",
+                    "Backup snapshot: {} files listed in {} ms; {} non-region files spooled in {} ms ({} bytes); {} stable files deferred to worker ({} bytes)",
                     files.size(),
                     (listed - started) / 1_000_000L,
                     snapshot.entries.size(),
                     (System.nanoTime() - listed) / 1_000_000L,
-                    Files.size(snapshot.spool.toPath()));
+                    Files.size(snapshot.spool.toPath()),
+                    deferredFiles,
+                    deferredBytes);
             return snapshot;
         } catch (IOException | RuntimeException ex) {
             deleteSnapshot();
@@ -408,13 +422,15 @@ public class ThreadBackup extends Thread {
                 .readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
         // Windows junctions may be reported as other reparse points rather than symbolic links.
         boolean link = attributes.isSymbolicLink() || attributes.isOther();
+        BasicFileAttributes linkAttributes = attributes;
         if (link) attributes = Files.readAttributes(path, BasicFileAttributes.class);
         if (attributes.isDirectory() && !descend) return;
         // Directories and links can bring backup storage into the walk; ordinary files below a checked directory
         // cannot.
         if ((attributes.isDirectory() || link) && isBackupStorage(file, temp, output)) return;
         if (!attributes.isDirectory()) {
-            if (attributes.isRegularFile() && selection.matches(path.normalize())) files.put(file, attributes);
+            // Preserve link identity so snapshot deferral never treats a link as stable mod data.
+            if (attributes.isRegularFile() && selection.matches(path.normalize())) files.put(file, linkAttributes);
             return;
         }
         File[] children = file.listFiles();
@@ -440,6 +456,36 @@ public class ThreadBackup extends Thread {
 
     private static boolean isWorldRegionFile(File file, Path world) {
         return file.getName().endsWith(".mca") && file.toPath().toAbsolutePath().normalize().startsWith(world);
+    }
+
+    private static boolean canDeferWorldData(File file, Path world, Path realWorld, BasicFileAttributes attributes,
+            Map<Path, Boolean> directories) throws IOException {
+        if (!attributes.isRegularFile()) return false;
+        Path path = file.toPath().toAbsolutePath().normalize();
+        if (!path.startsWith(world)) return false;
+        Path relative = world.relativize(path);
+        String name = file.getName();
+        // AE2 flushes meteor spawn data on world saves and shutdown, not on ordinary gameplay updates.
+        // World saving stays suspended, and the shutdown hook joins the worker before mod stopping events.
+        boolean stable = relative.getNameCount() == 3 && relative.startsWith(Paths.get("AE2", "spawndata"))
+                && name.endsWith(".dat");
+        // BQ's versioned migration copies are written during database loading. Live BQ files remain captured.
+        if (relative.getNameCount() == 4 && relative.startsWith(Paths.get("betterquesting", "backup"))) {
+            String suffix = "_backup_" + relative.getName(2) + ".json";
+            for (String database : new String[] { "QuestDatabase", "QuestProgress", "QuestingParties", "NameCache",
+                    "LifeDatabase" }) {
+                if (name.equals(database + suffix)) stable = true;
+            }
+        }
+        if (!stable) return false;
+        Path parent = path.getParent();
+        Boolean ordinaryDirectory = directories.get(parent);
+        if (ordinaryDirectory == null) {
+            // Check once per directory, including its ancestors, without canonicalizing thousands of files.
+            ordinaryDirectory = parent.toRealPath().equals(realWorld.resolve(world.relativize(parent)));
+            directories.put(parent, ordinaryDirectory);
+        }
+        return ordinaryDirectory;
     }
 
     private static void logProgress(int i, int allFiles, String name) {

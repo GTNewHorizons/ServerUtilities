@@ -960,6 +960,105 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void deferredFilesStayInWholeAndClaimedArchivesWhileLiveDataIsCaptured() throws Exception {
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "deferred-world-");
+        File archive = new File(BackupTask.BACKUP_FOLDER, "deferred-roundtrip.zip");
+        java.lang.reflect.Method backup = ThreadBackup.class.getDeclaredMethod(
+                "doBackup",
+                ICompress.class,
+                File.class,
+                String.class,
+                java.util.Set.class,
+                ThreadBackup.Snapshot.class,
+                boolean.class,
+                Map.class);
+        backup.setAccessible(true);
+        String[] stable = { "AE2/spawndata/0_0_0.dat",
+                "betterquesting/backup/3.8.75-GTNH/QuestDatabase_backup_3.8.75-GTNH.json" };
+        String[] live = { "AE2/compass/0_0_0.dat", "AE2/settings.cfg", "buildcraft/zonemap/world/r0,0.nbt",
+                "betterquesting/QuestDatabase.json", "QuestLoot.json", "AE2/spawndata/nested/unrecognized.dat",
+                "AE2/spawndata-extra/0_0_0.dat", "betterquesting/backup/3.8.75-GTNH/other.json" };
+        int previousLevel = ServerUtilitiesConfig.backups.compression_level;
+        try {
+            Map<File, byte[]> expected = new java.util.LinkedHashMap<>();
+            for (String[] group : new String[][] { stable, live }) {
+                for (String name : group) {
+                    java.nio.file.Path file = root.resolve(name);
+                    Files.createDirectories(file.getParent());
+                    byte[] bytes = name.getBytes(StandardCharsets.UTF_8);
+                    Files.write(file, bytes);
+                    expected.put(file.toFile(), bytes);
+                }
+            }
+            ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(root.toFile());
+            java.util.Set<String> captured = new java.util.HashSet<>();
+            for (ZipEntry entry : snapshot.entries) captured.add(entry.getName());
+            assertEquals(live.length, captured.size());
+            for (String name : stable)
+                assertFalse(captured.contains(FileUtils.getRelativePath(root.resolve(name).toFile())));
+            for (String name : live) {
+                assertTrue(captured.contains(FileUtils.getRelativePath(root.resolve(name).toFile())));
+                Files.write(root.resolve(name), new byte[] { 99 });
+            }
+            for (boolean legacy : new boolean[] { false, true }) {
+                for (boolean claimed : new boolean[] { false, true }) {
+                    for (int level : new int[] { 0, 1 }) {
+                        ServerUtilitiesConfig.backups.compression_level = level;
+                        ICompress compressor = legacy ? new serverutils.lib.util.compression.LegacyCompressor()
+                                : new serverutils.lib.util.compression.CommonsCompressor();
+                        Files.deleteIfExists(archive.toPath());
+                        backup.invoke(
+                                null,
+                                compressor,
+                                root.toFile(),
+                                "deferred-roundtrip",
+                                Collections.emptySet(),
+                                snapshot,
+                                claimed,
+                                Collections.singletonMap(0, root.toFile()));
+                        try (ZipFile zip = new ZipFile(archive)) {
+                            assertEquals(expected.size(), zip.size());
+                            for (Map.Entry<File, byte[]> entry : expected.entrySet()) {
+                                try (InputStream input = zip
+                                        .getInputStream(zip.getEntry(FileUtils.getRelativePath(entry.getKey())))) {
+                                    org.junit.Assert.assertArrayEquals(entry.getValue(), IOUtils.toByteArray(input));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.compression_level = previousLevel;
+            ThreadBackup.deleteSnapshot();
+            FileUtils.delete(root.toFile());
+            Files.deleteIfExists(archive.toPath());
+        }
+    }
+
+    @Test
+    public void linksNamedLikeStableDataStillUseCapturedTargetBytes() throws Exception {
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "deferred-link-");
+        java.nio.file.Path link = Files.createDirectories(root.resolve("AE2/spawndata")).resolve("0_0_0.dat");
+        java.nio.file.Path target = Files.write(root.resolve("changing.dat"), new byte[] { 1, 2, 3 });
+        try {
+            try {
+                Files.createSymbolicLink(link, target.toAbsolutePath());
+            } catch (IOException | UnsupportedOperationException | SecurityException unsupported) {
+                org.junit.Assume.assumeNoException(unsupported);
+            }
+            ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(root.toFile());
+            assertEquals(2, snapshot.entries.size());
+            assertEquals(6, snapshot.spool.length());
+            for (ZipEntry entry : snapshot.entries) assertEquals(3, entry.getSize());
+        } finally {
+            Files.deleteIfExists(link);
+            ThreadBackup.deleteSnapshot();
+            FileUtils.delete(root.toFile());
+        }
+    }
+
+    @Test
     public void failedSpoolArchivesPreservePreviousBackupAndCleanUp() throws Exception {
         File source = Files.createTempDirectory(new File("build").toPath(), "spool-failure-").toFile();
         Files.write(new File(source, "player.dat").toPath(), new byte[] { 1, 2, 3 });
@@ -981,9 +1080,14 @@ public class BackupTaskTest {
         delegate.set(fml, side);
         try {
             for (boolean legacy : new boolean[] { false, true }) {
-                for (String failure : new String[] { "truncate", "corrupt", "append", "cancel", "close" }) {
+                for (String failure : new String[] { "truncate", "corrupt", "append", "cancel", "close",
+                        "missing-deferred" }) {
+                    java.nio.file.Path deferred = source.toPath().resolve("AE2/spawndata/0_0_0.dat");
+                    Files.createDirectories(deferred.getParent());
+                    Files.write(deferred, new byte[] { 42 });
                     ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(source);
                     Files.write(archive.toPath(), previous);
+                    if (failure.equals("missing-deferred")) Files.delete(deferred);
                     if (failure.equals("truncate")) Files.write(snapshot.spool.toPath(), new byte[0]);
                     if (failure.equals("corrupt")) {
                         byte[] bytes = Files.readAllBytes(snapshot.spool.toPath());
@@ -1209,7 +1313,7 @@ public class BackupTaskTest {
                 .toAbsolutePath();
         java.nio.file.Path world = Files.createDirectory(root.resolve("world"));
         java.nio.file.Path ordinary = Files.createDirectory(root.resolve("ordinary"));
-        java.nio.file.Path included = world.resolve("included");
+        java.nio.file.Path included = Files.createDirectories(world.resolve("AE2")).resolve("spawndata");
         java.nio.file.Path excluded = world.resolve("excluded");
         java.nio.file.Path backup = BackupTask.BACKUP_FOLDER.toPath().toAbsolutePath();
         Files.createDirectories(backup);
