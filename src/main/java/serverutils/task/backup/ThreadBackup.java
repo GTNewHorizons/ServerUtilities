@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -300,7 +301,7 @@ public class ThreadBackup extends Thread {
                 for (Map.Entry<String, File> entry : files.entrySet()) {
                     File file = entry.getValue();
                     if (isWorldRegionFile(file, world)) continue;
-                    // Reuse the walk's attributes; exact-length copying still rejects files that grow or shrink.
+                    // Reuse the walk's type and timestamp; read the size from the opened file when copying.
                     BasicFileAttributes attributes = listedAttributes.get(file);
                     if (canDeferWorldData(file, world, realWorld, attributes, deferredDirectories)) {
                         continue;
@@ -309,7 +310,6 @@ public class ThreadBackup extends Thread {
                         attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
                     }
                     ZipEntry captured = new ZipEntry(entry.getKey());
-                    captured.setSize(attributes.size());
                     captured.setTime(attributes.lastModifiedTime().toMillis());
                     copySnapshotFile(file, captured, output, buffer);
                     snapshot.entries.add(captured);
@@ -323,10 +323,17 @@ public class ThreadBackup extends Thread {
     }
 
     static void copySnapshotFile(File file, ZipEntry captured, OutputStream output, byte[] buffer) throws IOException {
-        try (CheckedInputStream input = new CheckedInputStream(new FileInputStream(file), new CRC32())) {
+        try (FileInputStream source = new FileInputStream(file)) {
+            // NTFS directory enumeration can retain an old size while another writer keeps the file open.
+            captured.setSize(source.getChannel().size());
+            CheckedInputStream input = new CheckedInputStream(source, new CRC32());
             ICompress.copyExactly(input, output, captured.getSize(), buffer);
             if (input.read() != -1) throw new IOException("File grew during backup snapshot: " + file);
             captured.setCrc(input.getChecksum().getValue());
+        } catch (ClosedByInterruptException ex) {
+            InterruptedIOException cancelled = new InterruptedIOException("Backup cancelled");
+            cancelled.initCause(ex);
+            throw cancelled;
         }
     }
 

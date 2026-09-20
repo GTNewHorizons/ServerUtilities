@@ -1292,23 +1292,63 @@ public class BackupTaskTest {
     }
 
     @Test
-    public void snapshotCopyRejectsFilesChangedAfterListing() throws Exception {
+    public void snapshotUsesCurrentSizeWhileAppendWriterRemainsOpen() throws Exception {
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "open-writer-");
+        File payload = root.resolve("mod-data.dat").toFile();
+        byte[] expected = new byte[4097];
+        new java.util.Random(23).nextBytes(expected);
+        try {
+            Files.write(payload.toPath(), new byte[] { expected[0] });
+            try (java.io.FileOutputStream writer = new java.io.FileOutputStream(payload, true)) {
+                writer.write(expected, 1, expected.length - 1);
+                writer.flush();
+                // NTFS can still enumerate the original one-byte size until this writer closes.
+                ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(root.toFile());
+                ZipEntry captured = snapshot.entries.stream()
+                        .filter(entry -> entry.getName().equals(FileUtils.getRelativePath(payload))).findFirst().get();
+                assertEquals(expected.length, captured.getSize());
+                java.util.zip.CRC32 checksum = new java.util.zip.CRC32();
+                checksum.update(expected);
+                assertEquals(checksum.getValue(), captured.getCrc());
+                org.junit.Assert.assertArrayEquals(expected, Files.readAllBytes(snapshot.spool.toPath()));
+            }
+        } finally {
+            ThreadBackup.deleteSnapshot();
+            FileUtils.delete(root.toFile());
+        }
+    }
+
+    @Test
+    public void snapshotCopyRejectsChangesDuringCopyAndMissingFiles() throws Exception {
         java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "cached-attributes-");
         File payload = root.resolve("player.dat").toFile();
         try {
             for (int size : new int[] { 1, 8, -1 }) {
                 Files.write(payload.toPath(), new byte[] { 1, 2, 3 });
                 ZipEntry captured = new ZipEntry("player.dat");
-                captured.setSize(Files.size(payload.toPath()));
                 if (size < 0) Files.delete(payload.toPath());
-                else Files.write(payload.toPath(), new byte[size]);
+                java.io.OutputStream output = new java.io.OutputStream() {
+
+                    private boolean changed;
+
+                    @Override
+                    public void write(int value) {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
+                    public void write(byte[] bytes, int offset, int length) throws IOException {
+                        if (!changed) {
+                            changed = true;
+                            try (java.io.RandomAccessFile writer = new java.io.RandomAccessFile(payload, "rw")) {
+                                writer.setLength(size);
+                            }
+                        }
+                    }
+                };
                 org.junit.Assert.assertThrows(
                         IOException.class,
-                        () -> ThreadBackup.copySnapshotFile(
-                                payload,
-                                captured,
-                                new java.io.ByteArrayOutputStream(),
-                                new byte[16]));
+                        () -> ThreadBackup.copySnapshotFile(payload, captured, output, new byte[1]));
             }
         } finally {
             FileUtils.delete(root.toFile());
