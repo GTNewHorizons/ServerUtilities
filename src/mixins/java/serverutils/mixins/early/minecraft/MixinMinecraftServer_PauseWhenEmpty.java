@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import serverutils.ServerUtilities;
 import serverutils.data.IPauseWhenEmptyServer;
 import serverutils.data.IPauseWhenEmptyServerConfig;
+import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.task.backup.ExternalBackupHold;
 
 @Mixin(MinecraftServer.class)
@@ -65,6 +66,7 @@ public abstract class MixinMinecraftServer_PauseWhenEmpty implements IPauseWhenE
             int pauseTicks = sc.serverUtilities$getPauseWhenEmptySeconds() * 20;
             if (pauseTicks > 0 && serverUtilities$emptyTicks >= pauseTicks
                     && serverUtilities$maskTicks == 0
+                    && !ServerUtilitiesServerEventHandler.hasScheduledServerTasks()
                     && !ExternalBackupHold.INSTANCE.isHeld()) {
                 if (!serverUtilities$wasPaused) {
                     ServerUtilities.LOGGER.info(

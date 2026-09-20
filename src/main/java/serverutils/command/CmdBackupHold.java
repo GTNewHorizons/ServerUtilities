@@ -40,7 +40,8 @@ public class CmdBackupHold extends CmdTreeBase {
         static int parseSeconds(String[] args, int index) {
             if (args.length <= index) return 0;
             try {
-                return Integer.parseInt(args[index]);
+                int seconds = Integer.parseInt(args[index]);
+                return seconds > 0 ? seconds : -1;
             } catch (NumberFormatException ex) {
                 return -1;
             }

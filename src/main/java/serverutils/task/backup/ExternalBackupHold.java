@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
@@ -83,8 +84,10 @@ public final class ExternalBackupHold {
     /** Bumped on every transition to identify stale requests. */
     private long generation;
     /** Tracks a possible partial suspension separately from the lease state. */
-    private boolean savingSuspended;
+    private volatile boolean savingSuspended;
     private FutureTask<Void> pendingDrain;
+    private FutureTask<HoldResult> pendingEnd;
+    private long nextResumeRetryNanos;
     private Ranks deferredRanks;
     private final Map<UUID, Runnable> deferredPlayerWrites = new LinkedHashMap<>();
     private long nextDeferredRetryNanos;
@@ -111,6 +114,11 @@ public final class ExternalBackupHold {
                     || !deferredPlayerWrites.isEmpty()
                     || deferredRanks != null;
         }
+    }
+
+    /** Cheap save-hook check before looking up stats or allocating a deferred write. */
+    public boolean isDeferringPlayerWrites() {
+        return savingSuspended;
     }
 
     /** Defer a player save, including stats, until world saving resumes. */
@@ -248,6 +256,10 @@ public final class ExternalBackupHold {
             ServerUtilities.LOGGER.error("External backup hold could not drain queued writes", ex.getCause());
             abandon(myGeneration);
             return HoldResult.SAVE_FAILED;
+        } finally {
+            synchronized (lock) {
+                if (pendingDrain == drain && drain.isDone()) pendingDrain = null;
+            }
         }
 
         // Generated outside the lock: seeding SecureRandom can block, and the server thread needs this lock every tick.
@@ -286,15 +298,17 @@ public final class ExternalBackupHold {
 
     public HoldResponse end(String suppliedToken) {
         long now = clock.getAsLong();
-        final long myGeneration;
+        final FutureTask<HoldResult> completion;
         synchronized (lock) {
             HoldResult invalid = validate(suppliedToken, now);
             if (invalid != null) return HoldResponse.of(invalid);
-            myGeneration = generation;
+            long myGeneration = generation;
             state = State.RELEASING;
+            completion = new FutureTask<>(() -> finishRelease(myGeneration, true));
+            pendingEnd = completion;
         }
 
-        HoldResult result = release(myGeneration, true);
+        HoldResult result = awaitRelease(completion);
         if (result == HoldResult.OK) ServerUtilities.LOGGER.info("External backup hold released");
         return HoldResponse.of(result);
     }
@@ -319,7 +333,9 @@ public final class ExternalBackupHold {
     public void tick() {
         serverThread = Thread.currentThread();
         long releaseGeneration = -1L;
+        FutureTask<HoldResult> completion;
         synchronized (lock) {
+            if (pendingDrain != null && pendingDrain.isDone()) pendingDrain = null;
             if (state == State.IDLE) {
                 if (savingSuspended) releaseGeneration = generation;
                 else if ((!deferredPlayerWrites.isEmpty() || deferredRanks != null)
@@ -346,8 +362,12 @@ public final class ExternalBackupHold {
                     nextWarnNanos = now + TimeUnit.SECONDS.toNanos(backups.external_hold_warn_seconds);
                 }
             }
+            completion = pendingEnd;
         }
-        if (releaseGeneration >= 0) finishRelease(releaseGeneration, false);
+        if (releaseGeneration >= 0) {
+            if (completion != null && !completion.isDone()) completion.run();
+            else finishRelease(releaseGeneration, false);
+        }
     }
 
     /**
@@ -362,10 +382,13 @@ public final class ExternalBackupHold {
             }
             myGeneration = generation;
             state = State.RELEASING;
+            cancelPendingEndLocked();
         }
-        HoldResult result = release(myGeneration, false);
-        ServerUtilities.LOGGER
-                .warn("External backup hold {}: {}", result == HoldResult.OK ? "released" : "release pending", reason);
+        HoldResult result = awaitRelease(new FutureTask<>(() -> finishRelease(myGeneration, false)));
+        ServerUtilities.LOGGER.warn(
+                "External backup hold {}: {}",
+                result == HoldResult.OK ? "released" : "release unconfirmed",
+                reason);
         return HoldResponse.of(result);
     }
 
@@ -380,10 +403,14 @@ public final class ExternalBackupHold {
                 return;
             state = State.RELEASING;
             myGeneration = generation;
+            cancelPendingEndLocked();
+            nextResumeRetryNanos = 0L;
         }
         HoldResult result = finishRelease(myGeneration, false);
-        ServerUtilities.LOGGER
-                .warn("External backup hold {}: {}", result == HoldResult.OK ? "released" : "release failed", reason);
+        ServerUtilities.LOGGER.warn(
+                "External backup hold {}: {}",
+                result == HoldResult.OK ? "released" : "release unconfirmed",
+                reason);
     }
 
     private HoldResult validate(String suppliedToken, long now) {
@@ -413,20 +440,18 @@ public final class ExternalBackupHold {
         }
     }
 
-    private HoldResult release(long myGeneration, boolean checkDeadline) {
-        if (Thread.currentThread() == serverThread) return finishRelease(myGeneration, checkDeadline);
-        CountDownLatch released = new CountDownLatch(1);
-        AtomicReference<HoldResult> result = new AtomicReference<>(HoldResult.TIMEOUT);
-        dispatcher.accept(() -> {
-            try {
-                result.set(finishRelease(myGeneration, checkDeadline));
-            } finally {
-                released.countDown();
-            }
-        });
+    private HoldResult awaitRelease(FutureTask<HoldResult> completion) {
+        if (Thread.currentThread() == serverThread) completion.run();
+        else dispatcher.accept(completion);
         try {
-            return released.await(backups.external_hold_prepare_timeout_seconds, TimeUnit.SECONDS) ? result.get()
-                    : HoldResult.TIMEOUT;
+            return completion.get(backups.external_hold_prepare_timeout_seconds, TimeUnit.SECONDS);
+        } catch (CancellationException ex) {
+            return HoldResult.EXPIRED;
+        } catch (TimeoutException ex) {
+            return HoldResult.TIMEOUT;
+        } catch (ExecutionException ex) {
+            ServerUtilities.LOGGER.error("External backup hold release failed", ex.getCause());
+            return HoldResult.SAVE_FAILED;
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             return HoldResult.TIMEOUT;
@@ -437,9 +462,11 @@ public final class ExternalBackupHold {
     private HoldResult finishRelease(long myGeneration, boolean checkDeadline) {
         synchronized (lock) {
             if (generation != myGeneration) return HoldResult.EXPIRED;
+            if (nextResumeRetryNanos != 0L && clock.getAsLong() < nextResumeRetryNanos) return HoldResult.SAVE_FAILED;
             try {
                 if (savingSuspended) backend.resume();
             } catch (Throwable ex) {
+                nextResumeRetryNanos = clock.getAsLong() + TimeUnit.SECONDS.toNanos(30);
                 ServerUtilities.LOGGER.error("External backup hold could not resume world saving", ex);
                 return HoldResult.SAVE_FAILED;
             }
@@ -447,7 +474,6 @@ public final class ExternalBackupHold {
             boolean expired = checkDeadline && clock.getAsLong() >= deadlineNanos;
             clearLocked();
             flushDeferredLocked();
-            if (!deferredPlayerWrites.isEmpty() || deferredRanks != null) return HoldResult.SAVE_FAILED;
             return expired ? HoldResult.EXPIRED : HoldResult.OK;
         }
     }
@@ -460,7 +486,11 @@ public final class ExternalBackupHold {
                 entry.getValue().run();
                 writes.remove();
             } catch (Throwable ex) {
-                ServerUtilities.LOGGER.error("Could not write deferred player data after backup hold", ex);
+                ServerUtilities.LOGGER.error(
+                        "Could not write deferred player data for {} after backup hold; retrying in 30 seconds. "
+                                + "Reconnect remains blocked until this save succeeds; check the underlying save error.",
+                        entry.getKey(),
+                        ex);
             }
         }
         if (deferredRanks != null) {
@@ -481,7 +511,14 @@ public final class ExternalBackupHold {
         deadlineNanos = 0L;
         nextWarnNanos = 0L;
         startedNanos = 0L;
+        nextResumeRetryNanos = 0L;
+        pendingEnd = null;
         generation++;
+    }
+
+    private void cancelPendingEndLocked() {
+        if (pendingEnd != null) pendingEnd.cancel(false);
+        pendingEnd = null;
     }
 
     private long remainingSeconds(long now) {

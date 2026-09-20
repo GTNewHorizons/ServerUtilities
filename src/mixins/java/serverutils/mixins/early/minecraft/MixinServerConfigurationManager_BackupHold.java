@@ -7,6 +7,7 @@ import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.stats.StatisticsFile;
+import net.minecraft.util.StatCollector;
 import net.minecraft.world.storage.IPlayerFileData;
 
 import org.spongepowered.asm.mixin.Final;
@@ -33,7 +34,7 @@ public abstract class MixinServerConfigurationManager_BackupHold {
 
     @Inject(method = "writePlayerData", at = @At("HEAD"), cancellable = true)
     private void serverutilities$deferPlayerSave(EntityPlayerMP player, CallbackInfo ci) {
-        if (player.playerNetServerHandler == null) return;
+        if (player.playerNetServerHandler == null || !ExternalBackupHold.INSTANCE.isDeferringPlayerWrites()) return;
         IPlayerFileData saver = playerNBTManagerObj;
         StatisticsFile stats = field_148547_k.get(player.getUniqueID());
         if (ExternalBackupHold.INSTANCE.deferPlayerWrite(player.getUniqueID(), () -> {
@@ -46,7 +47,7 @@ public abstract class MixinServerConfigurationManager_BackupHold {
     private void serverutilities$rejectReconnectDuringHold(SocketAddress address, GameProfile profile,
             CallbackInfoReturnable<String> cir) {
         if (ExternalBackupHold.INSTANCE.hasDeferredPlayerWrite(profile.getId())) {
-            cir.setReturnValue("Backup in progress; reconnect when it finishes.");
+            cir.setReturnValue(StatCollector.translateToLocal("serverutilities.backup.player_save_pending"));
         }
     }
 }

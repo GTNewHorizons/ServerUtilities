@@ -15,8 +15,21 @@ RCON can use `backup hold`; in-game players cannot. At the server console, enter
 the whole command on one line without a leading `/`.
 
 The default lease is 600 seconds, the maximum is 1800 seconds, and preparation
-times out after 120 seconds. These values are configurable in the same
-`backups` section.
+and release commands wait up to 120 seconds. Configure these with
+`external_hold_default_seconds`, `external_hold_max_seconds`, and
+`external_hold_prepare_timeout_seconds` in the same `backups` section.
+`external_hold_warn_seconds` defaults to 300 and controls both the first
+long-hold warning and its repeat interval. Renewal does not reset total hold
+time. An explicit duration must be a positive number of seconds; omit it to
+use the default. A default above the maximum is clamped too.
+
+Set the RCON client's command/read timeout above the server's command timeout,
+with a network margin (for example, 150 seconds for the default 120). A lost
+`begin` reply does not cancel preparation: a hold may still be granted and will
+expire automatically. An admin can inspect `status` or run `backup stop` to
+release it early. A timed-out `end` may still finish; discard that capture
+because its release was not confirmed. Internal `backup start` and `backup stop`
+over RCON also use this command wait limit.
 
 ## Take a capture
 
@@ -69,6 +82,16 @@ with `WorldDataSaver.flush()`, failed world-data writes make `begin` return
 `SAVE_FAILED`; chunk region files still have the vanilla limit.
 
 ## Treat uncertain replies as failure
+
+An `OK` release confirms the capture interval, not the durability of subsequent
+live saves. Exceptions escaping deferred player or rank saves are logged and
+retried every 30 seconds; they do not invalidate an already completed capture.
+Pending player saves continue to block reconnect and new holds until the save
+call succeeds. Administrators should correct the underlying error shown in the
+log; queued player data is not discarded after an arbitrary retry count.
+Vanilla player/stat saving catches ordinary disk errors internally, and rank
+disk writes are asynchronous: SU cannot detect or retry every such failure.
+Check the server log when diagnosing saving problems, even after an `OK` reply.
 
 `BUSY` means another hold, internal backup, preparation, release, or unfinished
 drain is in progress; wait and start a new attempt. `DISABLED`, `DENIED`, and

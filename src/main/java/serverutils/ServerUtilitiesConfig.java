@@ -363,6 +363,7 @@ public class ServerUtilitiesConfig {
                 Only the console and RCON can use it, never players. Off by default; turn it on if you back up with your
                 own scripts, filesystem snapshots or VM images instead of the built-in backup.""")
         @Config.DefaultBoolean(false)
+        @Config.RequiresMcRestart
         public boolean enable_external_holds;
 
         @Config.Comment("How long an external backup hold lasts when no duration is requested, in seconds.")
@@ -377,14 +378,15 @@ public class ServerUtilitiesConfig {
         @Config.RangeInt(min = 1)
         public int external_hold_max_seconds;
 
-        @Config.Comment("Warn in the server log once an external backup hold has lasted this long, in seconds.")
+        @Config.Comment("Warn after this many seconds of an external backup hold, and repeat at this interval.")
         @Config.DefaultInt(300)
         @Config.RangeInt(min = 1)
         public int external_hold_warn_seconds;
 
         @Config.Comment("""
-                Maximum time for an external backup hold to save and drain queued writes before giving up, in seconds.
-                This is not the lease; it prevents a stuck save or I/O queue from suspending saving indefinitely.""")
+                Maximum command wait for preparation (saving and draining queued writes) or release, in seconds.
+                This is not the lease. RCON clients should allow this timeout plus a network margin.
+                A timed-out release may still complete on the server; the caller must treat it as unconfirmed.""")
         @Config.DefaultInt(120)
         @Config.RangeInt(min = 1)
         public int external_hold_prepare_timeout_seconds;

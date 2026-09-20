@@ -13,7 +13,10 @@ public enum Mixins implements IMixins {
     // spotless:off
     BACKUP_SHUTDOWN(new MixinBuilder()
             .setPhase(Phase.EARLY)
-            .addCommonMixins("minecraft.MixinMinecraftServer_BackupShutdown")
+            .addCommonMixins("minecraft.MixinMinecraftServer_BackupShutdown")),
+    EXTERNAL_BACKUP_HOLD(new MixinBuilder()
+            .setPhase(Phase.EARLY)
+            .setApplyIf(() -> backups.enable_external_holds)
             .addServerMixins("minecraft.MixinServerConfigurationManager_BackupHold")),
     COMMAND_PERMISSIONS(new MixinBuilder()
             .setPhase(Phase.EARLY)

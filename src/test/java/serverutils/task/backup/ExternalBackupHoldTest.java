@@ -45,6 +45,7 @@ public class ExternalBackupHoldTest {
         volatile boolean failSave;
         volatile boolean throwErrorOnSave;
         volatile boolean failDrain;
+        volatile boolean failResume;
         volatile boolean suspended;
         volatile Boolean busyOverride;
         volatile CountDownLatch insideDrain;
@@ -62,6 +63,7 @@ public class ExternalBackupHoldTest {
         @Override
         public void resume() {
             resumes.incrementAndGet();
+            if (failResume) throw new IllegalStateException("resume failed");
             suspended = false;
         }
 
@@ -553,7 +555,7 @@ public class ExternalBackupHoldTest {
                 playerId,
                 () -> { if (attempts.incrementAndGet() == 1) throw new IllegalStateException("write failed"); });
 
-        assertEquals(HoldResult.SAVE_FAILED, hold.end(granted.token).result);
+        assertEquals(HoldResult.OK, hold.end(granted.token).result);
         assertEquals(HoldResult.BUSY, hold.status().result);
         assertEquals(HoldResult.BUSY, hold.begin(0).result);
         assertTrue(hold.hasDeferredPlayerWrite(playerId));
@@ -576,5 +578,90 @@ public class ExternalBackupHoldTest {
         assertEquals(HoldResult.OK, granted.result);
         assertEquals(HoldResult.OK, hold.end(granted.token).result);
         assertFalse(backend.suspended);
+    }
+
+    @Test
+    public void watchdogCompletesEndBeforeItsQueuedTaskWithoutExpiringIt() throws Exception {
+        HoldResponse first = hold.begin(60);
+        AtomicReference<Runnable> pending = new AtomicReference<>();
+        CountDownLatch queued = new CountDownLatch(1);
+        hold.dispatcher = task -> {
+            pending.set(task);
+            queued.countDown();
+        };
+        AtomicReference<HoldResult> ended = new AtomicReference<>();
+        Thread caller = new Thread(() -> ended.set(hold.end(first.token).result));
+        caller.start();
+        assertTrue(queued.await(5, TimeUnit.SECONDS));
+
+        hold.tick();
+        caller.join(TimeUnit.SECONDS.toMillis(5));
+        assertFalse(caller.isAlive());
+        assertEquals(HoldResult.OK, ended.get());
+        assertEquals(1, backend.resumes.get());
+        assertEquals(HoldResult.OK, hold.begin(60).result);
+        pending.get().run();
+        assertTrue(backend.suspended);
+        assertEquals(1, backend.resumes.get());
+    }
+
+    @Test
+    public void adminReleaseInvalidatesQueuedEnd() throws Exception {
+        HoldResponse granted = hold.begin(60);
+        AtomicReference<Runnable> pending = new AtomicReference<>();
+        CountDownLatch queued = new CountDownLatch(1);
+        hold.dispatcher = task -> {
+            pending.set(task);
+            queued.countDown();
+        };
+        AtomicReference<HoldResult> ended = new AtomicReference<>();
+        Thread caller = new Thread(() -> ended.set(hold.end(granted.token).result));
+        caller.start();
+        assertTrue(queued.await(5, TimeUnit.SECONDS));
+
+        hold.forceReleaseNow("admin stop");
+        pending.get().run();
+        caller.join(TimeUnit.SECONDS.toMillis(5));
+        assertFalse(caller.isAlive());
+        assertEquals(HoldResult.EXPIRED, ended.get());
+        assertFalse(backend.suspended);
+    }
+
+    @Test
+    public void failedResumeBacksOffButShutdownRetriesImmediately() {
+        now.set(seconds(-100));
+        HoldResponse granted = hold.begin(60);
+        backend.failResume = true;
+        assertEquals(HoldResult.SAVE_FAILED, hold.end(granted.token).result);
+        for (int i = 0; i < 20; i++) hold.tick();
+        assertEquals(1, backend.resumes.get());
+        now.set(seconds(-70));
+        hold.tick();
+        assertEquals(2, backend.resumes.get());
+        backend.failResume = false;
+        hold.forceReleaseNow("shutdown");
+        assertEquals(3, backend.resumes.get());
+        assertFalse(backend.suspended);
+        assertFalse(hold.isHeld());
+    }
+
+    @Test
+    public void persistentDeferredFailureRetainsPlayerDataWithoutRejectingCapture() {
+        HoldResponse granted = hold.begin(60);
+        UUID player = UUID.randomUUID();
+        AtomicInteger attempts = new AtomicInteger();
+        hold.deferPlayerWrite(player, () -> {
+            attempts.incrementAndGet();
+            throw new IllegalStateException("persistent save failure");
+        });
+        assertEquals(HoldResult.OK, hold.end(granted.token).result);
+        assertFalse(backend.suspended);
+        for (int i = 1; i <= 3; i++) {
+            now.set(seconds(30L * i));
+            hold.tick();
+            assertTrue(hold.hasDeferredPlayerWrite(player));
+            assertEquals(HoldResult.BUSY, hold.begin(60).result);
+        }
+        assertEquals(4, attempts.get());
     }
 }

@@ -108,7 +108,7 @@ public class BackupTask extends Task {
             return;
         }
         if (isBackupRunning()) return;
-        if (!worldSaveStates.isEmpty()) postBackup(universe);
+        if (isWorldSavingSuspended()) postBackup(universe);
         boolean auto = sender == null;
 
         if (auto && !backups.enable_backups) return;
@@ -231,12 +231,8 @@ public class BackupTask extends Task {
      * before saveAllChunks so level.dat carries the current host inventory, otherwise the single-player host's
      * inventory in the backup is stale and items can dupe or vanish on restore.
      * <p>
-     * Shared with {@link ExternalBackupHold} so the ordering lives in one place. Server thread only.
+     * Prepares an external hold on the server thread; the callback arms recovery before world saving can be suspended.
      */
-    static void saveAndSuspendForSnapshot(MinecraftServer server) throws Exception {
-        saveAndSuspendForSnapshot(server, () -> {});
-    }
-
     static void saveAndSuspendForSnapshot(MinecraftServer server, Runnable beforeWorldSave) throws Exception {
         server.getConfigurationManager().saveAllPlayerData();
         beforeWorldSave.run();
@@ -388,7 +384,7 @@ public class BackupTask extends Task {
     }
 
     private void postBackup(Universe universe) {
-        if (worldSaveStates.isEmpty()) return;
+        if (!isWorldSavingSuspended()) return;
         if (isBackupRunning()) {
             setNextTime(System.currentTimeMillis() + Ticks.SECOND.millis());
             universe.scheduleTask(this);

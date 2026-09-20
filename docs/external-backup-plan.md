@@ -1,9 +1,10 @@
 # External backup holds: remaining validation
 
-Status (2026-09-15): `1714b6c7` planned the feature and `734653e4`
-implemented the first version. The follow-up fixes ownership, bounded
-preparation, release races, player and rank writes, and Hodgepodge error
-reporting. The feature is dedicated-server only and defaults off behind
+Status (2026-09-20): the hold commands, ownership checks, bounded preparation,
+watchdog, deferred player/rank writes, and Hodgepodge compatibility are
+implemented on top of the merged backup lifecycle fixes. Automated tests cover
+release ordering and recovery; live validation below remains outstanding.
+The feature is dedicated-server only and defaults off behind
 `enable_external_holds`.
 
 ## Why a hold
@@ -26,8 +27,8 @@ saving if the owner disappears.
 
 Console and RCON use `backup hold begin [seconds]`, `renew <token> [seconds]`,
 `end <token>`, and `status`. SU saves players and worlds, waits for queued
-writes, then acknowledges one leased hold. It snapshots, copies, archives,
-and runs no OS commands. A watchdog resumes saving when a lease or
+writes, then acknowledges one leased hold. It does not snapshot, copy, archive,
+or run OS commands. A watchdog resumes saving when a lease or
 preparation expires. A stale release cannot resume a newer hold, and
 renewal cannot confirm a hold that is being released. Internal backups
 skip a hold; a rejected hold cannot resume an internal backup.
@@ -65,3 +66,12 @@ reply path or real mixin interaction.
 
 Native filesystem snapshot integration, remote file transport, upload,
 retention, and server-side restore are outside this branch.
+
+## Example scripts still to add
+
+Provide small operator examples for both a plain copy (hold until the copy
+finishes) and a filesystem snapshot (release once the snapshot exists, then
+archive it). Demonstrate response checking, renewal, cleanup, one script per
+server, and publishing only after a confirmed release. Keep snapshot commands
+specific to the operator's storage rather than adding native snapshot support
+to the mod.

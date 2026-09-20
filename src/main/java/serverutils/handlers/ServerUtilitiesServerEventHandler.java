@@ -70,6 +70,10 @@ public class ServerUtilitiesServerEventHandler {
         SERVER_TASKS.clear();
     }
 
+    public static boolean hasScheduledServerTasks() {
+        return !SERVER_TASKS.isEmpty();
+    }
+
     private static final Pattern STRIKETHROUGH_PATTERN = Pattern.compile("~~(.+?)~~");
     private static final String STRIKETHROUGH_REPLACE = "&m$1&m";
     private static final Pattern BOLD_PATTERN = Pattern.compile("\\*\\*(.+?)\\*\\*|__(.+?)__");
