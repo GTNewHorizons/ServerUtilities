@@ -279,7 +279,6 @@ public class ThreadBackup extends Thread {
     }
 
     static Snapshot snapshotFiles(File src) throws IOException {
-        long started = System.nanoTime();
         validateBackupSource(src);
         deleteSnapshot();
         if (!BACKUP_TEMP_FOLDER.mkdirs() && !BACKUP_TEMP_FOLDER.isDirectory()) {
@@ -288,12 +287,9 @@ public class ThreadBackup extends Thread {
 
         Map<File, BasicFileAttributes> listedAttributes = new HashMap<>();
         Map<String, File> files = listWorldFiles(src, listedAttributes);
-        long listed = System.nanoTime();
         Path world = src.toPath().toAbsolutePath().normalize();
         Path realWorld = world.toRealPath();
         Map<Path, Boolean> deferredDirectories = new HashMap<>();
-        int deferredFiles = 0;
-        long deferredBytes = 0;
         Snapshot snapshot = new Snapshot(files, new File(BACKUP_TEMP_FOLDER, "snapshot/world-data.bin"));
         try {
             Files.createDirectories(snapshot.spool.toPath().getParent());
@@ -307,8 +303,6 @@ public class ThreadBackup extends Thread {
                     // Reuse the walk's attributes; exact-length copying still rejects files that grow or shrink.
                     BasicFileAttributes attributes = listedAttributes.get(file);
                     if (canDeferWorldData(file, world, realWorld, attributes, deferredDirectories)) {
-                        deferredFiles++;
-                        deferredBytes += attributes.size();
                         continue;
                     }
                     if (attributes.isSymbolicLink() || attributes.isOther()) {
@@ -321,15 +315,6 @@ public class ThreadBackup extends Thread {
                     snapshot.entries.add(captured);
                 }
             }
-            ServerUtilities.LOGGER.info(
-                    "Backup snapshot: {} files listed in {} ms; {} non-region files spooled in {} ms ({} bytes); {} stable files deferred to worker ({} bytes)",
-                    files.size(),
-                    (listed - started) / 1_000_000L,
-                    snapshot.entries.size(),
-                    (System.nanoTime() - listed) / 1_000_000L,
-                    Files.size(snapshot.spool.toPath()),
-                    deferredFiles,
-                    deferredBytes);
             return snapshot;
         } catch (IOException | RuntimeException ex) {
             deleteSnapshot();

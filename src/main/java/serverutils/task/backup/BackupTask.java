@@ -111,19 +111,19 @@ public class BackupTask extends Task {
 
         long started = System.nanoTime();
         long phase = started;
-        ServerUtilities.LOGGER.info("Backup preparation started on server thread");
+        StringBuilder timings = new StringBuilder();
         boolean backupStarted = false;
         boolean snapshotPrepared = false;
         try {
             // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
             // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
             server.getConfigurationManager().saveAllPlayerData();
-            phase = logBackupPhase("player save", phase);
+            phase = recordBackupPhase(timings, "player save", phase);
             saveAndDisableWorldSaving(server.worldServers);
-            phase = logBackupPhase("world save", phase);
+            phase = recordBackupPhase(timings, "world save", phase);
 
             flushChunkSaves(server.worldServers);
-            phase = logBackupPhase("chunk flush", phase);
+            phase = recordBackupPhase(timings, "chunk flush", phase);
 
             if (!backups.silent_backup) {
                 BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
@@ -138,23 +138,25 @@ public class BackupTask extends Task {
                 BACKUP_TEMP_FOLDER.mkdirs();
             }
 
-            phase = logBackupPhase("backup notification and claims", phase);
+            phase = recordBackupPhase(timings, "notification and claims", phase);
             universe.saveForBackup();
-            phase = logBackupPhase("SU data save", phase);
+            phase = recordBackupPhase(timings, "SU data save", phase);
             drainQueuedWrites();
-            phase = logBackupPhase("queued world data flush", phase);
+            phase = recordBackupPhase(timings, "queued data flush", phase);
             File worldDir = DimensionManager.getCurrentSaveRootDirectory();
             ICompress compressor = ICompress.createCompressor();
             universe.scheduleTask(new BackupTask(true));
             if (backups.use_separate_thread) {
-                phase = logBackupPhase("backup setup", phase);
+                phase = recordBackupPhase(timings, "setup", phase);
                 ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(worldDir);
-                logBackupPhase("file snapshot", phase);
+                recordBackupPhase(timings, "file snapshot", phase);
                 snapshotPrepared = true;
                 thread = new ThreadBackup(compressor, worldDir, customName, backupChunks, snapshot, onlyClaimed);
                 thread.start();
             } else {
+                phase = recordBackupPhase(timings, "setup", phase);
                 ThreadBackup.doBackup(compressor, worldDir, customName, backupChunks, null, onlyClaimed);
+                recordBackupPhase(timings, "archive", phase);
             }
             backupStarted = true;
         } catch (Exception ex) {
@@ -170,14 +172,19 @@ public class BackupTask extends Task {
                 restoreWorldSaving();
                 if (snapshotPrepared) ThreadBackup.deleteSnapshot();
             }
-            logBackupPhase("total server-thread backup task (started=" + backupStarted + ")", started);
+            ServerUtilities.LOGGER.info(
+                    "Backup server-thread timing: started={}; total={} ms; {}",
+                    backupStarted,
+                    (System.nanoTime() - started) / 1_000_000L,
+                    timings);
         }
     }
 
-    private static long logBackupPhase(String phase, long started) {
+    private static long recordBackupPhase(StringBuilder timings, String phase, long started) {
         long finished = System.nanoTime();
-        ServerUtilities.LOGGER.info("Backup timing: {} took {} ms", phase, (finished - started) / 1_000_000L);
-        return System.nanoTime();
+        if (timings.length() > 0) timings.append("; ");
+        timings.append(phase).append('=').append((finished - started) / 1_000_000L).append(" ms");
+        return finished;
     }
 
     /** Reports retained Hodgepodge failures without requiring that mod, or its newer flush API. */
