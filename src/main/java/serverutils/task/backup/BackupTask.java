@@ -109,15 +109,21 @@ public class BackupTask extends Task {
             hadPlayer = false;
         }
 
+        long started = System.nanoTime();
+        long phase = started;
+        ServerUtilities.LOGGER.info("Backup preparation started on server thread");
         boolean backupStarted = false;
         boolean snapshotPrepared = false;
         try {
             // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
             // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
             server.getConfigurationManager().saveAllPlayerData();
+            phase = logBackupPhase("player save", phase);
             saveAndDisableWorldSaving(server.worldServers);
+            phase = logBackupPhase("world save", phase);
 
             flushChunkSaves(server.worldServers);
+            phase = logBackupPhase("chunk flush", phase);
 
             if (!backups.silent_backup) {
                 BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
@@ -132,13 +138,18 @@ public class BackupTask extends Task {
                 BACKUP_TEMP_FOLDER.mkdirs();
             }
 
+            phase = logBackupPhase("backup notification and claims", phase);
             universe.saveForBackup();
+            phase = logBackupPhase("SU data save", phase);
             drainQueuedWrites();
+            phase = logBackupPhase("queued world data flush", phase);
             File worldDir = DimensionManager.getCurrentSaveRootDirectory();
             ICompress compressor = ICompress.createCompressor();
             universe.scheduleTask(new BackupTask(true));
             if (backups.use_separate_thread) {
-                Map<String, File> snapshot = ThreadBackup.snapshotFiles(worldDir);
+                phase = logBackupPhase("backup setup", phase);
+                ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(worldDir);
+                logBackupPhase("file snapshot", phase);
                 snapshotPrepared = true;
                 thread = new ThreadBackup(compressor, worldDir, customName, backupChunks, snapshot, onlyClaimed);
                 thread.start();
@@ -159,7 +170,14 @@ public class BackupTask extends Task {
                 restoreWorldSaving();
                 if (snapshotPrepared) ThreadBackup.deleteSnapshot();
             }
+            logBackupPhase("total server-thread backup task (started=" + backupStarted + ")", started);
         }
+    }
+
+    private static long logBackupPhase(String phase, long started) {
+        long finished = System.nanoTime();
+        ServerUtilities.LOGGER.info("Backup timing: {} took {} ms", phase, (finished - started) / 1_000_000L);
+        return System.nanoTime();
     }
 
     /** Reports retained Hodgepodge failures without requiring that mod, or its newer flush API. */

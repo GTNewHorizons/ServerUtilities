@@ -4,11 +4,16 @@ import static serverutils.ServerUtilitiesConfig.backups;
 import static serverutils.ServerUtilitiesNotifications.BACKUP;
 import static serverutils.task.backup.BackupTask.BACKUP_TEMP_FOLDER;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,6 +33,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedInputStream;
+import java.util.zip.ZipEntry;
 
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -56,7 +64,7 @@ public class ThreadBackup extends Thread {
     private final String customName;
     private final Set<ChunkDimPos> chunksToBackup;
     private final ICompress compressor;
-    private final Map<String, File> files;
+    private final Snapshot snapshot;
     private final boolean onlyClaimed;
     private final Map<Integer, File> dimensionFolders;
 
@@ -65,7 +73,7 @@ public class ThreadBackup extends Thread {
     }
 
     ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
-            Map<String, File> snapshot) {
+            Snapshot snapshot) {
         this(
                 compress,
                 sourceFile,
@@ -76,12 +84,12 @@ public class ThreadBackup extends Thread {
     }
 
     ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
-            Map<String, File> snapshot, boolean onlyClaimed) {
+            Snapshot snapshot, boolean onlyClaimed) {
         src0 = sourceFile;
         customName = backupName;
         chunksToBackup = new HashSet<>(backupChunks);
         compressor = compress;
-        files = snapshot;
+        this.snapshot = snapshot;
         // Capture provider paths on the calling server thread before starting the backup worker.
         dimensionFolders = onlyClaimed ? resolveDimensionFolders(sourceFile) : Collections.emptyMap();
         this.onlyClaimed = onlyClaimed;
@@ -90,9 +98,9 @@ public class ThreadBackup extends Thread {
 
     public void run() {
         try {
-            doBackup(compressor, src0, customName, chunksToBackup, files, onlyClaimed, dimensionFolders);
+            doBackup(compressor, src0, customName, chunksToBackup, snapshot, onlyClaimed, dimensionFolders);
         } finally {
-            if (files != null) deleteSnapshot();
+            if (snapshot != null) deleteSnapshot();
         }
     }
 
@@ -166,17 +174,23 @@ public class ThreadBackup extends Thread {
     }
 
     static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
-            Map<String, File> files) {
-        doBackup(compressor, src, customName, chunks, files, backups.only_backup_claimed_chunks && !chunks.isEmpty());
+            Snapshot snapshot) {
+        doBackup(
+                compressor,
+                src,
+                customName,
+                chunks,
+                snapshot,
+                backups.only_backup_claimed_chunks && !chunks.isEmpty());
     }
 
-    static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
-            Map<String, File> files, boolean onlyClaimed) {
-        doBackup(compressor, src, customName, chunks, files, onlyClaimed, null);
+    static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks, Snapshot snapshot,
+            boolean onlyClaimed) {
+        doBackup(compressor, src, customName, chunks, snapshot, onlyClaimed, null);
     }
 
     private static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
-            Map<String, File> files, boolean onlyClaimed, Map<Integer, File> dimensionFolders) {
+            Snapshot snapshot, boolean onlyClaimed, Map<Integer, File> dimensionFolders) {
         String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         File dstFile = null;
@@ -190,7 +204,7 @@ public class ThreadBackup extends Thread {
             if (onlyClaimed && dimensionFolders == null) {
                 dimensionFolders = resolveDimensionFolders(src);
             }
-            if (files == null) files = listWorldFiles(src);
+            Map<String, File> files = snapshot == null ? listWorldFiles(src) : new LinkedHashMap<>(snapshot.files);
             addBaseFolderFiles(files, src);
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
@@ -201,10 +215,11 @@ public class ThreadBackup extends Thread {
             temporary = FileUtils.createSaveTemporary(destination);
             try (compressor) {
                 compressor.createOutputStream(temporary.toFile());
+                int captured = snapshot == null ? 0 : compressSnapshot(snapshot, files, compressor);
                 if (onlyClaimed) {
-                    backupRegions(files, src, chunks, compressor, dimensionFolders);
+                    backupRegions(files, src, chunks, compressor, dimensionFolders, captured);
                 } else {
-                    compressFiles(files, compressor);
+                    compressFiles(files, compressor, captured);
                 }
 
             }
@@ -236,18 +251,31 @@ public class ThreadBackup extends Thread {
         } catch (InterruptedIOException e) {
             ServerUtilities.LOGGER.info("Backup cancelled, deleting partial archive");
         } catch (Exception e) {
+            ServerUtilities.LOGGER.error("Error while backing up", e);
             ServerUtils.notifyChat(
                     ServerUtils.getServer(),
                     null,
                     StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, e.getMessage()));
-            ServerUtilities.LOGGER.error("Error while backing up", e);
 
         } finally {
             if (temporary != null) FileUtils.delete(temporary.toFile());
         }
     }
 
-    static Map<String, File> snapshotFiles(File src) throws IOException {
+    static final class Snapshot {
+
+        final Map<String, File> files;
+        final File spool;
+        final List<ZipEntry> entries = new ArrayList<>();
+
+        Snapshot(Map<String, File> files, File spool) {
+            this.files = files;
+            this.spool = spool;
+        }
+    }
+
+    static Snapshot snapshotFiles(File src) throws IOException {
+        long started = System.nanoTime();
         validateBackupSource(src);
         deleteSnapshot();
         if (!BACKUP_TEMP_FOLDER.mkdirs() && !BACKUP_TEMP_FOLDER.isDirectory()) {
@@ -255,27 +283,58 @@ public class ThreadBackup extends Thread {
         }
 
         Map<String, File> files = listWorldFiles(src);
+        long listed = System.nanoTime();
         Path world = src.toPath().toAbsolutePath().normalize();
-        int index = 0;
+        Snapshot snapshot = new Snapshot(files, new File(BACKUP_TEMP_FOLDER, "snapshot/world-data.bin"));
         try {
-            for (Map.Entry<String, File> entry : files.entrySet()) {
-                File file = entry.getValue();
-                if (isWorldRegionFile(file, world)) continue;
-
-                File copy = new File(BACKUP_TEMP_FOLDER, "snapshot/" + index++);
-                Files.createDirectories(copy.toPath().getParent());
-                Files.copy(
-                        file.toPath(),
-                        copy.toPath(),
-                        StandardCopyOption.REPLACE_EXISTING,
-                        StandardCopyOption.COPY_ATTRIBUTES);
-                entry.setValue(copy);
+            Files.createDirectories(snapshot.spool.toPath().getParent());
+            byte[] buffer = new byte[64 * 1024];
+            try (OutputStream output = new BufferedOutputStream(
+                    Files.newOutputStream(snapshot.spool.toPath()),
+                    buffer.length)) {
+                for (Map.Entry<String, File> entry : files.entrySet()) {
+                    File file = entry.getValue();
+                    if (isWorldRegionFile(file, world)) continue;
+                    BasicFileAttributes attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                    ZipEntry captured = new ZipEntry(entry.getKey());
+                    captured.setSize(attributes.size());
+                    captured.setTime(attributes.lastModifiedTime().toMillis());
+                    try (CheckedInputStream input = new CheckedInputStream(new FileInputStream(file), new CRC32())) {
+                        ICompress.copyExactly(input, output, captured.getSize(), buffer);
+                        if (input.read() != -1) throw new IOException("File grew during backup snapshot: " + file);
+                        captured.setCrc(input.getChecksum().getValue());
+                    }
+                    snapshot.entries.add(captured);
+                }
             }
-            return files;
+            ServerUtilities.LOGGER.info(
+                    "Backup snapshot: {} files listed in {} ms; {} non-region files spooled in {} ms ({} bytes)",
+                    files.size(),
+                    (listed - started) / 1_000_000L,
+                    snapshot.entries.size(),
+                    (System.nanoTime() - listed) / 1_000_000L,
+                    Files.size(snapshot.spool.toPath()));
+            return snapshot;
         } catch (IOException | RuntimeException ex) {
             deleteSnapshot();
             throw ex;
         }
+    }
+
+    private static int compressSnapshot(Snapshot snapshot, Map<String, File> files, ICompress compressor)
+            throws IOException {
+        int index = 0;
+        int total = files.size();
+        try (InputStream input = new BufferedInputStream(new FileInputStream(snapshot.spool), 64 * 1024)) {
+            for (ZipEntry entry : snapshot.entries) {
+                if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup cancelled");
+                logProgress(index++, total, entry.getName());
+                compressor.addStreamToArchive(input, new ZipEntry(entry));
+                files.remove(entry.getName());
+            }
+            if (input.read() != -1) throw new IOException("Unexpected trailing data in backup snapshot");
+        }
+        return index;
     }
 
     static void deleteSnapshot() {
@@ -382,9 +441,9 @@ public class ThreadBackup extends Thread {
         }
     }
 
-    private static void compressFiles(Map<String, File> files, ICompress compressor) throws IOException {
-        int allFiles = files.size();
-        int index = 0;
+    private static void compressFiles(Map<String, File> files, ICompress compressor, int captured) throws IOException {
+        int allFiles = files.size() + captured;
+        int index = captured;
         for (Map.Entry<String, File> entry : files.entrySet()) {
             compressFile(entry.getKey(), entry.getValue(), compressor, index++, allFiles);
         }
@@ -399,7 +458,7 @@ public class ThreadBackup extends Thread {
     }
 
     private static void backupRegions(Map<String, File> files, File src, Set<ChunkDimPos> chunksToBackup,
-            ICompress compressor, Map<Integer, File> dimensionFolders) throws IOException {
+            ICompress compressor, Map<Integer, File> dimensionFolders, int captured) throws IOException {
         Object2ObjectMap<File, ObjectSet<ChunkDimPos>> dimRegionClaims = mapClaimsToRegionFile(
                 chunksToBackup,
                 dimensionFolders);
@@ -422,10 +481,10 @@ public class ThreadBackup extends Thread {
                     .warn("Cannot identify dimension for region files in {}; copying them unchanged", folder);
         }
 
-        int index = 0;
+        int index = captured;
         int savedChunks = 0;
         int regionFiles = dimRegionClaims.size();
-        int totalFiles = files.size() + regionFiles;
+        int totalFiles = files.size() + regionFiles + captured;
 
         if (backups.backup_entire_regions_with_claims) {
             // Backup entire region files that contain claimed chunks

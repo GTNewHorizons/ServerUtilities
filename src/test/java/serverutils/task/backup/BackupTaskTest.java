@@ -91,8 +91,8 @@ public class BackupTaskTest {
                     File source = new File(storage, relative);
                     org.junit.Assert.assertThrows(java.io.IOException.class, () -> ThreadBackup.snapshotFiles(source));
                     assertTrue("Validation must precede snapshot cleanup", sentinel.isFile());
-                    for (Map<String, File> snapshot : java.util.Arrays
-                            .<Map<String, File>>asList(null, Collections.emptyMap())) {
+                    for (ThreadBackup.Snapshot snapshot : java.util.Arrays
+                            .asList(null, new ThreadBackup.Snapshot(Collections.emptyMap(), sentinel))) {
                         ICompress compressor = mock(ICompress.class);
                         ThreadBackup.doBackup(
                                 compressor,
@@ -253,7 +253,8 @@ public class BackupTaskTest {
                 File.class,
                 java.util.Set.class,
                 ICompress.class,
-                Map.class);
+                Map.class,
+                int.class);
         reconstruct.setAccessible(true);
         try {
             Thread.currentThread().interrupt();
@@ -265,7 +266,8 @@ public class BackupTaskTest {
                             source,
                             Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 0)),
                             mock(ICompress.class),
-                            Collections.singletonMap(0, source)));
+                            Collections.singletonMap(0, source),
+                            0));
             assertTrue(
                     "Cancellation must precede chunk decoding",
                     failure.getCause() instanceof java.io.InterruptedIOException);
@@ -285,6 +287,8 @@ public class BackupTaskTest {
         File source = new File("build/test-claimed-backup-source");
         File regions = new File(source, "region");
         assertTrue(regions.mkdirs() || regions.isDirectory());
+        File metadata = new File(source, "level.dat");
+        Files.write(metadata.toPath(), new byte[] { 42 });
         File claimed = new File(regions, "r.0.0.mca");
         File unclaimed = new File(regions, "r.1.0.mca");
         writeRegionChunk(claimed, 0, 0, "overworld");
@@ -365,6 +369,10 @@ public class BackupTaskTest {
                     new BackupTask(true).execute(universe);
                     assertFalse(world.levelSaving);
                     try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "forced-claims.zip"))) {
+                        try (InputStream input = zip
+                                .getInputStream(zip.getEntry(FileUtils.getRelativePath(metadata)))) {
+                            org.junit.Assert.assertArrayEquals(new byte[] { 42 }, IOUtils.toByteArray(input));
+                        }
                         assertArchivedChunks(zip, claimed, 0, 0, 1, "overworld", entire);
                         assertArchivedChunks(zip, unloadedRegion, -1, -1, -2, "unloaded", entire);
                         assertArchivedChunks(zip, customRegion, -1, -1, -2, "custom-folder", entire);
@@ -409,7 +417,7 @@ public class BackupTaskTest {
                         staleClaims.add(new serverutils.lib.math.ChunkDimPos(0, 0, 999999));
                         staleClaims.add(new serverutils.lib.math.ChunkDimPos(0, 0, 0));
                         if (threaded) {
-                            Map<String, File> snapshot = ThreadBackup.snapshotFiles(source);
+                            ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(source);
                             ThreadBackup stale = configured
                                     ? new ThreadBackup(
                                             ICompress.createCompressor(),
@@ -838,7 +846,7 @@ public class BackupTaskTest {
         Files.write(player.toPath(), "before".getBytes(StandardCharsets.UTF_8));
 
         String entryName = FileUtils.getRelativePath(player);
-        Map<String, File> snapshot = ThreadBackup.snapshotFiles(source);
+        ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(source);
         Files.write(player.toPath(), "after".getBytes(StandardCharsets.UTF_8));
         String[] previousPatterns = ServerUtilitiesConfig.backups.additional_backup_files;
         File oldBackup = new File(BackupTask.BACKUP_FOLDER, "previous.zip");
@@ -886,6 +894,160 @@ public class BackupTaskTest {
         ThreadBackup worker = BackupTask.thread;
         worker.join(TimeUnit.SECONDS.toMillis(5));
         assertFalse("Backup worker did not stop", worker.isAlive());
+    }
+
+    @Test
+    public void spoolKeepsCapturedBytesAcrossCompressorsAndCompressionLevels() throws Exception {
+        File source = Files.createTempDirectory(new File("build").toPath(), "spool-world-").toFile();
+        File player = new File(source, "player.dat");
+        File empty = new File(source, "empty.dat");
+        File large = new File(source, "ae2.dat");
+        File region = new File(source, "region.mca");
+        byte[] payload = new byte[180000];
+        new java.util.Random(7).nextBytes(payload);
+        Files.write(player.toPath(), new byte[] { 1, 2, 3 });
+        Files.write(empty.toPath(), new byte[0]);
+        Files.write(large.toPath(), payload);
+        Files.write(region.toPath(), new byte[] { 4 });
+        int previousLevel = ServerUtilitiesConfig.backups.compression_level;
+        String[] previousIncludes = ServerUtilitiesConfig.backups.additional_backup_files;
+        File archive = new File(BackupTask.BACKUP_FOLDER, "spool-roundtrip.zip");
+        try {
+            ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(source);
+            assertEquals(3, snapshot.entries.size());
+            assertEquals(payload.length + 3, snapshot.spool.length());
+            try (java.util.stream.Stream<java.nio.file.Path> paths = Files.list(snapshot.spool.toPath().getParent())) {
+                assertEquals("Only one staging file", 1, paths.count());
+            }
+            Files.write(player.toPath(), new byte[] { 9 });
+            Files.delete(empty.toPath());
+            Files.delete(large.toPath());
+            // Regions remain live under the existing world-saving suspension; they are not copied into the spool.
+            Files.write(region.toPath(), new byte[] { 5 });
+            ServerUtilitiesConfig.backups.additional_backup_files = new String[] { source.getPath() };
+            Map<File, byte[]> expectedFiles = new java.util.LinkedHashMap<>();
+            expectedFiles.put(player, new byte[] { 1, 2, 3 });
+            expectedFiles.put(empty, new byte[0]);
+            expectedFiles.put(large, payload);
+            expectedFiles.put(region, new byte[] { 5 });
+            for (boolean legacy : new boolean[] { false, true }) {
+                for (int level : new int[] { 0, 1, 9 }) {
+                    ServerUtilitiesConfig.backups.compression_level = level;
+                    ICompress compressor = legacy ? new serverutils.lib.util.compression.LegacyCompressor()
+                            : new serverutils.lib.util.compression.CommonsCompressor();
+                    Files.deleteIfExists(archive.toPath());
+                    ThreadBackup.doBackup(compressor, source, "spool-roundtrip", Collections.emptySet(), snapshot);
+                    try (ZipFile zip = new ZipFile(archive)) {
+                        assertEquals(snapshot.files.size(), zip.size());
+                        for (Map.Entry<File, byte[]> expected : expectedFiles.entrySet()) {
+                            ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(expected.getKey()));
+                            assertTrue(entry != null);
+                            assertEquals(level == 0 ? ZipEntry.STORED : ZipEntry.DEFLATED, entry.getMethod());
+                            try (InputStream input = zip.getInputStream(entry)) {
+                                org.junit.Assert.assertArrayEquals(expected.getValue(), IOUtils.toByteArray(input));
+                            }
+                        }
+                    }
+                }
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.compression_level = previousLevel;
+            ServerUtilitiesConfig.backups.additional_backup_files = previousIncludes;
+            ThreadBackup.deleteSnapshot();
+            FileUtils.delete(source);
+            Files.deleteIfExists(archive.toPath());
+        }
+    }
+
+    @Test
+    public void failedSpoolArchivesPreservePreviousBackupAndCleanUp() throws Exception {
+        File source = Files.createTempDirectory(new File("build").toPath(), "spool-failure-").toFile();
+        Files.write(new File(source, "player.dat").toPath(), new byte[] { 1, 2, 3 });
+        Files.write(new File(source, "level.dat").toPath(), new byte[] { 4, 5, 6 });
+        File archive = new File(BackupTask.BACKUP_FOLDER, "spool-failure.zip");
+        byte[] previous = { 7, 8, 9 };
+        cpw.mods.fml.common.FMLCommonHandler fml = cpw.mods.fml.common.FMLCommonHandler.instance();
+        Field delegate = cpw.mods.fml.common.FMLCommonHandler.class.getDeclaredField("sidedDelegate");
+        delegate.setAccessible(true);
+        Object previousDelegate = delegate.get(fml);
+        MinecraftServer server = mock(MinecraftServer.class);
+        ServerConfigurationManager manager = mock(ServerConfigurationManager.class);
+        Field players = ServerConfigurationManager.class.getDeclaredField("playerEntityList");
+        players.setAccessible(true);
+        players.set(manager, Collections.emptyList());
+        when(server.getConfigurationManager()).thenReturn(manager);
+        cpw.mods.fml.common.IFMLSidedHandler side = mock(cpw.mods.fml.common.IFMLSidedHandler.class);
+        when(side.getServer()).thenReturn(server);
+        delegate.set(fml, side);
+        try {
+            for (boolean legacy : new boolean[] { false, true }) {
+                for (String failure : new String[] { "truncate", "corrupt", "append", "cancel", "close" }) {
+                    ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(source);
+                    Files.write(archive.toPath(), previous);
+                    if (failure.equals("truncate")) Files.write(snapshot.spool.toPath(), new byte[0]);
+                    if (failure.equals("corrupt")) {
+                        byte[] bytes = Files.readAllBytes(snapshot.spool.toPath());
+                        bytes[0] ^= 1;
+                        Files.write(snapshot.spool.toPath(), bytes);
+                    }
+                    if (failure.equals("append"))
+                        Files.write(snapshot.spool.toPath(), new byte[] { 0 }, java.nio.file.StandardOpenOption.APPEND);
+                    ICompress compressor = org.mockito.Mockito.spy(
+                            legacy ? new serverutils.lib.util.compression.LegacyCompressor()
+                                    : new serverutils.lib.util.compression.CommonsCompressor());
+                    if (failure.equals("cancel")) {
+                        doAnswer(call -> {
+                            call.callRealMethod();
+                            Thread.currentThread().interrupt();
+                            return null;
+                        }).when(compressor).addStreamToArchive(
+                                org.mockito.ArgumentMatchers.any(),
+                                org.mockito.ArgumentMatchers.any());
+                    }
+                    if (failure.equals("close")) {
+                        doAnswer(call -> {
+                            call.callRealMethod();
+                            throw new IOException("injected close failure");
+                        }).when(compressor).close();
+                    }
+                    ThreadBackup worker = new ThreadBackup(
+                            compressor,
+                            source,
+                            "spool-failure",
+                            Collections.emptySet(),
+                            snapshot);
+                    BackupTask.thread = worker;
+                    java.util.concurrent.atomic.AtomicReference<Throwable> uncaught = new java.util.concurrent.atomic.AtomicReference<>();
+                    worker.setUncaughtExceptionHandler((thread, error) -> uncaught.set(error));
+                    worker.start();
+                    waitForBackup();
+                    assertNull("Backup failure should be handled by the worker", uncaught.get());
+                    org.junit.Assert.assertArrayEquals(previous, Files.readAllBytes(archive.toPath()));
+                    assertFalse(
+                            "Worker must remove its snapshot after failure",
+                            snapshot.spool.getParentFile().exists());
+                    try (java.util.stream.Stream<java.nio.file.Path> paths = Files
+                            .list(BackupTask.BACKUP_FOLDER.toPath())) {
+                        assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith(".su-save-")));
+                    }
+                }
+            }
+            Thread.currentThread().interrupt();
+            try {
+                org.junit.Assert
+                        .assertThrows(java.io.InterruptedIOException.class, () -> ThreadBackup.snapshotFiles(source));
+                assertFalse(new File(BackupTask.BACKUP_TEMP_FOLDER, "snapshot").exists());
+                assertTrue(Thread.currentThread().isInterrupted());
+            } finally {
+                Thread.interrupted();
+            }
+        } finally {
+            BackupTask.stopBackupThread();
+            delegate.set(fml, previousDelegate);
+            ThreadBackup.deleteSnapshot();
+            FileUtils.delete(source);
+            Files.deleteIfExists(archive.toPath());
+        }
     }
 
     @Test
