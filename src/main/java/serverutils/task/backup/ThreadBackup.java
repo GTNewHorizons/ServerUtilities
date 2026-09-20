@@ -16,6 +16,7 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
@@ -112,7 +113,7 @@ public class ThreadBackup extends Thread {
 
             int firstWildcardIndex = pattern.indexOf('*');
             if (firstWildcardIndex == -1) {
-                for (File file : listOutsideBackupStorage(new File(pattern))) {
+                for (File file : listOutsideBackupStorage(new File(pattern)).keySet()) {
                     files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
                 continue;
@@ -127,11 +128,11 @@ public class ThreadBackup extends Thread {
             if (rootFolder == null || rootFolder.toString().isEmpty()) rootFolder = Paths.get(".");
 
             PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-            List<File> fileCandidates = listOutsideBackupStorage(
+            Map<File, BasicFileAttributes> fileCandidates = listOutsideBackupStorage(
                     rootFolder.toFile(),
                     matcher,
                     backupGlobTraversal(pattern));
-            for (File file : fileCandidates) {
+            for (File file : fileCandidates.keySet()) {
                 if (matcher.matches(file.toPath().normalize())) {
                     files.putIfAbsent(FileUtils.getRelativePath(file), file);
                 }
@@ -204,7 +205,8 @@ public class ThreadBackup extends Thread {
             if (onlyClaimed && dimensionFolders == null) {
                 dimensionFolders = resolveDimensionFolders(src);
             }
-            Map<String, File> files = snapshot == null ? listWorldFiles(src) : new LinkedHashMap<>(snapshot.files);
+            Map<String, File> files = snapshot == null ? listWorldFiles(src, null)
+                    : new LinkedHashMap<>(snapshot.files);
             addBaseFolderFiles(files, src);
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
@@ -282,7 +284,8 @@ public class ThreadBackup extends Thread {
             throw new IOException("Could not create backup staging directory");
         }
 
-        Map<String, File> files = listWorldFiles(src);
+        Map<File, BasicFileAttributes> listedAttributes = new HashMap<>();
+        Map<String, File> files = listWorldFiles(src, listedAttributes);
         long listed = System.nanoTime();
         Path world = src.toPath().toAbsolutePath().normalize();
         Snapshot snapshot = new Snapshot(files, new File(BACKUP_TEMP_FOLDER, "snapshot/world-data.bin"));
@@ -295,7 +298,8 @@ public class ThreadBackup extends Thread {
                 for (Map.Entry<String, File> entry : files.entrySet()) {
                     File file = entry.getValue();
                     if (isWorldRegionFile(file, world)) continue;
-                    BasicFileAttributes attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                    // Reuse the walk's attributes; exact-length copying still rejects files that grow or shrink.
+                    BasicFileAttributes attributes = listedAttributes.get(file);
                     ZipEntry captured = new ZipEntry(entry.getKey());
                     captured.setSize(attributes.size());
                     captured.setTime(attributes.lastModifiedTime().toMillis());
@@ -341,14 +345,22 @@ public class ThreadBackup extends Thread {
         FileUtils.delete(new File(BACKUP_TEMP_FOLDER, "snapshot"));
     }
 
-    private static Map<String, File> listWorldFiles(File src) throws IOException {
+    private static Map<String, File> listWorldFiles(File src, Map<File, BasicFileAttributes> attributes)
+            throws IOException {
         Map<String, File> files = new LinkedHashMap<>();
-        for (File file : listOutsideBackupStorage(src)) {
+        Map<File, BasicFileAttributes> listed = listOutsideBackupStorage(src);
+        if (attributes != null) attributes.putAll(listed);
+        for (File file : listed.keySet()) {
             files.put(FileUtils.getRelativePath(file), file);
         }
         for (String name : new String[] { "ranks.txt", "players.txt" }) {
             File file = new File(ServerUtilities.SERVER_FOLDER, name);
-            if (file.isFile()) files.put(FileUtils.getRelativePath(file), file);
+            if (file.isFile()) {
+                files.put(FileUtils.getRelativePath(file), file);
+                if (attributes != null) {
+                    attributes.put(file, Files.readAttributes(file.toPath(), BasicFileAttributes.class));
+                }
+            }
         }
         return files;
     }
@@ -365,15 +377,15 @@ public class ThreadBackup extends Thread {
      * Canonicalizing every file instead costs about a millisecond each on Windows, where modern JDKs no longer cache
      * canonical paths, and this runs on the server thread while world saving is suspended.
      */
-    private static List<File> listOutsideBackupStorage(File root) throws IOException {
+    private static Map<File, BasicFileAttributes> listOutsideBackupStorage(File root) throws IOException {
         return listOutsideBackupStorage(root, path -> true, path -> true);
     }
 
-    private static List<File> listOutsideBackupStorage(File root, PathMatcher selection, PathMatcher traversal)
-            throws IOException {
+    private static Map<File, BasicFileAttributes> listOutsideBackupStorage(File root, PathMatcher selection,
+            PathMatcher traversal) throws IOException {
         Path temp = FileUtils.resolveRealPath(BACKUP_TEMP_FOLDER.toPath());
         Path output = FileUtils.resolveRealPath(BackupTask.BACKUP_FOLDER.toPath());
-        List<File> files = new ArrayList<>();
+        Map<File, BasicFileAttributes> files = new LinkedHashMap<>();
         // Missing optional include paths are normal; inaccessible paths must still reach the checked read below.
         if (Files.notExists(root.toPath())) return files;
         Path rootPath = root.toPath().normalize();
@@ -387,24 +399,27 @@ public class ThreadBackup extends Thread {
         return files;
     }
 
-    static void collectOutsideBackupStorage(List<File> files, File file, Path temp, Path output, PathMatcher selection,
-            PathMatcher traversal) throws IOException {
-        BasicFileAttributes attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+    static void collectOutsideBackupStorage(Map<File, BasicFileAttributes> files, File file, Path temp, Path output,
+            PathMatcher selection, PathMatcher traversal) throws IOException {
+        Path path = file.toPath();
+        boolean descend = traversal.matches(path);
+        if (!descend && !selection.matches(path.normalize())) return;
+        BasicFileAttributes attributes = Files
+                .readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+        // Windows junctions may be reported as other reparse points rather than symbolic links.
+        boolean link = attributes.isSymbolicLink() || attributes.isOther();
+        if (link) attributes = Files.readAttributes(path, BasicFileAttributes.class);
+        if (attributes.isDirectory() && !descend) return;
+        // Directories and links can bring backup storage into the walk; ordinary files below a checked directory
+        // cannot.
+        if ((attributes.isDirectory() || link) && isBackupStorage(file, temp, output)) return;
         if (!attributes.isDirectory()) {
-            if (attributes.isRegularFile() && selection.matches(file.toPath().normalize())) files.add(file);
+            if (attributes.isRegularFile() && selection.matches(path.normalize())) files.put(file, attributes);
             return;
         }
-        if (!traversal.matches(file.toPath())) return;
         File[] children = file.listFiles();
         if (children == null) throw new IOException("Cannot list backup directory: " + file);
         for (File child : children) {
-            boolean descend = traversal.matches(child.toPath());
-            if (!descend && !selection.matches(child.toPath().normalize())) continue;
-            boolean directory = child.isDirectory();
-            if (directory && !descend) continue;
-            // Directories and links can bring backup storage into the walk; ordinary files below a checked directory
-            // cannot.
-            if ((directory || Files.isSymbolicLink(child.toPath())) && isBackupStorage(child, temp, output)) continue;
             collectOutsideBackupStorage(files, child, temp, output, selection, traversal);
         }
     }

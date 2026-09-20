@@ -1142,13 +1142,12 @@ public class BackupTaskTest {
             when(unreadable.listFiles()).thenReturn(null);
             File matchingDirectory = mock(File.class);
             when(matchingDirectory.toPath()).thenReturn(Files.createDirectory(root.resolve("private.cfg")));
-            when(matchingDirectory.isDirectory()).thenReturn(true);
             when(matchingDirectory.listFiles()).thenReturn(null);
             File directory = mock(File.class);
             when(directory.toPath()).thenReturn(root);
             when(directory.listFiles()).thenReturn(new File[] { selected, unreadable, matchingDirectory });
             String pattern = root.toString().replace('\\', '/') + "/*.cfg";
-            java.util.List<File> files = new java.util.ArrayList<>();
+            Map<File, java.nio.file.attribute.BasicFileAttributes> files = new java.util.LinkedHashMap<>();
             ThreadBackup.collectOutsideBackupStorage(
                     files,
                     directory,
@@ -1156,7 +1155,8 @@ public class BackupTaskTest {
                     root.resolve("backups"),
                     java.nio.file.FileSystems.getDefault().getPathMatcher("glob:" + pattern),
                     ThreadBackup.backupGlobTraversal(pattern));
-            assertEquals(Collections.singletonList(selected), files);
+            assertEquals(Collections.singleton(selected), files.keySet());
+            assertEquals(1, files.get(selected).size());
             org.mockito.Mockito.verify(unreadable, org.mockito.Mockito.never()).listFiles();
             org.mockito.Mockito.verify(matchingDirectory, org.mockito.Mockito.never()).listFiles();
             org.junit.Assert.assertThrows(
@@ -1169,6 +1169,79 @@ public class BackupTaskTest {
                             path -> true,
                             ThreadBackup.backupGlobTraversal(root.toString().replace('\\', '/') + "/**")));
         } finally {
+            FileUtils.delete(root.toFile());
+        }
+    }
+
+    @Test
+    public void snapshotRejectsFilesChangedAfterListingAndCleansUp() throws Exception {
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "cached-attributes-");
+        File payload = root.resolve("player.dat").toFile();
+        File laterDirectory = mock(File.class);
+        when(laterDirectory.toPath()).thenReturn(Files.createDirectory(root.resolve("later")));
+        File source = mock(File.class);
+        when(source.toPath()).thenReturn(root);
+        // Control traversal order so the source changes after its attributes have been collected.
+        when(source.listFiles()).thenReturn(new File[] { payload, laterDirectory });
+        try {
+            for (int size : new int[] { 1, 8, -1 }) {
+                Files.write(payload.toPath(), new byte[] { 1, 2, 3 });
+                doAnswer(invocation -> {
+                    if (size < 0) Files.delete(payload.toPath());
+                    else Files.write(payload.toPath(), new byte[size]);
+                    return new File[0];
+                }).when(laterDirectory).listFiles();
+                org.junit.Assert.assertThrows(IOException.class, () -> ThreadBackup.snapshotFiles(source));
+                assertFalse(
+                        "Failed capture must remove its spool",
+                        new File(BackupTask.BACKUP_TEMP_FOLDER, "snapshot").exists());
+            }
+        } finally {
+            ThreadBackup.deleteSnapshot();
+            FileUtils.delete(root.toFile());
+        }
+    }
+
+    @Test
+    public void snapshotFollowsOrdinaryWindowsJunctionsAndExcludesBackupJunctions() throws Exception {
+        org.junit.Assume.assumeTrue(File.separatorChar == '\\');
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "junction-world-")
+                .toAbsolutePath();
+        java.nio.file.Path world = Files.createDirectory(root.resolve("world"));
+        java.nio.file.Path ordinary = Files.createDirectory(root.resolve("ordinary"));
+        java.nio.file.Path included = world.resolve("included");
+        java.nio.file.Path excluded = world.resolve("excluded");
+        java.nio.file.Path backup = BackupTask.BACKUP_FOLDER.toPath().toAbsolutePath();
+        Files.createDirectories(backup);
+        java.nio.file.Path marker = Files.createTempFile(backup, "junction-excluded-", ".dat");
+        try {
+            Files.write(ordinary.resolve("keep.dat"), new byte[] { 42 });
+            for (java.nio.file.Path[] junction : new java.nio.file.Path[][] { { included, ordinary },
+                    { excluded, backup } }) {
+                Process process = new ProcessBuilder(
+                        "cmd.exe",
+                        "/c",
+                        "mklink",
+                        "/J",
+                        junction[0].toString(),
+                        junction[1].toString()).redirectErrorStream(true).start();
+                String output;
+                try (InputStream input = process.getInputStream()) {
+                    output = new String(IOUtils.toByteArray(input), StandardCharsets.UTF_8);
+                }
+                assertEquals(output, 0, process.waitFor());
+            }
+            ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(world.toFile());
+            String expected = FileUtils.getRelativePath(included.resolve("keep.dat").toFile());
+            assertEquals(Collections.singleton(expected), snapshot.files.keySet());
+            assertEquals(1, snapshot.entries.size());
+            org.junit.Assert.assertArrayEquals(new byte[] { 42 }, Files.readAllBytes(snapshot.spool.toPath()));
+        } finally {
+            // Remove the junctions themselves before recursive cleanup; their targets remain owned separately.
+            Files.deleteIfExists(included);
+            Files.deleteIfExists(excluded);
+            Files.deleteIfExists(marker);
+            ThreadBackup.deleteSnapshot();
             FileUtils.delete(root.toFile());
         }
     }
