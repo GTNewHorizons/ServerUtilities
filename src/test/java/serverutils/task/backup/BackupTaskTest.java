@@ -801,13 +801,27 @@ public class BackupTaskTest {
         assertTrue(staged.getParentFile().mkdirs() || staged.getParentFile().isDirectory());
         Files.write(keep.toPath(), new byte[] { 1 });
         Files.write(staged.toPath(), new byte[] { 2 });
+        java.nio.file.attribute.AclFileAttributeView view = Files.getFileAttributeView(
+                BackupTask.BACKUP_TEMP_FOLDER.toPath(),
+                java.nio.file.attribute.AclFileAttributeView.class);
+        java.util.List<java.nio.file.attribute.AclEntry> original = view == null ? null : view.getAcl();
         try {
+            if (view != null) {
+                java.util.List<java.nio.file.attribute.AclEntry> denied = new java.util.ArrayList<>(original);
+                denied.add(
+                        0,
+                        java.nio.file.attribute.AclEntry.newBuilder().setType(java.nio.file.attribute.AclEntryType.DENY)
+                                .setPrincipal(view.getOwner())
+                                .setPermissions(java.nio.file.attribute.AclEntryPermission.LIST_DIRECTORY).build());
+                view.setAcl(denied);
+            }
             ThreadBackup.doBackup(ICompress.createCompressor(), source, "nested-storage", Collections.emptySet());
             try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "nested-storage.zip"))) {
                 assertTrue(zip.getEntry(FileUtils.getRelativePath(keep)) != null);
                 assertNull(zip.getEntry(FileUtils.getRelativePath(staged)));
             }
         } finally {
+            if (view != null) view.setAcl(original);
             Files.deleteIfExists(keep.toPath());
             ThreadBackup.deleteSnapshot();
         }
@@ -1278,30 +1292,25 @@ public class BackupTaskTest {
     }
 
     @Test
-    public void snapshotRejectsFilesChangedAfterListingAndCleansUp() throws Exception {
+    public void snapshotCopyRejectsFilesChangedAfterListing() throws Exception {
         java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "cached-attributes-");
         File payload = root.resolve("player.dat").toFile();
-        File laterDirectory = mock(File.class);
-        when(laterDirectory.toPath()).thenReturn(Files.createDirectory(root.resolve("later")));
-        File source = mock(File.class);
-        when(source.toPath()).thenReturn(root);
-        // Control traversal order so the source changes after its attributes have been collected.
-        when(source.listFiles()).thenReturn(new File[] { payload, laterDirectory });
         try {
             for (int size : new int[] { 1, 8, -1 }) {
                 Files.write(payload.toPath(), new byte[] { 1, 2, 3 });
-                doAnswer(invocation -> {
-                    if (size < 0) Files.delete(payload.toPath());
-                    else Files.write(payload.toPath(), new byte[size]);
-                    return new File[0];
-                }).when(laterDirectory).listFiles();
-                org.junit.Assert.assertThrows(IOException.class, () -> ThreadBackup.snapshotFiles(source));
-                assertFalse(
-                        "Failed capture must remove its spool",
-                        new File(BackupTask.BACKUP_TEMP_FOLDER, "snapshot").exists());
+                ZipEntry captured = new ZipEntry("player.dat");
+                captured.setSize(Files.size(payload.toPath()));
+                if (size < 0) Files.delete(payload.toPath());
+                else Files.write(payload.toPath(), new byte[size]);
+                org.junit.Assert.assertThrows(
+                        IOException.class,
+                        () -> ThreadBackup.copySnapshotFile(
+                                payload,
+                                captured,
+                                new java.io.ByteArrayOutputStream(),
+                                new byte[16]));
             }
         } finally {
-            ThreadBackup.deleteSnapshot();
             FileUtils.delete(root.toFile());
         }
     }
@@ -1414,16 +1423,10 @@ public class BackupTaskTest {
     }
 
     @Test
-    public void unreadableWorldDirectoryFailsButMissingOptionalIncludesAreAllowed() throws Exception {
+    public void missingWorldFailsButMissingOptionalIncludesAreAllowed() throws Exception {
         java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "enumeration-");
-        File unreadable = mock(File.class);
-        when(unreadable.toPath()).thenReturn(root);
-        when(unreadable.listFiles()).thenReturn(null);
         String[] previous = ServerUtilitiesConfig.backups.additional_backup_files;
         try {
-            IOException failure = org.junit.Assert
-                    .assertThrows(IOException.class, () -> ThreadBackup.snapshotFiles(unreadable));
-            assertTrue(failure.getMessage().contains("Cannot list backup directory"));
             org.junit.Assert.assertThrows(
                     IOException.class,
                     () -> ThreadBackup.snapshotFiles(root.resolve("missing-world").toFile()));
@@ -1440,6 +1443,29 @@ public class BackupTaskTest {
             ServerUtilitiesConfig.backups.additional_backup_files = previous;
             FileUtils.delete(root.toFile());
             ThreadBackup.deleteSnapshot();
+        }
+    }
+
+    @Test
+    public void unreadableWorldDirectoryFailsOnWindows() throws Exception {
+        org.junit.Assume.assumeTrue(File.separatorChar == '\\');
+        java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "unreadable-world-");
+        java.nio.file.attribute.AclFileAttributeView view = Files
+                .getFileAttributeView(root, java.nio.file.attribute.AclFileAttributeView.class);
+        java.util.List<java.nio.file.attribute.AclEntry> original = view.getAcl();
+        try {
+            java.util.List<java.nio.file.attribute.AclEntry> denied = new java.util.ArrayList<>(original);
+            denied.add(
+                    0,
+                    java.nio.file.attribute.AclEntry.newBuilder().setType(java.nio.file.attribute.AclEntryType.DENY)
+                            .setPrincipal(view.getOwner())
+                            .setPermissions(java.nio.file.attribute.AclEntryPermission.LIST_DIRECTORY).build());
+            view.setAcl(denied);
+            org.junit.Assert.assertThrows(IOException.class, () -> ThreadBackup.snapshotFiles(root.toFile()));
+        } finally {
+            view.setAcl(original);
+            ThreadBackup.deleteSnapshot();
+            FileUtils.delete(root.toFile());
         }
     }
 

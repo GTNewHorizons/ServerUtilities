@@ -15,11 +15,13 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFileAttributeView;
@@ -315,11 +317,7 @@ public class ThreadBackup extends Thread {
                     ZipEntry captured = new ZipEntry(entry.getKey());
                     captured.setSize(attributes.size());
                     captured.setTime(attributes.lastModifiedTime().toMillis());
-                    try (CheckedInputStream input = new CheckedInputStream(new FileInputStream(file), new CRC32())) {
-                        ICompress.copyExactly(input, output, captured.getSize(), buffer);
-                        if (input.read() != -1) throw new IOException("File grew during backup snapshot: " + file);
-                        captured.setCrc(input.getChecksum().getValue());
-                    }
+                    copySnapshotFile(file, captured, output, buffer);
                     snapshot.entries.add(captured);
                 }
             }
@@ -336,6 +334,14 @@ public class ThreadBackup extends Thread {
         } catch (IOException | RuntimeException ex) {
             deleteSnapshot();
             throw ex;
+        }
+    }
+
+    static void copySnapshotFile(File file, ZipEntry captured, OutputStream output, byte[] buffer) throws IOException {
+        try (CheckedInputStream input = new CheckedInputStream(new FileInputStream(file), new CRC32())) {
+            ICompress.copyExactly(input, output, captured.getSize(), buffer);
+            if (input.read() != -1) throw new IOException("File grew during backup snapshot: " + file);
+            captured.setCrc(input.getChecksum().getValue());
         }
     }
 
@@ -392,7 +398,39 @@ public class ThreadBackup extends Thread {
      * canonical paths, and this runs on the server thread while world saving is suspended.
      */
     private static Map<File, BasicFileAttributes> listOutsideBackupStorage(File root) throws IOException {
-        return listOutsideBackupStorage(root, path -> true, path -> true);
+        Path temp = FileUtils.resolveRealPath(BACKUP_TEMP_FOLDER.toPath());
+        Path output = FileUtils.resolveRealPath(BackupTask.BACKUP_FOLDER.toPath());
+        Map<File, BasicFileAttributes> files = new LinkedHashMap<>();
+        if (Files.notExists(root.toPath()) || isBackupStorage(root, temp, output)) return files;
+        // On Windows, the walker reuses attributes returned by directory enumeration instead of querying each file.
+        Files.walkFileTree(root.toPath(), new SimpleFileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult visitFileFailed(Path path, IOException failure) throws IOException {
+                // The walker opens directories before preVisitDirectory, even ones we would exclude.
+                if (isBackupStorage(path.toFile(), temp, output)) return FileVisitResult.CONTINUE;
+                throw failure;
+            }
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes) throws IOException {
+                return isBackupStorage(dir.toFile(), temp, output) ? FileVisitResult.SKIP_SUBTREE
+                        : FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attributes) throws IOException {
+                File file = path.toFile();
+                if (attributes.isSymbolicLink() || attributes.isOther()) {
+                    // Keep following ordinary links and excluding backup aliases, without losing link identity.
+                    collectOutsideBackupStorage(files, file, temp, output, entry -> true, entry -> true);
+                } else if (attributes.isRegularFile()) {
+                    files.put(file, attributes);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return files;
     }
 
     private static Map<File, BasicFileAttributes> listOutsideBackupStorage(File root, PathMatcher selection,
