@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -48,6 +49,7 @@ public class BackupTaskTest {
     public static void configureBackups() {
         ServerUtilitiesConfig.backups.backup_folder_path = "build/test-backups";
         ServerUtilitiesConfig.backups.additional_backup_files = new String[0];
+        ServerUtilitiesConfig.backups.excluded_backup_files = new String[0];
         ServerUtilitiesConfig.backups.backups_to_keep = 12;
         ServerUtilitiesConfig.backups.compression_level = 1;
         ServerUtilitiesConfig.backups.enable_backups = true;
@@ -1430,6 +1432,129 @@ public class BackupTaskTest {
         } finally {
             ServerUtilitiesConfig.backups.additional_backup_files = previous;
             FileUtils.delete(root.toFile());
+            Files.deleteIfExists(archive.toPath());
+        }
+    }
+
+    @Test
+    public void exclusionPatternsSupportLiteralGlobAbsoluteAndWorldNamePaths() throws Exception {
+        Path parent = Files.createTempDirectory(new File("build").toPath(), "exclude-patterns-");
+        Path world = Files.createDirectory(parent.resolve("world"));
+        File archive = new File(BackupTask.BACKUP_FOLDER, "exclude-patterns.zip");
+        String[] previousExcludes = ServerUtilitiesConfig.backups.excluded_backup_files;
+        try {
+            Path literal = Files.write(world.resolve("literal.dat"), new byte[] { 1 });
+            Path similar = Files.write(world.resolve("literal.dat.bak"), new byte[] { 2 });
+            Path literalDirectory = Files.createDirectories(world.resolve("literal-dir/nested"));
+            Path belowLiteral = Files.write(literalDirectory.resolve("data.dat"), new byte[] { 3 });
+            Path topLevelGlob = Files.write(world.resolve("top.tmp"), new byte[] { 4 });
+            Path nestedGlob = Files.createDirectories(world.resolve("nested"));
+            Path belowSingleStar = Files.write(nestedGlob.resolve("nested.tmp"), new byte[] { 5 });
+            Path recursiveGlob = Files.createDirectories(world.resolve("cache/a/b"));
+            Path belowDoubleStar = Files.write(recursiveGlob.resolve("cached.dat"), new byte[] { 6 });
+            Path namedGlob = Files.createDirectories(world.resolve("named/deep"));
+            Path belowWorldName = Files.write(namedGlob.resolve("named.dat"), new byte[] { 7 });
+            Path absolute = Files.write(world.resolve("absolute.dat"), new byte[] { 8 });
+            Path kept = Files.write(world.resolve("keep.dat"), new byte[] { 9 });
+
+            String worldPath = FileUtils.getRelativePath(world.toFile());
+            String parentPath = FileUtils.getRelativePath(parent.toFile());
+            ServerUtilitiesConfig.backups.excluded_backup_files = new String[] { "", worldPath + "/literal.dat",
+                    worldPath + "/literal-dir", worldPath + "/*.tmp", worldPath + "/cache/**",
+                    parentPath.replace('/', '\\') + "/$WORLDNAME/named/**",
+                    absolute.toAbsolutePath().toString().replace('\\', '/') };
+
+            ThreadBackup
+                    .doBackup(ICompress.createCompressor(), world.toFile(), "exclude-patterns", Collections.emptySet());
+            try (ZipFile zip = new ZipFile(archive)) {
+                assertNull(zip.getEntry(FileUtils.getRelativePath(literal.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(belowLiteral.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(topLevelGlob.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(belowDoubleStar.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(belowWorldName.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(absolute.toFile())));
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(similar.toFile())) != null);
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(belowSingleStar.toFile())) != null);
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(kept.toFile())) != null);
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.excluded_backup_files = previousExcludes;
+            FileUtils.delete(parent.toFile());
+            Files.deleteIfExists(archive.toPath());
+        }
+    }
+
+    @Test
+    public void exclusionsOverrideAdditionalFilesButDoNotRemoveRegions() throws Exception {
+        Path root = Files.createTempDirectory(new File("build").toPath(), "exclude-additional-");
+        Path world = Files.createDirectory(root.resolve("world"));
+        Path region = Files.createDirectories(world.resolve("region")).resolve("r.0.0.mca");
+        Files.write(region, new byte[] { 1 });
+        Path additional = Files.createDirectories(root.resolve("additional"));
+        Path excluded = Files.write(additional.resolve("excluded.cfg"), new byte[] { 2 });
+        Path included = Files.write(additional.resolve("included.cfg"), new byte[] { 3 });
+        File archive = new File(BackupTask.BACKUP_FOLDER, "exclude-additional.zip");
+        String[] previousIncludes = ServerUtilitiesConfig.backups.additional_backup_files;
+        String[] previousExcludes = ServerUtilitiesConfig.backups.excluded_backup_files;
+        try {
+            String rootPath = FileUtils.getRelativePath(root.toFile());
+            ServerUtilitiesConfig.backups.additional_backup_files = new String[] { rootPath + "/additional" };
+            ServerUtilitiesConfig.backups.excluded_backup_files = new String[] {
+                    FileUtils.getRelativePath(excluded.toFile()), FileUtils.getRelativePath(world.toFile()) };
+
+            ThreadBackup.doBackup(
+                    ICompress.createCompressor(),
+                    world.toFile(),
+                    "exclude-additional",
+                    Collections.emptySet());
+            try (ZipFile zip = new ZipFile(archive)) {
+                assertNull(zip.getEntry(FileUtils.getRelativePath(excluded.toFile())));
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(included.toFile())) != null);
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(region.toFile())) != null);
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.additional_backup_files = previousIncludes;
+            ServerUtilitiesConfig.backups.excluded_backup_files = previousExcludes;
+            FileUtils.delete(root.toFile());
+            Files.deleteIfExists(archive.toPath());
+        }
+    }
+
+    @Test
+    public void snapshotDoesNotCaptureExcludedFiles() throws Exception {
+        Path world = Files.createTempDirectory(new File("build").toPath(), "exclude-snapshot-");
+        Path excluded = Files.write(world.resolve("excluded.dat"), new byte[] { 1, 2, 3, 4, 5 });
+        Path included = Files.write(world.resolve("included.dat"), new byte[] { 6, 7 });
+        Path region = Files.write(world.resolve("region.mca"), new byte[] { 8 });
+        File archive = new File(BackupTask.BACKUP_FOLDER, "exclude-snapshot.zip");
+        String[] previousExcludes = ServerUtilitiesConfig.backups.excluded_backup_files;
+        try {
+            ServerUtilitiesConfig.backups.excluded_backup_files = new String[] {
+                    FileUtils.getRelativePath(excluded.toFile()), FileUtils.getRelativePath(region.toFile()) };
+            ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(world.toFile());
+
+            assertFalse(snapshot.files.containsKey(FileUtils.getRelativePath(excluded.toFile())));
+            assertTrue(snapshot.files.containsKey(FileUtils.getRelativePath(included.toFile())));
+            assertTrue(snapshot.files.containsKey(FileUtils.getRelativePath(region.toFile())));
+            assertEquals(1, snapshot.entries.size());
+            assertEquals(FileUtils.getRelativePath(included.toFile()), snapshot.entries.get(0).getName());
+            assertEquals(2, snapshot.spool.length());
+
+            ThreadBackup.doBackup(
+                    ICompress.createCompressor(),
+                    world.toFile(),
+                    "exclude-snapshot",
+                    Collections.emptySet(),
+                    snapshot);
+            try (ZipFile zip = new ZipFile(archive)) {
+                assertNull(zip.getEntry(FileUtils.getRelativePath(excluded.toFile())));
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(included.toFile())) != null);
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(region.toFile())) != null);
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.excluded_backup_files = previousExcludes;
+            ThreadBackup.deleteSnapshot();
+            FileUtils.delete(world.toFile());
             Files.deleteIfExists(archive.toPath());
         }
     }
