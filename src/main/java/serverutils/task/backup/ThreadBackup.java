@@ -143,6 +143,25 @@ public class ThreadBackup extends Thread {
         }
     }
 
+    private static void removeExcludedFiles(Map<String, File> files, File saveFile) {
+        String saveName = saveFile.getName();
+
+        for (String pattern : backups.excluded_backup_files) {
+            // matchesBackupPath normalizes pattern
+            String excluded = FileUtils.normalizeBackupPattern(pattern.replace("$WORLDNAME", saveName));
+            if (excluded.isEmpty()) continue;
+
+            files.entrySet().removeIf(entry -> {
+                // Which regions get backed up is decided by the chunk selection, not by configured exclusions.
+                if (entry.getValue().getName().endsWith(".mca")) return false;
+
+                // Keys are paths relative to the run folder; also try the absolute path, for absolute patterns.
+                return FileUtils.matchesBackupPath(Paths.get(entry.getKey()), excluded)
+                        || FileUtils.matchesBackupPath(entry.getValue().toPath().toAbsolutePath(), excluded);
+            });
+        }
+    }
+
     /** Matches directories that can contain selected files. The full glob separately selects the files themselves. */
     static PathMatcher backupGlobTraversal(String pattern) {
         List<PathMatcher> prefixes = new ArrayList<>();
@@ -211,6 +230,7 @@ public class ThreadBackup extends Thread {
             Map<String, File> files = snapshot == null ? listWorldFiles(src, null)
                     : new LinkedHashMap<>(snapshot.files);
             addBaseFolderFiles(files, src);
+            removeExcludedFiles(files, src);
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
 
@@ -288,6 +308,7 @@ public class ThreadBackup extends Thread {
 
         Map<File, BasicFileAttributes> listedAttributes = new HashMap<>();
         Map<String, File> files = listWorldFiles(src, listedAttributes);
+        removeExcludedFiles(files, src);
         Path world = src.toPath().toAbsolutePath().normalize();
         Path realWorld = world.toRealPath();
         Map<Path, Boolean> deferredDirectories = new HashMap<>();
