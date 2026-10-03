@@ -2,20 +2,14 @@
 ## Buttons
 gui.accept=Akzeptieren
 gui.add=Hinzufügen
-gui.added=Hinzugefügt
 gui.remove=Entfernen
-gui.removed=Entfernet
 gui.close=Schließen
-gui.open=Öffnen
 gui.saved=Gespeichert
 gui.loaded=Geladen
 gui.info=Info
 gui.collapse_all=Alle schließen
 gui.expand_all=Alle öffnen
-gui.download=Herunterladen
-gui.downloaded=Heruntergelanden
 gui.update=Aktualisieren
-gui.updated=Aktualisiert
 gui.active=Aktiv
 gui.inactive=Inaktiv
 gui.settings=Einstellungen
@@ -24,14 +18,8 @@ gui.search_box=Suchen...
 
 ## Labels
 gui.other=Weitere
-gui.server_forced=Server Forced: %s
 gui.online=Online
-gui.offline=Offline
-gui.whitelist=Whitelist
-gui.blacklist=Blacklist
 gui.color=Farbe
-gui.downloading=Herunterladen...
-gui.infinite=Unendlich
 
 ## Sides
 facing.north=Norden
@@ -42,31 +30,21 @@ facing.east=osten
 relative_facing.bottom=Unten
 relative_facing.top=Oben
 relative_facing.back=Hinten
-relative_facing.front=Vorne
 relative_facing.left=Links
 relative_facing.right=Rechts
 
 # ServerUtilitiesLib Lang
 serverutilities=Server Utilities Library
-wip=In Arbeit!
-deprecated=Diese Methode ist veraltet, bitte benutze: %s
 example=Beispiel:
 click_here=[Hier klicken]
-feature_disabled=Diese Funktion ist deaktiviert!
 feature_disabled_server=Diese Funktion ist auf Servern deaktiviert!
 error=Fehler: %s
 owner=Besitze: %s
 delete_item=Möchtest du '%s' löschen?
-server_forced=Durch den Server zu '%s' überschrieben
 commands=Befehle
-my_permissions=Meine Berechtigungen
-all_permissions=Alle Berechtigungen
 key.categories.serverutilitiesmods=Server Utilities Mods
 stand_still=Bitte warte für %d Sekunden.
-stand_still_failed=Du hast dich bewegt. Teleport abgebrochen.
 teleporting=Teleportieren...
-cooldown=Wartezeit
-cant_use_now=Kann dies gerade nicht benutzen!
 cant_use_now_cooldown=Kann dies nicht benutzen! Wartezeit: %d
 action_bar=Aktionsleiste
 nothing_changed=Nichts geändert!
@@ -145,9 +123,6 @@ serverutilities.lang.team.created=Team '%s' erstellt
 serverutilities.lang.team.id_already_exists=ID bereits registriert.
 serverutilities.lang.team.id_invalid=Eine ID kann die die kleingeschriebenen Buchstaben a-z, _ und | beinhalten!
 serverutilities.lang.team.deleted=Team '%s' gelöscht
-serverutilities.lang.team.member_left=%s hat dein Team verlassen!
-serverutilities.lang.team.member_joined=%s ist deinem Team beigetreten!
-serverutilities.lang.team.transferred_ownership=Der neue Besitze ist nun %s
 serverutilities.lang.team.invited=%s zu '%s' eingeladen
 serverutilities.lang.team.invited_you=Du wurdest zu '%s' von %s eingeladen
 serverutilities.lang.team.cancel_invite=Einladungen abbrechen
@@ -157,13 +132,10 @@ serverutilities.lang.team.error.must_leave=Du musst dein Team verlassen, um das 
 serverutilities.lang.team.error.not_owner=Du bist nicht der Besitzer dieses Teams!
 serverutilities.lang.team.error.not_member=%s ist kein Mitglied diese Teams!
 serverutilities.lang.team.error.must_transfer_ownership=Du musst die Leitung übertragen!
-serverutilities.lang.team.error.already_invited=%s ist bereits eingeladen!
-serverutilities.lang.team.error.failed_to_join=Kann diesem Team nicht beitreten!
 serverutilities.lang.team.permission.set=Erlaubnis für '%s' von %s wurde zu %s gesetzt
 serverutilities.lang.team.permission.owner=Kann Leitung nicht ändern.
 serverutilities.lang.team.notification=Du bist keinen Team beigetreten oder hast eins erstellt. %s um die TeamsGUI zu öffen oder %s um diese Nachricht auszublenden.
 serverutilities.lang.team.notification.hide=Nachricht ausblenden
-serverutilities.lang.team.chat_message=[Team %s] %s
 
 team_action.serverutilities.select_team=Team zum Beitreten auswählen
 team_action.serverutilities.create_team=Neues Team erstellen.
@@ -201,7 +173,6 @@ sidebar_button.serverutilities.notifications=Benachrichtigungen
 sidebar_button.serverutilities.admin_panel=Admin Tafel
 
 # Privacy Level
-privacy=Privatsphäre
 privacy.public=Öffentlich
 privacy.private=Privat
 privacy.team=Team
@@ -221,11 +192,8 @@ io_mode.out=Nur Ausgang
 io_mode.none=Deaktivert
 
 # Click Actions
-click_action.cmd=Befehl
-click_action.show_cmd=Befehl anzeigen
 click_action.url=URL öffnen
 click_action.file=Datei öffen
-click_action.gui=GUI öffen
 
 # Commands
 commands.reload.usage=/reload [*|domain:*|domain:id]

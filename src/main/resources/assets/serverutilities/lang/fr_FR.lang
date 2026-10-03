@@ -2,37 +2,24 @@
 ## Buttons
 gui.accept=Accepter
 gui.add=Ajouter
-gui.added=Ajouté
 gui.remove=Supprimer
-gui.removed=Supprimé
 gui.close=Fermer
-gui.open=Ouvrir
 gui.saved=Sauvegardé
 gui.loaded=Chargé
 gui.info=Info
 gui.collapse_all=Tout réduire
 gui.expand_all=Tout développer
-gui.download=Télécharger
-gui.downloaded=Téléchargé
 gui.update=Mettre à jour
-gui.updated=Mis à jour
 gui.active=Actif
 gui.inactive=Inactif
 gui.settings=Paramètres
 gui.rename=Renommer
 gui.search_box=Rechercher...
-gui.move=Déplacer
 
 ## Labels
 gui.other=Autre
-gui.server_forced=Serveur forcé : %s
 gui.online=Connecté
-gui.offline=Déconnecté
-gui.whitelist=Liste blanche
-gui.blacklist=Liste noire
 gui.color=Couleur
-gui.downloading=Téléchargement...
-gui.infinite=Infini
 
 ## Sides
 facing.north=Nord
@@ -43,31 +30,21 @@ facing.east=Est
 relative_facing.bottom=En bas
 relative_facing.top=En haut
 relative_facing.back=Derrière
-relative_facing.front=Devant
 relative_facing.left=Gauche
 relative_facing.right=Droite
 
 # FTBLib Lang
 serverutilities=Bibliothèque FTB
-wip=En cours de développement !
-deprecated=Cette méthode est obsolète, merci d'utiliser %s
 example=Exemple :
 click_here=[Cliquer ici]
-feature_disabled=Cette fonctionnalité est désactivée !
 feature_disabled_server=Cette fonctionnalité est désactivée sur serveur !
 error=Erreur : %s
 owner=Propriétaire : %s
 delete_item=Voulez-vous supprimer '%s' ?
-server_forced=Remplacement serveur en '%s'
 commands=Commandes
-my_permissions=Mes permissions
-all_permissions=Toutes les permissions
 key.categories.ftbmods=Mods FTB
 stand_still=Merci de rester immobile pendant %d secondes.
-stand_still_failed=Vous avez bougé ! Téléportation annulée.
 teleporting=Téléportation...
-cooldown=Délai
-cant_use_now=Vous ne pouvez pas encore effectuer cela !
 cant_use_now_cooldown=Vous ne pouvez pas encore effectuer cela ! Délai : %s
 action_bar=Barre d'action
 nothing_changed=Rien n'a changé !
@@ -144,9 +121,6 @@ serverutilities.lang.team.created=Équipe '%s' créée
 serverutilities.lang.team.id_already_exists=Cet ID est déjà enregistré !
 serverutilities.lang.team.id_invalid=L'ID peut seulement contenir certains caractères comme a-z, _ et | !
 serverutilities.lang.team.deleted=Équipe '%s' supprimée
-serverutilities.lang.team.member_left=%s a quitté votre équipe !
-serverutilities.lang.team.member_joined=%s a rejoint votre équipe !
-serverutilities.lang.team.transferred_ownership=Le nouveau propriétaire est maintenant %s
 serverutilities.lang.team.invited=%s a été invité pour rejoindre '%s'
 serverutilities.lang.team.invited_you=Vous avez été invité à rejoindre '%s' par %s
 serverutilities.lang.team.cancel_invite=Annuler l'invitation
@@ -156,13 +130,10 @@ serverutilities.lang.team.error.must_leave=Vous devez quitter votre équipe pour
 serverutilities.lang.team.error.not_owner=Vous n'êtes pas le propriétaire de cette équipe !
 serverutilities.lang.team.error.not_member=%s n'est pas un membre de cette équipe !
 serverutilities.lang.team.error.must_transfer_ownership=Vous devez transférer la propriété !
-serverutilities.lang.team.error.already_invited=%s a déjà été invité !
-serverutilities.lang.team.error.failed_to_join=Ne peut pas rejoindre votre équipe !
 serverutilities.lang.team.permission.set=La permission '%s' pour %s définie en %s
 serverutilities.lang.team.permission.owner=Impossible de changer les permissions du propriétaire !
 serverutilities.lang.team.notification=Vous n'avez pas encore rejoint/créé d'équipe ! %s pour ouvrir l'affichage d'équipe ou %s pour cacher ce message.
 serverutilities.lang.team.notification.hide=Cacher ce message
-serverutilities.lang.team.chat_message=[Équipe %s] %s
 
 team_action.serverutilities.select_team=Sélectionner une équipe pour rejoindre
 team_action.serverutilities.create_team=Créer une nouvelle équipe
@@ -200,7 +171,6 @@ sidebar_button.serverutilities.notifications=Notifications
 sidebar_button.serverutilities.admin_panel=Panel admin
 
 # Privacy Level
-privacy=Confidentialité
 privacy.public=Public
 privacy.private=Privé
 privacy.team=Équipe
@@ -220,11 +190,8 @@ io_mode.out=Sortie seulement
 io_mode.none=Désactivé
 
 # Click Actions
-click_action.cmd=Commande
-click_action.show_cmd=Afficher la commande
 click_action.url=Ouvrir le lien
 click_action.file=Ouvrir le fichier
-click_action.gui=Ouvrir l'interface
 
 # Commands
 commands.reload.usage=/reload [*|domain:*|domain:id]
