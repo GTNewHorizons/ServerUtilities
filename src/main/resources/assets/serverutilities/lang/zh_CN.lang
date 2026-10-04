@@ -103,8 +103,6 @@ serverutilities.commands=指令
 serverutilities.login=登录
 serverutilities.login.enable_motd=启用登录欢迎信息
 serverutilities.login.enable_starting_items=启用初始物品
-serverutilities.login.enable_global_badges=启用全局徽章
-serverutilities.login.enable_event_badges=启用活动徽章
 serverutilities.login.motd=登录欢迎信息
 serverutilities.login.starting_items=初始物品
 
@@ -133,17 +131,12 @@ serverutilities.world.logging.item_clicked_in_air=记录在空中使用的物品
 
 serverutilities.ranks=权限组
 serverutilities.ranks.override_chat=覆盖聊天
-serverutilities.ranks.crash_client_side_permissions=崩溃客户端权限
-serverutilities.ranks.load_from_config_folder=从配置文件夹加载
-serverutilities.ranks.print_command_errors=输出指令错误
 
 serverutilities.ranks.tags.default_player_rank=默认玩家权限
 serverutilities.ranks.tags.default_op_rank=默认管理员权限
 
 serverutilities.debugging.log_chunkloading=记录区块加载
 
-serverutilities.general.clientless_mode=无客户端模式
-serverutilities.general.replace_reload_command=替换/reload 指令
 serverutilities.general.merge_offline_mode_players=合并离线模式玩家
 
 serverutilities.teams=队伍
@@ -450,7 +443,6 @@ serverutilities.lang.homes.set=家'%s'已设置！
 serverutilities.lang.homes.del=家'%s'已删除！
 serverutilities.lang.homes.not_set=未知的家：'%s'！
 serverutilities.lang.homes.cooldown=使用 home 传送还需 %s！
-serverutilities.lang.homes.cross_dim=你不能传送至其它维度！
 serverutilities.lang.homes.limit=家数量已达到上限！
 serverutilities.lang.homes.spectator=请先退出旁观模式！
 

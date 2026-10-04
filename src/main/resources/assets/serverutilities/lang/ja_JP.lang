@@ -15,17 +15,12 @@ serverutilities.server_info.difficulty=難易度
 serverutilities.server_info.admin_quick_access=管理者クイックアクセス
 
 serverutilities.chat=チャット
-serverutilities.chat.general_history_limit=一般チャットの履歴の制限
-serverutilities.chat.team_history_limit=チームチャットの履歴の制限
-serverutilities.chat.admin_history_limit=管理者チャットの履歴の制限
 
 serverutilities.commands=コマンド
 
 serverutilities.login=ログイン
 serverutilities.login.enable_motd=MOTDを有効化
 serverutilities.login.enable_starting_items=開始時アイテムの有効化
-serverutilities.login.enable_global_badges=グローバルバッジの有効化
-serverutilities.login.enable_event_badges=イベントバッジの有効化
 serverutilities.login.motd=MOTD
 serverutilities.login.starting_items=開始時アイテム
 
@@ -54,9 +49,6 @@ serverutilities.world.logging.item_clicked_in_air=アイテムでのクリック
 
 serverutilities.ranks=ランク
 serverutilities.ranks.override_chat=チャットをオーバーライド
-serverutilities.ranks.crash_client_side_permissions=Clientサイド権限のクラッシュ
-serverutilities.ranks.load_from_config_folder=Configフォルダからロード
-serverutilities.ranks.print_command_errors=コマンドエラーの出力
 
 serverutilities.ranks.tags.default_player_rank=デフォルトのプレイヤーランク
 serverutilities.ranks.tags.default_op_rank=デフォルトのOPランク
@@ -208,7 +200,6 @@ serverutilities.lang.homes.set=ホーム「%s」を設定しました！
 serverutilities.lang.homes.del=ホーム「%s」を削除しました！
 serverutilities.lang.homes.not_set=「%s」は不明なホームです！
 serverutilities.lang.homes.cooldown=%sでホームへ移動可能になります！
-serverutilities.lang.homes.cross_dim=別のディメンションへはテレポートできません！
 serverutilities.lang.homes.limit=これ以上ホームを設定することができません！
 serverutilities.lang.homes.spectator=最初にスペクテイターモードを終了してください！
 
@@ -262,12 +253,6 @@ commands.ranks.none=None
 commands.ranks.usage=/ranks
 commands.ranks.not_found=ランク「%s」は見つかりませんでした。
 commands.ranks.add.usage=/ranks add <id> [parent]
-commands.ranks.add.id_invalid=ランクID「%s」は無効です。英数字及び小文字でなければいけません！
-commands.ranks.add.id_exists=ランク「%s」は既に存在しています！
-commands.ranks.add.added=ランク「%s」を追加しました！
-commands.ranks.get.usage=/ranks get [プレイヤー]
-commands.ranks.set.usage=/ranks set <プレイヤー> <ランク|none>
-commands.ranks.set.set=%1$sのランクを%2$sに設定します
 commands.ranks.get_permission.usage=/ranks get_permission <プレイヤー> <パーミッション>
 commands.ranks.get_permission.text=%2$sの%1$sは%3$sです
 commands.ranks.set_permission.usage=/ranks set_permission <ランク> <パーミッション> <true|false|value|none>
@@ -278,7 +263,6 @@ commands.upload_crash_report.usage=/upload_crash_report <ファイル>
 commands.heal.usage=/heal [プレイヤー]
 commands.killall.usage=/killall [タイプ] [ディメンション]
 commands.nbtedit.usage=/nbtedit
-commands.nbtedit.tile.usage=/nbtedit tile <x> <y> <z>
 commands.nbtedit.entity.usage=/nbtedit entity <id>
 commands.nbtedit.player.usage=/nbtedit player <プレイヤー>
 commands.nbtedit.item.usage=/nbtedit item

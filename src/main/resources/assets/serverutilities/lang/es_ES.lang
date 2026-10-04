@@ -43,14 +43,12 @@ error=Error: %s
 owner=Propietario: %s
 delete_item=Quieres eliminar '%s'?
 commands=Comandos
-key.categories.ftbmods=FTB Mods
 stand_still=Por favor, no te muevas durante %d segundos.
 teleporting=Teletransportando...
 cant_use_now_cooldown=No puedes usar esto ahora mismo! Tiempo de espera: %s
 action_bar=Barra de accion
 nothing_changed=Nada cambiado!
 player_must_be_online=El jugador debe estar conectado!
-lat_support=Te gusta el mod? Click aqui para apoyarme!
 
 serverutilities.lang.reload_server_button=Recargar servidor
 serverutilities.lang.reload_server=FTB Library: Servidor recargado en %s
@@ -77,8 +75,6 @@ serverutilities.select_item.display_name=Seleccionar nombre a mostrar
 serverutilities.select_team.gui=Seleccionar Equipo
 
 # Config
-serverutilities.general.clientless_mode=Modo sin cliente
-serverutilities.general.replace_reload_command=Reemplaza comando /reload
 serverutilities.general.merge_offline_mode_players=Unir jugadores en modo offline
 
 serverutilities.teams=Equipos
@@ -100,8 +96,6 @@ serverutilities.debugging.log_events=Mostrar Eventos
 serverutilities_client.item_ore_names=Mostrar nombres Ore Dictionary de objetos
 serverutilities_client.item_ore_names.item_tooltip=Nombres Ore Dictionary:
 serverutilities_client.item_nbt=Mostrar NBT de objeto
-serverutilities_client.replace_vanilla_status_messages=Reemplazar mensajes vanilla de estatus
-serverutilities_client.debug_helper=Ayudante de Debug
 
 # Player Settings
 player_config=Mis configuraciones de servidor
