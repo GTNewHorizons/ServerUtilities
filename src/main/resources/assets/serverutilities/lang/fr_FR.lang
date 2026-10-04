@@ -62,7 +62,6 @@ server_forced=Remplacement serveur en '%s'
 commands=Commandes
 my_permissions=Mes permissions
 all_permissions=Toutes les permissions
-key.categories.ftbmods=Mods FTB
 stand_still=Merci de rester immobile pendant %d secondes.
 stand_still_failed=Vous avez bougé ! Téléportation annulée.
 teleporting=Téléportation...
@@ -98,8 +97,6 @@ serverutilities.select_item.display_name=Définir un nom d'affichage
 serverutilities.select_team.gui=Sélectionner une équipe
 
 # Config
-serverutilities.general.clientless_mode=Mode sans client
-serverutilities.general.replace_reload_command=Remplacer la commande /reload
 serverutilities.general.merge_offline_mode_players=Fusionner les joueurs en mode hors connexion
 
 serverutilities.teams=Teams
@@ -121,8 +118,6 @@ serverutilities.debugging.log_events=Logger les événements
 serverutilities_client.item_ore_names=Afficher les noms des objets de l'OreDictionary
 serverutilities_client.item_ore_names.item_tooltip=Noms de l'OreDictionary :
 serverutilities_client.item_nbt=Afficher les objets NBT
-serverutilities_client.replace_vanilla_status_messages=Remplacer le statut des messages vanilla
-serverutilities_client.debug_helper=Aide de débogage
 
 # Player Settings
 player_config=Les paramètres de mon serveur

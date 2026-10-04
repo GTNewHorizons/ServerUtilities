@@ -115,8 +115,6 @@ serverutilities.commands=Команды
 serverutilities.login=Вход
 serverutilities.login.enable_motd=Включить MOTD
 serverutilities.login.enable_starting_items=Включить стартовые предметы
-serverutilities.login.enable_global_badges=Включить глобальные значки
-serverutilities.login.enable_event_badges=Включить значки событий
 serverutilities.login.motd=MOTD
 serverutilities.login.starting_items=Стартовые предметы
 
@@ -147,18 +145,12 @@ serverutilities.world.logging.item_clicked_in_air=Предмет нажатог�
 
 serverutilities.ranks=Ранги
 serverutilities.ranks.override_chat=Переопределить чат
-serverutilities.ranks.override_commands=Переопределить команды
-serverutilities.ranks.crash_client_side_permissions=Разрешения крашей на стороне клиента
-serverutilities.ranks.load_from_config_folder=Загрузить из конфигурационной папки
-serverutilities.ranks.print_command_errors=Печатать командные ошибки
 
 serverutilities.ranks.tags.default_player_rank=По умолчанию ранк игрока
 serverutilities.ranks.tags.default_op_rank=По умолчанию ранк OP
 
 serverutilities.debugging.log_chunkloading=Журнал загрузки чанков
 
-serverutilities.general.clientless_mode=Безклиентский режим
-serverutilities.general.replace_reload_command=Заменить команду /reload
 serverutilities.general.merge_offline_mode_players=Объединение игроков в автономном режиме
 serverutilities.general.toggle_cheats=Переключить читы
 serverutilities.general.enable_cheats=Включить читы
@@ -601,12 +593,6 @@ commands.kickme.usage=/kickme
 commands.ranks.usage=/ranks
 commands.ranks.not_found=Ранг '%s' не найден!
 commands.ranks.add.usage=/ranks add <id> [parent]
-commands.ranks.add.id_invalid=Недопустимый ID ранга: '%s'. Он должен быть буквенно-цифровым и строчным.
-commands.ranks.add.id_exists=Ранг '%s' уже существует!
-commands.ranks.add.added=Ранг %s добавлен!
-commands.ranks.get.usage=/ranks get [player]
-commands.ranks.set.usage=/ranks set <player> <rank|none>
-commands.ranks.set.set=Установить ранг для %s в %s
 commands.ranks.get_permission.usage=/ranks get_permission <player> <permission>
 commands.ranks.get_permission.text=%s для %s %s
 commands.ranks.set_permission.usage=/ranks set_permission <rank> <permission> <true|false|value|none>
@@ -617,7 +603,6 @@ commands.upload_crash_report.usage=/upload_crash_report <file>
 commands.heal.usage=/heal [player]
 commands.killall.usage=/killall [type] [dimension]
 commands.nbtedit.usage=/nbtedit
-commands.nbtedit.tile.usage=/nbtedit tile <x> <y> <z>
 commands.nbtedit.entity.usage=/nbtedit entity <id>
 commands.nbtedit.player.usage=/nbtedit player <player>
 commands.nbtedit.item.usage=/nbtedit item
