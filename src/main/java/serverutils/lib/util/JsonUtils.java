@@ -1,15 +1,11 @@
 package serverutils.lib.util;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Map;
 
@@ -122,10 +118,8 @@ public class JsonUtils {
     }
 
     public static void toJson(File file, @Nullable JsonElement element, boolean prettyPrinting) {
-        try (OutputStreamWriter output = new OutputStreamWriter(
-                new FileOutputStream(FileUtils.newFile(file)),
-                StandardCharsets.UTF_8); BufferedWriter writer = new BufferedWriter(output)) {
-            toJson(writer, element, prettyPrinting);
+        try {
+            FileUtils.save(file, toJson(element, prettyPrinting));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
