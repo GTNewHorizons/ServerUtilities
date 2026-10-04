@@ -51,7 +51,7 @@ public enum DefaultPermissionHandler implements IPermissionHandler {
         }
 
         MinecraftServer server = ServerUtils.getServer();
-        return server != null && server.getConfigurationManager().func_152596_g(profile); // canSendCommands
+        return server != null && profile.isComplete() && server.getConfigurationManager().func_152596_g(profile); // canSendCommands
     }
 
     @Override
