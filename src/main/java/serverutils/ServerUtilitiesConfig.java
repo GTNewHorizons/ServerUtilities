@@ -329,6 +329,10 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean use_separate_thread;
 
+        @Config.Comment("Trades backup consistency for a shorter lag spike when a backup starts. This may help if you or other players are experiencing large lag spikes during backups including disconnects when the backup starts.")
+        @Config.DefaultBoolean(false)
+        public boolean prefer_speed_over_backup_consistency;
+
         @Config.Comment("Prints (current size | total size) when backup is done")
         @Config.DefaultBoolean(true)
         public boolean display_file_size;
