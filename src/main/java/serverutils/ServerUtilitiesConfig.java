@@ -329,7 +329,9 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean use_separate_thread;
 
-        @Config.Comment("Trades backup consistency for a shorter lag spike when a backup starts. This may help if you or other players are experiencing large lag spikes during backups including disconnects when the backup starts.")
+        @Config.Comment("""
+                Reduces lag when a backup starts. Only applies when use_separate_thread is enabled.
+                Files are copied while the server is running, so backups may contain inconsistent or partially written mod and player data and may not restore correctly. World chunks are not affected by this option.""")
         @Config.DefaultBoolean(false)
         public boolean prefer_speed_over_backup_consistency;
 
