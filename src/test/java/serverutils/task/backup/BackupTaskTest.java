@@ -1461,6 +1461,9 @@ public class BackupTaskTest {
             Path characterClass = Files.write(world.resolve("class1.cfg"), new byte[] { 10 });
             Path alternative = Files.write(world.resolve("choiceB.dat"), new byte[] { 11 });
             Path singleCharacter = Files.write(world.resolve("questionA.txt"), new byte[] { 12 });
+            Path dataDirectory = Files.createDirectory(world.resolve("data"));
+            Path parentSegment = Files.write(dataDirectory.resolve("parent-normalized.dat"), new byte[] { 14 });
+            Path repeatedSeparator = Files.write(dataDirectory.resolve("double-separator.dat"), new byte[] { 15 });
 
             String worldPath = FileUtils.getRelativePath(world.toFile());
             String parentPath = FileUtils.getRelativePath(parent.toFile());
@@ -1468,7 +1471,8 @@ public class BackupTaskTest {
                     worldPath + "/literal-dir/**", worldPath + "/plain-dir", worldPath + "/*.tmp",
                     worldPath + "/cache/**", parentPath.replace('/', '\\') + "/$WORLDNAME/named/**",
                     absolute.toAbsolutePath().toString().replace('\\', '/'), worldPath + "/class[12].cfg",
-                    worldPath + "/choice{A,B}.dat", worldPath + "/question?.txt" };
+                    worldPath + "/choice{A,B}.dat", worldPath + "/question?.txt",
+                    worldPath + "/data/../data/parent-normalized.dat", worldPath + "//data/double-separator.dat" };
 
             ThreadBackup
                     .doBackup(ICompress.createCompressor(), world.toFile(), "exclude-patterns", Collections.emptySet());
@@ -1482,6 +1486,8 @@ public class BackupTaskTest {
                 assertNull(zip.getEntry(FileUtils.getRelativePath(characterClass.toFile())));
                 assertNull(zip.getEntry(FileUtils.getRelativePath(alternative.toFile())));
                 assertNull(zip.getEntry(FileUtils.getRelativePath(singleCharacter.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(parentSegment.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(repeatedSeparator.toFile())));
                 assertTrue(zip.getEntry(FileUtils.getRelativePath(similar.toFile())) != null);
                 assertTrue(zip.getEntry(FileUtils.getRelativePath(belowPlain.toFile())) != null);
                 assertTrue(zip.getEntry(FileUtils.getRelativePath(belowSingleStar.toFile())) != null);

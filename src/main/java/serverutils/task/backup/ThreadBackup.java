@@ -185,6 +185,10 @@ public class ThreadBackup extends Thread {
                     last = i;
                 }
             }
+            if (last < 0) {
+                pattern = Paths.get(pattern).normalize().toString().replace('\\', '/');
+                first = pattern.length();
+            }
             prefix = pattern.substring(0, first);
             suffix = last < 0 ? "" : pattern.substring(last + 1);
             matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
