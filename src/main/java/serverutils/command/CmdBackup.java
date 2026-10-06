@@ -1,14 +1,19 @@
 package serverutils.command;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 
 import net.minecraft.command.ICommandSender;
+import net.minecraft.command.WrongUsageException;
 
 import serverutils.ServerUtilities;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
+import serverutils.task.backup.BackupRetention;
 import serverutils.task.backup.BackupTask;
 
 public class CmdBackup extends CmdTreeBase {
@@ -18,6 +23,46 @@ public class CmdBackup extends CmdTreeBase {
         addSubcommand(new CmdBackupStart("start"));
         addSubcommand(new CmdBackupStop("stop"));
         addSubcommand(new CmdBackupGetSize("getsize"));
+        addSubcommand(new CmdBackupPrune());
+    }
+
+    public static class CmdBackupPrune extends CmdBase {
+
+        public CmdBackupPrune() {
+            super("prune", Level.OP_OR_SP);
+        }
+
+        @Override
+        public void processCommand(ICommandSender sender, String[] args) {
+            if (args.length != 1 || !args[0].equals("preview")) {
+                throw new WrongUsageException(getCommandUsage(sender));
+            }
+            try {
+                BackupRetention.Plan plan = BackupTask.previewRetention();
+                for (Map.Entry<File, String> decision : plan.keep.entrySet()) {
+                    sender.addChatMessage(
+                            ServerUtilities
+                                    .lang("cmd.backup_prune_keep", decision.getKey().getName(), decision.getValue()));
+                }
+                for (Map.Entry<File, String> decision : plan.delete.entrySet()) {
+                    sender.addChatMessage(
+                            ServerUtilities
+                                    .lang("cmd.backup_prune_delete", decision.getKey().getName(), decision.getValue()));
+                }
+                sender.addChatMessage(
+                        ServerUtilities.lang(
+                                "cmd.backup_prune_summary",
+                                plan.keep.size(),
+                                plan.delete.size(),
+                                plan.remainingSize));
+                if (serverutils.ServerUtilitiesConfig.backups.max_folder_size > 0 && plan.remainingSize
+                        > serverutils.ServerUtilitiesConfig.backups.max_folder_size * FileUtils.SizeUnit.GB.getSize()) {
+                    sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_limit"));
+                }
+            } catch (IOException | IllegalArgumentException | ArithmeticException ex) {
+                sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_error", ex.getMessage()));
+            }
+        }
     }
 
     public static class CmdBackupStart extends CmdBase {

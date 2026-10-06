@@ -69,6 +69,82 @@ public class BackupTaskTest {
         BackupTask.stopBackupThread();
     }
 
+    private static Universe universeWithId(MinecraftServer server) throws Exception {
+        Universe universe = new Universe(server);
+        Field uuid = Universe.class.getDeclaredField("uuid");
+        uuid.setAccessible(true);
+        uuid.set(universe, java.util.UUID.randomUUID());
+        return universe;
+    }
+
+    @Test
+    public void previewMatchesCleanupAndInvalidPolicySkipsDeletion() throws Exception {
+        String[] previousPolicy = ServerUtilitiesConfig.backups.retention_policy;
+        boolean previousCustom = ServerUtilitiesConfig.backups.delete_custom_name_backups;
+        int previousLimit = ServerUtilitiesConfig.backups.max_folder_size;
+        File old = new File(BackupTask.BACKUP_FOLDER, "retention-history.zip");
+        File latest = new File(BackupTask.BACKUP_FOLDER, "retention-latest.zip");
+        String worldId = java.util.UUID.randomUUID().toString();
+        long now = System.currentTimeMillis();
+        try {
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
+            ServerUtilitiesConfig.backups.max_folder_size = 0;
+            for (File file : new File[] { old, latest }) {
+                try (ICompress compressor = ICompress.createCompressor()) {
+                    compressor.createOutputStream(file);
+                    BackupRetention.writeMetadata(
+                            compressor,
+                            worldId,
+                            file.equals(old) ? now - TimeUnit.DAYS.toMillis(2) : now,
+                            true);
+                }
+            }
+            ServerUtilitiesConfig.backups.retention_policy = new String[] { "1h:all", "invalid" };
+            BackupTask.clearOldBackups();
+            assertTrue(old.exists());
+            assertTrue(latest.exists());
+            ServerUtilitiesConfig.backups.retention_policy = new String[] { "1h:all" };
+            BackupRetention.Plan preview = BackupTask.previewRetention();
+            assertTrue(preview.delete.containsKey(old));
+            assertTrue(preview.keep.containsKey(latest));
+            assertTrue("Preview must not delete anything", old.exists());
+            BackupTask.clearOldBackups();
+            assertFalse(old.exists());
+            assertTrue(latest.exists());
+        } finally {
+            ServerUtilitiesConfig.backups.retention_policy = previousPolicy;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = previousCustom;
+            ServerUtilitiesConfig.backups.max_folder_size = previousLimit;
+            Files.deleteIfExists(old.toPath());
+            Files.deleteIfExists(latest.toPath());
+        }
+    }
+
+    @Test
+    public void failedBackupCleanupRestoresWorldSavingWithoutPruning() throws Exception {
+        File first = new File(BackupTask.BACKUP_FOLDER, "failed-backup-history-first.zip");
+        File second = new File(BackupTask.BACKUP_FOLDER, "failed-backup-history-second.zip");
+        Files.write(first.toPath(), new byte[] { 1 });
+        Files.write(second.toPath(), new byte[] { 2 });
+        int previousCount = ServerUtilitiesConfig.backups.backups_to_keep;
+        boolean previousCustom = ServerUtilitiesConfig.backups.delete_custom_name_backups;
+        try {
+            ServerUtilitiesConfig.backups.backups_to_keep = 1;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
+            WorldServer world = mock(WorldServer.class);
+            BackupTask.saveAndDisableWorldSaving(new WorldServer[] { world });
+            new BackupTask(true).execute(mock(Universe.class));
+            assertFalse(world.levelSaving);
+            assertTrue(first.exists());
+            assertTrue(second.exists());
+        } finally {
+            ServerUtilitiesConfig.backups.backups_to_keep = previousCount;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = previousCustom;
+            Files.deleteIfExists(first.toPath());
+            Files.deleteIfExists(second.toPath());
+        }
+    }
+
     @Test
     public void rejectsWorldsInsideBackupStorageBeforePreparingOrWriting() throws Exception {
         File sentinel = new File(BackupTask.BACKUP_TEMP_FOLDER, "snapshot/keep.dat");
@@ -109,7 +185,7 @@ public class BackupTaskTest {
                 }
             }
             doThrow(new IllegalStateException("injected preparation failure")).when(manager).saveAllPlayerData();
-            new BackupTask(mock(ICommandSender.class), "invalid-source").execute(new Universe(server));
+            new BackupTask(mock(ICommandSender.class), "invalid-source").execute(universeWithId(server));
             assertTrue("Failed preparation must not delete an unowned snapshot", sentinel.isFile());
         } finally {
             delegate.set(fml, previous);
@@ -339,7 +415,7 @@ public class BackupTaskTest {
         net.minecraftforge.common.DimensionManager.registerProviderType(9, BrokenFolderProvider.class, false);
         net.minecraftforge.common.DimensionManager.registerDimension(9, 9);
         try {
-            Universe universe = new Universe(server);
+            Universe universe = universeWithId(server);
             universe.dataFolder = new File(source, "serverutilities");
             serverutils.lib.data.ForgeTeam team = new serverutils.lib.data.ForgeTeam(
                     universe,
@@ -636,7 +712,7 @@ public class BackupTaskTest {
         setCurrentServer(server);
 
         try {
-            Universe universe = new Universe(server);
+            Universe universe = universeWithId(server);
             new BackupTask(mock(ICommandSender.class), "first").execute(universe);
             waitForBackup();
             new BackupTask(mock(ICommandSender.class), "second").execute(universe);
@@ -1531,6 +1607,55 @@ public class BackupTaskTest {
         } finally {
             ServerUtilitiesConfig.backups.additional_backup_files = previousIncludes;
             ServerUtilitiesConfig.backups.excluded_backup_files = previousExcludes;
+            FileUtils.delete(root.toFile());
+            Files.deleteIfExists(archive.toPath());
+        }
+    }
+
+    @Test
+    public void retentionMetadataSurvivesExclusionsWithAndWithoutSnapshot() throws Exception {
+        Path root = Files.createTempDirectory(new File("build").toPath(), "retention-exclusions-");
+        Path world = Files.createDirectory(root.resolve("world"));
+        Path excluded = Files.write(world.resolve("excluded.dat"), new byte[] { 1 });
+        Path included = Files.write(world.resolve("level.dat"), new byte[] { 2 });
+        Path additional = Files.write(root.resolve("excluded.cfg"), new byte[] { 3 });
+        File archive = new File(BackupTask.BACKUP_FOLDER, "retention-exclusions.zip");
+        String[] previousIncludes = ServerUtilitiesConfig.backups.additional_backup_files;
+        String[] previousExcludes = ServerUtilitiesConfig.backups.excluded_backup_files;
+        String worldId = java.util.UUID.randomUUID().toString();
+        try {
+            ServerUtilitiesConfig.backups.additional_backup_files = new String[] {
+                    FileUtils.getRelativePath(additional.toFile()) };
+            ServerUtilitiesConfig.backups.excluded_backup_files = new String[] {
+                    FileUtils.getRelativePath(excluded.toFile()), FileUtils.getRelativePath(additional.toFile()),
+                    ICompress.BACKUP_METADATA_ENTRY };
+            for (boolean useSnapshot : new boolean[] { false, true }) {
+                ThreadBackup.Snapshot snapshot = useSnapshot ? ThreadBackup.snapshotFiles(world.toFile()) : null;
+                assertTrue(
+                        ThreadBackup.doBackup(
+                                ICompress.createCompressor(),
+                                world.toFile(),
+                                "retention-exclusions",
+                                Collections.emptySet(),
+                                snapshot,
+                                false,
+                                worldId,
+                                System.currentTimeMillis()));
+                try (ZipFile zip = new ZipFile(archive)) {
+                    assertNull(zip.getEntry(FileUtils.getRelativePath(excluded.toFile())));
+                    assertNull(zip.getEntry(FileUtils.getRelativePath(additional.toFile())));
+                    assertTrue(zip.getEntry(FileUtils.getRelativePath(included.toFile())) != null);
+                    java.util.Properties metadata = new java.util.Properties();
+                    try (InputStream input = zip.getInputStream(zip.getEntry(ICompress.BACKUP_METADATA_ENTRY))) {
+                        metadata.load(input);
+                    }
+                    assertEquals(worldId, metadata.getProperty("worldId"));
+                }
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.additional_backup_files = previousIncludes;
+            ServerUtilitiesConfig.backups.excluded_backup_files = previousExcludes;
+            ThreadBackup.deleteSnapshot();
             FileUtils.delete(root.toFile());
             Files.deleteIfExists(archive.toPath());
         }

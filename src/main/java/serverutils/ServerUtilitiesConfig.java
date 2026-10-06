@@ -307,10 +307,24 @@ public class ServerUtilitiesConfig {
         @Config.RangeDouble(min = 0)
         public double backup_timer;
 
-        @Config.Comment("Number of backup files to keep before deleting old ones.")
+        @Config.Comment("Number of backup files to keep before deleting old ones. Ignored when retention_policy is nonempty.")
         @Config.DefaultInt(12)
         @Config.RangeInt(min = 1)
         public int backups_to_keep;
+
+        @Config.Comment("""
+                Optional age-window retention rules, one maximum-age:sampling-interval per line.
+                Example: 1h:all, 1d:30m, 7d:1h, 30d:1d, forever:1w.
+                Units: s=seconds, m=minutes, h=hours, d=24 hours, w=7 days. All durations must be positive integers.
+                Keeps the newest backup per populated UTC bucket; weeks start Monday. Rules combine regardless of order.
+                'all' keeps every backup in the window; 'forever' has no age limit.
+                The current bucket's representative may be replaced. Completed forever buckets remain under an unchanged policy.
+                Always keeps the latest backup per world. Missing/offline periods are not filled.
+                Empty = existing count/size retention. Invalid rules disable pruning until corrected.
+                This only controls retention; backup_timer still controls how frequently backups are created.
+                Use /backup prune preview to inspect the decisions without deleting anything.""")
+        @Config.DefaultStringList({})
+        public String[] retention_policy;
 
         @Config.Comment("How much the backup file will be compressed. 0 - uncompressed, 1 - best speed, 9 - smallest file size.")
         @Config.DefaultInt(1)
@@ -353,7 +367,10 @@ public class ServerUtilitiesConfig {
 
         @Config.Comment("""
                 Max size of backup folder in GB. If total folder size exceeds this value it will delete old backups until the size is under.
-                0 = Disabled and backups_to_keep will be used instead.""")
+                0 = Disabled and backups_to_keep will be used instead, unless retention_policy is set.
+                With retention_policy, removes the oldest finite-retention backups after age pruning.
+                Forever representatives, protected custom backups and the latest backup per world are never removed to meet this limit.
+                Logs a warning if protected backups exceed the limit.""")
         @Config.DefaultInt(0)
         @Config.RangeInt(min = 0)
         public int max_folder_size;

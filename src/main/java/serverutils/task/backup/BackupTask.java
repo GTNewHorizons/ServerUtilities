@@ -17,6 +17,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -46,10 +47,11 @@ import serverutils.task.Task;
 
 public class BackupTask extends Task {
 
-    public static final Pattern BACKUP_NAME_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
+    public static final Pattern BACKUP_NAME_PATTERN = BackupRetention.LEGACY_NAME;
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
     public static final File BACKUP_FOLDER;
     private static final Map<WorldServer, Boolean> worldSaveStates = new IdentityHashMap<>();
+    private static boolean backupSucceeded;
     public static ThreadBackup thread;
     public static boolean hadPlayer = false;
     private ICommandSender sender;
@@ -109,6 +111,9 @@ public class BackupTask extends Task {
             hadPlayer = false;
         }
 
+        backupSucceeded = false;
+        long createdAt = System.currentTimeMillis();
+
         long started = System.nanoTime();
         long phase = started;
         StringBuilder timings = new StringBuilder();
@@ -139,6 +144,8 @@ public class BackupTask extends Task {
             }
 
             phase = recordBackupPhase(timings, "notification and claims", phase);
+            UUID worldId = universe.getUUID();
+            String backupWorldId = worldId == null ? null : worldId.toString();
             universe.saveForBackup();
             phase = recordBackupPhase(timings, "SU data save", phase);
             drainQueuedWrites();
@@ -156,11 +163,27 @@ public class BackupTask extends Task {
                     recordBackupPhase(timings, "file snapshot", phase);
                     snapshotPrepared = true;
                 }
-                thread = new ThreadBackup(compressor, worldDir, customName, backupChunks, snapshot, onlyClaimed);
+                thread = new ThreadBackup(
+                        compressor,
+                        worldDir,
+                        customName,
+                        backupChunks,
+                        snapshot,
+                        onlyClaimed,
+                        backupWorldId,
+                        createdAt);
                 thread.start();
             } else {
                 phase = recordBackupPhase(timings, "setup", phase);
-                ThreadBackup.doBackup(compressor, worldDir, customName, backupChunks, null, onlyClaimed);
+                backupSucceeded = ThreadBackup.doBackup(
+                        compressor,
+                        worldDir,
+                        customName,
+                        backupChunks,
+                        null,
+                        onlyClaimed,
+                        backupWorldId,
+                        createdAt);
                 recordBackupPhase(timings, "archive", phase);
             }
             backupStarted = true;
@@ -307,6 +330,37 @@ public class BackupTask extends Task {
     }
 
     public static void clearOldBackups() {
+        if (hasRetentionPolicy()) {
+            if (isBackupRunning()) return;
+            try {
+                BackupRetention.Plan plan = retentionPlan();
+                for (Map.Entry<File, String> decision : plan.delete.entrySet()) {
+                    try {
+                        Files.delete(decision.getKey().toPath());
+                        ServerUtilities.LOGGER
+                                .info("Deleted old backup: {} ({})", decision.getKey(), decision.getValue());
+                    } catch (IOException ex) {
+                        ServerUtilities.LOGGER.warn("Could not delete old backup {}", decision.getKey(), ex);
+                    }
+                }
+                long remaining = 0;
+                for (File file : plan.keep.keySet()) remaining += file.length();
+                for (File file : plan.delete.keySet()) remaining += file.length();
+                if (backups.max_folder_size > 0 && remaining > backups.max_folder_size * SizeUnit.GB.getSize()) {
+                    ServerUtilities.LOGGER.warn(
+                            "Backup size limit could not be met: {} bytes remain; protected backups or failed deletions",
+                            remaining);
+                }
+                for (Map.Entry<File, String> decision : plan.keep.entrySet()) {
+                    if (decision.getValue().startsWith("Unrecognized/unreadable")) {
+                        ServerUtilities.LOGGER.warn("Preserving backup {}: {}", decision.getKey(), decision.getValue());
+                    }
+                }
+            } catch (IOException | IllegalArgumentException | ArithmeticException ex) {
+                ServerUtilities.LOGGER.warn("Skipping backup pruning: {}", ex.getMessage());
+            }
+            return;
+        }
         File[] files = BACKUP_FOLDER.listFiles();
         if (files == null || files.length == 0) return;
 
@@ -327,6 +381,25 @@ public class BackupTask extends Task {
         } else if (backupFiles.size() > backups.backups_to_keep) {
             deleteExcessBackups(backupFiles);
         }
+    }
+
+    private static boolean hasRetentionPolicy() {
+        return backups.retention_policy != null && backups.retention_policy.length > 0;
+    }
+
+    private static BackupRetention.Plan retentionPlan() throws IOException {
+        return BackupRetention.plan(
+                BACKUP_FOLDER,
+                backups.retention_policy,
+                System.currentTimeMillis(),
+                backups.delete_custom_name_backups,
+                backups.max_folder_size * SizeUnit.GB.getSize());
+    }
+
+    public static BackupRetention.Plan previewRetention() throws IOException {
+        if (!hasRetentionPolicy())
+            throw new IllegalArgumentException("retention_policy is empty; legacy retention is active");
+        return retentionPlan();
     }
 
     private static void deleteOldBackups(List<File> backupFiles, long currentSize, long maxSize) {
@@ -370,6 +443,7 @@ public class BackupTask extends Task {
             }
         }
         thread = null;
+        backupSucceeded = false;
         restoreWorldSaving();
         if (interrupted) Thread.currentThread().interrupt();
     }
@@ -386,9 +460,11 @@ public class BackupTask extends Task {
             return;
         }
 
+        boolean successful = thread == null ? backupSucceeded : thread.successful;
         thread = null;
+        backupSucceeded = false;
         restoreWorldSaving();
-        clearOldBackups();
+        if (successful) clearOldBackups();
         FileUtils.delete(BACKUP_TEMP_FOLDER);
     }
 }

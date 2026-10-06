@@ -71,6 +71,9 @@ public class ThreadBackup extends Thread {
     private final Snapshot snapshot;
     private final boolean onlyClaimed;
     private final Map<Integer, File> dimensionFolders;
+    private final String worldId;
+    private final long createdAt;
+    boolean successful;
 
     public ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
         this(compress, sourceFile, backupName, backupChunks, null);
@@ -89,6 +92,11 @@ public class ThreadBackup extends Thread {
 
     ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
             Snapshot snapshot, boolean onlyClaimed) {
+        this(compress, sourceFile, backupName, backupChunks, snapshot, onlyClaimed, null, System.currentTimeMillis());
+    }
+
+    ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
+            Snapshot snapshot, boolean onlyClaimed, String worldId, long createdAt) {
         src0 = sourceFile;
         customName = backupName;
         chunksToBackup = new HashSet<>(backupChunks);
@@ -97,12 +105,23 @@ public class ThreadBackup extends Thread {
         // Capture provider paths on the calling server thread before starting the backup worker.
         dimensionFolders = onlyClaimed ? resolveDimensionFolders(sourceFile) : Collections.emptyMap();
         this.onlyClaimed = onlyClaimed;
+        this.worldId = worldId;
+        this.createdAt = createdAt;
         setPriority(7);
     }
 
     public void run() {
         try {
-            doBackup(compressor, src0, customName, chunksToBackup, snapshot, onlyClaimed, dimensionFolders);
+            successful = writeBackup(
+                    compressor,
+                    src0,
+                    customName,
+                    chunksToBackup,
+                    snapshot,
+                    onlyClaimed,
+                    dimensionFolders,
+                    worldId,
+                    createdAt);
         } finally {
             if (snapshot != null) deleteSnapshot();
         }
@@ -258,10 +277,31 @@ public class ThreadBackup extends Thread {
 
     private static void doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
             Snapshot snapshot, boolean onlyClaimed, Map<Integer, File> dimensionFolders) {
+        writeBackup(
+                compressor,
+                src,
+                customName,
+                chunks,
+                snapshot,
+                onlyClaimed,
+                dimensionFolders,
+                null,
+                System.currentTimeMillis());
+    }
+
+    static boolean doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
+            Snapshot snapshot, boolean onlyClaimed, String worldId, long createdAt) {
+        return writeBackup(compressor, src, customName, chunks, snapshot, onlyClaimed, null, worldId, createdAt);
+    }
+
+    private static boolean writeBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
+            Snapshot snapshot, boolean onlyClaimed, Map<Integer, File> dimensionFolders, String worldId,
+            long createdAt) {
         String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         File dstFile = null;
         Path temporary = null;
+        boolean published = false;
         try {
             validateBackupSource(src);
             if (onlyClaimed && chunks.isEmpty()) {
@@ -275,6 +315,7 @@ public class ThreadBackup extends Thread {
                     : new LinkedHashMap<>(snapshot.files);
             addBaseFolderFiles(files, src);
             removeExcludedFiles(files, src);
+            files.remove(ICompress.BACKUP_METADATA_ENTRY);
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
 
@@ -284,6 +325,9 @@ public class ThreadBackup extends Thread {
             temporary = FileUtils.createSaveTemporary(destination);
             try (compressor) {
                 compressor.createOutputStream(temporary.toFile());
+                if (worldId != null) {
+                    BackupRetention.writeMetadata(compressor, worldId, createdAt, !customName.isEmpty());
+                }
                 int captured = snapshot == null ? 0 : compressSnapshot(snapshot, files, compressor);
                 if (onlyClaimed) {
                     backupRegions(files, src, chunks, compressor, dimensionFolders, captured);
@@ -299,6 +343,7 @@ public class ThreadBackup extends Thread {
             }
             Files.move(temporary, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             temporary = null;
+            published = true;
             String backupSize = FileUtils.getSizeString(dstFile);
             ServerUtilities.LOGGER.info("Backup done in {} seconds ({})!", getDoneTime(start), backupSize);
             ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
@@ -329,6 +374,7 @@ public class ThreadBackup extends Thread {
         } finally {
             if (temporary != null) FileUtils.delete(temporary.toFile());
         }
+        return published;
     }
 
     static final class Snapshot {
