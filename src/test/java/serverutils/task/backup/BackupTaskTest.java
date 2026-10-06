@@ -1447,6 +1447,8 @@ public class BackupTaskTest {
             Path similar = Files.write(world.resolve("literal.dat.bak"), new byte[] { 2 });
             Path literalDirectory = Files.createDirectories(world.resolve("literal-dir/nested"));
             Path belowLiteral = Files.write(literalDirectory.resolve("data.dat"), new byte[] { 3 });
+            Path plainDirectory = Files.createDirectories(world.resolve("plain-dir"));
+            Path belowPlain = Files.write(plainDirectory.resolve("data.dat"), new byte[] { 13 });
             Path topLevelGlob = Files.write(world.resolve("top.tmp"), new byte[] { 4 });
             Path nestedGlob = Files.createDirectories(world.resolve("nested"));
             Path belowSingleStar = Files.write(nestedGlob.resolve("nested.tmp"), new byte[] { 5 });
@@ -1456,13 +1458,18 @@ public class BackupTaskTest {
             Path belowWorldName = Files.write(namedGlob.resolve("named.dat"), new byte[] { 7 });
             Path absolute = Files.write(world.resolve("absolute.dat"), new byte[] { 8 });
             Path kept = Files.write(world.resolve("keep.dat"), new byte[] { 9 });
+            Path characterClass = Files.write(world.resolve("class1.cfg"), new byte[] { 10 });
+            Path alternative = Files.write(world.resolve("choiceB.dat"), new byte[] { 11 });
+            Path singleCharacter = Files.write(world.resolve("questionA.txt"), new byte[] { 12 });
 
             String worldPath = FileUtils.getRelativePath(world.toFile());
             String parentPath = FileUtils.getRelativePath(parent.toFile());
             ServerUtilitiesConfig.backups.excluded_backup_files = new String[] { "", worldPath + "/literal.dat",
-                    worldPath + "/literal-dir", worldPath + "/*.tmp", worldPath + "/cache/**",
+                    worldPath + "/literal-dir/**", worldPath + "/plain-dir", worldPath + "/*.tmp",
+                    worldPath + "/cache/**",
                     parentPath.replace('/', '\\') + "/$WORLDNAME/named/**",
-                    absolute.toAbsolutePath().toString().replace('\\', '/') };
+                    absolute.toAbsolutePath().toString().replace('\\', '/'), worldPath + "/class[12].cfg",
+                    worldPath + "/choice{A,B}.dat", worldPath + "/question?.txt" };
 
             ThreadBackup
                     .doBackup(ICompress.createCompressor(), world.toFile(), "exclude-patterns", Collections.emptySet());
@@ -1473,7 +1480,11 @@ public class BackupTaskTest {
                 assertNull(zip.getEntry(FileUtils.getRelativePath(belowDoubleStar.toFile())));
                 assertNull(zip.getEntry(FileUtils.getRelativePath(belowWorldName.toFile())));
                 assertNull(zip.getEntry(FileUtils.getRelativePath(absolute.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(characterClass.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(alternative.toFile())));
+                assertNull(zip.getEntry(FileUtils.getRelativePath(singleCharacter.toFile())));
                 assertTrue(zip.getEntry(FileUtils.getRelativePath(similar.toFile())) != null);
+                assertTrue(zip.getEntry(FileUtils.getRelativePath(belowPlain.toFile())) != null);
                 assertTrue(zip.getEntry(FileUtils.getRelativePath(belowSingleStar.toFile())) != null);
                 assertTrue(zip.getEntry(FileUtils.getRelativePath(kept.toFile())) != null);
             }
@@ -1500,7 +1511,7 @@ public class BackupTaskTest {
             String rootPath = FileUtils.getRelativePath(root.toFile());
             ServerUtilitiesConfig.backups.additional_backup_files = new String[] { rootPath + "/additional" };
             ServerUtilitiesConfig.backups.excluded_backup_files = new String[] {
-                    FileUtils.getRelativePath(excluded.toFile()), FileUtils.getRelativePath(world.toFile()) };
+                    FileUtils.getRelativePath(excluded.toFile()), FileUtils.getRelativePath(world.toFile()) + "/**" };
 
             ThreadBackup.doBackup(
                     ICompress.createCompressor(),

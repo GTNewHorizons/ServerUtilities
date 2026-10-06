@@ -144,21 +144,61 @@ public class ThreadBackup extends Thread {
     }
 
     private static void removeExcludedFiles(Map<String, File> files, File saveFile) {
+        List<BackupExclusion> exclusions = new ArrayList<>();
         String saveName = saveFile.getName();
-
         for (String pattern : backups.excluded_backup_files) {
-            // matchesBackupPath normalizes pattern
             String excluded = FileUtils.normalizeBackupPattern(pattern.replace("$WORLDNAME", saveName));
-            if (excluded.isEmpty()) continue;
+            if (!excluded.isEmpty()) exclusions.add(new BackupExclusion(excluded));
+        }
+        if (exclusions.isEmpty()) return;
 
-            files.entrySet().removeIf(entry -> {
-                // Which regions get backed up is decided by the chunk selection, not by configured exclusions.
-                if (entry.getValue().getName().endsWith(".mca")) return false;
+        files.entrySet().removeIf(entry -> {
+            // Which regions get backed up is decided by the chunk selection, not by configured exclusions.
+            if (entry.getValue().getName().endsWith(".mca")) return false;
 
-                // Keys are paths relative to the run folder; also try the absolute path, for absolute patterns.
-                return FileUtils.matchesBackupPath(Paths.get(entry.getKey()), excluded)
-                        || FileUtils.matchesBackupPath(entry.getValue().toPath().toAbsolutePath(), excluded);
-            });
+            // Keys are relative to the run folder. Absolute patterns also need the source file path.
+            Path relative = Paths.get(entry.getKey()).normalize();
+            String relativeName = relative.toString().replace('\\', '/');
+            Path absolute = entry.getValue().toPath().toAbsolutePath().normalize();
+            String absoluteName = absolute.toString().replace('\\', '/');
+            for (BackupExclusion exclusion : exclusions) {
+                if (exclusion.matches(relative, relativeName) || exclusion.matches(absolute, absoluteName)) return true;
+            }
+            return false;
+        });
+    }
+
+    private static final class BackupExclusion {
+
+        private static final boolean WINDOWS = File.separatorChar == '\\';
+
+        private final PathMatcher matcher;
+        private final String prefix;
+        private final String suffix;
+
+        private BackupExclusion(String pattern) {
+            int first = pattern.length();
+            int last = -1;
+            for (int i = 0; i < pattern.length(); i++) {
+                if (isGlobSpecial(pattern.charAt(i))) {
+                    first = Math.min(first, i);
+                    last = i;
+                }
+            }
+            prefix = pattern.substring(0, first);
+            suffix = last < 0 ? "" : pattern.substring(last + 1);
+            matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+        }
+
+        private boolean matches(Path path, String name) {
+            // Windows glob matching ignores case, so the string checks must do the same there.
+            return name.regionMatches(WINDOWS, 0, prefix, 0, prefix.length())
+                    && name.regionMatches(WINDOWS, name.length() - suffix.length(), suffix, 0, suffix.length())
+                    && matcher.matches(path);
+        }
+
+        private static boolean isGlobSpecial(char c) {
+            return c == '*' || c == '?' || c == '[' || c == ']' || c == '{' || c == '}';
         }
     }
 
