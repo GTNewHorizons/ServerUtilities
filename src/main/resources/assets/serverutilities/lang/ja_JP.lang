@@ -55,14 +55,10 @@ serverutilities.ranks.tags.default_op_rank=デフォルトのOPランク
 
 serverutilities.debugging.log_chunkloading=チャンクロードのログ
 
-ftbutilities_client.general.render_badges=バッジを表示
-ftbutilities_client.general.journeymap_overlay=Journeymap Integrationの有効化
-ftbutilities_client.general.scan_items_whitelist=/scan_items Whitelist
-ftbutilities_client.general.scan_items_blacklist=/scan_items Blacklist
-ftbutilities_client.general.show_shutdown_timer=シャットダウンタイマーの表示
-ftbutilities_client.general.shutdown_timer_start=シャットダウンタイマースタート
-ftbutilities_client.general.button_daytime=時間変更ボタンの時間: 昼間
-ftbutilities_client.general.button_nighttime=時間変更ボタンの時間: 夜
+serverutilities_client.show_shutdown_timer=シャットダウンタイマーの表示
+serverutilities_client.shutdown_timer_start=シャットダウンタイマースタート
+serverutilities_client.button_daytime=時間変更ボタンの時間: 昼間
+serverutilities_client.button_nighttime=時間変更ボタンの時間: 夜
 
 # Rank Config
 permission.serverutilities.badge=バッジ
@@ -142,21 +138,12 @@ sidebar_button.serverutilities.trash_can=ゴミ箱
 sidebar_button.serverutilities.trash_can.tooltip=ゴミ箱を開きます。開いている間はアイテムはそこに残りますが、GUIを閉じるとアイテムを消滅します
 sidebar_button.serverutilities.mail=メール
 
-admin_panel.serverutilities.file_browser=ファイルブラウザ
-admin_panel.serverutilities.crash_reports=クラッシュレポートを表示
-admin_panel.serverutilities.config=設定を編集
-admin_panel.serverutilities.ranks=ランクを編集
-admin_panel.serverutilities.ranks.player_ranks=プレイヤーランク
-admin_panel.serverutilities.ranks.select_rank=ランクを選択
-admin_panel.serverutilities.ranks.edit.id=ID
-admin_panel.serverutilities.ranks.edit.parent=Parent
-admin_panel.serverutilities.ranks.edit.chat_formatting=チャットのフォーマット
-admin_panel.serverutilities.ranks.edit.permissions=パーミッション
-admin_panel.serverutilities.claimed_chunks=全ての領有チャンクを表示
-admin_panel.serverutilities.loaded_chunks=全てのロード済みチャンクを表示
-admin_panel.serverutilities.whitelist=ホワイトリストを編集
-admin_panel.serverutilities.ops=OPを編集
-admin_panel.serverutilities.edit_world=ワールドを編集
+serverutilities.admin_panel.crash_reports=クラッシュレポートを表示
+serverutilities.admin_panel.edit_rank=ランクを編集
+serverutilities.admin_panel.ranks.player_ranks=プレイヤーランク
+serverutilities.admin_panel.ranks.select_rank=ランクを選択
+serverutilities.admin_panel.claimed_chunks=全ての領有チャンクを表示
+serverutilities.admin_panel.edit_world=ワールドを編集
 
 # Keys
 key.serverutilities.nbt=NBTの編集
