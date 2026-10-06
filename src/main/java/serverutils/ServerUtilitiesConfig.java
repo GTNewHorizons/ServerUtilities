@@ -321,13 +321,19 @@ public class ServerUtilitiesConfig {
         @Config.DefaultString("./backups/")
         public String backup_folder_path;
 
-        @Config.Comment("List of additional paths to include in backup. Use / as directory separator! Use * as wildcard, and $WORLDNAME for the save name. If specifying a folder, the path should end with \"/**\" to match all subfolders and files.")
+        @Config.Comment("List of additional paths to include in backup. Use / as directory separator! Use * as wildcard, and $WORLDNAME for the save name. If specifying a folder, the path should end with \"/**\" to match all subfolders and files. In async mode these paths are read while the server is running, so external writers may change them during backup.")
         @Config.DefaultStringList({ "saves/NEI/global/**", "saves/NEI/local/$WORLDNAME/**" })
         public String[] additional_backup_files;
 
         @Config.Comment("Run backup in a separated thread (recommended)")
         @Config.DefaultBoolean(true)
         public boolean use_separate_thread;
+
+        @Config.Comment("""
+                Reduces lag when a backup starts. Only applies when use_separate_thread is enabled.
+                Files are copied while the server is running, so backups may contain inconsistent or partially written mod and player data and may not restore correctly. World chunks are not affected by this option.""")
+        @Config.DefaultBoolean(false)
+        public boolean prefer_speed_over_backup_consistency;
 
         @Config.Comment("Prints (current size | total size) when backup is done")
         @Config.DefaultBoolean(true)
