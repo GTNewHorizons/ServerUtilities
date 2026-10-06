@@ -1466,8 +1466,7 @@ public class BackupTaskTest {
             String parentPath = FileUtils.getRelativePath(parent.toFile());
             ServerUtilitiesConfig.backups.excluded_backup_files = new String[] { "", worldPath + "/literal.dat",
                     worldPath + "/literal-dir/**", worldPath + "/plain-dir", worldPath + "/*.tmp",
-                    worldPath + "/cache/**",
-                    parentPath.replace('/', '\\') + "/$WORLDNAME/named/**",
+                    worldPath + "/cache/**", parentPath.replace('/', '\\') + "/$WORLDNAME/named/**",
                     absolute.toAbsolutePath().toString().replace('\\', '/'), worldPath + "/class[12].cfg",
                     worldPath + "/choice{A,B}.dat", worldPath + "/question?.txt" };
 
