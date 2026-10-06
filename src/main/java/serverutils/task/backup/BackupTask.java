@@ -148,9 +148,14 @@ public class BackupTask extends Task {
             universe.scheduleTask(new BackupTask(true));
             if (backups.use_separate_thread) {
                 phase = recordBackupPhase(timings, "setup", phase);
-                ThreadBackup.Snapshot snapshot = ThreadBackup.snapshotFiles(worldDir);
-                recordBackupPhase(timings, "file snapshot", phase);
-                snapshotPrepared = true;
+                // Without a snapshot the worker lists and reads the live files itself, so the server thread does no
+                // file I/O here, at the cost of files changing while the archive is written.
+                ThreadBackup.Snapshot snapshot = null;
+                if (!backups.prefer_speed_over_backup_consistency) {
+                    snapshot = ThreadBackup.snapshotFiles(worldDir);
+                    recordBackupPhase(timings, "file snapshot", phase);
+                    snapshotPrepared = true;
+                }
                 thread = new ThreadBackup(compressor, worldDir, customName, backupChunks, snapshot, onlyClaimed);
                 thread.start();
             } else {

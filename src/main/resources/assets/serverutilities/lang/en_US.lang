@@ -112,6 +112,7 @@ serverutilities.backups.compression_level=Compression Level
 serverutilities.backups.backup_folder_path=Backup Folder Path
 serverutilities.backups.additional_backup_files=Additional Backup Files
 serverutilities.backups.use_separate_thread=Use Separate Thread
+serverutilities.backups.prefer_speed_over_backup_consistency=Prefer Speed Over Backup Consistency
 serverutilities.backups.display_file_size=Display File Size
 serverutilities.backups.need_online_players=Need Online Players
 serverutilities.backups.silent_backup=Silent Backup
