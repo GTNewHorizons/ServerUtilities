@@ -30,25 +30,16 @@ serverutilities.stat.last_seen=Last Seen
 serverutilities.stat.killed_by=Deaths by %s
 serverutilities.stat.entities_killed=%ss killed
 
-wip=Work In Progress!
-deprecated=This method is deprecated, please use %s
 example=Example:
 click_here=[Click Here]
-feature_disabled=This feature is disabled!
 feature_disabled_server=This feature is disabled on server!
 error=Error: %s
 owner=Owner: %s
 delete_item=Do you want to delete '%s'?
-server_forced=Server overrides to '%s'
 commands=Commands
-my_permissions=My Permissions
-all_permissions=All Permissions
 key.categories.serverutilities=Server Utilities
 stand_still=Please, stand still for %d seconds.
-stand_still_failed=You moved! Teleport cancelled.
 teleporting=Teleporting...
-cooldown=Cooldown
-cant_use_now=Can't use that right now!
 cant_use_now_cooldown=Can't use that right now! Cooldown: %s
 action_bar=Action Bar
 title=Title
@@ -238,10 +229,6 @@ serverutilities.server_info.admin_quick_access=Admin Quick Access
 
 # Client Config
 serverutilities_client=Client Config
-serverutilities_client.render_badges=Show Badges
-serverutilities_client.journeymap_overlay=Enable Journeymap Integration
-serverutilities_client.scan_items_whitelist=/scan_items Whitelist
-serverutilities_client.scan_items_blacklist=/scan_items Blacklist
 serverutilities_client.show_shutdown_timer=Show Shutdown Timer
 serverutilities_client.shutdown_timer_start=Shutdown Timer Start
 serverutilities_client.button_daytime=Button Daytime
@@ -252,7 +239,6 @@ serverutilities_client.item_nbt=Display Item NBT
 serverutilities_client.sidebar_buttons=Sidebar Location
 serverutilities_client.sidebar_buttons_above_potion=Draw Buttons Above Potion Label
 serverutilities_client.sidebar_placement=Sidebar Placement
-serverutilities_client.notification_location=Notification Location
 serverutilities_client.show_dotted_lines=Show Dotted Line On Loaded Chunks
 
 # Notification Config
@@ -411,13 +397,8 @@ sidebar_button.serverutilities.mail=Mail
 serverutilities.sidebar_button.reset=Reset Sidebar
 serverutilities.sidebar_button.reset.tooltip=Reset Sidebar Position
 
-serverutilities.admin_panel.file_browser=File Browser
 serverutilities.admin_panel.crash_reports=View Crash Reports
-serverutilities.admin_panel.config=Edit Config
 serverutilities.admin_panel.claimed_chunks=View All Claimed Chunks
-serverutilities.admin_panel.loaded_chunks=View All Loaded Chunks
-serverutilities.admin_panel.whitelist=Edit Whitelist
-serverutilities.admin_panel.ops=Edit OPs
 serverutilities.admin_panel.edit_world=Edit World
 serverutilities.admin_panel.ranks.player_ranks=Player Ranks
 serverutilities.admin_panel.ranks.select_rank=Select Rank
@@ -649,7 +630,6 @@ commands.tree_base.invalid_cmd.list_subcommands=Invalid subcommand '%s'! Availab
 commands.tree_base.available_subcommands=Available SubCommands: %s
 
 # Backup
-cmd.timer_backup=Next backup: %s
 cmd.backup_start=Server Backup started!
 cmd.backup_stop=Server Backup stopped!
 cmd.backup_end_1=Server backup done in %s!
@@ -681,40 +661,25 @@ commands.pause_when_empty.mask.usage=/pause_when_empty mask <seconds> (temporary
 ## Buttons
 gui.accept=Accept
 gui.add=Add
-gui.added=Added
 gui.remove=Remove
-gui.removed=Removed
 gui.close=Close
-gui.open=Open
 gui.saved=Saved
 gui.loaded=Loaded
 gui.info=Info
 gui.collapse_all=Collapse All
 gui.expand_all=Expand All
-gui.download=Download
-gui.downloaded=Downloaded
 gui.update=Update
-gui.updated=Updated
 gui.active=Active
 gui.inactive=Inactive
 gui.settings=Settings
 gui.rename=Rename
 gui.search_box=Search...
-gui.move=Move
 gui.copy=Copy
-gui.paste=Paste
-gui.cut=Cut
 
 ## Labels
 gui.other=Other
-gui.server_forced=Server Forced: %s
 gui.online=Online
-gui.offline=Offline
-gui.whitelist=Whitelist
-gui.blacklist=Blacklist
 gui.color=Color
-gui.downloading=Downloading...
-gui.infinite=Infinite
 
 ## Sides
 facing.north=North
@@ -725,7 +690,6 @@ facing.east=East
 relative_facing.bottom=Bottom
 relative_facing.top=Top
 relative_facing.back=Back
-relative_facing.front=Front
 relative_facing.left=Left
 relative_facing.right=Right
 
@@ -735,9 +699,6 @@ serverutilities.lang.team.created=Team '%s' created
 serverutilities.lang.team.id_already_exists=ID already registered!
 serverutilities.lang.team.id_invalid=ID can only contain lowercase a-z, _ and |!
 serverutilities.lang.team.deleted=Team '%s' deleted
-serverutilities.lang.team.member_left=%s left your team!
-serverutilities.lang.team.member_joined=%s joined your team!
-serverutilities.lang.team.transferred_ownership=New owner now is %s
 serverutilities.lang.team.invited=Invited %s to '%s'
 serverutilities.lang.team.invited_you=You have been invited to '%s' by %s. Click here to join!
 serverutilities.lang.team.cancel_invite=Cancel invite
@@ -748,13 +709,10 @@ serverutilities.lang.team.error.not_owner=You are not the owner of this Team!
 serverutilities.lang.team.error.not_member=%s is not a member of this Team!
 serverutilities.lang.team.error.already_member=%s is already a member of this Team!
 serverutilities.lang.team.error.must_transfer_ownership=You must transfer ownership!
-serverutilities.lang.team.error.already_invited=%s already is invited!
-serverutilities.lang.team.error.failed_to_join=Can't join this team!
 serverutilities.lang.team.permission.set=Permission '%s' for %s set to %s
 serverutilities.lang.team.permission.owner=Can't change owner's permissions!
 serverutilities.lang.team.notification=You haven't joined or created a team yet! %s to open TeamsGUI or %s to hide this message.
 serverutilities.lang.team.notification.hide=Hide this Message
-serverutilities.lang.team.chat_message=[Team %s] %s
 
 team_action.serverutilities.select_team=Select Team to Join
 team_action.serverutilities.create_team=Create a New Team
@@ -762,7 +720,6 @@ team_action.serverutilities.members=Members
 team_action.serverutilities.allies=Allies
 team_action.serverutilities.moderators=Moderators
 team_action.serverutilities.enemies=Enemies
-team_action.serverutilities.change_team=Join another Team
 team_action.serverutilities.leave=Leave Team
 team_action.serverutilities.leave.confirmation=Warning! You may lose quest progress and other things if you do!
 team_action.serverutilities.transfer_ownership=Transfer Ownership
@@ -785,7 +742,6 @@ serverutilities.lang.team_status.mod=Moderator
 serverutilities.lang.team_status.owner=Owner
 
 # Privacy Level
-privacy=Privacy
 privacy.public=Public
 privacy.private=Private
 privacy.team=Team
@@ -805,15 +761,11 @@ io_mode.out=Output Only
 io_mode.none=Disabled
 
 # Click Actions
-click_action.cmd=Command
-click_action.show_cmd=Show Command
 click_action.url=Open URL
 click_action.file=Open File
-click_action.gui=Open Gui
 
 # Aurora
 aurora=Server Utilities Aurora
-aurora.port=Port
 
 # JourneyMap
 serverutilities.jm.own_team=Your Team
