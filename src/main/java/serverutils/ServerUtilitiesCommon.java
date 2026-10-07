@@ -116,6 +116,7 @@ public class ServerUtilitiesCommon {
 
     public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
         ServerUtilitiesServerEventHandler.clearServerTasks();
+        BackupTask.stopBackupThread();
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());
@@ -159,6 +160,7 @@ public class ServerUtilitiesCommon {
     }
 
     public void onServerStopping(FMLServerStoppingEvent event) {
+        BackupTask.stopBackupThread();
         // Save the universe since onServerStopping clears the instance variable
         Universe oldUniverse = Universe.get();
         Universe.onServerStopping(event);

@@ -34,7 +34,7 @@ public class CmdBackup extends CmdTreeBase {
 
             final BackupTask task = new BackupTask(sender, target, oc);
 
-            if (BackupTask.thread == null) {
+            if (!BackupTask.isBackupRunning()) {
                 task.execute(Universe.get());
                 sender.addChatMessage(
                         ServerUtilities
@@ -53,9 +53,8 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            if (BackupTask.thread != null) {
-                BackupTask.thread.interrupt();
-                BackupTask.thread = null;
+            if (BackupTask.isBackupRunning()) {
+                BackupTask.stopBackupThread();
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_stop"));
             } else {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_not_running"));

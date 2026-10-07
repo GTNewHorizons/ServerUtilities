@@ -9,6 +9,10 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Pattern;
 
+import net.minecraft.command.CommandException;
+import net.minecraft.command.server.CommandSaveAll;
+import net.minecraft.command.server.CommandSaveOff;
+import net.minecraft.command.server.CommandSaveOn;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.stats.StatList;
@@ -17,7 +21,9 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.world.GameRules;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
@@ -48,6 +54,7 @@ import serverutils.net.MessageUpdatePlayTime;
 import serverutils.net.MessageUpdateTabName;
 import serverutils.pregenerator.ChunkLoaderManager;
 import serverutils.ranks.Ranks;
+import serverutils.task.backup.BackupTask;
 
 @EventBusSubscriber
 public class ServerUtilitiesServerEventHandler {
@@ -73,12 +80,23 @@ public class ServerUtilitiesServerEventHandler {
 
     @SubscribeEvent
     public static void loadWorldEvent(WorldEvent.Load event) {
+        if (event.world instanceof WorldServer world) BackupTask.suspendNewWorldSaving(world);
         if (ServerUtilitiesConfig.world.enable_player_sleeping_percentage) {
             if (!event.world.isRemote && !event.world.getGameRules().hasRule("playersSleepingPercentage")) {
                 event.world.getGameRules().addGameRule(
                         "playersSleepingPercentage",
                         Integer.toString(ServerUtilitiesConfig.world.player_sleeping_percentage));
             }
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public static void onBackupSaveCommand(CommandEvent event) {
+        if (BackupTask.isWorldSavingSuspended()
+                && (event.command instanceof CommandSaveAll || event.command instanceof CommandSaveOn
+                        || event.command instanceof CommandSaveOff)) {
+            event.setCanceled(true);
+            event.exception = new CommandException("cmd.backup_already_running");
         }
     }
 
