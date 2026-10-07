@@ -1443,6 +1443,62 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void customBackupNamesCannotEscapeStorageOrTargetDirectories() throws Exception {
+        Path root = Files.createTempDirectory(new File("build").toPath(), "backup-name-");
+        Path payload = Files.write(root.resolve("level.dat"), new byte[] { 42 });
+        Path escaped = root.resolve("escape.zip");
+        Path directory = Files.createDirectory(BackupTask.BACKUP_FOLDER.toPath().resolve(root.getFileName() + ".zip"));
+        Path contents = Files.write(directory.resolve("keep"), new byte[] { 1 });
+        MinecraftServer server = mock(MinecraftServer.class);
+        ServerConfigurationManager manager = mock(ServerConfigurationManager.class);
+        Field players = ServerConfigurationManager.class.getDeclaredField("playerEntityList");
+        players.setAccessible(true);
+        players.set(manager, Collections.emptyList());
+        when(server.getConfigurationManager()).thenReturn(manager);
+        cpw.mods.fml.common.FMLCommonHandler fml = cpw.mods.fml.common.FMLCommonHandler.instance();
+        Field delegate = cpw.mods.fml.common.FMLCommonHandler.class.getDeclaredField("sidedDelegate");
+        delegate.setAccessible(true);
+        Object previous = delegate.get(fml);
+        cpw.mods.fml.common.IFMLSidedHandler side = mock(cpw.mods.fml.common.IFMLSidedHandler.class);
+        when(side.getServer()).thenReturn(server);
+        delegate.set(fml, side);
+        try {
+            for (String name : new String[] { "../" + root.getFileName() + "/escape",
+                    "..\\" + root.getFileName() + "\\escape", escaped.toAbsolutePath().toString(), "C:escape",
+                    "invalid\u0000name", root.getFileName().toString() }) {
+                assertFalse(
+                        "Invalid names must not publish an archive: " + name,
+                        ThreadBackup.doBackup(
+                                ICompress.createCompressor(),
+                                root.toFile(),
+                                name,
+                                Collections.emptySet(),
+                                null,
+                                false,
+                                null,
+                                System.currentTimeMillis()));
+                assertFalse("The archive must stay inside backup storage", Files.exists(escaped));
+                assertTrue(Files.exists(contents));
+                assertTrue(Files.exists(payload));
+            }
+            new BackupTask(mock(ICommandSender.class), "../escape").execute(universeWithId(server));
+            org.mockito.Mockito.verify(manager, org.mockito.Mockito.never()).saveAllPlayerData();
+            ICommandSender sender = mock(ICommandSender.class);
+            org.junit.Assert.assertThrows(
+                    net.minecraft.command.WrongUsageException.class,
+                    () -> new serverutils.command.CmdBackup.CmdBackupStart("start")
+                            .processCommand(sender, new String[] { "../escape" }));
+            org.mockito.Mockito.verifyNoInteractions(sender);
+            assertFalse(BackupTask.isWorldSavingSuspended());
+            assertNull(BackupTask.thread);
+        } finally {
+            delegate.set(fml, previous);
+            FileUtils.delete(root.toFile());
+            FileUtils.delete(directory.toFile());
+        }
+    }
+
+    @Test
     public void startupReclaimsOnlyAbandonedArchiveFiles() throws Exception {
         java.nio.file.Path root = Files.createTempDirectory(new File("build").toPath(), "archive-cleanup-");
         try {

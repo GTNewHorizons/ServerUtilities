@@ -366,8 +366,10 @@ public class ServerUtilitiesConfig {
         public boolean silent_backup;
 
         @Config.Comment("""
-                Max size of backup folder in GB. If total folder size exceeds this value it will delete old backups until the size is under.
+                Size limit for backup archives in GB. Deletes eligible old backups when the limit is exceeded.
                 0 = Disabled and backups_to_keep will be used instead, unless retention_policy is set.
+                With legacy retention, counts only eligible ZIP files and always preserves the newest one.
+                Protected custom backups are excluded from the legacy size allowance.
                 With retention_policy, removes the oldest finite-retention backups after age pruning.
                 Forever representatives, protected custom backups and the latest backup per world are never removed to meet this limit.
                 Logs a warning if protected backups exceed the limit.""")

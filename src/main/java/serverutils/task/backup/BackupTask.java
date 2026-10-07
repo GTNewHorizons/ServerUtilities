@@ -37,7 +37,6 @@ import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.DimensionManager;
 
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunks;
 import serverutils.lib.OtherMods;
 import serverutils.lib.data.Universe;
@@ -132,6 +131,7 @@ public class BackupTask extends Task {
         boolean backupStarted = false;
         boolean snapshotPrepared = false;
         try {
+            ThreadBackup.validateBackupName(customName);
             // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
             // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
             server.getConfigurationManager().saveAllPlayerData();
@@ -342,7 +342,7 @@ public class BackupTask extends Task {
         return file.getName().startsWith(".su-save-") && file.getName().endsWith(".tmp");
     }
 
-    public static void clearOldBackups() {
+    public static synchronized void clearOldBackups() {
         if (hasRetentionPolicy()) {
             String[] policy = backups.retention_policy.clone();
             boolean deleteCustom = backups.delete_custom_name_backups;
@@ -350,27 +350,53 @@ public class BackupTask extends Task {
             startRetentionTask(() -> pruneRetention(policy, deleteCustom, maxSize));
             return;
         }
-        Thread retentionWorker = retentionThread;
-        if (retentionWorker != null && retentionWorker.isAlive()) return;
-        File[] files = BACKUP_FOLDER.listFiles();
-        if (files == null || files.length == 0) return;
+        if (backupPreparing || isBackupRunning() || isWorldSavingSuspended()) return;
+        clearLegacyBackups(
+                BACKUP_FOLDER,
+                backups.backups_to_keep,
+                backups.max_folder_size * SizeUnit.GB.getSize(),
+                backups.delete_custom_name_backups);
+    }
 
-        List<File> backupFiles = Arrays.stream(files)
-                // Only startup reclaims staging files: a running worker may still own one here.
-                .filter(file -> !isArchiveStagingFile(file))
-                .filter(
-                        file -> backups.delete_custom_name_backups
-                                || BACKUP_NAME_PATTERN.matcher(file.getName()).matches())
-                .sorted(Comparator.comparingLong(File::lastModified)).collect(Collectors.toList());
+    static void clearLegacyBackups(File folder, int keepCount, long maxSize, boolean deleteCustom) {
+        if (maxSize < 0) {
+            ServerUtilities.LOGGER.warn("Skipping legacy backup pruning: negative size limit");
+            return;
+        }
+        File[] files = folder.listFiles();
+        if (files == null) {
+            ServerUtilities.LOGGER.warn("Cannot list backup folder: {}", folder);
+            return;
+        }
 
-        long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
-        if (maxSize > 0) {
-            long currentSize = backupFiles.stream().mapToLong(FileUtils::getSize).sum();
-            if (currentSize <= maxSize) return;
-            deleteOldBackups(backupFiles, currentSize, maxSize);
-
-        } else if (backupFiles.size() > backups.backups_to_keep) {
-            deleteExcessBackups(backupFiles);
+        List<File> backupFiles = Arrays.stream(files).filter(file -> file.getName().endsWith(".zip"))
+                .filter(file -> Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS))
+                .filter(file -> deleteCustom || BACKUP_NAME_PATTERN.matcher(file.getName()).matches())
+                .sorted(Comparator.comparingLong(File::lastModified).thenComparing(File::getName))
+                .collect(Collectors.toList());
+        long currentSize = backupFiles.stream().mapToLong(File::length).sum();
+        int remainingCount = backupFiles.size();
+        // Legacy retention is global and ordered by mtime; keep at least its newest eligible archive.
+        for (int i = 0; i < backupFiles.size() - 1; i++) {
+            if (maxSize > 0 ? currentSize <= maxSize : remainingCount <= Math.max(1, keepCount)) break;
+            File file = backupFiles.get(i);
+            long size = file.length();
+            try {
+                Files.delete(file.toPath());
+                currentSize -= size;
+                remainingCount--;
+                ServerUtilities.LOGGER.info("Deleted old backup: {}", file);
+            } catch (IOException ex) {
+                ServerUtilities.LOGGER.warn("Could not delete old backup {}", file, ex);
+            }
+        }
+        if (maxSize > 0 && currentSize > maxSize) {
+            ServerUtilities.LOGGER.warn(
+                    "Legacy backup size limit could not be met: {} bytes remain; newest backup or failed deletions",
+                    currentSize);
+        } else if (maxSize == 0 && remainingCount > Math.max(1, keepCount)) {
+            ServerUtilities.LOGGER
+                    .warn("Legacy backup count limit could not be met: {} backups remain", remainingCount);
         }
     }
 
@@ -455,28 +481,6 @@ public class BackupTask extends Task {
                     if (!startRetentionTask(task))
                         throw new RejectedExecutionException("Backup or retention scan is already running");
                 });
-    }
-
-    private static void deleteOldBackups(List<File> backupFiles, long currentSize, long maxSize) {
-        int deleted = 0;
-        for (File file : backupFiles) {
-            if (currentSize <= maxSize) break;
-            currentSize -= FileUtils.getSize(file);
-            ServerUtilities.LOGGER.info("Deleting old backup: {}", file.getPath());
-            FileUtils.delete(file);
-            deleted++;
-        }
-        ServerUtilities.LOGGER.info("Deleted {} old backups", deleted);
-    }
-
-    private static void deleteExcessBackups(List<File> backupFiles) {
-        int toDelete = backupFiles.size() - ServerUtilitiesConfig.backups.backups_to_keep;
-        ServerUtilities.LOGGER.info("Deleting {} old backups", toDelete);
-        for (int i = 0; i < toDelete; i++) {
-            File file = backupFiles.get(i);
-            ServerUtilities.LOGGER.info("Deleted old backup: {}", file.getPath());
-            FileUtils.delete(file);
-        }
     }
 
     public static boolean isBackupRunning() {

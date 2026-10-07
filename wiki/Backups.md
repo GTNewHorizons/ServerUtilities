@@ -71,3 +71,19 @@ resumes. Unreadable/unrecognized ZIPs are kept and reported rather than guessed 
 after successfully publishing a backup; failed or cancelled backups do not trigger post-backup pruning.
 
 Archive deletion errors are logged and remaining size is checked against the files actually left on disk.
+
+## Legacy retention and custom names
+
+With an empty policy, legacy retention considers only regular `.zip` files directly in the backup folder.
+Directories, symbolic links, unrelated files and archive staging files are never pruned. If custom backups are
+protected, their files do not count toward the legacy count or size limit. Size retention takes precedence over
+count retention when `max_folder_size` is positive.
+
+Legacy retention sorts eligible files by filesystem modification time, breaking ties by filename. It always
+preserves the newest eligible archive, even if that archive alone exceeds the size limit; a count below one is
+treated as one. Failed deletions do not count toward either limit, and an unmet limit is logged. A negative size
+limit skips pruning. Legacy selection is global and filename-based: it does not inspect ZIP contents or preserve
+the newest backup separately for each world. Use an age-window policy for world-aware selection.
+
+Custom backup names must be filenames without path separators, control characters or reserved filename characters.
+Names cannot place archives outside the backup folder, and publication rejects existing directory or symlink targets.

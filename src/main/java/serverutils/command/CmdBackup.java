@@ -1,6 +1,7 @@
 package serverutils.command;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -18,6 +19,7 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
 import serverutils.task.backup.BackupRetention;
 import serverutils.task.backup.BackupTask;
+import serverutils.task.backup.ThreadBackup;
 
 public class CmdBackup extends CmdTreeBase {
 
@@ -91,10 +93,15 @@ public class CmdBackup extends CmdTreeBase {
         }
 
         @Override
-        public void processCommand(ICommandSender sender, String[] args) {
+        public void processCommand(ICommandSender sender, String[] args) throws WrongUsageException {
             final boolean oc = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=oc"));
             final String target = Arrays.stream(args).filter(arg -> !arg.equalsIgnoreCase("=oc")).findFirst()
                     .orElse("");
+            try {
+                ThreadBackup.validateBackupName(target);
+            } catch (IOException ex) {
+                throw new WrongUsageException(ex.getMessage());
+            }
 
             final BackupTask task = new BackupTask(sender, target, oc);
 

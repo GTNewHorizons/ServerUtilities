@@ -297,12 +297,11 @@ public class ThreadBackup extends Thread {
     private static boolean writeBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
             Snapshot snapshot, boolean onlyClaimed, Map<Integer, File> dimensionFolders, String worldId,
             long createdAt) {
-        String outName = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
-                + ".zip";
         File dstFile = null;
         Path temporary = null;
         boolean published = false;
         try {
+            dstFile = backupDestination(customName);
             validateBackupSource(src);
             if (onlyClaimed && chunks.isEmpty()) {
                 ServerUtilities.LOGGER
@@ -319,7 +318,6 @@ public class ThreadBackup extends Thread {
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
 
-            dstFile = new File(BackupTask.BACKUP_FOLDER, outName);
             Path destination = dstFile.toPath().toAbsolutePath();
             Files.createDirectories(destination.getParent());
             temporary = FileUtils.createSaveTemporary(destination);
@@ -375,6 +373,26 @@ public class ThreadBackup extends Thread {
             if (temporary != null) FileUtils.delete(temporary.toFile());
         }
         return published;
+    }
+
+    public static void validateBackupName(String name) throws IOException {
+        if (name == null || name.chars().anyMatch(c -> c < 32 || c == 127 || "\\/:*?\"<>|".indexOf(c) >= 0)) {
+            throw new IOException("Backup name must be a filename without path separators or reserved characters");
+        }
+    }
+
+    private static File backupDestination(String customName) throws IOException {
+        validateBackupName(customName);
+        String name = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
+                + ".zip";
+        Path folder = BackupTask.BACKUP_FOLDER.toPath().toAbsolutePath().normalize();
+        Path destination = folder.resolve(name).normalize();
+        if (!folder.equals(destination.getParent())) throw new IOException("Backup must stay inside backup storage");
+        if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)
+                && !Files.isRegularFile(destination, LinkOption.NOFOLLOW_LINKS)) {
+            throw new IOException("Backup destination is not a regular file: " + name);
+        }
+        return destination.toFile();
     }
 
     static final class Snapshot {
