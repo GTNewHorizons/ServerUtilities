@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.CRC32;
@@ -62,7 +63,8 @@ import serverutils.lib.util.compression.ICompress;
 
 public class ThreadBackup extends Thread {
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+    // Root locale, BackupTask.BACKUP_NAME_PATTERN only matches ASCII digits.
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.ROOT);
     private static long logMillis;
     private final File src0;
     private final String customName;

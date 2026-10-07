@@ -6,11 +6,13 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -45,8 +47,13 @@ public class StringUtils {
             .compareToIgnoreCase(getID(o2, FLAG_ID_FIX));
 
     public static final Map<String, String> TEMP_MAP = new HashMap<>();
-    public static final DecimalFormat DOUBLE_FORMATTER_00 = new DecimalFormat("#0.00");
-    public static final DecimalFormat DOUBLE_FORMATTER_0 = new DecimalFormat("#0.0");
+    // Root locale, formatDouble0 and formatDouble00 trim the fraction by looking for a dot.
+    public static final DecimalFormat DOUBLE_FORMATTER_00 = new DecimalFormat(
+            "#0.00",
+            DecimalFormatSymbols.getInstance(Locale.ROOT));
+    public static final DecimalFormat DOUBLE_FORMATTER_0 = new DecimalFormat(
+            "#0.0",
+            DecimalFormatSymbols.getInstance(Locale.ROOT));
     public final static int[] INT_SIZE_TABLE = { 9, 99, 999, 9999, 99999, 999999, 9999999, 99999999, 999999999,
             Integer.MAX_VALUE };
 
