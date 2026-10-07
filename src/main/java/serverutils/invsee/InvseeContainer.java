@@ -24,6 +24,11 @@ import serverutils.lib.gui.ContainerBase;
 
 public class InvseeContainer extends ContainerBase {
 
+    private static final int SLOT_SIZE = 16;
+    private static final int MARGIN = 8;
+    private static final int VANILLA_WIDTH = 176;
+    private static final int PLAYER_GRID_WIDTH = 8 * 18 + SLOT_SIZE;
+
     private final Map<IModdedInventory, IInventory> inventories;
     private final ForgePlayer otherPlayer;
     private final Map<IModdedInventory, List<Slot>> moddedInventorySlots = new HashMap<>();
@@ -78,8 +83,17 @@ public class InvseeContainer extends ContainerBase {
         }
 
         playerSlotStart = inventorySlots.size();
-        addPlayerSlots(8, 85);
+        // the player grid is always 9 wide, so it has to be centered under inventories that are wider than that
+        addPlayerSlots((getWidth() - PLAYER_GRID_WIDTH) / 2, 85);
         detectAndSendChanges();
+    }
+
+    /**
+     * Width the gui needs to fit the active inventory, never narrower than a vanilla container.
+     */
+    public int getWidth() {
+        int rightmostSlot = inventorySlots.stream().mapToInt(e -> e.xDisplayPosition).max().orElse(0);
+        return Math.max(VANILLA_WIDTH, rightmostSlot + SLOT_SIZE + MARGIN);
     }
 
     public boolean isArmorSlot(int containerIndex) {
