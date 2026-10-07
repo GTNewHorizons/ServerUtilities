@@ -31,7 +31,7 @@ public class GuiInvseeContainer extends GuiBase {
     private final InvseeContainer container;
     private final String playerName;
     private final PlayerHeadIcon playerIcon;
-    private final GuiContainerWrapper wrapper;
+    private final GuiWrapper wrapper;
     private int topY;
     private String inventoryName;
     private TextField textField;
@@ -41,7 +41,8 @@ public class GuiInvseeContainer extends GuiBase {
         this.container = new InvseeContainer(inventories, Minecraft.getMinecraft().thePlayer, null);
         this.playerName = playerName;
         this.playerIcon = new PlayerHeadIcon(StringUtils.fromString(playerId));
-        this.wrapper = new GuiWrapper(this, container).disableSlotDrawing();
+        this.wrapper = new GuiWrapper(this, container);
+        this.wrapper.disableSlotDrawing();
         this.inventoryName = StatCollector.translateToLocalFormatted(
                 "serverutilities.invsee.title",
                 playerName,
@@ -71,6 +72,8 @@ public class GuiInvseeContainer extends GuiBase {
         int lowestSlot = container.getLowestSlot();
         topY = wrapper.guiTop + highestSlot;
         setHeight(lowestSlot - highestSlot);
+        setWidth(container.getWidth());
+        wrapper.updateHorizontalBounds();
         int xOffset = 0;
         int yOffset = 0;
         for (Widget widget : widgets) {
@@ -159,6 +162,13 @@ public class GuiInvseeContainer extends GuiBase {
         private GuiWrapper(GuiInvseeContainer gui, Container container) {
             super(gui, container);
             this.gui = gui;
+        }
+
+        // vanilla treats a click past guiLeft + xSize as a click outside the gui and drops the stack, so the bounds
+        // have to follow inventories that are wider than a vanilla container
+        private void updateHorizontalBounds() {
+            guiLeft = gui.getX();
+            xSize = gui.width;
         }
 
         @Override
