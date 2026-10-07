@@ -27,6 +27,8 @@ import serverutils.net.MessageInvseeSwitch;
 
 public class GuiInvseeContainer extends GuiBase {
 
+    private static final int BUTTONS_PER_COLUMN = 5;
+
     private final Map<IModdedInventory, IInventory> inventories;
     private final InvseeContainer container;
     private final String playerName;
@@ -74,19 +76,34 @@ public class GuiInvseeContainer extends GuiBase {
         setHeight(lowestSlot - highestSlot);
         setWidth(container.getWidth());
         wrapper.updateHorizontalBounds();
+        int buttonShift = getButtonShift();
         int xOffset = 0;
         int yOffset = 0;
         for (Widget widget : widgets) {
             if (!(widget instanceof Button)) continue;
-            widget.setX(-18 - xOffset * 16);
+            widget.setX(-18 - xOffset * 16 + buttonShift);
             widget.setY(lowestSlot - 72 + yOffset * 16);
-            if (yOffset % 5 == 4) {
+            if (yOffset % BUTTONS_PER_COLUMN == BUTTONS_PER_COLUMN - 1) {
                 xOffset++;
                 yOffset = 0;
             } else {
                 yOffset++;
             }
         }
+    }
+
+    /**
+     * How far the switch buttons have to move right to stay on screen, overlapping the panel if there is no room.
+     */
+    private int getButtonShift() {
+        int buttons = 0;
+        for (Widget widget : widgets) {
+            if (widget instanceof Button) buttons++;
+        }
+
+        int buttonColumns = (buttons + BUTTONS_PER_COLUMN - 1) / BUTTONS_PER_COLUMN;
+        int leftmostButton = getX() - 18 - (buttonColumns - 1) * 16;
+        return Math.max(0, -leftmostButton);
     }
 
     @Override
