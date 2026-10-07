@@ -90,17 +90,11 @@ public class BackupTaskTest {
             ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
             ServerUtilitiesConfig.backups.max_folder_size = 0;
             for (File file : new File[] { old, latest }) {
-                try (ICompress compressor = ICompress.createCompressor()) {
-                    compressor.createOutputStream(file);
-                    BackupRetention.writeMetadata(
-                            compressor,
-                            worldId,
-                            file.equals(old) ? now - TimeUnit.DAYS.toMillis(2) : now,
-                            true);
-                }
+                writeRetentionArchive(file, worldId, file.equals(old) ? now - TimeUnit.DAYS.toMillis(2) : now);
             }
             ServerUtilitiesConfig.backups.retention_policy = new String[] { "1h:all", "invalid" };
             BackupTask.clearOldBackups();
+            waitForRetention();
             assertTrue(old.exists());
             assertTrue(latest.exists());
             ServerUtilitiesConfig.backups.retention_policy = new String[] { "1h:all" };
@@ -109,14 +103,166 @@ public class BackupTaskTest {
             assertTrue(preview.keep.containsKey(latest));
             assertTrue("Preview must not delete anything", old.exists());
             BackupTask.clearOldBackups();
+            assertTrue(BackupTask.retentionThread != Thread.currentThread());
+            waitForRetention();
             assertFalse(old.exists());
             assertTrue(latest.exists());
         } finally {
+            BackupTask.stopBackupThread();
             ServerUtilitiesConfig.backups.retention_policy = previousPolicy;
             ServerUtilitiesConfig.backups.delete_custom_name_backups = previousCustom;
             ServerUtilitiesConfig.backups.max_folder_size = previousLimit;
             Files.deleteIfExists(old.toPath());
             Files.deleteIfExists(latest.toPath());
+        }
+    }
+
+    private static void writeRetentionArchive(File file, String worldId, long created) throws IOException {
+        java.util.Properties metadata = new java.util.Properties();
+        metadata.setProperty("version", "1");
+        metadata.setProperty("worldId", worldId);
+        metadata.setProperty("createdAt", Long.toString(created));
+        metadata.setProperty("customName", "true");
+        try (java.util.zip.ZipOutputStream zip = new java.util.zip.ZipOutputStream(
+                Files.newOutputStream(file.toPath()))) {
+            zip.setComment("world");
+            zip.putNextEntry(new ZipEntry(ICompress.BACKUP_METADATA_ENTRY));
+            metadata.store(zip, null);
+            zip.putNextEntry(new ZipEntry("saves/world/level.dat"));
+            zip.write(1);
+        }
+    }
+
+    private static void waitForRetention() throws InterruptedException {
+        Thread worker = BackupTask.retentionThread;
+        assertTrue("Retention must run on a worker", worker != null);
+        worker.join(TimeUnit.SECONDS.toMillis(5));
+        assertFalse("Retention worker did not stop", worker.isAlive());
+    }
+
+    @Test
+    public void retentionWorkerSerializesBackupStartAndShutdownWithoutBlockingTheCaller() throws Exception {
+        CountDownLatch started = new CountDownLatch(1);
+        CountDownLatch cancelled = new CountDownLatch(1);
+        CountDownLatch finish = new CountDownLatch(1);
+        java.util.concurrent.ExecutorService stopper = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            assertTrue(BackupTask.startRetentionTask(() -> {
+                started.countDown();
+                try {
+                    finish.await();
+                } catch (InterruptedException ex) {
+                    cancelled.countDown();
+                    try {
+                        finish.await();
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }));
+            assertTrue(started.await(5, TimeUnit.SECONDS));
+            assertTrue(BackupTask.isBackupRunning());
+            assertFalse(BackupTask.isWorldSavingSuspended());
+            assertFalse(BackupTask.startRetentionTask(() -> { throw new AssertionError("Overlapping worker"); }));
+            Universe universe = mock(Universe.class);
+            new BackupTask(mock(ICommandSender.class), "busy").execute(universe);
+            org.mockito.Mockito.verifyNoInteractions(universe);
+            java.util.concurrent.Future<?> stopped = stopper.submit(BackupTask::stopBackupThread);
+            assertTrue(cancelled.await(5, TimeUnit.SECONDS));
+            org.junit.Assert.assertThrows(
+                    java.util.concurrent.TimeoutException.class,
+                    () -> stopped.get(100, TimeUnit.MILLISECONDS));
+            assertFalse(BackupTask.startRetentionTask(() -> { throw new AssertionError("Worker during shutdown"); }));
+            finish.countDown();
+            stopped.get(5, TimeUnit.SECONDS);
+            assertFalse(BackupTask.isBackupRunning());
+            assertNull(BackupTask.retentionThread);
+        } finally {
+            finish.countDown();
+            stopper.shutdownNow();
+            BackupTask.stopBackupThread();
+        }
+    }
+
+    @Test
+    public void successfulPostBackupRestoresSavingBeforeAsynchronousPruning() throws Exception {
+        String[] previousPolicy = ServerUtilitiesConfig.backups.retention_policy;
+        File old = new File(BackupTask.BACKUP_FOLDER, "post-retention-old.zip");
+        File latest = new File(BackupTask.BACKUP_FOLDER, "post-retention-latest.zip");
+        long now = System.currentTimeMillis();
+        String id = java.util.UUID.randomUUID().toString();
+        try {
+            writeRetentionArchive(old, id, now - TimeUnit.DAYS.toMillis(2));
+            writeRetentionArchive(latest, id, now);
+            ServerUtilitiesConfig.backups.retention_policy = new String[] { "1h:all" };
+            boolean previousCustom = ServerUtilitiesConfig.backups.delete_custom_name_backups;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
+            try {
+                WorldServer world = mock(WorldServer.class);
+                BackupTask.saveAndDisableWorldSaving(new WorldServer[] { world });
+                ThreadBackup worker = new ThreadBackup(null, null, "", Collections.emptySet()) {
+
+                    @Override
+                    public void run() {}
+                };
+                worker.successful = true;
+                BackupTask.thread = worker;
+                new BackupTask(true).execute(mock(Universe.class));
+                assertFalse(world.levelSaving);
+                assertFalse(BackupTask.isWorldSavingSuspended());
+                assertTrue(BackupTask.retentionThread != Thread.currentThread());
+                waitForRetention();
+                assertFalse(old.exists());
+                assertTrue(latest.exists());
+            } finally {
+                BackupTask.stopBackupThread();
+                ServerUtilitiesConfig.backups.delete_custom_name_backups = previousCustom;
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.retention_policy = previousPolicy;
+            Files.deleteIfExists(old.toPath());
+            Files.deleteIfExists(latest.toPath());
+        }
+    }
+
+    @Test
+    public void previewReturnsPlayerRepliesOnTheServerThreadAndRconRepliesBeforeReturning() throws Exception {
+        String[] previousPolicy = ServerUtilitiesConfig.backups.retention_policy;
+        File archive = new File(BackupTask.BACKUP_FOLDER, "preview-reply.zip");
+        serverutils.handlers.ServerUtilitiesServerEventHandler.clearServerTasks();
+        try {
+            writeRetentionArchive(archive, java.util.UUID.randomUUID().toString(), System.currentTimeMillis());
+            for (String policy : new String[] { "forever:all", "invalid" }) {
+                ServerUtilitiesConfig.backups.retention_policy = new String[] { policy };
+                ICommandSender player = mock(ICommandSender.class);
+                Thread caller = Thread.currentThread();
+                AtomicInteger replies = new AtomicInteger();
+                doAnswer(call -> {
+                    org.junit.Assert.assertSame(caller, Thread.currentThread());
+                    replies.incrementAndGet();
+                    return null;
+                }).when(player).addChatMessage(org.mockito.ArgumentMatchers.any());
+                serverutils.command.CmdBackup.CmdBackupPrune command = new serverutils.command.CmdBackup.CmdBackupPrune();
+                command.processCommand(player, new String[] { "preview" });
+                waitForRetention();
+                assertEquals("Replies must wait for the server task queue", 0, replies.get());
+                serverutils.handlers.ServerUtilitiesServerEventHandler.onServerTick(
+                        new cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent(
+                                cpw.mods.fml.common.gameevent.TickEvent.Phase.START));
+                assertTrue(replies.get() > 0);
+                net.minecraft.network.rcon.RConConsoleSource rcon = mock(
+                        net.minecraft.network.rcon.RConConsoleSource.class);
+                command.processCommand(rcon, new String[] { "preview" });
+                org.mockito.Mockito.verify(rcon, org.mockito.Mockito.atLeastOnce())
+                        .addChatMessage(org.mockito.ArgumentMatchers.any());
+                waitForRetention();
+                assertTrue("Preview must not delete archives", archive.exists());
+            }
+        } finally {
+            BackupTask.stopBackupThread();
+            serverutils.handlers.ServerUtilitiesServerEventHandler.clearServerTasks();
+            ServerUtilitiesConfig.backups.retention_policy = previousPolicy;
+            Files.deleteIfExists(archive.toPath());
         }
     }
 
@@ -757,6 +903,11 @@ public class BackupTaskTest {
 
             @Override
             public void saveForBackup() throws IOException {
+                assertFalse(
+                        BackupTask.startRetentionTask(
+                                () -> {
+                                    throw new AssertionError("Retention must not run during backup preparation");
+                                }));
                 throw new IOException("injected save failure");
             }
         };

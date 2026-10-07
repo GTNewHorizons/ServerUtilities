@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.time.LocalDateTime;
@@ -130,6 +131,7 @@ public final class BackupRetention {
         if (files == null) throw new IOException("Cannot list backup folder: " + folder);
         List<Archive> archives = new ArrayList<>();
         for (File file : files) {
+            checkInterrupted();
             if (!file.getName().endsWith(".zip") || !Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS))
                 continue;
             long size = Files.size(file.toPath());
@@ -146,7 +148,14 @@ public final class BackupRetention {
                                 "Unrecognized/unreadable archive: " + e.getMessage()));
             }
         }
-        return select(archives, rules, now, deleteCustom, maxSize);
+        checkInterrupted();
+        Plan plan = select(archives, rules, now, deleteCustom, maxSize);
+        checkInterrupted();
+        return plan;
+    }
+
+    static void checkInterrupted() throws InterruptedIOException {
+        if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup retention cancelled");
     }
 
     static Plan select(List<Archive> input, List<Rule> rules, long now, boolean deleteCustom, long maxSize) {
@@ -201,6 +210,24 @@ public final class BackupRetention {
 
     private static Archive read(File file, long size) throws IOException {
         try (ZipFile zip = new ZipFile(file)) {
+            String worldName = zip.getComment();
+            if (worldName == null || worldName.isEmpty()) throw new IOException("Missing world identifier");
+            if (worldName.equals(".") || worldName.equals("..")
+                    || worldName.contains("/")
+                    || worldName.contains("\\")
+                    || worldName.contains(":")) {
+                throw new IOException("Invalid world identifier");
+            }
+            String singlePlayer = "saves/" + worldName + "/";
+            String dedicated = worldName + "/";
+            boolean hasSinglePlayer = hasWorldMetadata(zip, singlePlayer);
+            boolean hasDedicated = hasWorldMetadata(zip, dedicated);
+            if (hasSinglePlayer == hasDedicated) {
+                throw new IOException(
+                        hasSinglePlayer ? "Backup contains two world layouts"
+                                : "Backup contains no level.dat or level.dat_old for world " + worldName);
+            }
+            String worldPrefix = hasSinglePlayer ? singlePlayer : dedicated;
             ZipEntry metadata = zip.getEntry(ICompress.BACKUP_METADATA_ENTRY);
             if (metadata != null) {
                 Properties properties = new Properties();
@@ -229,12 +256,9 @@ public final class BackupRetention {
                 if (created < 0) throw new IOException("Invalid backup timestamp");
                 return new Archive(file, world, created, size, Boolean.parseBoolean(custom), null);
             }
-            String worldName = zip.getComment();
-            if (worldName == null || worldName.isEmpty()) throw new IOException("Missing world identifier");
             String world = "name:" + worldName;
             // Existing SU archives already contain the persistent world UUID when universe.dat was saved.
-            ZipEntry universe = zip.getEntry("saves/" + worldName + "/serverutilities/universe.dat");
-            if (universe == null) universe = zip.getEntry(worldName + "/serverutilities/universe.dat");
+            ZipEntry universe = zip.getEntry(worldPrefix + "serverutilities/universe.dat");
             if (universe != null) {
                 try (DataInputStream input = new DataInputStream(new GZIPInputStream(zip.getInputStream(universe)))) {
                     String id = CompressedStreamTools.func_152456_a(input, new NBTSizeTracker(16 * 1024 * 1024L))
@@ -254,6 +278,14 @@ public final class BackupRetention {
             }
             return new Archive(file, world, created, size, custom, null);
         }
+    }
+
+    private static boolean hasWorldMetadata(ZipFile zip, String prefix) {
+        for (String name : new String[] { "level.dat", "level.dat_old" }) {
+            ZipEntry entry = zip.getEntry(prefix + name);
+            if (entry != null && !entry.isDirectory() && entry.getSize() > 0) return true;
+        }
+        return false;
     }
 
     static void writeMetadata(ICompress compressor, String worldId, long created, boolean custom) throws IOException {

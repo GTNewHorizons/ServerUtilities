@@ -159,13 +159,70 @@ public class BackupRetentionTest {
     }
 
     private Path zip(String name, String comment, String entryName, byte[] contents) throws Exception {
+        return zip(name, comment, entryName, contents, true);
+    }
+
+    private Path zip(String name, String comment, String entryName, byte[] contents, boolean worldMetadata)
+            throws Exception {
         Path file = temporary.getRoot().toPath().resolve(name);
         try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(file))) {
             if (comment != null) zip.setComment(comment);
             zip.putNextEntry(new ZipEntry(entryName));
             zip.write(contents);
+            if (comment != null && worldMetadata) {
+                zip.putNextEntry(new ZipEntry("saves/" + comment + "/level.dat"));
+                zip.write(1);
+            }
         }
         return file;
+    }
+
+    @Test
+    public void unusableArchivesCannotDisplaceTheLastWorldBackup() throws Exception {
+        Path valid = zip("valid.zip", "world", ICompress.BACKUP_METADATA_ENTRY, metadata(MONDAY, false));
+        List<Path> unusable = Arrays.asList(
+                zip(
+                        "metadata-only.zip",
+                        "world",
+                        ICompress.BACKUP_METADATA_ENTRY,
+                        metadata(MONDAY + 2 * DAY, false),
+                        false),
+                zip("comment-only.zip", "world", "unrelated.txt", new byte[] { 1 }, false),
+                zip("wrong-world.zip", "world", "saves/other/level.dat", new byte[] { 1 }, false),
+                zip("directory-marker.zip", "world", "saves/world/level.dat/", new byte[0], false),
+                zip("empty-marker.zip", "world", "saves/world/level.dat", new byte[0], false),
+                zip("two-layouts.zip", "world", "world/level.dat", new byte[] { 1 }));
+        BackupRetention.Plan plan = BackupRetention
+                .plan(temporary.getRoot(), new String[] { "1h:all" }, MONDAY + 2 * DAY, true, 1);
+        assertTrue(plan.keep.get(valid.toFile()).contains("Latest backup for world"));
+        for (Path path : unusable) {
+            assertTrue(path.toString(), plan.keep.get(path.toFile()).contains("Unrecognized/unreadable"));
+            assertFalse(plan.keep.get(path.toFile()).contains("Latest backup for world"));
+        }
+        assertTrue(plan.delete.isEmpty());
+    }
+
+    @Test
+    public void supportsLevelDatOldInBothLayoutsAndCancellation() throws Exception {
+        for (String prefix : new String[] { "world/", "saves/world/" }) {
+            Path path = zip(
+                    prefix.startsWith("saves") ? "singleplayer.zip" : "dedicated.zip",
+                    "world",
+                    prefix + "level.dat_old",
+                    new byte[] { 1 },
+                    false);
+            BackupRetention.Plan plan = BackupRetention
+                    .plan(temporary.getRoot(), new String[] { "forever:all" }, System.currentTimeMillis(), true, 0);
+            assertFalse(plan.keep.get(path.toFile()).contains("Unrecognized/unreadable"));
+        }
+        Thread.currentThread().interrupt();
+        try {
+            assertThrows(
+                    java.io.InterruptedIOException.class,
+                    () -> BackupRetention.plan(temporary.getRoot(), new String[] { "forever:all" }, MONDAY, true, 0));
+        } finally {
+            Thread.interrupted();
+        }
     }
 
     private static byte[] metadata(long timestamp, boolean custom) throws Exception {
@@ -257,8 +314,11 @@ public class BackupRetentionTest {
         entry.setSize(contents.length);
         entry.setCrc(checksum.getValue());
         try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(corrupted))) {
+            zip.setComment("world");
             zip.putNextEntry(entry);
             zip.write(contents);
+            zip.putNextEntry(new ZipEntry("saves/world/level.dat"));
+            zip.write(1);
         }
         byte[] archiveBytes = Files.readAllBytes(corrupted);
         int index = new String(archiveBytes, StandardCharsets.ISO_8859_1).indexOf("worldId=") + "worldId=".length();

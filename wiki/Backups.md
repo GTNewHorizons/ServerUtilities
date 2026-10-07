@@ -51,6 +51,9 @@ exceed that size, finite-retention backups are removed oldest first. This can sh
 The latest backup per world, representatives selected by `forever` rules, and custom-named backups protected by
 `delete_custom_name_backups=false` are preserved regardless of the size limit. Unrecognized/unreadable ZIPs and
 future-dated archives are also preserved. If these protections prevent meeting the limit, SU logs a warning.
+Archives must contain a nonempty `level.dat` or `level.dat_old` matching their world-folder comment in a single
+supported layout before they can participate in retention. ZIPs missing those entries are preserved and cannot
+replace the latest recognized backup. This is a structural check, not a full payload-integrity check.
 Unrelated files, directories, symbolic links, and active archive staging files are excluded from policy pruning.
 
 ## Preview and errors
@@ -58,9 +61,13 @@ Unrelated files, directories, symbolic links, and active archive staging files a
 Use `/backup prune preview` as an operator (or in singleplayer) to inspect keep/delete decisions and their reasons
 without deleting backups. It uses the same selection logic as automatic cleanup. An empty policy reports that
 legacy retention is active.
+Policy scans and deletion run on a background worker. New backups and further previews report busy while it is
+running; world saving is restored before post-backup pruning starts. Player/console preview replies arrive on a
+later server tick, while RCON waits on its own thread for the complete reply. `/backup stop` and server shutdown
+cancel and join the worker. If retention settings change during a scan, its deletion plan is skipped.
 
 Invalid rules reject the entire policy and skip pruning; backups can still be created. Fix the config before cleanup
-resumes. Unreadable/unrecognized ZIPs are kept and reported rather than guessed at. Cleanup runs on startup and
+resumes. Unreadable/unrecognized ZIPs are kept and reported rather than guessed at. Cleanup runs on server startup and
 after successfully publishing a backup; failed or cancelled backups do not trigger post-backup pruning.
 
 Archive deletion errors are logged and remaining size is checked against the files actually left on disk.

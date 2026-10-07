@@ -1,14 +1,17 @@
 package serverutils.command;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
+import net.minecraft.network.rcon.RConConsoleSource;
 
 import serverutils.ServerUtilities;
+import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.data.Universe;
@@ -38,29 +41,45 @@ public class CmdBackup extends CmdTreeBase {
                 throw new WrongUsageException(getCommandUsage(sender));
             }
             try {
-                BackupRetention.Plan plan = BackupTask.previewRetention();
-                for (Map.Entry<File, String> decision : plan.keep.entrySet()) {
-                    sender.addChatMessage(
-                            ServerUtilities
-                                    .lang("cmd.backup_prune_keep", decision.getKey().getName(), decision.getValue()));
+                CompletableFuture<BackupRetention.Plan> preview = BackupTask.previewRetentionAsync();
+                if (sender instanceof RConConsoleSource) {
+                    // RCON collects the reply before returning from this command, on its own thread.
+                    sendPreview(sender, preview.join(), null);
+                } else {
+                    preview.whenComplete(
+                            (plan, error) -> ServerUtilitiesServerEventHandler
+                                    .scheduleServerTask(() -> sendPreview(sender, plan, error)));
                 }
-                for (Map.Entry<File, String> decision : plan.delete.entrySet()) {
-                    sender.addChatMessage(
-                            ServerUtilities
-                                    .lang("cmd.backup_prune_delete", decision.getKey().getName(), decision.getValue()));
-                }
+            } catch (RuntimeException ex) {
+                sendPreview(sender, null, ex);
+            }
+        }
+
+        private static void sendPreview(ICommandSender sender, BackupRetention.Plan plan, Throwable error) {
+            if (error != null) {
+                if (error instanceof CompletionException && error.getCause() != null) error = error.getCause();
+                sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_error", error.getMessage()));
+                return;
+            }
+            for (Map.Entry<File, String> decision : plan.keep.entrySet()) {
                 sender.addChatMessage(
-                        ServerUtilities.lang(
-                                "cmd.backup_prune_summary",
-                                plan.keep.size(),
-                                plan.delete.size(),
-                                plan.remainingSize));
-                if (serverutils.ServerUtilitiesConfig.backups.max_folder_size > 0 && plan.remainingSize
-                        > serverutils.ServerUtilitiesConfig.backups.max_folder_size * FileUtils.SizeUnit.GB.getSize()) {
-                    sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_limit"));
-                }
-            } catch (IOException | IllegalArgumentException | ArithmeticException ex) {
-                sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_error", ex.getMessage()));
+                        ServerUtilities
+                                .lang("cmd.backup_prune_keep", decision.getKey().getName(), decision.getValue()));
+            }
+            for (Map.Entry<File, String> decision : plan.delete.entrySet()) {
+                sender.addChatMessage(
+                        ServerUtilities
+                                .lang("cmd.backup_prune_delete", decision.getKey().getName(), decision.getValue()));
+            }
+            sender.addChatMessage(
+                    ServerUtilities.lang(
+                            "cmd.backup_prune_summary",
+                            plan.keep.size(),
+                            plan.delete.size(),
+                            plan.remainingSize));
+            if (serverutils.ServerUtilitiesConfig.backups.max_folder_size > 0 && plan.remainingSize
+                    > serverutils.ServerUtilitiesConfig.backups.max_folder_size * FileUtils.SizeUnit.GB.getSize()) {
+                sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_limit"));
             }
         }
     }
@@ -81,7 +100,9 @@ public class CmdBackup extends CmdTreeBase {
 
             if (!BackupTask.isBackupRunning()) {
                 task.execute(Universe.get());
-                sender.addChatMessage(
+                if (BackupTask.isBackupRunning() && !BackupTask.isWorldSavingSuspended()) {
+                    sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
+                } else sender.addChatMessage(
                         ServerUtilities
                                 .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
             } else {
