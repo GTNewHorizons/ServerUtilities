@@ -18,6 +18,7 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -62,7 +63,8 @@ import serverutils.task.backup.ThreadBackup;
 @EventBusSubscriber(side = Side.CLIENT)
 public class GuiRestoreBackup extends GuiButtonListBase {
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+    // Root locale, BackupTask.BACKUP_NAME_PATTERN only matches ASCII digits.
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.ROOT);
     private static final Set<File> allBackupFiles = new ObjectOpenHashSet<>();
     private static Object2ObjectMap<String, List<File>> worldBackups;
     private final List<File> backupFiles;
