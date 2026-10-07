@@ -192,28 +192,41 @@ public class BackupTaskTest {
         long now = System.currentTimeMillis();
         String id = java.util.UUID.randomUUID().toString();
         try {
-            writeRetentionArchive(old, id, now - TimeUnit.DAYS.toMillis(2));
-            writeRetentionArchive(latest, id, now);
-            ServerUtilitiesConfig.backups.retention_policy = new String[] { "1h:all" };
             boolean previousCustom = ServerUtilitiesConfig.backups.delete_custom_name_backups;
             ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
             try {
-                WorldServer world = mock(WorldServer.class);
-                BackupTask.saveAndDisableWorldSaving(new WorldServer[] { world });
-                ThreadBackup worker = new ThreadBackup(null, null, "", Collections.emptySet()) {
+                for (String[] policy : new String[][] { { "1h:all" }, {} }) {
+                    writeRetentionArchive(old, id, now - TimeUnit.DAYS.toMillis(2));
+                    writeRetentionArchive(latest, id, now);
+                    Files.setLastModifiedTime(
+                            old.toPath(),
+                            java.nio.file.attribute.FileTime.fromMillis(now - TimeUnit.DAYS.toMillis(2)));
+                    Files.setLastModifiedTime(latest.toPath(), java.nio.file.attribute.FileTime.fromMillis(now));
+                    ServerUtilitiesConfig.backups.retention_policy = policy;
+                    int previousCount = ServerUtilitiesConfig.backups.backups_to_keep;
+                    ServerUtilitiesConfig.backups.backups_to_keep = 1;
+                    try {
+                        WorldServer world = mock(WorldServer.class);
+                        BackupTask.saveAndDisableWorldSaving(new WorldServer[] { world });
+                        ThreadBackup worker = new ThreadBackup(null, null, "", Collections.emptySet()) {
 
-                    @Override
-                    public void run() {}
-                };
-                worker.successful = true;
-                BackupTask.thread = worker;
-                new BackupTask(true).execute(mock(Universe.class));
-                assertFalse(world.levelSaving);
-                assertFalse(BackupTask.isWorldSavingSuspended());
-                assertTrue(BackupTask.retentionThread != Thread.currentThread());
-                waitForRetention();
-                assertFalse(old.exists());
-                assertTrue(latest.exists());
+                            @Override
+                            public void run() {}
+                        };
+                        worker.successful = true;
+                        BackupTask.thread = worker;
+                        new BackupTask(true).execute(mock(Universe.class));
+                        assertFalse(world.levelSaving);
+                        assertFalse(BackupTask.isWorldSavingSuspended());
+                        assertTrue(BackupTask.retentionThread != Thread.currentThread());
+                        waitForRetention();
+                        assertFalse(old.exists());
+                        assertTrue(latest.exists());
+                    } finally {
+                        BackupTask.stopBackupThread();
+                        ServerUtilitiesConfig.backups.backups_to_keep = previousCount;
+                    }
+                }
             } finally {
                 BackupTask.stopBackupThread();
                 ServerUtilitiesConfig.backups.delete_custom_name_backups = previousCustom;
@@ -270,8 +283,9 @@ public class BackupTaskTest {
     public void failedBackupCleanupRestoresWorldSavingWithoutPruning() throws Exception {
         File first = new File(BackupTask.BACKUP_FOLDER, "failed-backup-history-first.zip");
         File second = new File(BackupTask.BACKUP_FOLDER, "failed-backup-history-second.zip");
-        Files.write(first.toPath(), new byte[] { 1 });
-        Files.write(second.toPath(), new byte[] { 2 });
+        String worldId = java.util.UUID.randomUUID().toString();
+        writeRetentionArchive(first, worldId, 1);
+        writeRetentionArchive(second, worldId, 2);
         int previousCount = ServerUtilitiesConfig.backups.backups_to_keep;
         boolean previousCustom = ServerUtilitiesConfig.backups.delete_custom_name_backups;
         try {
@@ -283,6 +297,7 @@ public class BackupTaskTest {
             assertFalse(world.levelSaving);
             assertTrue(first.exists());
             assertTrue(second.exists());
+            assertNull("A failed backup must not launch pruning", BackupTask.retentionThread);
         } finally {
             ServerUtilitiesConfig.backups.backups_to_keep = previousCount;
             ServerUtilitiesConfig.backups.delete_custom_name_backups = previousCustom;
@@ -861,9 +876,16 @@ public class BackupTaskTest {
             Universe universe = universeWithId(server);
             new BackupTask(mock(ICommandSender.class), "first").execute(universe);
             waitForBackup();
-            new BackupTask(mock(ICommandSender.class), "second").execute(universe);
+            BackupTask next = new BackupTask(mock(ICommandSender.class), "second");
+            next.execute(universe);
+            if (BackupTask.thread == null) {
+                assertFalse("World saving resumes while cleanup delays the next backup", world.levelSaving);
+                waitForRetention();
+                next.execute(universe);
+            }
             waitForBackup();
             new BackupTask(true).execute(universe);
+            waitForRetention();
         } finally {
             setCurrentServer(null);
             FileUtils.delete(source);
@@ -1526,6 +1548,7 @@ public class BackupTaskTest {
             ServerUtilitiesConfig.backups.backups_to_keep = 0;
             ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
             BackupTask.clearOldBackups();
+            waitForRetention();
             assertTrue("Ordinary retention must leave worker-owned staging alone", Files.exists(active));
         } finally {
             ServerUtilitiesConfig.backups.backups_to_keep = previousCount;

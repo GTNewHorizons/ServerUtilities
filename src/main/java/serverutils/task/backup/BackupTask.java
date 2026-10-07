@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -23,7 +24,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -71,8 +71,6 @@ public class BackupTask extends Task {
         if (!BACKUP_FOLDER.exists()) BACKUP_FOLDER.mkdirs();
         // Class initialization runs before any backup worker can own an archive staging file.
         deleteAbandonedArchives(BACKUP_FOLDER);
-        // Policy cleanup starts with the server, so it cannot race the title-screen restore GUI.
-        if (!hasRetentionPolicy()) clearOldBackups();
         ServerUtilities.LOGGER.info("Backups folder - {}", BACKUP_FOLDER.getAbsolutePath());
     }
 
@@ -350,34 +348,64 @@ public class BackupTask extends Task {
             startRetentionTask(() -> pruneRetention(policy, deleteCustom, maxSize));
             return;
         }
-        if (backupPreparing || isBackupRunning() || isWorldSavingSuspended()) return;
-        clearLegacyBackups(
-                BACKUP_FOLDER,
-                backups.backups_to_keep,
-                backups.max_folder_size * SizeUnit.GB.getSize(),
-                backups.delete_custom_name_backups);
+        int keepCount = backups.backups_to_keep;
+        long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
+        boolean deleteCustom = backups.delete_custom_name_backups;
+        startRetentionTask(() -> pruneLegacy(keepCount, maxSize, deleteCustom));
     }
 
-    static void clearLegacyBackups(File folder, int keepCount, long maxSize, boolean deleteCustom) {
+    private static void pruneLegacy(int keepCount, long maxSize, boolean deleteCustom) {
         if (maxSize < 0) {
             ServerUtilities.LOGGER.warn("Skipping legacy backup pruning: negative size limit");
             return;
         }
+        try {
+            List<File> backupFiles = readLegacyBackups(BACKUP_FOLDER, deleteCustom);
+            if (hasRetentionPolicy() || keepCount != backups.backups_to_keep
+                    || deleteCustom != backups.delete_custom_name_backups
+                    || maxSize != backups.max_folder_size * SizeUnit.GB.getSize()) {
+                ServerUtilities.LOGGER.info("Retention settings changed; skipping stale legacy pruning plan");
+                return;
+            }
+            clearLegacyBackups(backupFiles, keepCount, maxSize);
+        } catch (InterruptedIOException ex) {
+            ServerUtilities.LOGGER.info("Backup retention cancelled");
+        } catch (IOException ex) {
+            ServerUtilities.LOGGER.warn("Skipping legacy backup pruning: {}", ex.getMessage());
+        }
+    }
+
+    static List<File> readLegacyBackups(File folder, boolean deleteCustom) throws IOException {
         File[] files = folder.listFiles();
-        if (files == null) {
-            ServerUtilities.LOGGER.warn("Cannot list backup folder: {}", folder);
+        if (files == null) throw new IOException("Cannot list backup folder: " + folder);
+        List<File> backupFiles = new ArrayList<>();
+        for (File file : files) {
+            BackupRetention.checkInterrupted();
+            if (!file.getName().endsWith(".zip") || !Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS)
+                    || (!deleteCustom && !BACKUP_NAME_PATTERN.matcher(file.getName()).matches()))
+                continue;
+            try {
+                BackupRetention.validateWorldArchive(file);
+                backupFiles.add(file);
+            } catch (IOException | RuntimeException ex) {
+                ServerUtilities.LOGGER.warn("Preserving unrecognized/unreadable backup {}: {}", file, ex.getMessage());
+            }
+        }
+        backupFiles.sort(Comparator.comparingLong(File::lastModified).thenComparing(File::getName));
+        BackupRetention.checkInterrupted();
+        return backupFiles;
+    }
+
+    static void clearLegacyBackups(List<File> backupFiles, int keepCount, long maxSize) throws InterruptedIOException {
+        if (maxSize < 0) {
+            ServerUtilities.LOGGER.warn("Skipping legacy backup pruning: negative size limit");
             return;
         }
-
-        List<File> backupFiles = Arrays.stream(files).filter(file -> file.getName().endsWith(".zip"))
-                .filter(file -> Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS))
-                .filter(file -> deleteCustom || BACKUP_NAME_PATTERN.matcher(file.getName()).matches())
-                .sorted(Comparator.comparingLong(File::lastModified).thenComparing(File::getName))
-                .collect(Collectors.toList());
         long currentSize = backupFiles.stream().mapToLong(File::length).sum();
         int remainingCount = backupFiles.size();
         // Legacy retention is global and ordered by mtime; keep at least its newest eligible archive.
         for (int i = 0; i < backupFiles.size() - 1; i++) {
+            BackupRetention.checkInterrupted();
             if (maxSize > 0 ? currentSize <= maxSize : remainingCount <= Math.max(1, keepCount)) break;
             File file = backupFiles.get(i);
             long size = file.length();

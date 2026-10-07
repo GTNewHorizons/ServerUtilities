@@ -117,7 +117,8 @@ public class ServerUtilitiesCommon {
     public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
         ServerUtilitiesServerEventHandler.clearServerTasks();
         BackupTask.stopBackupThread();
-        if (backups.retention_policy != null && backups.retention_policy.length > 0) BackupTask.clearOldBackups();
+        // Start cleanup with the server, so background scans cannot race the title-screen restore GUI.
+        BackupTask.clearOldBackups();
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());

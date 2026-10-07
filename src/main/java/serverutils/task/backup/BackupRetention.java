@@ -210,24 +210,8 @@ public final class BackupRetention {
 
     private static Archive read(File file, long size) throws IOException {
         try (ZipFile zip = new ZipFile(file)) {
+            String worldPrefix = worldPrefix(zip);
             String worldName = zip.getComment();
-            if (worldName == null || worldName.isEmpty()) throw new IOException("Missing world identifier");
-            if (worldName.equals(".") || worldName.equals("..")
-                    || worldName.contains("/")
-                    || worldName.contains("\\")
-                    || worldName.contains(":")) {
-                throw new IOException("Invalid world identifier");
-            }
-            String singlePlayer = "saves/" + worldName + "/";
-            String dedicated = worldName + "/";
-            boolean hasSinglePlayer = hasWorldMetadata(zip, singlePlayer);
-            boolean hasDedicated = hasWorldMetadata(zip, dedicated);
-            if (hasSinglePlayer == hasDedicated) {
-                throw new IOException(
-                        hasSinglePlayer ? "Backup contains two world layouts"
-                                : "Backup contains no level.dat or level.dat_old for world " + worldName);
-            }
-            String worldPrefix = hasSinglePlayer ? singlePlayer : dedicated;
             ZipEntry metadata = zip.getEntry(ICompress.BACKUP_METADATA_ENTRY);
             if (metadata != null) {
                 Properties properties = new Properties();
@@ -278,6 +262,33 @@ public final class BackupRetention {
             }
             return new Archive(file, world, created, size, custom, null);
         }
+    }
+
+    static void validateWorldArchive(File file) throws IOException {
+        try (ZipFile zip = new ZipFile(file)) {
+            worldPrefix(zip);
+        }
+    }
+
+    private static String worldPrefix(ZipFile zip) throws IOException {
+        String worldName = zip.getComment();
+        if (worldName == null || worldName.isEmpty()) throw new IOException("Missing world identifier");
+        if (worldName.equals(".") || worldName.equals("..")
+                || worldName.contains("/")
+                || worldName.contains("\\")
+                || worldName.contains(":")) {
+            throw new IOException("Invalid world identifier");
+        }
+        String singlePlayer = "saves/" + worldName + "/";
+        String dedicated = worldName + "/";
+        boolean hasSinglePlayer = hasWorldMetadata(zip, singlePlayer);
+        boolean hasDedicated = hasWorldMetadata(zip, dedicated);
+        if (hasSinglePlayer == hasDedicated) {
+            throw new IOException(
+                    hasSinglePlayer ? "Backup contains two world layouts"
+                            : "Backup contains no level.dat or level.dat_old for world " + worldName);
+        }
+        return hasSinglePlayer ? singlePlayer : dedicated;
     }
 
     private static boolean hasWorldMetadata(ZipFile zip, String prefix) {

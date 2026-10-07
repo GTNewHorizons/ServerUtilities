@@ -25,12 +25,12 @@ With an empty `retention_policy`, ServerUtilities uses **legacy retention**:
 - **Named backups:** set `delete_custom_name_backups=false` to protect custom-named backups. Protected files do not
   count toward the legacy count or size limit.
 
-Only regular `.zip` files directly in the backup folder are eligible. They are ordered by file modification time,
-with filename breaking ties. The newest eligible archive is always kept, even if it alone exceeds the size limit.
+Only recognized world backups in regular `.zip` files directly in the backup folder are eligible. They are ordered
+by file modification time, with filename breaking ties. The newest eligible archive is always kept, even if it alone
+exceeds the size limit. Unreadable or unrecognized ZIPs are preserved and excluded from the legacy count and size limits.
 
-**Limitation:** legacy retention treats the folder as one collection and does not check ZIP contents. A newer
-malformed ZIP can displace usable history, and there is no separate "latest backup" protection for each world.
-Use policy mode for ZIP structure checks and protection for each world.
+**Limitation:** legacy retention treats the folder as one collection. Use policy mode to preserve the latest backup
+separately for each world.
 
 ## Policy mode: keep history by age
 
@@ -97,17 +97,17 @@ Both modes leave unrelated files, directories, symbolic links and active archive
 Cleanup runs at startup and after a backup is successfully published. Failed or cancelled backups do not trigger
 post-backup cleanup. Failed deletions do not count as freed space or removed backups.
 
-Policy scans and deletion run in the background. World saving resumes before post-backup pruning starts.
+Both modes scan archives and delete backups in the background. World saving resumes before post-backup pruning starts.
 New backups and further previews report busy while the worker is running. `/backup stop` and server shutdown
 cancel the worker and wait for it to stop.
 
 | Situation | What happens |
 | --- | --- |
 | A policy rule is invalid | The entire policy is rejected and pruning is skipped. Backups can still be created; fix the rule to resume cleanup. |
-| A policy scan finds an unreadable or unrecognized ZIP | The ZIP is preserved and reported in the log. |
+| A scan finds an unreadable or unrecognized ZIP | The ZIP is preserved and reported in the log. |
 | A deletion fails | The failure is logged; cleanup checks whether the limit can still be met. |
 | A count or size limit cannot be met | A warning reports the remaining eligible count or size. In policy mode, protected ZIPs also count toward size. |
-| Retention settings change during a policy scan | Its deletion plan is skipped. |
+| Retention settings change during a scan | Its deletion plan is skipped. |
 
 Custom backup names must be filenames without path separators, control characters or reserved filename characters.
 They cannot place archives outside the backup folder. Existing directory or symlink targets are rejected.
@@ -134,13 +134,16 @@ Archives without a UUID are grouped by world-folder name. Older timestamp filena
 local timezone; older custom-named archives use file modification time. Changing timezone or touching these older
 files can affect policy selection.
 
+In policy mode, cloned worlds that keep the same UUID share retention history when their backups are in the same folder.
+
 ### ZIP checks
 
-To participate in policy selection, an archive must contain a nonempty `level.dat` or `level.dat_old` matching its
+To participate in either retention mode, an archive must contain a nonempty `level.dat` or `level.dat_old` matching its
 world-folder comment in exactly one supported layout: `<world>/` or `saves/<world>/`. Archives that fail this check
 are preserved and cannot replace the latest recognized backup.
 
-This checks archive structure, not full payload integrity.
+Legacy checks use the ZIP index without reading world-file contents. These are archive structure checks, not full
+payload-integrity checks.
 
 ### Command replies and invalid legacy limits
 
