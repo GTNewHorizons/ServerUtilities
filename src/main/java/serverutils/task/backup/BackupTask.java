@@ -76,7 +76,8 @@ public class BackupTask extends Task {
     }
 
     public BackupTask() {
-        super(Ticks.HOUR.x(backups.backup_timer));
+        super(Ticks.getFromMillis(BackupDuration.parse(BackupDuration.normalizeTimer(backups.backup_timer))));
+        if (getNextTime() < 0) throw new IllegalArgumentException("backup_timer exceeds scheduling range");
     }
 
     public BackupTask(@Nullable ICommandSender ics, String customName, final boolean forceOnlyClaimed) {

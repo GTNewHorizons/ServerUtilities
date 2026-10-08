@@ -53,6 +53,7 @@ public class BackupTaskTest {
         ServerUtilitiesConfig.backups.additional_backup_files = new String[0];
         ServerUtilitiesConfig.backups.excluded_backup_files = new String[0];
         ServerUtilitiesConfig.backups.backups_to_keep = 12;
+        ServerUtilitiesConfig.backups.backup_timer = "30m";
         ServerUtilitiesConfig.backups.compression_level = 1;
         ServerUtilitiesConfig.backups.enable_backups = true;
         ServerUtilitiesConfig.backups.need_online_players = false;
@@ -193,6 +194,56 @@ public class BackupTaskTest {
             FileUtils.delete(root.toFile());
             Files.deleteIfExists(old.toPath());
             Files.deleteIfExists(latest.toPath());
+        }
+    }
+
+    @Test
+    public void automaticTimersUseDurationUnitsAndManualBackupsIgnoreInvalidTimers() {
+        String previous = ServerUtilitiesConfig.backups.backup_timer;
+        try {
+            for (String timer : new String[] { "5m", "0.0834", "0" }) {
+                ServerUtilitiesConfig.backups.backup_timer = timer;
+                long expected = BackupDuration.parse(BackupDuration.normalizeTimer(timer));
+                long before = System.currentTimeMillis();
+                BackupTask task = new BackupTask();
+                assertEquals(expected, task.getInterval());
+                assertTrue(task.getNextTime() >= before + expected);
+            }
+            for (String invalid : new String[] { "invalid", "9223372036854775s" }) {
+                ServerUtilitiesConfig.backups.backup_timer = invalid;
+                org.junit.Assert.assertThrows(IllegalArgumentException.class, BackupTask::new);
+                assertEquals(0, new BackupTask(mock(ICommandSender.class), "manual").getInterval());
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.backup_timer = previous;
+        }
+    }
+
+    @Test
+    public void invalidTimersSkipAutomaticSchedulingWithoutStoppingOtherTasks() throws Exception {
+        Field instance = Universe.class.getDeclaredField("INSTANCE");
+        instance.setAccessible(true);
+        Object previousUniverse = instance.get(null);
+        String previousTimer = ServerUtilitiesConfig.backups.backup_timer;
+        boolean previousEnabled = ServerUtilitiesConfig.backups.enable_backups;
+        try {
+            Universe universe = mock(Universe.class);
+            instance.set(null, universe);
+            ServerUtilitiesConfig.backups.enable_backups = true;
+            ServerUtilitiesConfig.backups.backup_timer = "invalid";
+            new serverutils.ServerUtilitiesCommon().registerTasks();
+            org.mockito.Mockito.verify(universe, org.mockito.Mockito.never())
+                    .scheduleTask(org.mockito.ArgumentMatchers.isA(BackupTask.class));
+            org.mockito.Mockito.verify(universe).scheduleTask(
+                    org.mockito.ArgumentMatchers.isA(serverutils.task.CleanupTask.class),
+                    org.mockito.ArgumentMatchers.anyBoolean());
+            ServerUtilitiesConfig.backups.backup_timer = "5m";
+            new serverutils.ServerUtilitiesCommon().registerTasks();
+            org.mockito.Mockito.verify(universe).scheduleTask(org.mockito.ArgumentMatchers.isA(BackupTask.class));
+        } finally {
+            instance.set(null, previousUniverse);
+            ServerUtilitiesConfig.backups.backup_timer = previousTimer;
+            ServerUtilitiesConfig.backups.enable_backups = previousEnabled;
         }
     }
 

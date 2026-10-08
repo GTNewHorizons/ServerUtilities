@@ -9,6 +9,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 import net.minecraftforge.oredict.OreDictionary;
 
 import com.gtnewhorizon.gtnhlib.config.Config;
@@ -19,6 +21,7 @@ import serverutils.lib.config.EnumTristate;
 import serverutils.lib.item.ItemStackSerializer;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.ServerUtils;
+import serverutils.task.backup.BackupDuration;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", configSubDirectory = "../serverutilities/")
 @Config.RequiresWorldRestart
@@ -44,6 +47,27 @@ public class ServerUtilitiesConfig {
     public static final MOTD motd = new MOTD();
     public static final Transfer transfer = new Transfer();
     public static final Tab tab = new Tab();
+
+    public static void migrateBackupTimer(Configuration config) {
+        Property property = config.getCategory("backups").get("backup_timer");
+        String previous = property.getString();
+        String timer = previous;
+        try {
+            timer = BackupDuration.normalizeTimer(previous);
+        } catch (IllegalArgumentException ex) {
+            ServerUtilities.LOGGER.error("Invalid backup_timer '{}': {}", previous, ex.getMessage());
+        }
+        if (!timer.equals(previous) || property.getType() != Property.Type.STRING) {
+            Property migrated = new Property(property.getName(), timer, Property.Type.STRING)
+                    .setDefaultValue(property.getDefault()).setLanguageKey(property.getLanguageKey())
+                    .setRequiresMcRestart(property.requiresMcRestart())
+                    .setRequiresWorldRestart(property.requiresWorldRestart());
+            migrated.comment = property.comment;
+            config.getCategory("backups").put("backup_timer", migrated);
+            config.save();
+        }
+        backups.backup_timer = timer;
+    }
 
     public static class General {
 
@@ -302,10 +326,14 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean enable_backups;
 
-        @Config.Comment("Time between backups in hours. \n1.0 - backups every hour 6.0 - backups every 6 hours 0.5 - backups every 30 minutes.")
-        @Config.DefaultDouble(0.5)
-        @Config.RangeDouble(min = 0)
-        public double backup_timer;
+        @Config.Comment("""
+                Time between backups. Examples: 30m, 1h, 6h, 1d.
+                Units: s=seconds, m=minutes, h=hours, d=24 hours, w=7 days. Positive integers only; minimum 1s.
+                Values without units are legacy hours, converted and saved with units on startup.
+                Legacy hours round up to whole seconds; zero becomes 1s.
+                Invalid values prevent automatic backups until corrected; manual backups remain available.""")
+        @Config.DefaultString("30m")
+        public String backup_timer;
 
         @Config.Comment("Number of backup files to keep before deleting old ones. Ignored when retention_policy is nonempty.")
         @Config.DefaultInt(12)

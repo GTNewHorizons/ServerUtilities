@@ -4,8 +4,17 @@ ServerUtilities creates complete ZIP backups and removes older ones according to
 Backup frequency and retention are separate: `backup_timer` controls when backups are created; retention controls
 which existing backups survive cleanup.
 
-`backup_timer` is measured in hours. For example, `S:backup_timer=0.0834` creates a backup roughly every five minutes.
+`backup_timer` uses the same duration units as retention rules. For example, `S:backup_timer=5m` creates a backup
+every five minutes. The default is `30m`. Use a positive integer followed by `s` (seconds), `m` (minutes),
+`h` (hours), `d` (24 hours), or `w` (seven days); the minimum is `1s`. `all` and `forever` are only for retention.
 Frequent backups and long retention can use considerable disk space.
+
+Existing values without units are still interpreted as hours and automatically saved with units on startup.
+Migration rounds up to a whole second, then uses the largest unit that expresses that duration exactly:
+`0.5` becomes `30m`, `1.5` becomes `90m`, `24` becomes `1d`, and `0.0834` becomes `301s`.
+Legacy zero becomes `1s`; disable backups with `enable_backups=false` instead.
+Invalid or overflowing timers are reported in the log and prevent automatic backups until corrected.
+Manual backups remain available, and retention settings are unaffected.
 
 ## Choose a retention mode
 

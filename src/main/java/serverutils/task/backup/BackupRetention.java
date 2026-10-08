@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;
 import java.util.zip.GZIPInputStream;
@@ -42,7 +41,6 @@ import serverutils.lib.util.compression.ICompress;
 public final class BackupRetention {
 
     static final Pattern LEGACY_NAME = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
-    private static final Pattern DURATION = Pattern.compile("([1-9][0-9]*)([smhdw])");
     private static final DateTimeFormatter LEGACY_DATE = DateTimeFormatter.ofPattern("uuuu-MM-dd-HH-mm-ss")
             .withResolverStyle(ResolverStyle.STRICT);
     // 1970-01-05 was a Monday; day-sized buckets share its UTC midnight alignment.
@@ -73,27 +71,10 @@ public final class BackupRetention {
             rules.add(
                     new Rule(
                             age + ":" + interval,
-                            age.equals("forever") ? Long.MAX_VALUE : duration(age),
-                            interval.equals("all") ? 0 : duration(interval)));
+                            age.equals("forever") ? Long.MAX_VALUE : BackupDuration.parse(age),
+                            interval.equals("all") ? 0 : BackupDuration.parse(interval)));
         }
         return rules;
-    }
-
-    private static long duration(String value) {
-        Matcher match = DURATION.matcher(value);
-        if (match.matches()) {
-            long unit = switch (match.group(2)) {
-                case "s" -> 1_000L;
-                case "m" -> 60_000L;
-                case "h" -> 3_600_000L;
-                case "d" -> 86_400_000L;
-                default -> 604_800_000L;
-            };
-            try {
-                return Math.multiplyExact(Long.parseLong(match.group(1)), unit);
-            } catch (ArithmeticException | NumberFormatException ignored) {}
-        }
-        throw new IllegalArgumentException("Invalid retention duration: " + value);
     }
 
     static final class Archive {

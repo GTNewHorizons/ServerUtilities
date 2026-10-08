@@ -97,7 +97,7 @@ serverutilities.afk.notification_timer=Notification Timer
 serverutilities.afk.log_afk=Log AFK
 
 serverutilities.backups.enable_backups=Enable Backups
-serverutilities.backups.backup_timer=Backup Timer
+serverutilities.backups.backup_timer=Backup Interval
 serverutilities.backups.backups_to_keep=Backups To Keep
 serverutilities.backups.retention_policy=Backup Retention Policy
 serverutilities.backups.compression_level=Compression Level
