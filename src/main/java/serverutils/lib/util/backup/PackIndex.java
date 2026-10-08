@@ -1,6 +1,5 @@
 package serverutils.lib.util.backup;
 
-import com.github.bsideup.jabel.Desugar;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -14,15 +13,20 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.apache.commons.codec.binary.Hex;
 
+import com.github.bsideup.jabel.Desugar;
+
 public final class PackIndex {
+
     public static final String MAGIC = "MIDX";
     public static final String EXTENSION = ".idx";
     private static final int HASH_SIZE = 32;
 
     @Desugar
     public record Entry(byte[] hash, long offset, int length, int compressionType) {
+
         public String hexHash() {
             return Hex.encodeHexString(hash);
         }

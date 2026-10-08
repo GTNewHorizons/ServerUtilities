@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 public class PackWriter implements Closeable {
+
     private final File directory;
     private final Set<String> known;
     private final String name;
@@ -21,6 +22,8 @@ public class PackWriter implements Closeable {
 
     private FileChannel channel;
     private long position;
+    private int blobsDeduplicated;
+    private long bytesDeduplicated;
 
     public PackWriter(File directory, Set<String> known) {
         this.directory = directory;
@@ -30,14 +33,21 @@ public class PackWriter implements Closeable {
     }
 
     public boolean add(ChunkBlob blob) throws IOException {
-        if (!known.add(blob.getHash())) return false;
+        if (!known.add(blob.getHash())) {
+            int skipped = blob.data().remaining(); // 0 for references to earlier snapshots
+            if (skipped > 0) {
+                blobsDeduplicated++;
+                bytesDeduplicated += skipped;
+            }
+            return false;
+        }
 
         if (channel == null) {
             channel = FileChannel.open(
-                tempPack.toPath(),
-                StandardOpenOption.CREATE,
-                StandardOpenOption.WRITE,
-                StandardOpenOption.TRUNCATE_EXISTING);
+                    tempPack.toPath(),
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.TRUNCATE_EXISTING);
         }
 
         ChunkBlob.Metadata metadata = blob.metadata();
@@ -50,6 +60,22 @@ public class PackWriter implements Closeable {
         entries.add(new PackIndex.Entry(metadata.hash(), position, length, metadata.compressionType()));
         position += length;
         return true;
+    }
+
+    public int getBlobsWritten() {
+        return entries.size();
+    }
+
+    public long getBytesWritten() {
+        return position;
+    }
+
+    public int getBlobsDeduplicated() {
+        return blobsDeduplicated;
+    }
+
+    public long getBytesDeduplicated() {
+        return bytesDeduplicated;
     }
 
     @Override
