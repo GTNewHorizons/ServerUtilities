@@ -91,7 +91,8 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            File[] files = BackupTask.BACKUP_FOLDER.listFiles();
+            File[] files = BackupTask.BACKUP_FOLDER.listFiles(f -> f.getName().endsWith(".zip"));
+
             if (files == null || files.length == 0) {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_list_none"));
                 return;
@@ -103,6 +104,7 @@ public class CmdBackup extends CmdTreeBase {
                             "cmd.backup_list_header",
                             files.length,
                             FileUtils.getSizeString(BackupTask.BACKUP_FOLDER)));
+
             Arrays.stream(files).sorted(Comparator.comparingLong(File::lastModified)).forEach(
                     file -> sender.addChatMessage(
                             ServerUtilities.lang(
