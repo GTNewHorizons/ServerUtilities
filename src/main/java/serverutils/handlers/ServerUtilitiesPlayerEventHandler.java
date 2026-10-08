@@ -95,6 +95,7 @@ public class ServerUtilitiesPlayerEventHandler {
 
     @SubscribeEvent
     public static void onPlayerLoggedOut(ForgePlayerLoggedOutEvent event) {
+        BackupTask.hadPlayer = true;
         EntityPlayerMP player = event.getPlayer().getPlayer();
 
         if (ClaimedChunks.isActive()) {

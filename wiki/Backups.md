@@ -16,6 +16,21 @@ Legacy zero becomes `1s`; disable backups with `enable_backups=false` instead.
 Invalid or overflowing timers are reported in the log and prevent automatic backups until corrected.
 Manual backups remain available, and retention settings are unaffected.
 
+With `need_online_players=true` (the default), automatic backups run while players are online or player activity
+is pending. Login and logout activity permits a final scheduled backup after everyone leaves. Failed or cancelled
+attempts leave that activity pending for another attempt; activity during an asynchronous backup remains pending
+even if that backup succeeds. A successful manual backup also covers activity recorded before it started.
+
+This setting applies in both retention modes. Policy windows use elapsed time: periods without backups remain
+empty, and finite history can age out while the server is empty, although the latest eligible backup is protected.
+Set `need_online_players=false` for backups while empty, especially if automation keeps changing the world.
+
+## Upgrade notes
+
+Custom-name reuse now requires an explicit overwrite: change scripts using `/backup start checkpoint` repeatedly
+to `/backup start checkpoint =overwrite`. Without this flag, an existing archive is preserved and the command
+reports an error. `=overwrite` can be combined with `=oc` and requires a custom name.
+
 ## Choose a retention mode
 
 | You want to... | Settings to use |
@@ -121,7 +136,8 @@ post-backup cleanup. Failed deletions do not count as freed space or removed bac
 
 Both modes scan archives and delete backups in the background. World saving resumes before post-backup pruning starts.
 Manual backups and further previews report busy while the worker is running. Scheduled backups retry after one second
-when a backup or scan is busy, then return to their configured interval. A cleanup request made during a scan runs
+when only a retention scan is busy. If another backup is running or preparing, they wait the normal configured
+interval instead of catching up immediately after it finishes. A cleanup request made during a scan runs
 when that scan finishes; repeated requests are combined. `/backup stop` and server shutdown
 cancel the worker and wait for it to stop.
 

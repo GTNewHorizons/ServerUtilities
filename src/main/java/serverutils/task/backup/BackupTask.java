@@ -56,6 +56,7 @@ public class BackupTask extends Task {
     public static final File BACKUP_FOLDER;
     private static final Map<WorldServer, Boolean> worldSaveStates = new IdentityHashMap<>();
     private static boolean backupSucceeded;
+    private static boolean backupHadPlayer;
     private static volatile boolean backupPreparing;
     private static volatile boolean stopping;
     private static volatile boolean prunePending;
@@ -68,6 +69,7 @@ public class BackupTask extends Task {
     private boolean forceOnlyClaimed = false;
     private boolean overwrite;
     private boolean deferred;
+    private boolean retryRetention;
     private boolean started;
 
     static {
@@ -104,7 +106,7 @@ public class BackupTask extends Task {
 
     @Override
     public long getInterval() {
-        return deferred && sender == null ? Ticks.SECOND.millis() : super.getInterval();
+        return retryRetention && sender == null ? Ticks.SECOND.millis() : super.getInterval();
     }
 
     public BackupTask(@Nullable ICommandSender ics, String customName) {
@@ -129,8 +131,7 @@ public class BackupTask extends Task {
             return;
         }
         started = false;
-        deferred = backupPreparing || isBackupRunning();
-        if (deferred) return;
+        if (deferIfBusy()) return;
         if (!worldSaveStates.isEmpty()) postBackup(universe);
         boolean auto = sender == null;
 
@@ -139,15 +140,13 @@ public class BackupTask extends Task {
         MinecraftServer server = universe.server;
         if (auto && backups.need_online_players) {
             if (!hasOnlinePlayers(server) && !hadPlayer) return;
-            hadPlayer = false;
         }
 
         synchronized (BackupTask.class) {
-            if (backupPreparing || isBackupRunning()) {
-                deferred = true;
-                return;
-            }
+            if (deferIfBusy()) return;
             backupPreparing = true;
+            backupHadPlayer = hadPlayer;
+            hadPlayer = false;
         }
         backupSucceeded = false;
         long createdAt = System.currentTimeMillis();
@@ -241,9 +240,10 @@ public class BackupTask extends Task {
             ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", ex);
         } finally {
             if (!backupStarted) {
+                finishPlayerActivity(false);
                 restoreWorldSaving();
                 if (snapshotPrepared) ThreadBackup.deleteSnapshot();
-            }
+            } else if (thread == null) finishPlayerActivity(backupSucceeded);
             backupPreparing = false;
             ServerUtilities.LOGGER.info(
                     "Backup server-thread timing: started={}; total={} ms; {}",
@@ -251,6 +251,21 @@ public class BackupTask extends Task {
                     (System.nanoTime() - started) / 1_000_000L,
                     timings);
         }
+    }
+
+    private boolean deferIfBusy() {
+        Thread backupWorker = thread;
+        Thread scanWorker = retentionThread;
+        boolean backupBusy = backupPreparing || stopping || (backupWorker != null && backupWorker.isAlive());
+        boolean scanBusy = scanWorker != null && scanWorker.isAlive();
+        deferred = backupBusy || scanBusy;
+        retryRetention = scanBusy && !backupBusy;
+        return deferred;
+    }
+
+    private static void finishPlayerActivity(boolean successful) {
+        if (!successful) hadPlayer |= backupHadPlayer;
+        backupHadPlayer = false;
     }
 
     private static long recordBackupPhase(StringBuilder timings, String phase, long started) {
@@ -607,6 +622,7 @@ public class BackupTask extends Task {
         }
         restoreWorldSaving();
         synchronized (BackupTask.class) {
+            finishPlayerActivity(thread == null ? backupSucceeded : thread.successful);
             thread = null;
             retentionThread = null;
             backupSucceeded = false;
@@ -629,6 +645,7 @@ public class BackupTask extends Task {
         }
 
         boolean successful = thread == null ? backupSucceeded : thread.successful;
+        finishPlayerActivity(successful);
         thread = null;
         backupSucceeded = false;
         restoreWorldSaving();

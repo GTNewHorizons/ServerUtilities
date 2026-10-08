@@ -386,7 +386,11 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean display_file_size;
 
-        @Config.Comment("Backups won't run if no players are online.")
+        @Config.Comment("""
+                Skip automatic backups while no players are online and no player activity is pending.
+                Login/logout activity permits a final backup after everyone leaves; failed attempts remain pending.
+                Retention uses elapsed time, so empty-server periods can leave gaps in policy history.
+                Set false for backups while empty, especially if automation keeps changing the world.""")
         @Config.DefaultBoolean(true)
         public boolean need_online_players;
 

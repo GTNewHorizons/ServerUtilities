@@ -70,6 +70,7 @@ public class BackupTaskTest {
     @After
     public void resetBackupState() {
         BackupTask.stopBackupThread();
+        BackupTask.hadPlayer = false;
     }
 
     private static Universe universeWithId(MinecraftServer server) throws Exception {
@@ -200,12 +201,13 @@ public class BackupTaskTest {
     }
 
     @Test
-    public void scheduledBackupsRetryAfterBusyWorkersAndThenRestoreConfiguredInterval() throws Exception {
+    public void scheduledBackupsRetryOnlyForRetentionScans() throws Exception {
         boolean enabled = ServerUtilitiesConfig.backups.enable_backups;
         Field instance = Universe.class.getDeclaredField("INSTANCE");
         instance.setAccessible(true);
         Object previousUniverse = instance.get(null);
         CountDownLatch finish = new CountDownLatch(1);
+        CountDownLatch finishBackup = new CountDownLatch(1);
         try {
             instance.set(null, mock(Universe.class));
             BackupTask automatic = new BackupTask();
@@ -229,11 +231,144 @@ public class BackupTaskTest {
             automatic.execute(mock(Universe.class));
             assertFalse(automatic.isDeferred());
             assertEquals(configuredInterval, automatic.getInterval());
+            ThreadBackup worker = new ThreadBackup(null, null, "", Collections.emptySet()) {
+
+                @Override
+                public void run() {
+                    try {
+                        finishBackup.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            };
+            BackupTask.thread = worker;
+            worker.start();
+            BackupTask.hadPlayer = true;
+            automatic.execute(mock(Universe.class));
+            assertTrue(automatic.isDeferred());
+            assertEquals(
+                    "An active backup must not cause catch-up retries",
+                    configuredInterval,
+                    automatic.getInterval());
+            assertTrue("A skipped attempt must not consume player activity", BackupTask.hadPlayer);
         } finally {
             finish.countDown();
+            finishBackup.countDown();
             BackupTask.stopBackupThread();
             ServerUtilitiesConfig.backups.enable_backups = enabled;
             instance.set(null, previousUniverse);
+        }
+    }
+
+    @Test
+    public void logoutRecordsActivityAfterTheLastOnlineBackup() {
+        net.minecraft.entity.player.EntityPlayerMP player = mock(net.minecraft.entity.player.EntityPlayerMP.class);
+        when(player.getEntityData()).thenReturn(new net.minecraft.nbt.NBTTagCompound());
+        serverutils.lib.data.ForgePlayer forgePlayer = mock(serverutils.lib.data.ForgePlayer.class);
+        when(forgePlayer.getPlayer()).thenReturn(player);
+        serverutils.events.player.ForgePlayerLoggedOutEvent event = mock(
+                serverutils.events.player.ForgePlayerLoggedOutEvent.class);
+        when(event.getPlayer()).thenReturn(forgePlayer);
+        BackupTask.hadPlayer = false;
+        serverutils.handlers.ServerUtilitiesPlayerEventHandler.onPlayerLoggedOut(event);
+        assertTrue("Logout must permit a final backup of changes since the last online backup", BackupTask.hadPlayer);
+    }
+
+    @Test
+    public void emptyServerActivitySurvivesArchiveFailuresAndNewActivityDuringAsyncSuccess() throws Exception {
+        boolean previousGuard = ServerUtilitiesConfig.backups.need_online_players;
+        boolean previousThread = ServerUtilitiesConfig.backups.use_separate_thread;
+        int previousCompression = ServerUtilitiesConfig.backups.compression_level;
+        File source = Files.createTempDirectory(new File("build").toPath(), "player-activity-").toFile();
+        Files.write(new File(source, "level.dat").toPath(), new byte[] { 42 });
+        MinecraftServer previousServer = MinecraftServer.getServer();
+        MinecraftServer server = mock(MinecraftServer.class);
+        ServerConfigurationManager manager = mock(ServerConfigurationManager.class);
+        Field players = ServerConfigurationManager.class.getDeclaredField("playerEntityList");
+        players.setAccessible(true);
+        players.set(manager, Collections.emptyList());
+        when(server.getConfigurationManager()).thenReturn(manager);
+        WorldServer world = mock(WorldServer.class);
+        server.worldServers = new WorldServer[] { world };
+        ISaveFormat format = mock(ISaveFormat.class);
+        SaveHandler handler = mock(SaveHandler.class);
+        when(server.getActiveAnvilConverter()).thenReturn(format);
+        when(format.getSaveLoader(server.getFolderName(), false)).thenReturn(handler);
+        when(handler.getWorldDirectory()).thenReturn(source);
+        cpw.mods.fml.common.FMLCommonHandler fml = cpw.mods.fml.common.FMLCommonHandler.instance();
+        Field delegate = cpw.mods.fml.common.FMLCommonHandler.class.getDeclaredField("sidedDelegate");
+        delegate.setAccessible(true);
+        Object previousDelegate = delegate.get(fml);
+        cpw.mods.fml.common.IFMLSidedHandler side = mock(cpw.mods.fml.common.IFMLSidedHandler.class);
+        when(side.getServer()).thenReturn(server);
+        java.util.Set<File> previousFiles = new java.util.HashSet<>(
+                Arrays.asList(BackupTask.BACKUP_FOLDER.listFiles()));
+        try {
+            setCurrentServer(server);
+            delegate.set(fml, side);
+            ServerUtilitiesConfig.backups.need_online_players = true;
+            AtomicInteger attempts = new AtomicInteger();
+            Universe universe = new Universe(server) {
+
+                @Override
+                public void saveForBackup() {
+                    attempts.incrementAndGet();
+                    assertFalse("Activity must be consumed only after reserving the backup", BackupTask.hadPlayer);
+                }
+            };
+            for (String mode : new String[] { "sync-failure", "sync-success", "async-failure", "stop-failure",
+                    "async-success", "async-new-activity" }) {
+                boolean failure = mode.endsWith("failure");
+                boolean async = !mode.startsWith("sync");
+                boolean newActivity = mode.endsWith("new-activity");
+                ServerUtilitiesConfig.backups.use_separate_thread = async;
+                ServerUtilitiesConfig.backups.compression_level = failure ? 10 : 1;
+                BackupTask.hadPlayer = true;
+                int before = attempts.get();
+                for (int attempt = 0; attempt < (failure ? 2 : 1); attempt++) {
+                    BackupTask task = new BackupTask();
+                    task.execute(universe);
+                    if (async) {
+                        assertTrue(task.hasStarted());
+                        assertFalse(BackupTask.hadPlayer);
+                        if (newActivity) BackupTask.hadPlayer = true;
+                        waitForBackup();
+                        assertEquals(!failure, BackupTask.thread.successful);
+                        if (mode.equals("stop-failure")) BackupTask.stopBackupThread();
+                        else new BackupTask(true).execute(universe);
+                        if (!failure) waitForRetention();
+                    } else {
+                        assertEquals(!failure, task.hasStarted());
+                        if (!failure) {
+                            new BackupTask(true).execute(universe);
+                            waitForRetention();
+                        }
+                    }
+                    assertEquals(mode, failure || newActivity, BackupTask.hadPlayer);
+                    assertFalse(world.levelSaving);
+                }
+                assertEquals(before + (failure ? 2 : 1), attempts.get());
+                if (!failure && !newActivity) {
+                    new BackupTask().execute(universe);
+                    assertEquals(
+                            "No pending activity means no further empty-server backup",
+                            before + 1,
+                            attempts.get());
+                }
+                BackupTask.stopBackupThread();
+            }
+        } finally {
+            BackupTask.stopBackupThread();
+            setCurrentServer(previousServer);
+            delegate.set(fml, previousDelegate);
+            ServerUtilitiesConfig.backups.need_online_players = previousGuard;
+            ServerUtilitiesConfig.backups.use_separate_thread = previousThread;
+            ServerUtilitiesConfig.backups.compression_level = previousCompression;
+            FileUtils.delete(source);
+            for (File file : BackupTask.BACKUP_FOLDER.listFiles()) {
+                if (!previousFiles.contains(file)) FileUtils.delete(file);
+            }
         }
     }
 
@@ -1236,7 +1371,18 @@ public class BackupTaskTest {
                 throw new IOException("injected save failure");
             }
         };
-        new BackupTask(mock(ICommandSender.class), "failed-universe").execute(universe);
+        boolean previousGuard = ServerUtilitiesConfig.backups.need_online_players;
+        try {
+            ServerUtilitiesConfig.backups.need_online_players = true;
+            BackupTask.hadPlayer = true;
+            for (int attempt = 0; attempt < 2; attempt++) {
+                new BackupTask().execute(universe);
+                assertTrue("Failed preparation must preserve the empty-server backup request", BackupTask.hadPlayer);
+            }
+            org.mockito.Mockito.verify(manager, org.mockito.Mockito.times(2)).saveAllPlayerData();
+        } finally {
+            ServerUtilitiesConfig.backups.need_online_players = previousGuard;
+        }
         assertFalse(world.levelSaving);
         assertFalse(BackupTask.isWorldSavingSuspended());
         assertNull(BackupTask.thread);
