@@ -41,6 +41,10 @@ import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.lib.util.backup.SimpleChunkReader;
+import serverutils.lib.util.backup.SnapshotStats;
+import serverutils.lib.util.backup.SnapshotStore;
+import serverutils.lib.util.backup.SnapshotWriter;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.task.Task;
 
@@ -51,6 +55,7 @@ public class BackupTask extends Task {
     public static final File BACKUP_FOLDER;
     private static final Map<WorldServer, Boolean> worldSaveStates = new IdentityHashMap<>();
     public static ThreadBackup thread;
+    private static Thread snapshotThread;
     public static boolean hadPlayer = false;
     private ICommandSender sender;
     private String customName = "";
@@ -183,6 +188,60 @@ public class BackupTask extends Task {
                     (System.nanoTime() - started) / 1_000_000L,
                     timings);
         }
+    }
+
+    public static void startSnapshot(Universe universe, ICommandSender sender) {
+        if (isBackupRunning() || isWorldSavingSuspended()) {
+            sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
+            return;
+        }
+
+        MinecraftServer server = universe.server;
+        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
+        File snapshotDir;
+        try {
+            snapshotDir = SnapshotStore.backupDirectoryFor(worldDir, BACKUP_FOLDER);
+            server.getConfigurationManager().saveAllPlayerData();
+            saveAndDisableWorldSaving(server.worldServers);
+            flushChunkSaves(server.worldServers);
+            universe.saveForBackup();
+            drainQueuedWrites();
+        } catch (Exception ex) {
+            if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
+            restoreWorldSaving();
+            ServerUtilities.LOGGER.error("An error occurred while preparing snapshot, Aborting!", ex);
+            sender.addChatMessage(
+                    new ChatComponentText(
+                            EnumChatFormatting.RED + "An error occurred while preparing snapshot. " + ex.getMessage()));
+            return;
+        }
+
+        universe.scheduleTask(new BackupTask(true));
+
+        // TODO actually add to the lang file
+        // also probably customize the thread class or at least make a helper method
+        snapshotThread = new Thread(() -> {
+            try {
+                SnapshotWriter writer = new SnapshotWriter(new SimpleChunkReader());
+                writer.write(worldDir, snapshotDir);
+                SnapshotStats stats = writer.getStats();
+
+                sender.addChatMessage(
+                        new ChatComponentText(
+                                String.format(
+                                        "Finished snapshot in %.1fs (New: %s, %d chunks and %d regions unchanged)",
+                                        stats.durationMillis / 1000.0,
+                                        FileUtils.getSizeString(stats.newBytes),
+                                        stats.unmodifiedChunks,
+                                        stats.unmodifiedFiles)));
+            } catch (Exception ex) {
+                ServerUtilities.LOGGER.error("Snapshot failed", ex);
+                sender.addChatMessage(
+                        new ChatComponentText(EnumChatFormatting.RED + "Snapshot failed. " + ex.getMessage()));
+            }
+        }, "ServerUtilities-Snapshot");
+        snapshotThread.start();
+        sender.addChatMessage(new ChatComponentText("Started snapshot"));
     }
 
     private static long recordBackupPhase(StringBuilder timings, String phase, long started) {
@@ -352,26 +411,32 @@ public class BackupTask extends Task {
     }
 
     public static boolean isBackupRunning() {
-        return thread != null && thread.isAlive();
+        return thread != null && thread.isAlive() || snapshotThread != null && snapshotThread.isAlive();
     }
 
     public static void stopBackupThread() {
-        ThreadBackup backupThread = thread;
+        boolean interrupted = stopThread(thread);
+        interrupted |= stopThread(snapshotThread);
+        thread = null;
+        snapshotThread = null;
+        restoreWorldSaving();
+        if (interrupted) Thread.currentThread().interrupt();
+    }
+
+    private static boolean stopThread(@Nullable Thread worker) {
         boolean interrupted = false;
-        if (backupThread != null) {
-            backupThread.interrupt();
-            while (backupThread.isAlive()) {
+        if (worker != null) {
+            worker.interrupt();
+            while (worker.isAlive()) {
                 try {
-                    backupThread.join();
+                    worker.join();
                 } catch (InterruptedException ex) {
                     interrupted = true;
-                    backupThread.interrupt();
+                    worker.interrupt();
                 }
             }
         }
-        thread = null;
-        restoreWorldSaving();
-        if (interrupted) Thread.currentThread().interrupt();
+        return interrupted;
     }
 
     private boolean hasOnlinePlayers(MinecraftServer server) {
@@ -387,6 +452,7 @@ public class BackupTask extends Task {
         }
 
         thread = null;
+        snapshotThread = null;
         restoreWorldSaving();
         clearOldBackups();
         FileUtils.delete(BACKUP_TEMP_FOLDER);

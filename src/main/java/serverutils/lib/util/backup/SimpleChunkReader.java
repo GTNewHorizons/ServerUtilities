@@ -1,15 +1,15 @@
 package serverutils.lib.util.backup;
 
+import static serverutils.lib.util.backup.RegionChunkFile.*;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-
-import static serverutils.lib.util.backup.RegionChunkFile.*;
-
 public class SimpleChunkReader implements ChunkReader {
+
     @Override
     public List<ChunkBlob> readChunks(ChunkFile chunkFile) throws IOException {
         // abstraction used for possible support of different chunk storage formats
