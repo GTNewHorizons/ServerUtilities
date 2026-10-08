@@ -17,32 +17,22 @@ import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 
+import serverutils.lib.util.FileUtils;
+
 public class CommonsCompressor implements ICompress {
 
     private ArchiveOutputStream output;
 
     @Override
     public void createOutputStream(File file) throws IOException {
-        ZipArchiveOutputStream zaos = new ZipArchiveOutputStream(file) {
+        ZipArchiveOutputStream zaos;
 
-            @Override
-            public void close() throws IOException {
-                try {
-                    super.close();
-                } catch (IOException | RuntimeException | Error failure) {
-                    // Commons Compress 1.8 skips closing the file when finish() rejects an incomplete entry.
-                    finished = true;
-                    try {
-                        super.close();
-                    } catch (IOException cleanup) {
-                        failure.addSuppressed(cleanup);
-                    }
-                    throw failure;
-                } finally {
-                    def.end();
-                }
-            }
-        };
+        if (FileUtils.isRegionFile(file)) {
+            zaos = CustomZipArchiveOutputStream.buffered(file, FileUtils.SizeUnit.MB.getSize());
+        } else {
+            zaos = new CustomZipArchiveOutputStream(file);
+        }
+
         if (backups.compression_level == 0) {
             zaos.setMethod(ZipEntry.STORED);
         } else {
@@ -60,6 +50,7 @@ public class CommonsCompressor implements ICompress {
     @Override
     public void addFileToArchive(File file, String name) throws IOException {
         ArchiveEntry entry = output.createArchiveEntry(file, name);
+
         output.putArchiveEntry(entry);
         try (FileInputStream fis = new FileInputStream(file)) {
             ICompress.copyInterruptibly(fis, output);

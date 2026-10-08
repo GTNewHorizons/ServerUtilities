@@ -264,6 +264,10 @@ public class FileUtils {
         }
     }
 
+    public static boolean isRegionFile(File file) {
+        return file.getName().endsWith(".mca");
+    }
+
     public static String getRelativePath(File file) {
         Path filePath = file.toPath().toAbsolutePath();
         return Paths.get("").toAbsolutePath().relativize(filePath).toString().replace('\\', '/');

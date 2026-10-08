@@ -8,11 +8,16 @@ import java.util.Date;
 
 import net.minecraft.command.ICommandSender;
 
+import net.minecraft.util.ChatComponentText;
+import net.minecraftforge.common.DimensionManager;
 import serverutils.ServerUtilities;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.backup.ChunkReader;
+import serverutils.lib.util.backup.SimpleChunkReader;
+import serverutils.lib.util.backup.Snapshot;
 import serverutils.task.backup.BackupTask;
 
 public class CmdBackup extends CmdTreeBase {
@@ -33,20 +38,24 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            final boolean oc = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=oc"));
-            final String target = Arrays.stream(args).filter(arg -> !arg.equalsIgnoreCase("=oc")).findFirst()
-                    .orElse("");
+            ChunkReader reader = new SimpleChunkReader();
+            Snapshot.create(DimensionManager.getCurrentSaveRootDirectory(), BackupTask.BACKUP_FOLDER, reader);
+            sender.addChatMessage(new ChatComponentText("Finished backup"));
 
-            final BackupTask task = new BackupTask(sender, target, oc);
-
-            if (!BackupTask.isBackupRunning()) {
-                task.execute(Universe.get());
-                sender.addChatMessage(
-                        ServerUtilities
-                                .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
-            } else {
-                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
-            }
+//            final boolean oc = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=oc"));
+//            final String target = Arrays.stream(args).filter(arg -> !arg.equalsIgnoreCase("=oc")).findFirst()
+//                    .orElse("");
+//
+//            final BackupTask task = new BackupTask(sender, target, oc);
+//
+//            if (!BackupTask.isBackupRunning()) {
+//                task.execute(Universe.get());
+//                sender.addChatMessage(
+//                        ServerUtilities
+//                                .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
+//            } else {
+//                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
+//            }
         }
     }
 

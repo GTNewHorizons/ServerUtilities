@@ -81,6 +81,6 @@ public interface ICompress extends AutoCloseable {
     String getWorldName(File file) throws IOException;
 
     static ICompress createCompressor() {
-        return useLegacy ? new LegacyCompressor() : new CommonsCompressor();
+        return useLegacy || true ? new LegacyCompressor() : new CommonsCompressor();
     }
 }
