@@ -103,6 +103,12 @@ The preview lists which archives would be kept or deleted and why, without delet
 selection rules as automatic cleanup. Its summary shows both the total remaining ZIP size and the size counted
 against the rotation allowance. An empty policy reports that legacy retention is active.
 
+`/backup list` lists regular ZIP backups oldest first, with their creation dates and sizes. It uses the same archive
+reader as retention: metadata takes precedence, followed by the legacy timestamp filename or file modification
+time. Unrecognized/unreadable archives remain listed using modification time. Its total covers the listed ZIPs.
+Listing works in either retention mode and runs in the background; like preview, it reports busy during a backup
+or another archive scan. Player/console replies arrive on a later server tick; RCON waits for the complete reply.
+
 ## What a policy always protects
 
 Policy cleanup preserves these archives, even when the size limit cannot be met:

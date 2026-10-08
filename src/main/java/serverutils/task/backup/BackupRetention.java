@@ -77,12 +77,12 @@ public final class BackupRetention {
         return rules;
     }
 
-    static final class Archive {
+    public static final class Archive {
 
-        final File file;
+        public final File file;
         final String world;
-        final long created;
-        final long size;
+        public final long created;
+        public final long size;
         final boolean custom;
         final String problem;
 
@@ -113,6 +113,12 @@ public final class BackupRetention {
     public static Plan plan(File folder, String[] policy, long now, boolean deleteCustom, long maxSize)
             throws IOException {
         List<Rule> rules = parse(policy);
+        Plan plan = select(readArchives(folder), rules, now, deleteCustom, maxSize);
+        checkInterrupted();
+        return plan;
+    }
+
+    static List<Archive> readArchives(File folder) throws IOException {
         File[] files = folder.listFiles();
         if (files == null) throw new IOException("Cannot list backup folder: " + folder);
         List<Archive> archives = new ArrayList<>();
@@ -135,9 +141,7 @@ public final class BackupRetention {
             }
         }
         checkInterrupted();
-        Plan plan = select(archives, rules, now, deleteCustom, maxSize);
-        checkInterrupted();
-        return plan;
+        return archives;
     }
 
     static void checkInterrupted() throws InterruptedIOException {

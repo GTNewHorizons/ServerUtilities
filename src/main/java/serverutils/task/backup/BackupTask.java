@@ -587,11 +587,22 @@ public class BackupTask extends Task {
             } catch (IOException ex) {
                 throw new CompletionException(ex);
             }
-        },
-                task -> {
-                    if (!startRetentionTask(task))
-                        throw new RejectedExecutionException("Backup or retention scan is already running");
-                });
+        }, BackupTask::executeRetentionTask);
+    }
+
+    public static CompletableFuture<List<BackupRetention.Archive>> listBackupsAsync() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return BackupRetention.readArchives(BACKUP_FOLDER);
+            } catch (IOException ex) {
+                throw new CompletionException(ex);
+            }
+        }, BackupTask::executeRetentionTask);
+    }
+
+    private static void executeRetentionTask(Runnable task) {
+        if (!startRetentionTask(task))
+            throw new RejectedExecutionException("Backup or retention scan is already running");
     }
 
     public static boolean isBackupRunning() {

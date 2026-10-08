@@ -598,6 +598,15 @@ public class BackupTaskTest {
             assertTrue(BackupTask.isBackupRunning());
             assertFalse(BackupTask.isWorldSavingSuspended());
             assertFalse(BackupTask.startRetentionTask(() -> { throw new AssertionError("Overlapping worker"); }));
+            org.junit.Assert
+                    .assertThrows(java.util.concurrent.RejectedExecutionException.class, BackupTask::listBackupsAsync);
+            ICommandSender listSender = mock(ICommandSender.class);
+            new serverutils.command.CmdBackup.CmdBackupList().processCommand(listSender, new String[0]);
+            org.mockito.Mockito.verify(listSender).addChatMessage(
+                    org.mockito.ArgumentMatchers.argThat(
+                            message -> message instanceof net.minecraft.util.ChatComponentTranslation
+                                    && ((net.minecraft.util.ChatComponentTranslation) message).getKey()
+                                            .equals("cmd.backup_list_error")));
             Universe universe = mock(Universe.class);
             new BackupTask(mock(ICommandSender.class), "busy").execute(universe);
             org.mockito.Mockito.verifyNoInteractions(universe);
@@ -669,6 +678,89 @@ public class BackupTaskTest {
             ServerUtilitiesConfig.backups.retention_policy = previousPolicy;
             Files.deleteIfExists(old.toPath());
             Files.deleteIfExists(latest.toPath());
+        }
+    }
+
+    @Test
+    public void listUsesMetadataAndSharedArchiveFilteringWithServerThreadAndRconReplies() throws Exception {
+        File old = new File(BackupTask.BACKUP_FOLDER, "list-old.zip");
+        File recent = new File(BackupTask.BACKUP_FOLDER, "list-recent.zip");
+        File unknown = new File(BackupTask.BACKUP_FOLDER, "list-unknown.zip");
+        Path directory = BackupTask.BACKUP_FOLDER.toPath().resolve("list-directory.zip");
+        Path unrelated = BackupTask.BACKUP_FOLDER.toPath().resolve("list-noise.txt");
+        String[] previousPolicy = ServerUtilitiesConfig.backups.retention_policy;
+        serverutils.handlers.ServerUtilitiesServerEventHandler.clearServerTasks();
+        try {
+            ServerUtilitiesConfig.backups.retention_policy = new String[0];
+            String id = java.util.UUID.randomUUID().toString();
+            writeRetentionArchive(old, id, 1_000);
+            writeRetentionArchive(recent, id, 2_000);
+            Files.write(unknown.toPath(), new byte[] { 1, 2, 3 });
+            Files.setLastModifiedTime(old.toPath(), java.nio.file.attribute.FileTime.fromMillis(9_000));
+            Files.setLastModifiedTime(recent.toPath(), java.nio.file.attribute.FileTime.fromMillis(1));
+            Files.setLastModifiedTime(unknown.toPath(), java.nio.file.attribute.FileTime.fromMillis(3_000));
+            Files.createDirectory(directory);
+            Files.write(unrelated, new byte[1_000]);
+            List<BackupRetention.Archive> archives = BackupRetention.readArchives(BackupTask.BACKUP_FOLDER);
+            long total = archives.stream().mapToLong(archive -> archive.size).sum();
+            ICommandSender player = mock(ICommandSender.class);
+            List<net.minecraft.util.ChatComponentTranslation> replies = new java.util.ArrayList<>();
+            Thread caller = Thread.currentThread();
+            doAnswer(call -> {
+                org.junit.Assert.assertSame(caller, Thread.currentThread());
+                replies.add(call.getArgument(0));
+                return null;
+            }).when(player).addChatMessage(org.mockito.ArgumentMatchers.any());
+            serverutils.command.CmdBackup commands = new serverutils.command.CmdBackup();
+            assertTrue(commands.getSubCommands().stream().anyMatch(command -> command.getCommandName().equals("list")));
+            assertTrue(
+                    commands.getSubCommands().stream().anyMatch(command -> command.getCommandName().equals("prune")));
+            serverutils.command.CmdBackup.CmdBackupList command = new serverutils.command.CmdBackup.CmdBackupList();
+            command.processCommand(player, new String[0]);
+            waitForRetention();
+            assertTrue("Player replies must wait for the server task queue", replies.isEmpty());
+            serverutils.handlers.ServerUtilitiesServerEventHandler.onServerTick(
+                    new cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent(
+                            cpw.mods.fml.common.gameevent.TickEvent.Phase.START));
+            assertEquals("cmd.backup_list_header", replies.get(0).getKey());
+            assertEquals(archives.size(), replies.get(0).getFormatArgs()[0]);
+            assertEquals(FileUtils.getSizeString(total), replies.get(0).getFormatArgs()[1]);
+            List<String> names = new java.util.ArrayList<>();
+            java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            for (net.minecraft.util.ChatComponentTranslation reply : replies) {
+                if (!reply.getKey().equals("cmd.backup_list_file")) continue;
+                String name = (String) reply.getFormatArgs()[0];
+                names.add(name);
+                if (name.equals(old.getName()))
+                    assertEquals(format.format(new java.util.Date(1_000)), reply.getFormatArgs()[1]);
+                if (name.equals(recent.getName()))
+                    assertEquals(format.format(new java.util.Date(2_000)), reply.getFormatArgs()[1]);
+                if (name.equals(unknown.getName()))
+                    assertEquals(format.format(new java.util.Date(3_000)), reply.getFormatArgs()[1]);
+            }
+            assertTrue(names.containsAll(Arrays.asList(old.getName(), recent.getName(), unknown.getName())));
+            assertTrue(
+                    "Sort by creation time, rather than the reversed mtimes",
+                    names.indexOf(old.getName()) < names.indexOf(recent.getName()));
+            assertTrue(names.indexOf(recent.getName()) < names.indexOf(unknown.getName()));
+            assertFalse(names.contains(directory.getFileName().toString()));
+            assertFalse(names.contains(unrelated.getFileName().toString()));
+            net.minecraft.network.rcon.RConConsoleSource rcon = mock(
+                    net.minecraft.network.rcon.RConConsoleSource.class);
+            command.processCommand(rcon, new String[0]);
+            org.mockito.Mockito.verify(rcon, org.mockito.Mockito.atLeastOnce())
+                    .addChatMessage(org.mockito.ArgumentMatchers.any());
+            waitForRetention();
+            assertTrue("Listing must not delete archives", old.exists() && recent.exists() && unknown.exists());
+        } finally {
+            BackupTask.stopBackupThread();
+            serverutils.handlers.ServerUtilitiesServerEventHandler.clearServerTasks();
+            ServerUtilitiesConfig.backups.retention_policy = previousPolicy;
+            Files.deleteIfExists(old.toPath());
+            Files.deleteIfExists(recent.toPath());
+            Files.deleteIfExists(unknown.toPath());
+            Files.deleteIfExists(directory);
+            Files.deleteIfExists(unrelated);
         }
     }
 
@@ -2551,11 +2643,17 @@ public class BackupTaskTest {
                 java.util.Set<java.nio.file.attribute.PosixFilePermission> permissions = java.nio.file.attribute.PosixFilePermissions
                         .fromString("rw-r-----");
                 Files.setPosixFilePermissions(archive, permissions);
-                ThreadBackup.doBackup(
-                        ICompress.createCompressor(),
-                        root.toFile(),
-                        "posix-permissions",
-                        Collections.emptySet());
+                assertTrue(
+                        ThreadBackup.doBackup(
+                                ICompress.createCompressor(),
+                                root.toFile(),
+                                "posix-permissions",
+                                Collections.emptySet(),
+                                null,
+                                false,
+                                null,
+                                System.currentTimeMillis(),
+                                true));
                 assertEquals(permissions, Files.getPosixFilePermissions(archive));
             } finally {
                 Files.deleteIfExists(archive);

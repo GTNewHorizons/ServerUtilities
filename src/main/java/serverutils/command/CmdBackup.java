@@ -2,7 +2,11 @@ package serverutils.command;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -29,6 +33,7 @@ public class CmdBackup extends CmdTreeBase {
         addSubcommand(new CmdBackupStop("stop"));
         addSubcommand(new CmdBackupGetSize("getsize"));
         addSubcommand(new CmdBackupPrune());
+        addSubcommand(new CmdBackupList());
     }
 
     public static class CmdBackupPrune extends CmdBase {
@@ -151,6 +156,62 @@ public class CmdBackup extends CmdTreeBase {
             String sizeW = FileUtils.getSizeString(sender.getEntityWorld().getSaveHandler().getWorldDirectory());
             String sizeT = FileUtils.getSizeString(BackupTask.BACKUP_FOLDER);
             sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_size", sizeW, sizeT));
+        }
+    }
+
+    public static class CmdBackupList extends CmdBase {
+
+        public CmdBackupList() {
+            super("list", Level.OP_OR_SP);
+        }
+
+        @Override
+        public void processCommand(ICommandSender sender, String[] args) {
+            try {
+                CompletableFuture<List<BackupRetention.Archive>> listing = BackupTask.listBackupsAsync();
+                if (sender instanceof RConConsoleSource) {
+                    sendList(sender, listing.join(), null);
+                } else {
+                    listing.whenComplete(
+                            (archives, error) -> ServerUtilitiesServerEventHandler
+                                    .scheduleServerTask(() -> sendList(sender, archives, error)));
+                }
+            } catch (RuntimeException ex) {
+                sendList(sender, null, ex);
+            }
+        }
+
+        private static void sendList(ICommandSender sender, List<BackupRetention.Archive> archives, Throwable error) {
+            if (error != null) {
+                if (error instanceof CompletionException && error.getCause() != null) error = error.getCause();
+                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_list_error", error.getMessage()));
+                return;
+            }
+            if (archives.isEmpty()) {
+                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_list_none"));
+                return;
+            }
+
+            sender.addChatMessage(
+                    ServerUtilities.lang(
+                            sender,
+                            "cmd.backup_list_header",
+                            archives.size(),
+                            FileUtils.getSizeString(archives.stream().mapToLong(archive -> archive.size).sum())));
+
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            archives.stream()
+                    .sorted(
+                            Comparator.comparingLong((BackupRetention.Archive archive) -> archive.created)
+                                    .thenComparing(archive -> archive.file.getName()))
+                    .forEach(
+                            archive -> sender.addChatMessage(
+                                    ServerUtilities.lang(
+                                            sender,
+                                            "cmd.backup_list_file",
+                                            archive.file.getName(),
+                                            format.format(new Date(archive.created)),
+                                            FileUtils.getSizeString(archive.size))));
         }
     }
 }
