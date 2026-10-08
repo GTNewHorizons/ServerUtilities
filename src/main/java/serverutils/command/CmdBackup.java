@@ -78,8 +78,9 @@ public class CmdBackup extends CmdTreeBase {
                             "cmd.backup_prune_summary",
                             plan.keep.size(),
                             plan.delete.size(),
-                            plan.remainingSize));
-            if (serverutils.ServerUtilitiesConfig.backups.max_folder_size > 0 && plan.remainingSize
+                            plan.remainingSize,
+                            plan.remainingRotationSize));
+            if (serverutils.ServerUtilitiesConfig.backups.max_folder_size > 0 && plan.remainingRotationSize
                     > serverutils.ServerUtilitiesConfig.backups.max_folder_size * FileUtils.SizeUnit.GB.getSize()) {
                 sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_limit"));
             }

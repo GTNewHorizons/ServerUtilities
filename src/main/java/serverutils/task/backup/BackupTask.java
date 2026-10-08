@@ -451,7 +451,9 @@ public class BackupTask extends Task {
 
     static void clearRetentionBackups(BackupRetention.Plan plan, long maxSize) throws InterruptedIOException {
         long remaining = 0;
-        for (File file : plan.keep.keySet()) remaining += file.length();
+        for (File file : plan.keep.keySet()) {
+            if (!plan.sizeExempt.contains(file)) remaining += file.length();
+        }
         for (File file : plan.delete.keySet()) remaining += file.length();
         Map<File, String> candidates = new LinkedHashMap<>(plan.delete);
         for (File file : plan.sizeCandidates) candidates.putIfAbsent(file, "Folder size limit");
@@ -470,7 +472,7 @@ public class BackupTask extends Task {
         }
         if (maxSize > 0 && remaining > maxSize) {
             ServerUtilities.LOGGER.warn(
-                    "Backup size limit could not be met: {} bytes remain; protected backups or failed deletions",
+                    "Backup rotation size allowance could not be met: {} counted bytes remain; protected backups or failed deletions",
                     remaining);
         }
     }

@@ -120,7 +120,9 @@ public final class BackupRetention {
         public final Map<File, String> keep = new LinkedHashMap<>();
         public final Map<File, String> delete = new LinkedHashMap<>();
         final Set<File> sizeCandidates = new LinkedHashSet<>();
+        final Set<File> sizeExempt = new HashSet<>();
         public long remainingSize;
+        public long remainingRotationSize;
 
         private void keep(File file, String reason) {
             keep.merge(file, reason, (previous, added) -> previous + "; " + added);
@@ -171,6 +173,7 @@ public final class BackupRetention {
         Set<String> worlds = new HashSet<>();
         for (Archive archive : archives) {
             plan.remainingSize = Math.addExact(plan.remainingSize, archive.size);
+            if (!deleteCustom && archive.custom) plan.sizeExempt.add(archive.file);
             if (archive.problem != null || archive.created > now || (!deleteCustom && archive.custom)) {
                 plan.keep(
                         archive.file,
@@ -190,7 +193,10 @@ public final class BackupRetention {
                 if (rule.interval == 0 || buckets.computeIfAbsent(archive.world, key -> new HashSet<>())
                         .add(Math.floorDiv(archive.created - BUCKET_ORIGIN, rule.interval))) {
                     plan.keep(archive.file, rule.text);
-                    if (rule.age == Long.MAX_VALUE) protectedFiles.add(archive.file);
+                    if (rule.age == Long.MAX_VALUE) {
+                        protectedFiles.add(archive.file);
+                        plan.sizeExempt.add(archive.file);
+                    }
                 }
             }
         }
@@ -198,6 +204,8 @@ public final class BackupRetention {
             if (!plan.keep.containsKey(archive.file)) {
                 plan.delete.put(archive.file, "Outside retention policy or superseded in time bucket");
                 plan.remainingSize -= archive.size;
+            } else if (!plan.sizeExempt.contains(archive.file)) {
+                plan.remainingRotationSize = Math.addExact(plan.remainingRotationSize, archive.size);
             }
         }
         // Only finite-retention archives may be sacrificed to the size limit, oldest first.
@@ -205,10 +213,11 @@ public final class BackupRetention {
             Archive archive = archives.get(i);
             if (protectedFiles.contains(archive.file) || !plan.keep.containsKey(archive.file)) continue;
             plan.sizeCandidates.add(archive.file);
-            if (maxSize <= 0 || plan.remainingSize <= maxSize) continue;
+            if (maxSize <= 0 || plan.remainingRotationSize <= maxSize) continue;
             plan.keep.remove(archive.file);
             plan.delete.put(archive.file, "Folder size limit");
             plan.remainingSize -= archive.size;
+            plan.remainingRotationSize -= archive.size;
         }
         return plan;
     }

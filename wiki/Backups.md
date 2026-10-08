@@ -12,7 +12,7 @@ Frequent backups and long retention can use considerable disk space.
 | You want to... | Settings to use |
 | --- | --- |
 | Keep a fixed number of backups | Leave `retention_policy` empty, set `max_folder_size=0`, and use `backups_to_keep` |
-| Limit the space used by backups | Leave `retention_policy` empty and set `max_folder_size` to a positive number of GB |
+| Limit the space used by rotating backups | Leave `retention_policy` empty and set `max_folder_size` to a positive number of GB |
 | Keep recent backups frequently and older history less frequently | Set `retention_policy` using the example below |
 
 ## Default mode: keep by count or size
@@ -78,7 +78,8 @@ As an operator, or in singleplayer, run:
 ```
 
 The preview lists which archives would be kept or deleted and why, without deleting anything. It uses the same
-selection rules as automatic cleanup. An empty policy reports that legacy retention is active.
+selection rules as automatic cleanup. Its summary shows both the total remaining ZIP size and the size counted
+against the rotation allowance. An empty policy reports that legacy retention is active.
 
 ## What a policy always protects
 
@@ -90,9 +91,16 @@ Policy cleanup preserves these archives, even when the size limit cannot be met:
 - Unrecognized or unreadable ZIPs, which do not participate in world or time-period selection.
 - Archives with timestamps in the future.
 
-If `max_folder_size` is positive, age cleanup runs first. If the remaining ZIPs still exceed the limit,
+If `max_folder_size` is positive, age cleanup runs first. Protected custom backups and selected `forever`
+representatives are excluded from this rotation size allowance, including backups selected by both finite and
+`forever` rules. If the remaining counted ZIPs still exceed the allowance,
 ServerUtilities removes the oldest backups selected only by finite-age rules. **The size limit can shorten your
-configured history.** Protected archives remain, and an unmet limit produces a warning.
+configured history.** The latest backup per world, future-dated archives and unrecognized ZIPs still count unless
+otherwise excluded, but remain protected. An unmet allowance produces a warning.
+
+`max_folder_size` does not cap the total folder size or stop backup creation. For example, a 5 GB rotation allowance
+plus 8 GB of protected custom backups or `forever` representatives can use 13 GB in total. Permanent history can
+continue growing, and backups can fail if the disk runs out of space. All archives stay in the same folder.
 
 Both modes leave unrelated files, directories, symbolic links and active archive staging files alone.
 
@@ -110,7 +118,7 @@ cancel the worker and wait for it to stop.
 | A policy rule is invalid | The entire policy is rejected and pruning is skipped. Backups can still be created; fix the rule to resume cleanup. |
 | A scan finds an unreadable or unrecognized ZIP | The ZIP is preserved and reported in the log. |
 | A deletion fails | The failure is logged; size cleanup tries the next eligible older backup without deleting protected archives. |
-| A count or size limit cannot be met | A warning reports the remaining eligible count or size. In policy mode, protected ZIPs also count toward size. |
+| A count or size limit cannot be met | A warning reports the remaining eligible count or counted size. Protected custom backups and `forever` representatives are excluded from the size allowance. |
 | Retention settings change during a scan | Its deletion plan is skipped. |
 
 Custom backup names must be filenames without path separators, control characters or reserved filename characters.

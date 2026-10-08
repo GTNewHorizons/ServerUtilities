@@ -94,6 +94,7 @@ public class BackupRetentionTest {
         assertEquals(2, plan.keep.size());
         assertTrue(plan.delete.containsKey(new File("a-old")));
         assertEquals(20, plan.remainingSize);
+        assertEquals(20, plan.remainingRotationSize);
     }
 
     @Test
@@ -106,6 +107,7 @@ public class BackupRetentionTest {
         assertTrue(plan.keep.containsKey(tuesday.file));
         assertTrue(plan.delete.containsKey(monday.file));
         assertEquals(20, plan.remainingSize);
+        assertEquals(0, plan.remainingRotationSize);
     }
 
     @Test
@@ -132,14 +134,95 @@ public class BackupRetentionTest {
         BackupRetention.Archive named = archive("named", "a", MONDAY + 3 * MINUTE, true);
         BackupRetention.Archive latest = archive("latest", "a", MONDAY + 4 * MINUTE, false);
         List<BackupRetention.Archive> input = Arrays.asList(weekly, finite, recent, named, latest);
-        BackupRetention.Plan plan = select(input, latest.created, 40, false, "1d:all", "forever:1w");
+        BackupRetention.Plan plan = select(input, latest.created, 20, false, "1d:all", "forever:1w");
+        assertTrue(plan.delete.isEmpty());
+        assertEquals(50, plan.remainingSize);
+        assertEquals(20, plan.remainingRotationSize);
+        plan = select(input, latest.created, 10, false, "1d:all", "forever:1w");
         assertEquals(Collections.singleton(finite.file), plan.delete.keySet());
         assertEquals("Folder size limit", plan.delete.get(finite.file));
+        assertEquals(40, plan.remainingSize);
+        assertEquals(10, plan.remainingRotationSize);
         plan = select(input, latest.created, 1, false, "1d:all", "forever:1w");
         assertTrue(plan.keep.containsKey(weekly.file));
         assertTrue(plan.keep.containsKey(named.file));
         assertTrue(plan.keep.containsKey(latest.file));
         assertEquals(30, plan.remainingSize);
+        assertEquals(0, plan.remainingRotationSize);
+    }
+
+    @Test
+    public void customProtectionExcludesSizeOnlyWhenEnabledAndLatestStillCounts() {
+        BackupRetention.Archive named = archive("named", "a", MONDAY, true);
+        BackupRetention.Archive recent = archive("recent", "a", MONDAY + MINUTE, false);
+        BackupRetention.Archive latest = archive("latest", "a", MONDAY + 2 * MINUTE, false);
+        List<BackupRetention.Archive> input = Arrays.asList(named, recent, latest);
+        BackupRetention.Plan plan = select(input, latest.created, 20, false, "1d:all");
+        assertTrue(plan.delete.isEmpty());
+        assertEquals(30, plan.remainingSize);
+        assertEquals(20, plan.remainingRotationSize);
+        plan = select(input, latest.created, 20, true, "1d:all");
+        assertEquals(Collections.singleton(named.file), plan.delete.keySet());
+        assertEquals(20, plan.remainingRotationSize);
+        plan = select(input, latest.created, 1, false, "1d:all");
+        assertEquals(Collections.singleton(recent.file), plan.delete.keySet());
+        assertEquals(20, plan.remainingSize);
+        assertEquals(10, plan.remainingRotationSize);
+    }
+
+    @Test
+    public void overlappingForeverAndCustomProtectionExcludesEachArchiveOnce() {
+        List<BackupRetention.Archive> input = Arrays
+                .asList(archive("named", "a", MONDAY, true), archive("latest", "a", MONDAY + MINUTE, false));
+        for (boolean deleteCustom : new boolean[] { false, true }) {
+            BackupRetention.Plan plan = select(input, MONDAY + MINUTE, 1, deleteCustom, "1d:all", "forever:all");
+            assertTrue(plan.delete.isEmpty());
+            assertEquals(20, plan.remainingSize);
+            assertEquals(0, plan.remainingRotationSize);
+        }
+    }
+
+    @Test
+    public void previewReportsBothSizesAndWarnsOnlyWhenCountedSizeExceedsAllowance() throws Exception {
+        long gb = serverutils.lib.util.FileUtils.SizeUnit.GB.getSize();
+        List<BackupRetention.Archive> input = Arrays.asList(
+                new BackupRetention.Archive(new File("named"), "a", MONDAY, 3 * gb, true, null),
+                new BackupRetention.Archive(new File("recent"), "a", MONDAY + MINUTE, gb, false, null),
+                new BackupRetention.Archive(new File("latest"), "a", MONDAY + 2 * MINUTE, 2 * gb, false, null));
+        java.lang.reflect.Method sendPreview = serverutils.command.CmdBackup.CmdBackupPrune.class.getDeclaredMethod(
+                "sendPreview",
+                net.minecraft.command.ICommandSender.class,
+                BackupRetention.Plan.class,
+                Throwable.class);
+        sendPreview.setAccessible(true);
+        int previousLimit = serverutils.ServerUtilitiesConfig.backups.max_folder_size;
+        try {
+            serverutils.ServerUtilitiesConfig.backups.max_folder_size = 1;
+            for (String policy : new String[] { "forever:all", "1d:all" }) {
+                BackupRetention.Plan plan = select(input, MONDAY + 2 * MINUTE, gb, false, policy);
+                net.minecraft.command.ICommandSender sender = org.mockito.Mockito
+                        .mock(net.minecraft.command.ICommandSender.class);
+                sendPreview.invoke(null, sender, plan, null);
+                org.mockito.ArgumentCaptor<net.minecraft.util.IChatComponent> replies = org.mockito.ArgumentCaptor
+                        .forClass(net.minecraft.util.IChatComponent.class);
+                org.mockito.Mockito.verify(sender, org.mockito.Mockito.atLeastOnce()).addChatMessage(replies.capture());
+                boolean warned = false;
+                boolean summarized = false;
+                for (net.minecraft.util.IChatComponent reply : replies.getAllValues()) {
+                    net.minecraft.util.ChatComponentTranslation message = (net.minecraft.util.ChatComponentTranslation) reply;
+                    if (message.getKey().equals("cmd.backup_prune_limit")) warned = true;
+                    if (message.getKey().equals("cmd.backup_prune_summary")) {
+                        summarized = true;
+                        assertEquals(policy.equals("forever:all") ? 6 * gb : 5 * gb, message.getFormatArgs()[2]);
+                        assertEquals(policy.equals("forever:all") ? 0L : 2 * gb, message.getFormatArgs()[3]);
+                    }
+                }
+                assertTrue(summarized);
+                assertEquals(policy.equals("1d:all"), warned);
+            }
+        } finally {
+            serverutils.ServerUtilitiesConfig.backups.max_folder_size = previousLimit;
+        }
     }
 
     @Test
@@ -156,6 +239,7 @@ public class BackupRetentionTest {
         BackupRetention.Plan plan = select(Arrays.asList(unknown, future, latest), MONDAY, 1, true, "1h:all");
         assertTrue(plan.delete.isEmpty());
         assertEquals(30, plan.remainingSize);
+        assertEquals(30, plan.remainingRotationSize);
     }
 
     private Path zip(String name, String comment, String entryName, byte[] contents) throws Exception {

@@ -366,13 +366,14 @@ public class ServerUtilitiesConfig {
         public boolean silent_backup;
 
         @Config.Comment("""
-                Size limit for backup archives in GB. Deletes eligible old backups when the limit is exceeded.
+                Size allowance for rotating backup archives in GB. Deletes eligible old backups when exceeded.
                 0 = Disabled and backups_to_keep will be used instead, unless retention_policy is set.
                 With legacy retention, counts only eligible ZIP files and always preserves the newest one.
-                Protected custom backups are excluded from the legacy size allowance.
+                Protected custom backups are excluded from the size allowance in both modes.
                 With retention_policy, removes the oldest finite-retention backups after age pruning.
-                Forever representatives, protected custom backups and the latest backup per world are never removed to meet this limit.
-                Logs a warning if protected backups exceed the limit.""")
+                Forever representatives are also excluded from the allowance; total folder size can exceed it.
+                The latest backup per world is never removed to meet this allowance, but counts unless otherwise excluded.
+                Logs a warning if counted protected backups or failed deletions prevent meeting the allowance.""")
         @Config.DefaultInt(0)
         @Config.RangeInt(min = 0)
         public int max_folder_size;

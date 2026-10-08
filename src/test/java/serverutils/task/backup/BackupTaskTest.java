@@ -219,7 +219,7 @@ public class BackupTaskTest {
                 new BackupRetention.Archive(files.get(6), "a", now + 1, 10, false, null),
                 new BackupRetention.Archive(files.get(7), null, 0, 10, false, "Unrecognized/unreadable archive"));
         try {
-            for (long limit : new long[] { 70, 1, 0 }) {
+            for (long limit : new long[] { 40, 30, 1, 0 }) {
                 Files.write(files.get(1).toPath(), new byte[10]);
                 BackupRetention.Plan plan = BackupRetention.select(
                         archives,
@@ -227,7 +227,7 @@ public class BackupTaskTest {
                         now,
                         false,
                         limit);
-                if (limit == 70) {
+                if (limit == 30) {
                     assertEquals(Collections.singleton(blocked), plan.delete.keySet());
                     assertTrue("Fallback archive starts out retained", plan.keep.containsKey(files.get(1)));
                 }
@@ -242,8 +242,8 @@ public class BackupTaskTest {
                 assertTrue(files.get(1).exists());
                 BackupTask.clearRetentionBackups(plan, limit);
                 assertEquals(
-                        "Only a positive size limit can sacrifice the fallback archive",
-                        limit == 0,
+                        "Only an exceeded rotation size allowance can sacrifice the fallback archive",
+                        limit == 0 || limit >= 40,
                         files.get(1).exists());
                 for (int i = 0; i < files.size(); i++) {
                     if (i != 1)
