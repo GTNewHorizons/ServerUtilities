@@ -1133,9 +1133,13 @@ public class BackupTaskTest {
                     }
                     ServerUtilitiesConfig.backups.use_separate_thread = async;
                     ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = entire;
-                    new BackupTask(mock(ICommandSender.class), "forced-claims", true, true).execute(universe);
+                    BackupTask backup = new BackupTask(mock(ICommandSender.class), "forced-claims", true, true);
+                    backup.execute(universe);
+                    assertTrue("Backup must start, not be deferred", backup.hasStarted());
                     if (async) waitForBackup();
                     new BackupTask(true).execute(universe);
+                    // Post-backup cleanup must finish, or the next iteration's backup is deferred.
+                    waitForRetention();
                     assertFalse(world.levelSaving);
                     try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "forced-claims.zip"))) {
                         try (InputStream input = zip
