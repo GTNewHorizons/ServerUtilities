@@ -108,6 +108,7 @@ public class CmdBackup extends CmdTreeBase {
                             ServerUtilities.lang(
                                     sender,
                                     "cmd.backup_list_file",
+                                    file.getName(),
                                     format.format(new Date(file.lastModified())),
                                     FileUtils.getSizeString(file))));
         }
