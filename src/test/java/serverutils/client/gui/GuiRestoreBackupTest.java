@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -130,6 +131,39 @@ public class GuiRestoreBackupTest {
             for (File file : recoveryRoot.listFiles()) {
                 if (!previousRecovery.contains(file)) FileUtils.delete(file);
             }
+        }
+    }
+
+    @Test
+    public void backupCacheRefreshesOnAdditionsAndDeletions() throws Exception {
+        Files.createDirectories(BackupTask.BACKUP_FOLDER.toPath());
+        Path first = Files.createTempFile(BackupTask.BACKUP_FOLDER.toPath(), "cache-first-", ".zip");
+        Field cacheField = GuiRestoreBackup.class.getDeclaredField("allBackupFiles");
+        cacheField.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Set<File> cache = (Set<File>) cacheField.get(null);
+        Set<File> previous = new HashSet<>(cache);
+        Method refresh = GuiRestoreBackup.class.getDeclaredMethod("needsRefresh");
+        refresh.setAccessible(true);
+        Path added = null;
+        try {
+            cache.clear();
+            cache.addAll(Arrays.asList(BackupTask.BACKUP_FOLDER.listFiles()));
+            assertEquals(false, refresh.invoke(null));
+            Files.delete(first);
+            assertEquals("Deleting a cached backup must trigger refresh", true, refresh.invoke(null));
+            added = Files.createTempFile(BackupTask.BACKUP_FOLDER.toPath(), "cache-added-", ".zip");
+            assertEquals("Replacing a filename at the same count must trigger refresh", true, refresh.invoke(null));
+            cache.clear();
+            cache.addAll(Arrays.asList(BackupTask.BACKUP_FOLDER.listFiles()));
+            assertEquals(false, refresh.invoke(null));
+            Files.write(first, new byte[] { 1 });
+            assertEquals("Adding a backup must trigger refresh", true, refresh.invoke(null));
+        } finally {
+            cache.clear();
+            cache.addAll(previous);
+            Files.deleteIfExists(first);
+            if (added != null) Files.deleteIfExists(added);
         }
     }
 

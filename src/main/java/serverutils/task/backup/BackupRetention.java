@@ -16,9 +16,11 @@ import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -117,6 +119,7 @@ public final class BackupRetention {
 
         public final Map<File, String> keep = new LinkedHashMap<>();
         public final Map<File, String> delete = new LinkedHashMap<>();
+        final Set<File> sizeCandidates = new LinkedHashSet<>();
         public long remainingSize;
 
         private void keep(File file, String reason) {
@@ -198,9 +201,11 @@ public final class BackupRetention {
             }
         }
         // Only finite-retention archives may be sacrificed to the size limit, oldest first.
-        for (int i = archives.size() - 1; maxSize > 0 && plan.remainingSize > maxSize && i >= 0; i--) {
+        for (int i = archives.size() - 1; i >= 0; i--) {
             Archive archive = archives.get(i);
             if (protectedFiles.contains(archive.file) || !plan.keep.containsKey(archive.file)) continue;
+            plan.sizeCandidates.add(archive.file);
+            if (maxSize <= 0 || plan.remainingSize <= maxSize) continue;
             plan.keep.remove(archive.file);
             plan.delete.put(archive.file, "Folder size limit");
             plan.remainingSize -= archive.size;
@@ -279,24 +284,33 @@ public final class BackupRetention {
                 || worldName.contains(":")) {
             throw new IOException("Invalid world identifier");
         }
-        String singlePlayer = "saves/" + worldName + "/";
-        String dedicated = worldName + "/";
-        boolean hasSinglePlayer = hasWorldMetadata(zip, singlePlayer);
-        boolean hasDedicated = hasWorldMetadata(zip, dedicated);
-        if (hasSinglePlayer == hasDedicated) {
+        Set<String> prefixes = new HashSet<>();
+        Enumeration<? extends ZipEntry> entries = zip.entries();
+        while (entries.hasMoreElements()) {
+            checkInterrupted();
+            ZipEntry entry = entries.nextElement();
+            if (entry.isDirectory() || entry.getSize() <= 0) continue;
+            String name = entry.getName();
+            int separator = name.lastIndexOf('/');
+            if (separator < 0) continue;
+            String filename = name.substring(separator + 1);
+            if (!filename.equals("level.dat") && !filename.equals("level.dat_old")) continue;
+            String prefix = name.substring(0, separator + 1);
+            if (!prefix.equals(worldName + "/") && !prefix.endsWith("/" + worldName + "/")) continue;
+            if (prefix.startsWith("/") || prefix.contains("\\")
+                    || prefix.contains(":")
+                    || prefix.contains("//")
+                    || prefix.matches("(^|.*/)\\.{1,2}(/.*|$)")) {
+                throw new IOException("Unsafe world folder: " + prefix);
+            }
+            prefixes.add(prefix);
+        }
+        if (prefixes.size() != 1) {
             throw new IOException(
-                    hasSinglePlayer ? "Backup contains two world layouts"
+                    !prefixes.isEmpty() ? "Backup contains multiple world folders for world " + worldName
                             : "Backup contains no level.dat or level.dat_old for world " + worldName);
         }
-        return hasSinglePlayer ? singlePlayer : dedicated;
-    }
-
-    private static boolean hasWorldMetadata(ZipFile zip, String prefix) {
-        for (String name : new String[] { "level.dat", "level.dat_old" }) {
-            ZipEntry entry = zip.getEntry(prefix + name);
-            if (entry != null && !entry.isDirectory() && entry.getSize() > 0) return true;
-        }
-        return false;
+        return prefixes.iterator().next();
     }
 
     static void writeMetadata(ICompress compressor, String worldId, long created, boolean custom) throws IOException {

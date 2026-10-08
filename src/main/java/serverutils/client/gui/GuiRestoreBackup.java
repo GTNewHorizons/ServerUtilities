@@ -146,7 +146,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     private static boolean needsRefresh() {
         File[] files = BackupTask.BACKUP_FOLDER.listFiles();
         if (files == null) return false;
-        return !allBackupFiles.containsAll(Arrays.asList(files));
+        return files.length != allBackupFiles.size() || !allBackupFiles.containsAll(Arrays.asList(files));
     }
 
     private static void preProcess() {

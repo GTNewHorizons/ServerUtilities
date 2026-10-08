@@ -16,7 +16,9 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -138,6 +140,119 @@ public class BackupTaskTest {
         assertTrue("Retention must run on a worker", worker != null);
         worker.join(TimeUnit.SECONDS.toMillis(5));
         assertFalse("Retention worker did not stop", worker.isAlive());
+    }
+
+    @Test
+    public void nestedWorldBackupsParticipateInBothRetentionModes() throws Exception {
+        Path root = Files.createTempDirectory(new File("build").toPath(), "nested-world-");
+        Path source = Files.createDirectories(root.resolve("worlds/world"));
+        Files.write(source.resolve("level.dat"), new byte[] { 1 });
+        String id = java.util.UUID.randomUUID().toString();
+        net.minecraft.nbt.NBTTagCompound universe = new net.minecraft.nbt.NBTTagCompound();
+        universe.setString("UUID", id);
+        Path universeFile = Files.createDirectories(source.resolve("serverutilities")).resolve("universe.dat");
+        try (java.io.OutputStream output = Files.newOutputStream(universeFile)) {
+            net.minecraft.nbt.CompressedStreamTools.writeCompressed(universe, output);
+        }
+        MinecraftServer previousServer = MinecraftServer.getServer();
+        MinecraftServer server = mock(MinecraftServer.class);
+        ISaveFormat format = mock(ISaveFormat.class);
+        SaveHandler handler = mock(SaveHandler.class);
+        when(server.getFolderName()).thenReturn("worlds/world");
+        when(server.getActiveAnvilConverter()).thenReturn(format);
+        when(format.getSaveLoader("worlds/world", false)).thenReturn(handler);
+        when(handler.getWorldDirectory()).thenReturn(source.toFile());
+        File old = new File(BackupTask.BACKUP_FOLDER, "nested-legacy.zip");
+        File latest = new File(BackupTask.BACKUP_FOLDER, "nested-modern.zip");
+        setCurrentServer(server);
+        try {
+            for (File archive : new File[] { old, latest }) {
+                assertTrue(
+                        ThreadBackup.doBackup(
+                                ICompress.createCompressor(),
+                                source.toFile(),
+                                FileUtils.getBaseName(archive),
+                                Collections.emptySet(),
+                                null,
+                                false,
+                                archive.equals(old) ? null : id,
+                                2));
+            }
+            Files.setLastModifiedTime(old.toPath(), java.nio.file.attribute.FileTime.fromMillis(1));
+            List<File> legacy = BackupTask.readLegacyBackups(BackupTask.BACKUP_FOLDER, true);
+            assertTrue(legacy.containsAll(Arrays.asList(old, latest)));
+            BackupRetention.Plan plan = BackupRetention
+                    .plan(BackupTask.BACKUP_FOLDER, new String[] { "1h:all" }, System.currentTimeMillis(), true, 0);
+            assertTrue("Legacy UUID must be read from the nested world folder", plan.delete.containsKey(old));
+            assertTrue(plan.keep.get(latest).contains("Latest backup for world"));
+            BackupTask.clearLegacyBackups(legacy, 1, 0);
+            assertFalse(old.exists());
+            assertTrue(latest.exists());
+        } finally {
+            setCurrentServer(previousServer);
+            FileUtils.delete(root.toFile());
+            Files.deleteIfExists(old.toPath());
+            Files.deleteIfExists(latest.toPath());
+        }
+    }
+
+    @Test
+    public void policySizePruningTriesAnotherCandidateWithoutRemovingProtectedArchives() throws Exception {
+        Path root = Files.createTempDirectory(new File("build").toPath(), "policy-deletion-");
+        long now = TimeUnit.DAYS.toMillis(20);
+        String[] names = { "blocked", "fallback", "custom", "latest", "other-world", "weekly", "future", "unknown" };
+        List<File> files = new java.util.ArrayList<>();
+        for (String name : names) files.add(Files.write(root.resolve(name), new byte[10]).toFile());
+        Path failure = Files.createDirectories(root.resolve("nonempty"));
+        Files.write(failure.resolve("keep"), new byte[] { 1 });
+        File blocked = mock(File.class);
+        when(blocked.getName()).thenReturn("blocked");
+        when(blocked.length()).thenReturn(10L);
+        when(blocked.toPath()).thenReturn(failure);
+        List<BackupRetention.Archive> archives = Arrays.asList(
+                new BackupRetention.Archive(blocked, "a", now - 5, 10, false, null),
+                new BackupRetention.Archive(files.get(1), "a", now - 4, 10, false, null),
+                new BackupRetention.Archive(files.get(2), "a", now - 3, 10, true, null),
+                new BackupRetention.Archive(files.get(3), "a", now, 10, false, null),
+                new BackupRetention.Archive(files.get(4), "b", now - 1, 10, false, null),
+                new BackupRetention.Archive(files.get(5), "a", now - TimeUnit.DAYS.toMillis(7), 10, false, null),
+                new BackupRetention.Archive(files.get(6), "a", now + 1, 10, false, null),
+                new BackupRetention.Archive(files.get(7), null, 0, 10, false, "Unrecognized/unreadable archive"));
+        try {
+            for (long limit : new long[] { 70, 1, 0 }) {
+                Files.write(files.get(1).toPath(), new byte[10]);
+                BackupRetention.Plan plan = BackupRetention.select(
+                        archives,
+                        BackupRetention.parse(new String[] { "1d:all", "forever:1w" }),
+                        now,
+                        false,
+                        limit);
+                if (limit == 70) {
+                    assertEquals(Collections.singleton(blocked), plan.delete.keySet());
+                    assertTrue("Fallback archive starts out retained", plan.keep.containsKey(files.get(1)));
+                }
+                Thread.currentThread().interrupt();
+                try {
+                    org.junit.Assert.assertThrows(
+                            java.io.InterruptedIOException.class,
+                            () -> BackupTask.clearRetentionBackups(plan, limit));
+                } finally {
+                    Thread.interrupted();
+                }
+                assertTrue(files.get(1).exists());
+                BackupTask.clearRetentionBackups(plan, limit);
+                assertEquals(
+                        "Only a positive size limit can sacrifice the fallback archive",
+                        limit == 0,
+                        files.get(1).exists());
+                for (int i = 0; i < files.size(); i++) {
+                    if (i != 1)
+                        assertTrue("Protected or undeletable archive must remain: " + names[i], files.get(i).exists());
+                }
+            }
+        } finally {
+            FileUtils.delete(root.toFile());
+        }
     }
 
     @Test

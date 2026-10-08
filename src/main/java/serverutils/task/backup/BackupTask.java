@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -436,23 +437,7 @@ public class BackupTask extends Task {
                 ServerUtilities.LOGGER.info("Retention settings changed; skipping stale pruning plan");
                 return;
             }
-            for (Map.Entry<File, String> decision : plan.delete.entrySet()) {
-                BackupRetention.checkInterrupted();
-                try {
-                    Files.delete(decision.getKey().toPath());
-                    ServerUtilities.LOGGER.info("Deleted old backup: {} ({})", decision.getKey(), decision.getValue());
-                } catch (IOException ex) {
-                    ServerUtilities.LOGGER.warn("Could not delete old backup {}", decision.getKey(), ex);
-                }
-            }
-            long remaining = 0;
-            for (File file : plan.keep.keySet()) remaining += file.length();
-            for (File file : plan.delete.keySet()) remaining += file.length();
-            if (maxSize > 0 && remaining > maxSize) {
-                ServerUtilities.LOGGER.warn(
-                        "Backup size limit could not be met: {} bytes remain; protected backups or failed deletions",
-                        remaining);
-            }
+            clearRetentionBackups(plan, maxSize);
             for (Map.Entry<File, String> decision : plan.keep.entrySet()) {
                 if (decision.getValue().startsWith("Unrecognized/unreadable")) {
                     ServerUtilities.LOGGER.warn("Preserving backup {}: {}", decision.getKey(), decision.getValue());
@@ -462,6 +447,32 @@ public class BackupTask extends Task {
             ServerUtilities.LOGGER.info("Backup retention cancelled");
         } catch (IOException | IllegalArgumentException | ArithmeticException ex) {
             ServerUtilities.LOGGER.warn("Skipping backup pruning: {}", ex.getMessage());
+        }
+    }
+
+    static void clearRetentionBackups(BackupRetention.Plan plan, long maxSize) throws InterruptedIOException {
+        long remaining = 0;
+        for (File file : plan.keep.keySet()) remaining += file.length();
+        for (File file : plan.delete.keySet()) remaining += file.length();
+        Map<File, String> candidates = new LinkedHashMap<>(plan.delete);
+        for (File file : plan.sizeCandidates) candidates.putIfAbsent(file, "Folder size limit");
+        for (Map.Entry<File, String> decision : candidates.entrySet()) {
+            BackupRetention.checkInterrupted();
+            File file = decision.getKey();
+            if (!plan.delete.containsKey(file) && (maxSize <= 0 || remaining <= maxSize)) continue;
+            long size = file.length();
+            try {
+                Files.delete(file.toPath());
+                remaining -= size;
+                ServerUtilities.LOGGER.info("Deleted old backup: {} ({})", file, decision.getValue());
+            } catch (IOException ex) {
+                ServerUtilities.LOGGER.warn("Could not delete old backup {}", file, ex);
+            }
+        }
+        if (maxSize > 0 && remaining > maxSize) {
+            ServerUtilities.LOGGER.warn(
+                    "Backup size limit could not be met: {} bytes remain; protected backups or failed deletions",
+                    remaining);
         }
     }
 

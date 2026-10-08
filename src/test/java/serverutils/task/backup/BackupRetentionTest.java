@@ -225,6 +225,34 @@ public class BackupRetentionTest {
         }
     }
 
+    @Test
+    public void nestedWorldRecognitionPreservesUnsafeAndAmbiguousArchives() throws Exception {
+        List<Path> rejected = new ArrayList<>();
+        for (String prefix : new String[] { "../world/", "parent/../world/", "/world/", "C:/world/", "parent//world/",
+                "parent/./world/" }) {
+            rejected.add(
+                    zip("unsafe-" + rejected.size() + ".zip", "world", prefix + "level.dat", new byte[] { 1 }, false));
+        }
+        Path ambiguous = temporary.getRoot().toPath().resolve("ambiguous.zip");
+        try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(ambiguous))) {
+            zip.setComment("world");
+            for (String prefix : new String[] { "worlds/world/", "other/world/" }) {
+                zip.putNextEntry(new ZipEntry(prefix + "level.dat"));
+                zip.write(1);
+            }
+        }
+        rejected.add(ambiguous);
+        Path valid = zip("nested-old.zip", "world", "worlds/world/level.dat_old", new byte[] { 1 }, false);
+        BackupRetention.Plan plan = BackupRetention
+                .plan(temporary.getRoot(), new String[] { "forever:all" }, System.currentTimeMillis(), true, 1);
+        assertTrue(plan.keep.get(valid.toFile()).contains("Latest backup for world"));
+        for (Path file : rejected) {
+            assertTrue(file.toString(), plan.keep.get(file.toFile()).contains("Unrecognized/unreadable"));
+            assertThrows(java.io.IOException.class, () -> BackupRetention.validateWorldArchive(file.toFile()));
+        }
+        assertTrue(plan.delete.isEmpty());
+    }
+
     private static byte[] metadata(long timestamp, boolean custom) throws Exception {
         Properties properties = new Properties();
         properties.setProperty("version", "1");

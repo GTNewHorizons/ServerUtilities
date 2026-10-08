@@ -105,7 +105,7 @@ cancel the worker and wait for it to stop.
 | --- | --- |
 | A policy rule is invalid | The entire policy is rejected and pruning is skipped. Backups can still be created; fix the rule to resume cleanup. |
 | A scan finds an unreadable or unrecognized ZIP | The ZIP is preserved and reported in the log. |
-| A deletion fails | The failure is logged; cleanup checks whether the limit can still be met. |
+| A deletion fails | The failure is logged; size cleanup tries the next eligible older backup without deleting protected archives. |
 | A count or size limit cannot be met | A warning reports the remaining eligible count or size. In policy mode, protected ZIPs also count toward size. |
 | Retention settings change during a scan | Its deletion plan is skipped. |
 
@@ -138,9 +138,10 @@ In policy mode, cloned worlds that keep the same UUID share retention history wh
 
 ### ZIP checks
 
-To participate in either retention mode, an archive must contain a nonempty `level.dat` or `level.dat_old` matching its
-world-folder comment in exactly one supported layout: `<world>/` or `saves/<world>/`. Archives that fail this check
-are preserved and cannot replace the latest recognized backup.
+To participate in either retention mode, an archive must contain a nonempty `level.dat` or `level.dat_old` in exactly
+one safe world folder whose final name matches its ZIP comment. This includes `<world>/`, `saves/<world>/`, and
+nested folders such as `worlds/<world>/`. Unsafe paths or multiple matching world folders are rejected. Archives
+that fail this check are preserved and cannot replace the latest recognized backup.
 
 Legacy checks use the ZIP index without reading world-file contents. These are archive structure checks, not full
 payload-integrity checks.
