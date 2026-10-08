@@ -26,11 +26,10 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFileAttributeView;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -64,7 +63,7 @@ import serverutils.lib.util.compression.ICompress;
 public class ThreadBackup extends Thread {
 
     // Root locale, BackupTask.BACKUP_NAME_PATTERN only matches ASCII digits.
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.ROOT);
+    private static final String DATE_PATTERN = "yyyy-MM-dd-HH-mm-ss";
     private static long logMillis;
     private final File src0;
     private final String customName;
@@ -327,7 +326,7 @@ public class ThreadBackup extends Thread {
         Path temporary = null;
         boolean published = false;
         try {
-            dstFile = backupDestination(customName, overwrite);
+            dstFile = backupDestination(customName, overwrite, createdAt);
             validateBackupSource(src);
             if (onlyClaimed && chunks.isEmpty()) {
                 ServerUtilities.LOGGER
@@ -415,10 +414,16 @@ public class ThreadBackup extends Thread {
     }
 
     public static File backupDestination(String customName, boolean overwrite) throws IOException {
+        return backupDestination(customName, overwrite, System.currentTimeMillis());
+    }
+
+    /** Automatic names use the creation time stored in the metadata, so both always agree. */
+    static File backupDestination(String customName, boolean overwrite, long createdAt) throws IOException {
         validateBackupName(customName);
         if (overwrite && customName.isEmpty()) throw new IOException("Overwrite requires a custom backup name");
-        String name = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
-                + ".zip";
+        String name = (customName.isEmpty()
+                ? new SimpleDateFormat(DATE_PATTERN, Locale.ROOT).format(new Date(createdAt))
+                : customName) + ".zip";
         Path folder = BackupTask.BACKUP_FOLDER.toPath().toAbsolutePath().normalize();
         Path destination = folder.resolve(name).normalize();
         if (customName.isEmpty()) {

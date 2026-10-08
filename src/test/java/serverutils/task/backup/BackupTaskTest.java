@@ -726,17 +726,21 @@ public class BackupTaskTest {
             assertEquals(archives.size(), replies.get(0).getFormatArgs()[0]);
             assertEquals(FileUtils.getSizeString(total), replies.get(0).getFormatArgs()[1]);
             List<String> names = new java.util.ArrayList<>();
-            java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm");
             for (net.minecraft.util.ChatComponentTranslation reply : replies) {
                 if (!reply.getKey().equals("cmd.backup_list_file")) continue;
                 String name = (String) reply.getFormatArgs()[0];
                 names.add(name);
-                if (name.equals(old.getName()))
-                    assertEquals(format.format(new java.util.Date(1_000)), reply.getFormatArgs()[1]);
-                if (name.equals(recent.getName()))
-                    assertEquals(format.format(new java.util.Date(2_000)), reply.getFormatArgs()[1]);
-                if (name.equals(unknown.getName()))
-                    assertEquals(format.format(new java.util.Date(3_000)), reply.getFormatArgs()[1]);
+                if (!Arrays.asList(old.getName(), recent.getName(), unknown.getName()).contains(name)) continue;
+                assertEquals(
+                        FileUtils.getSizeString(new File(BackupTask.BACKUP_FOLDER, name).length()),
+                        reply.getFormatArgs()[1]);
+                // Custom names spell out the creation date next to the age.
+                net.minecraft.util.ChatComponentTranslation when = (net.minecraft.util.ChatComponentTranslation) reply
+                        .getFormatArgs()[2];
+                assertEquals("cmd.backup_when", when.getKey());
+                long created = name.equals(old.getName()) ? 1_000 : name.equals(recent.getName()) ? 2_000 : 3_000;
+                assertEquals(format.format(new java.util.Date(created)), when.getFormatArgs()[0]);
             }
             assertTrue(names.containsAll(Arrays.asList(old.getName(), recent.getName(), unknown.getName())));
             assertTrue(
@@ -1979,6 +1983,36 @@ public class BackupTaskTest {
             org.junit.Assert.assertArrayEquals(original, Files.readAllBytes(first.toPath()));
         } finally {
             Files.deleteIfExists(first.toPath());
+        }
+    }
+
+    @Test
+    public void automaticBackupNamesMatchMetadataCreationTime() throws Exception {
+        File source = Files.createTempDirectory(new File("build").toPath(), "backup-name-").toFile();
+        Files.write(new File(source, "level.dat").toPath(), new byte[] { 42 });
+        // An old fixed time cannot collide with backups created by other tests.
+        long createdAt = 1_000_000_000_000L + 999;
+        File archive = new File(
+                BackupTask.BACKUP_FOLDER,
+                new java.text.SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", java.util.Locale.ROOT)
+                        .format(new java.util.Date(createdAt)) + ".zip");
+        try {
+            assertTrue(
+                    ThreadBackup.doBackup(
+                            ICompress.createCompressor(),
+                            source,
+                            "",
+                            Collections.emptySet(),
+                            null,
+                            false,
+                            java.util.UUID.randomUUID().toString(),
+                            createdAt,
+                            false));
+            assertTrue(archive.exists());
+            assertEquals(createdAt, BackupRetention.read(archive, archive.length()).created);
+        } finally {
+            Files.deleteIfExists(archive.toPath());
+            FileUtils.delete(source);
         }
     }
 

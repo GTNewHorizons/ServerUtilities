@@ -236,6 +236,45 @@ public class BackupRetentionTest {
     }
 
     @Test
+    public void previewLabelsExplainEachDecisionOldestFirst() {
+        long now = MONDAY + 2 * DAY;
+        BackupRetention.Archive ancientReplaced = archive("ancient-replaced", "a", MONDAY - 8 * DAY - HOUR, false);
+        BackupRetention.Archive ancient = archive("ancient", "a", MONDAY - 8 * DAY, false);
+        BackupRetention.Archive replaced = archive("replaced", "a", now - 3 * HOUR, false);
+        BackupRetention.Archive sampled = archive("sampled", "a", now - 3 * HOUR + 5 * MINUTE, false);
+        BackupRetention.Archive named = archive("named", "a", now - 2 * HOUR, true);
+        BackupRetention.Archive recent = archive("recent", "a", now - 2 * MINUTE, false);
+        BackupRetention.Archive latest = archive("latest", "a", now - MINUTE, false);
+        List<BackupRetention.Archive> input = Arrays
+                .asList(latest, ancient, named, recent, ancientReplaced, sampled, replaced);
+        BackupRetention.Plan plan = select(input, now, 0, false, "1h:all", "1d:30m", "forever:1w");
+
+        List<String> order = new java.util.ArrayList<>();
+        for (BackupRetention.Archive archive : plan.archives()) order.add(archive.file.getName());
+        assertEquals(
+                Arrays.asList("ancient-replaced", "ancient", "replaced", "sampled", "named", "recent", "latest"),
+                order);
+        assertEquals("latest, forever:1w", plan.label(latest.file));
+        assertEquals(-1L, plan.keptUntil(latest.file));
+        assertEquals("1h:all", plan.label(recent.file));
+        assertEquals(recent.created + HOUR, plan.keptUntil(recent.file));
+        assertEquals("1d:30m", plan.label(sampled.file));
+        assertEquals(sampled.created + DAY, plan.keptUntil(sampled.file));
+        assertEquals("replaced in 1d:30m", plan.label(replaced.file));
+        assertEquals("forever:1w", plan.label(ancient.file));
+        assertEquals(-1L, plan.keptUntil(ancient.file));
+        assertEquals("replaced in forever:1w", plan.label(ancientReplaced.file));
+        assertEquals("custom", plan.label(named.file));
+        assertTrue(plan.isPreserved(named.file));
+        assertFalse(plan.isPreserved(latest.file));
+
+        plan = select(Arrays.asList(latest, sampled), now, 0, false, "1h:all");
+        assertEquals("older than all rules", plan.label(sampled.file));
+        plan = select(Arrays.asList(latest, recent), now, 1, false, "1d:all");
+        assertEquals("size limit", plan.label(recent.file));
+    }
+
+    @Test
     public void overlappingForeverAndCustomProtectionExcludesEachArchiveOnce() {
         List<BackupRetention.Archive> input = Arrays
                 .asList(archive("named", "a", MONDAY, true), archive("latest", "a", MONDAY + MINUTE, false));
@@ -276,10 +315,18 @@ public class BackupRetentionTest {
                 for (net.minecraft.util.IChatComponent reply : replies.getAllValues()) {
                     net.minecraft.util.ChatComponentTranslation message = (net.minecraft.util.ChatComponentTranslation) reply;
                     if (message.getKey().equals("cmd.backup_prune_limit")) warned = true;
-                    if (message.getKey().equals("cmd.backup_prune_summary")) {
+                    if (message.getKey().startsWith("cmd.backup_prune_summary")) {
                         summarized = true;
-                        assertEquals(policy.equals("forever:all") ? 6 * gb : 5 * gb, message.getFormatArgs()[2]);
-                        assertEquals(policy.equals("forever:all") ? 0L : 2 * gb, message.getFormatArgs()[3]);
+                        assertEquals(
+                                serverutils.lib.util.FileUtils
+                                        .getSizeString(policy.equals("forever:all") ? 6 * gb : 5 * gb),
+                                message.getFormatArgs()[1]);
+                    }
+                    if (message.getKey().equals("cmd.backup_prune_allowance")) {
+                        assertEquals(
+                                serverutils.lib.util.FileUtils
+                                        .getSizeString(policy.equals("forever:all") ? 0L : 2 * gb),
+                                message.getFormatArgs()[0]);
                     }
                 }
                 assertTrue(summarized);

@@ -7,15 +7,17 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.network.rcon.RConConsoleSource;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
 
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
@@ -34,6 +36,27 @@ public class CmdBackup extends CmdTreeBase {
         addSubcommand(new CmdBackupGetSize("getsize"));
         addSubcommand(new CmdBackupPrune());
         addSubcommand(new CmdBackupList());
+    }
+
+    private static String date(long millis) {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date(millis));
+    }
+
+    private static IChatComponent age(long created, long now) {
+        if (created > now) return ServerUtilities.lang("cmd.backup_age_future");
+        long seconds = (now - created) / 1000;
+        String age = seconds < 60 ? seconds + "s"
+                : seconds < 3600 ? seconds / 60 + "m"
+                        : seconds < 172_800 ? seconds / 3600 + "h" : seconds / 86_400 + "d";
+        return ServerUtilities.lang("cmd.backup_age", age);
+    }
+
+    /** Timestamp names already show the date, so only custom names get it spelled out. */
+    private static IChatComponent when(BackupRetention.Archive archive, long now) {
+        if (BackupTask.BACKUP_NAME_PATTERN.matcher(archive.file.getName()).matches()) {
+            return age(archive.created, now);
+        }
+        return ServerUtilities.lang("cmd.backup_when", date(archive.created), age(archive.created, now));
     }
 
     public static class CmdBackupPrune extends CmdBase {
@@ -68,26 +91,56 @@ public class CmdBackup extends CmdTreeBase {
                 sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_error", error.getMessage()));
                 return;
             }
-            for (Map.Entry<File, String> decision : plan.keep.entrySet()) {
+            long now = System.currentTimeMillis();
+            long deletedSize = 0;
+            sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_header"));
+            for (BackupRetention.Archive archive : plan.archives()) {
+                File file = archive.file;
+                boolean delete = plan.delete.containsKey(file);
+                if (delete) deletedSize += archive.size;
+                IChatComponent status = ServerUtilities
+                        .lang(delete ? "cmd.backup_prune_delete" : "cmd.backup_prune_keep");
+                status.getChatStyle().setColor(
+                        delete ? EnumChatFormatting.RED
+                                : plan.isPreserved(file) ? EnumChatFormatting.YELLOW : EnumChatFormatting.GREEN);
+                long until = plan.keptUntil(file);
+                Object reason = until < 0 ? plan.label(file)
+                        : ServerUtilities.lang("cmd.backup_prune_until", plan.label(file), date(until));
                 sender.addChatMessage(
-                        ServerUtilities
-                                .lang("cmd.backup_prune_keep", decision.getKey().getName(), decision.getValue()));
+                        ServerUtilities.lang(
+                                "cmd.backup_prune_entry",
+                                status,
+                                file.getName(),
+                                FileUtils.getSizeString(archive.size),
+                                when(archive, now),
+                                reason));
             }
-            for (Map.Entry<File, String> decision : plan.delete.entrySet()) {
-                sender.addChatMessage(
-                        ServerUtilities
-                                .lang("cmd.backup_prune_delete", decision.getKey().getName(), decision.getValue()));
+            sender.addChatMessage(
+                    plan.delete.isEmpty()
+                            ? ServerUtilities.lang(
+                                    "cmd.backup_prune_summary_none",
+                                    plan.keep.size(),
+                                    FileUtils.getSizeString(plan.remainingSize))
+                            : ServerUtilities.lang(
+                                    "cmd.backup_prune_summary",
+                                    plan.keep.size(),
+                                    FileUtils.getSizeString(plan.remainingSize),
+                                    plan.delete.size(),
+                                    FileUtils.getSizeString(deletedSize)));
+            long allowance = ServerUtilitiesConfig.backups.max_folder_size * FileUtils.SizeUnit.GB.getSize();
+            if (allowance <= 0) {
+                sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_no_allowance"));
+                return;
             }
             sender.addChatMessage(
                     ServerUtilities.lang(
-                            "cmd.backup_prune_summary",
-                            plan.keep.size(),
-                            plan.delete.size(),
-                            plan.remainingSize,
-                            plan.remainingRotationSize));
-            if (serverutils.ServerUtilitiesConfig.backups.max_folder_size > 0 && plan.remainingRotationSize
-                    > serverutils.ServerUtilitiesConfig.backups.max_folder_size * FileUtils.SizeUnit.GB.getSize()) {
-                sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_limit"));
+                            "cmd.backup_prune_allowance",
+                            FileUtils.getSizeString(plan.remainingRotationSize),
+                            FileUtils.getSizeString(allowance)));
+            if (plan.remainingRotationSize > allowance) {
+                IChatComponent warning = ServerUtilities.lang("cmd.backup_prune_limit");
+                warning.getChatStyle().setColor(EnumChatFormatting.YELLOW);
+                sender.addChatMessage(warning);
             }
         }
     }
@@ -199,7 +252,7 @@ public class CmdBackup extends CmdTreeBase {
                             archives.size(),
                             FileUtils.getSizeString(archives.stream().mapToLong(archive -> archive.size).sum())));
 
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            long now = System.currentTimeMillis();
             archives.stream()
                     .sorted(
                             Comparator.comparingLong((BackupRetention.Archive archive) -> archive.created)
@@ -210,8 +263,8 @@ public class CmdBackup extends CmdTreeBase {
                                             sender,
                                             "cmd.backup_list_file",
                                             archive.file.getName(),
-                                            format.format(new Date(archive.created)),
-                                            FileUtils.getSizeString(archive.size))));
+                                            FileUtils.getSizeString(archive.size),
+                                            when(archive, now))));
         }
     }
 }

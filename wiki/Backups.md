@@ -62,8 +62,8 @@ All commands require operator permissions, or singleplayer.
 | `/backup start [name] [=oc] [=overwrite]` | Start a backup now. `=oc` only includes claimed chunks. A name that already exists is refused unless `=overwrite` is given. |
 | `/backup stop` | Cancel the running backup. |
 | `/backup getsize` | Show the world size and the backup folder size. |
-| `/backup list` | List backups, oldest first, with their creation date and size. |
-| `/backup prune preview` | Show which backups policy mode would keep or delete, and why, without deleting anything. |
+| `/backup list` | List backups, oldest first, with their size and age. |
+| `/backup prune preview` | Show, oldest first, which backups policy mode would keep or delete, the rule responsible and how long finite rules keep each one. Nothing is deleted. |
 
 `list` and `prune preview` run in the background and report "busy" while a backup is running.
 

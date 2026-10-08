@@ -102,11 +102,35 @@ public final class BackupRetention {
         public final Map<File, String> delete = new LinkedHashMap<>();
         final Set<File> sizeCandidates = new LinkedHashSet<>();
         final Set<File> sizeExempt = new HashSet<>();
+        final List<Archive> archives = new ArrayList<>();
+        final Map<File, String> labels = new HashMap<>();
+        final Map<File, Long> keptUntil = new HashMap<>();
+        final Set<File> preserved = new HashSet<>();
         public long remainingSize;
         public long remainingRotationSize;
 
         private void keep(File file, String reason) {
             keep.merge(file, reason, (previous, added) -> previous + "; " + added);
+        }
+
+        /** Every scanned archive, oldest first. */
+        public List<Archive> archives() {
+            return archives;
+        }
+
+        /** Short reason for display, e.g. "latest", "30d:1d" or "replaced in 1d:30m". */
+        public String label(File file) {
+            return labels.getOrDefault(file, "");
+        }
+
+        /** When finite rules stop keeping this archive, or -1 if no finite rule decides it. */
+        public long keptUntil(File file) {
+            return keptUntil.getOrDefault(file, -1L);
+        }
+
+        /** Kept regardless of rules: unreadable, future-dated or protected custom archives. */
+        public boolean isPreserved(File file) {
+            return preserved.contains(file);
         }
     }
 
@@ -156,6 +180,9 @@ public final class BackupRetention {
         Plan plan = new Plan();
         Set<File> protectedFiles = new HashSet<>();
         Set<String> worlds = new HashSet<>();
+        Set<File> latest = new HashSet<>();
+        Map<File, Rule> longestRule = new HashMap<>();
+        Map<File, Rule> replacedIn = new HashMap<>();
         for (Archive archive : archives) {
             plan.remainingSize = Math.addExact(plan.remainingSize, archive.size);
             if (archive.problem != null || archive.created > now || (!deleteCustom && archive.custom)) {
@@ -164,11 +191,16 @@ public final class BackupRetention {
                         archive.file,
                         archive.problem != null ? archive.problem
                                 : archive.created > now ? "Timestamp is in the future" : "Protected custom backup");
+                plan.labels.put(
+                        archive.file,
+                        archive.problem != null ? "unreadable" : archive.created > now ? "future date" : "custom");
+                plan.preserved.add(archive.file);
                 protectedFiles.add(archive.file);
                 continue;
             }
             if (worlds.add(archive.world)) {
                 plan.keep(archive.file, "Latest backup for world");
+                latest.add(archive.file);
                 protectedFiles.add(archive.file);
             }
         }
@@ -182,10 +214,14 @@ public final class BackupRetention {
                 if (rule.interval == 0 || buckets.computeIfAbsent(archive.world, key -> new HashSet<>())
                         .add(Math.floorDiv(archive.created - BUCKET_ORIGIN, rule.interval))) {
                     plan.keep(archive.file, rule.text);
+                    longestRule.merge(archive.file, rule, (a, b) -> b.age > a.age ? b : a);
                     if (rule.age == Long.MAX_VALUE) {
                         protectedFiles.add(archive.file);
                         plan.sizeExempt.add(archive.file);
                     }
+                } else {
+                    // The finest interval best explains why a newer backup took this one's place.
+                    replacedIn.merge(archive.file, rule, (a, b) -> b.interval < a.interval ? b : a);
                 }
             }
         }
@@ -207,6 +243,25 @@ public final class BackupRetention {
             plan.delete.put(archive.file, "Folder size limit");
             plan.remainingSize -= archive.size;
             plan.remainingRotationSize -= archive.size;
+        }
+        for (int i = archives.size() - 1; i >= 0; i--) {
+            Archive archive = archives.get(i);
+            plan.archives.add(archive);
+            File file = archive.file;
+            if (plan.preserved.contains(file)) continue;
+            Rule rule = longestRule.get(file);
+            if (plan.delete.containsKey(file)) {
+                Rule replaced = replacedIn.get(file);
+                plan.labels.put(
+                        file,
+                        "Folder size limit".equals(plan.delete.get(file)) ? "size limit"
+                                : replaced != null ? "replaced in " + replaced.text : "older than all rules");
+            } else if (latest.contains(file)) {
+                plan.labels.put(file, rule == null ? "latest" : "latest, " + rule.text);
+            } else {
+                plan.labels.put(file, rule.text);
+                if (rule.age != Long.MAX_VALUE) plan.keptUntil.put(file, archive.created + rule.age);
+            }
         }
         return plan;
     }
