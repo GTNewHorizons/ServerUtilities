@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.CRC32;
@@ -62,7 +63,8 @@ import serverutils.lib.util.compression.ICompress;
 
 public class ThreadBackup extends Thread {
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+    // Root locale, BackupTask.BACKUP_NAME_PATTERN only matches ASCII digits.
+    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.ROOT);
     private static long logMillis;
     private final File src0;
     private final String customName;
@@ -143,6 +145,69 @@ public class ThreadBackup extends Thread {
         }
     }
 
+    private static void removeExcludedFiles(Map<String, File> files, File saveFile) {
+        List<BackupExclusion> exclusions = new ArrayList<>();
+        String saveName = saveFile.getName();
+        for (String pattern : backups.excluded_backup_files) {
+            String excluded = FileUtils.normalizeBackupPattern(pattern.replace("$WORLDNAME", saveName));
+            if (!excluded.isEmpty()) exclusions.add(new BackupExclusion(excluded));
+        }
+        if (exclusions.isEmpty()) return;
+
+        files.entrySet().removeIf(entry -> {
+            // Which regions get backed up is decided by the chunk selection, not by configured exclusions.
+            if (entry.getValue().getName().endsWith(".mca")) return false;
+
+            // Keys are relative to the run folder. Absolute patterns also need the source file path.
+            Path relative = Paths.get(entry.getKey()).normalize();
+            String relativeName = relative.toString().replace('\\', '/');
+            Path absolute = entry.getValue().toPath().toAbsolutePath().normalize();
+            String absoluteName = absolute.toString().replace('\\', '/');
+            for (BackupExclusion exclusion : exclusions) {
+                if (exclusion.matches(relative, relativeName) || exclusion.matches(absolute, absoluteName)) return true;
+            }
+            return false;
+        });
+    }
+
+    private static final class BackupExclusion {
+
+        private static final boolean WINDOWS = File.separatorChar == '\\';
+
+        private final PathMatcher matcher;
+        private final String prefix;
+        private final String suffix;
+
+        private BackupExclusion(String pattern) {
+            int first = pattern.length();
+            int last = -1;
+            for (int i = 0; i < pattern.length(); i++) {
+                if (isGlobSpecial(pattern.charAt(i))) {
+                    first = Math.min(first, i);
+                    last = i;
+                }
+            }
+            if (last < 0) {
+                pattern = Paths.get(pattern).normalize().toString().replace('\\', '/');
+                first = pattern.length();
+            }
+            prefix = pattern.substring(0, first);
+            suffix = last < 0 ? "" : pattern.substring(last + 1);
+            matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+        }
+
+        private boolean matches(Path path, String name) {
+            // Windows glob matching ignores case, so the string checks must do the same there.
+            return name.regionMatches(WINDOWS, 0, prefix, 0, prefix.length())
+                    && name.regionMatches(WINDOWS, name.length() - suffix.length(), suffix, 0, suffix.length())
+                    && matcher.matches(path);
+        }
+
+        private static boolean isGlobSpecial(char c) {
+            return c == '*' || c == '?' || c == '[' || c == ']' || c == '{' || c == '}';
+        }
+    }
+
     /** Matches directories that can contain selected files. The full glob separately selects the files themselves. */
     static PathMatcher backupGlobTraversal(String pattern) {
         List<PathMatcher> prefixes = new ArrayList<>();
@@ -211,6 +276,7 @@ public class ThreadBackup extends Thread {
             Map<String, File> files = snapshot == null ? listWorldFiles(src, null)
                     : new LinkedHashMap<>(snapshot.files);
             addBaseFolderFiles(files, src);
+            removeExcludedFiles(files, src);
             long start = System.currentTimeMillis();
             logMillis = start + Ticks.SECOND.x(5).millis();
 
@@ -288,6 +354,7 @@ public class ThreadBackup extends Thread {
 
         Map<File, BasicFileAttributes> listedAttributes = new HashMap<>();
         Map<String, File> files = listWorldFiles(src, listedAttributes);
+        removeExcludedFiles(files, src);
         Path world = src.toPath().toAbsolutePath().normalize();
         Path realWorld = world.toRealPath();
         Map<Path, Boolean> deferredDirectories = new HashMap<>();
