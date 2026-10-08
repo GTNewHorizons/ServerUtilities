@@ -325,9 +325,19 @@ public class ServerUtilitiesConfig {
         @Config.DefaultStringList({ "saves/NEI/global/**", "saves/NEI/local/$WORLDNAME/**" })
         public String[] additional_backup_files;
 
+        @Config.Comment("List of non-region paths to exclude when creating backups - those have priority over additional paths! Region files (.mca) are not excluded. Exclusions do not affect restoring backups. Use / as directory separator! Use * as wildcard, and $WORLDNAME for the save name. If specifying a folder, the path should end with \"/**\" to match all subfolders and files.")
+        @Config.DefaultStringList({})
+        public String[] excluded_backup_files;
+
         @Config.Comment("Run backup in a separated thread (recommended)")
         @Config.DefaultBoolean(true)
         public boolean use_separate_thread;
+
+        @Config.Comment("""
+                Reduces lag when a backup starts. Only applies when use_separate_thread is enabled.
+                Files are copied while the server is running, so backups may contain inconsistent or partially written mod and player data and may not restore correctly. World chunks are not affected by this option.""")
+        @Config.DefaultBoolean(false)
+        public boolean prefer_speed_over_backup_consistency;
 
         @Config.Comment("Prints (current size | total size) when backup is done")
         @Config.DefaultBoolean(true)

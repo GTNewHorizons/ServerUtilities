@@ -65,7 +65,12 @@ public class ServerUtilities {
 
     @Mod.EventHandler
     public void onPreInit(FMLPreInitializationEvent event) {
+        // Keep string handling on US English, mainly to avoid the Turkish dotless I breaking case conversions.
+        // Number and date formatting stays on the player's locale, other mods read it to format their own output.
+        final Locale formatLocale = Locale.getDefault(Locale.Category.FORMAT);
         Locale.setDefault(Locale.US);
+        Locale.setDefault(Locale.Category.FORMAT, formatLocale);
+
         PROXY.preInit(event);
     }
 
