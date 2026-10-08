@@ -51,6 +51,71 @@ public class BackupRetentionTest {
     }
 
     @Test
+    public void protectedCustomBackupsDoNotReplaceLatestOrBucketRepresentatives() {
+        BackupRetention.Archive recent = archive("recent", "a", MONDAY + HOUR, false);
+        BackupRetention.Archive named = archive("checkpoint", "a", MONDAY + 2 * HOUR, true);
+        BackupRetention.Archive old = archive("previous-week", "a", MONDAY - DAY, false);
+        BackupRetention.Archive oldNamed = archive("old-checkpoint", "a", MONDAY - HOUR, true);
+        List<BackupRetention.Archive> archives = Arrays.asList(recent, named, old, oldNamed);
+        BackupRetention.Plan plan = select(archives, MONDAY + 3 * HOUR, 1, false, "forever:1w");
+        assertTrue(plan.keep.get(recent.file).contains("Latest backup for world"));
+        assertTrue(plan.keep.get(old.file).contains("forever:1w"));
+        assertEquals("Protected custom backup", plan.keep.get(named.file));
+        assertEquals("Protected custom backup", plan.keep.get(oldNamed.file));
+        assertEquals(0, plan.remainingRotationSize);
+        plan = select(archives, MONDAY + 3 * HOUR, 0, true, "forever:1w");
+        assertTrue(plan.keep.get(named.file).contains("Latest backup for world"));
+        assertTrue(plan.delete.containsKey(recent.file));
+        assertTrue(plan.delete.containsKey(old.file));
+    }
+
+    @Test
+    public void unrecognizedAndFutureArchivesDoNotEvictFiniteHistory() {
+        BackupRetention.Archive latest = archive("latest", "a", MONDAY, false);
+        BackupRetention.Archive recent = archive("recent", "a", MONDAY - MINUTE, false);
+        BackupRetention.Archive future = archive("future", "a", MONDAY + DAY, false);
+        BackupRetention.Archive unknown = new BackupRetention.Archive(
+                new File("unknown"),
+                null,
+                0,
+                1_000_000,
+                false,
+                "Unrecognized/unreadable");
+        BackupRetention.Plan plan = select(Arrays.asList(latest, recent, future, unknown), MONDAY, 20, true, "1h:all");
+        assertTrue(plan.delete.isEmpty());
+        assertEquals(20, plan.remainingRotationSize);
+        assertEquals(1_000_030, plan.remainingSize);
+        assertTrue(plan.sizeExempt.containsAll(Arrays.asList(future.file, unknown.file)));
+    }
+
+    @Test
+    public void recognizesUncommentedWorldFoldersWithoutGuessingAmbiguousOrUnsafeLayouts() throws Exception {
+        Path old = zip("old.zip", null, "worlds/world/level.dat", new byte[] { 1 }, false);
+        Path latest = zip("latest.zip", null, "worlds/world/level.dat_old", new byte[] { 1 }, false);
+        Path other = zip("other.zip", null, "worlds/other/level.dat", new byte[] { 1 }, false);
+        Files.setLastModifiedTime(old, FileTime.fromMillis(1));
+        Files.setLastModifiedTime(latest, FileTime.fromMillis(2));
+        Files.setLastModifiedTime(other, FileTime.fromMillis(3));
+        Path unsafe = zip("unsafe.zip", null, "../world/level.dat", new byte[] { 1 }, false);
+        Path ambiguous = temporary.getRoot().toPath().resolve("ambiguous.zip");
+        try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(ambiguous))) {
+            for (String prefix : new String[] { "world/", "other/" }) {
+                zip.putNextEntry(new ZipEntry(prefix + "level.dat"));
+                zip.write(1);
+            }
+        }
+        BackupRetention.Plan plan = BackupRetention
+                .plan(temporary.getRoot(), new String[] { "1h:all" }, MONDAY, true, 1);
+        assertTrue(plan.delete.containsKey(old.toFile()));
+        assertTrue(plan.keep.get(latest.toFile()).contains("Latest backup for world"));
+        assertTrue(plan.keep.get(other.toFile()).contains("Latest backup for world"));
+        for (Path rejected : Arrays.asList(unsafe, ambiguous)) {
+            assertTrue(plan.keep.get(rejected.toFile()).contains("Unrecognized/unreadable"));
+        }
+        assertEquals("name:world", BackupRetention.read(latest.toFile(), Files.size(latest)).world);
+    }
+
+    @Test
     public void validatesEveryRuleBeforeSelectingAnything() {
         assertEquals(
                 5,
@@ -239,7 +304,7 @@ public class BackupRetentionTest {
         BackupRetention.Plan plan = select(Arrays.asList(unknown, future, latest), MONDAY, 1, true, "1h:all");
         assertTrue(plan.delete.isEmpty());
         assertEquals(30, plan.remainingSize);
-        assertEquals(30, plan.remainingRotationSize);
+        assertEquals(10, plan.remainingRotationSize);
     }
 
     private Path zip(String name, String comment, String entryName, byte[] contents) throws Exception {

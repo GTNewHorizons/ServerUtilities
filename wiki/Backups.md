@@ -39,11 +39,9 @@ Archives without metadata use the original filename-based detection. Invalid met
 falling back to the filename.
 
 Only recognized world backups in regular `.zip` files directly in the backup folder are eligible. They are ordered
-by file modification time, with filename breaking ties. The newest eligible archive is always kept, even if it alone
-exceeds the size limit. Unreadable or unrecognized ZIPs are preserved and excluded from the legacy count and size limits.
-
-**Limitation:** legacy retention treats the folder as one collection. Use policy mode to preserve the latest backup
-separately for each world.
+by file modification time, with filename breaking ties. The newest eligible archive **for each world** is always kept.
+Count and size limits apply across all worlds, but can be exceeded to preserve those last backups. Unreadable,
+unrecognized and future-dated ZIPs are preserved and excluded from the legacy count and size limits.
 
 ## Policy mode: keep history by age
 
@@ -94,18 +92,21 @@ against the rotation allowance. An empty policy reports that legacy retention is
 
 Policy cleanup preserves these archives, even when the size limit cannot be met:
 
-- The latest recognized backup for each world, even if older than every finite age window.
+- The latest eligible backup for each world, even if older than every finite age window.
 - Backups selected by a `forever` rule.
 - Custom-named backups when `delete_custom_name_backups=false`.
 - Unrecognized or unreadable ZIPs, which do not participate in world or time-period selection.
 - Archives with timestamps in the future.
 
-If `max_folder_size` is positive, age cleanup runs first. Protected custom backups and selected `forever`
-representatives are excluded from this rotation size allowance, including backups selected by both finite and
-`forever` rules. If the remaining counted ZIPs still exceed the allowance,
+Protected custom backups are kept separately: they do not replace the latest automatic backup or fill policy buckets.
+When `delete_custom_name_backups=true`, custom backups participate in selection normally.
+
+If `max_folder_size` is positive, age cleanup runs first. Protected custom backups, unrecognized/unreadable ZIPs,
+future-dated archives and selected `forever` representatives are excluded from this rotation size allowance,
+including backups selected by both finite and `forever` rules. If the remaining counted ZIPs still exceed the allowance,
 ServerUtilities removes the oldest backups selected only by finite-age rules. **The size limit can shorten your
-configured history.** The latest backup per world, future-dated archives and unrecognized ZIPs still count unless
-otherwise excluded, but remain protected. An unmet allowance produces a warning.
+configured history.** The latest eligible backup per world still counts unless otherwise excluded, but remains
+protected. An unmet allowance produces a warning.
 
 `max_folder_size` does not cap the total folder size or stop backup creation. For example, a 5 GB rotation allowance
 plus 8 GB of protected custom backups or `forever` representatives can use 13 GB in total. Permanent history can
@@ -119,7 +120,9 @@ Cleanup runs at startup and after a backup is successfully published. Failed or 
 post-backup cleanup. Failed deletions do not count as freed space or removed backups.
 
 Both modes scan archives and delete backups in the background. World saving resumes before post-backup pruning starts.
-New backups and further previews report busy while the worker is running. `/backup stop` and server shutdown
+Manual backups and further previews report busy while the worker is running. Scheduled backups retry after one second
+when a backup or scan is busy, then return to their configured interval. A cleanup request made during a scan runs
+when that scan finishes; repeated requests are combined. `/backup stop` and server shutdown
 cancel the worker and wait for it to stop.
 
 | Situation | What happens |
@@ -127,11 +130,16 @@ cancel the worker and wait for it to stop.
 | A policy rule is invalid | The entire policy is rejected and pruning is skipped. Backups can still be created; fix the rule to resume cleanup. |
 | A scan finds an unreadable or unrecognized ZIP | The ZIP is preserved and reported in the log. |
 | A deletion fails | The failure is logged; size cleanup tries the next eligible older backup without deleting protected archives. |
-| A count or size limit cannot be met | A warning reports the remaining eligible count or counted size. Protected custom backups and `forever` representatives are excluded from the size allowance. |
+| A count or size limit cannot be met | A warning reports the remaining eligible count or counted size. Protected custom backups, unrecognized/unreadable ZIPs, future-dated archives and selected `forever` representatives are excluded from the size allowance. |
 | Retention settings change during a scan | Its deletion plan is skipped. |
 
 Custom backup names must be filenames without path separators, control characters or reserved filename characters.
 They cannot place archives outside the backup folder. Existing directory or symlink targets are rejected.
+Reusing a custom name is rejected before preparing the backup. To intentionally replace a checkpoint, run
+`/backup start checkpoint =overwrite`. This can be combined with `=oc`; `=overwrite` requires a custom name.
+The existing archive remains until the replacement has finished writing. Automatic timestamp collisions receive
+a numbered suffix, so two backups created in the same second can coexist. The launch reply is sent only when
+preparation starts a worker or a synchronous backup finishes successfully.
 
 <details>
 <summary>Technical details and compatibility with older backups</summary>
@@ -150,22 +158,23 @@ Changing the policy or manually deleting backups can remove that history.
 New backups store their creation timestamp, world UUID and custom-name status inside the ZIP. This metadata is
 excluded from restoration.
 
-In policy mode, older archives use their saved world UUID when available, otherwise their ZIP world-folder comment.
+Both modes use saved world UUIDs when available, otherwise the archive's recognized world-folder name.
 Archives without a UUID are grouped by world-folder name. Older timestamp filenames are interpreted in the server's
 local timezone; older custom-named archives use file modification time. Changing timezone or touching these older
 files can affect policy selection.
 
-In policy mode, cloned worlds that keep the same UUID share retention history when their backups are in the same folder.
+Cloned worlds that keep the same UUID share retention history when their backups are in the same folder.
 
 ### ZIP checks
 
 To participate in either retention mode, an archive must contain a nonempty `level.dat` or `level.dat_old` in exactly
-one safe world folder whose final name matches its ZIP comment. This includes `<world>/`, `saves/<world>/`, and
-nested folders such as `worlds/<world>/`. Unsafe paths or multiple matching world folders are rejected. Archives
+one safe world folder. When a ZIP comment is present, the folder's final name must match it. Without a comment,
+the unique world folder identifies the world. This includes `<world>/`, `saves/<world>/`, and nested folders such as
+`worlds/<world>/`. Unsafe paths or multiple candidate world folders are rejected. Archives
 that fail this check are preserved and cannot replace the latest recognized backup.
 
-Both modes validate backup metadata when present. Legacy checks use the ZIP index without reading world-file
-contents. These are archive structure checks, not full payload-integrity checks.
+Both modes validate backup metadata when present, or read the world UUID from `serverutilities/universe.dat`
+when available in an older archive. These are archive structure checks, not full payload-integrity checks.
 
 ### Command replies and invalid legacy limits
 

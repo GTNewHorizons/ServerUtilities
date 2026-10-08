@@ -335,7 +335,7 @@ public class ServerUtilitiesConfig {
         @Config.DefaultString("30m")
         public String backup_timer;
 
-        @Config.Comment("Number of backup files to keep before deleting old ones. Ignored when retention_policy is nonempty.")
+        @Config.Comment("Number of backup files to keep before deleting old ones. Always preserves the latest eligible backup per world. Ignored when retention_policy is nonempty.")
         @Config.DefaultInt(12)
         @Config.RangeInt(min = 1)
         public int backups_to_keep;
@@ -348,6 +348,7 @@ public class ServerUtilitiesConfig {
                 'all' keeps every backup in the window; 'forever' has no age limit.
                 The current bucket's representative may be replaced. Completed forever buckets remain under an unchanged policy.
                 Always keeps the latest backup per world. Missing/offline periods are not filled.
+                Protected custom backups are kept separately and do not fill time buckets or replace the latest backup.
                 Empty = existing count/size retention. Invalid rules disable pruning until corrected.
                 This only controls retention; backup_timer still controls how frequently backups are created.
                 Use /backup prune preview to inspect the decisions without deleting anything.""")
@@ -396,8 +397,9 @@ public class ServerUtilitiesConfig {
         @Config.Comment("""
                 Size allowance for rotating backup archives in GB. Deletes eligible old backups when exceeded.
                 0 = Disabled and backups_to_keep will be used instead, unless retention_policy is set.
-                With legacy retention, counts only eligible ZIP files and always preserves the newest one.
+                With legacy retention, counts only eligible ZIP files and preserves the newest eligible backup per world.
                 Protected custom backups are excluded from the size allowance in both modes.
+                Unrecognized/unreadable and future-dated archives are also preserved and excluded.
                 With retention_policy, removes the oldest finite-retention backups after age pruning.
                 Forever representatives are also excluded from the allowance; total folder size can exceed it.
                 The latest backup per world is never removed to meet this allowance, but counts unless otherwise excluded.

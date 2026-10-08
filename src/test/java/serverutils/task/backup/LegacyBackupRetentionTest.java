@@ -38,6 +38,12 @@ public class LegacyBackupRetentionTest {
                 zip.setComment("world");
                 zip.putNextEntry(new ZipEntry("world/level.dat"));
                 zip.write(new byte[size]);
+                zip.putNextEntry(new ZipEntry("world/serverutilities/universe.dat"));
+                net.minecraft.nbt.NBTTagCompound universe = new net.minecraft.nbt.NBTTagCompound();
+                universe.setString("UUID", "12345678-1234-1234-1234-123456789abc");
+                java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
+                net.minecraft.nbt.CompressedStreamTools.writeCompressed(universe, output);
+                zip.write(output.toByteArray());
             }
         } else Files.write(file, new byte[size]);
         Files.setLastModifiedTime(file, FileTime.fromMillis(modified));
@@ -64,6 +70,52 @@ public class LegacyBackupRetentionTest {
         }
         Files.setLastModifiedTime(file, FileTime.fromMillis(modified));
         return file;
+    }
+
+    @Test
+    public void preservesLatestPerWorldWithCountAndSizeLimitsIncludingUncommentedArchives() throws Exception {
+        for (long cap : new long[] { 0, 1 }) {
+            for (String name : new String[] { "a-old", "a-latest", "b-old", "b-latest" }) {
+                Path path = temporary.getRoot().toPath().resolve(name + ".zip");
+                try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(path))) {
+                    zip.putNextEntry(new ZipEntry("worlds/" + name.charAt(0) + "/level.dat"));
+                    zip.write(1);
+                }
+                Files.setLastModifiedTime(path, FileTime.fromMillis(name.endsWith("latest") ? 2 : 1));
+            }
+            clearLegacyBackups(temporary.getRoot(), 1, cap, true);
+            for (String name : new String[] { "a", "b" }) {
+                assertTrue(Files.exists(temporary.getRoot().toPath().resolve(name + "-latest.zip")));
+                assertFalse(Files.exists(temporary.getRoot().toPath().resolve(name + "-old.zip")));
+            }
+        }
+    }
+
+    @Test
+    public void futureMetadataAndProtectedCustomArchivesCannotDisplaceLatestAutomaticBackup() throws Exception {
+        Path latest = metadataArchive("latest.zip", "false", 2);
+        Path custom = metadataArchive("checkpoint.zip", "true", 3);
+        Path future = temporary.getRoot().toPath().resolve("future.zip");
+        Properties metadata = new Properties();
+        metadata.setProperty("version", "1");
+        metadata.setProperty("worldId", "12345678-1234-1234-1234-123456789abc");
+        metadata.setProperty("createdAt", Long.toString(Long.MAX_VALUE));
+        metadata.setProperty("customName", "false");
+        try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(future))) {
+            zip.putNextEntry(new ZipEntry("world/level.dat"));
+            zip.write(1);
+            zip.putNextEntry(new ZipEntry(ICompress.BACKUP_METADATA_ENTRY));
+            metadata.store(zip, null);
+        }
+        Files.setLastModifiedTime(future, FileTime.fromMillis(4));
+        for (long cap : new long[] { 0, 1 }) {
+            Path old = metadataArchive("old.zip", "false", 1);
+            clearLegacyBackups(temporary.getRoot(), 1, cap, false);
+            assertFalse(Files.exists(old));
+            assertTrue(Files.exists(latest));
+            assertTrue(Files.exists(custom));
+            assertTrue(Files.exists(future));
+        }
     }
 
     @Test
@@ -118,7 +170,7 @@ public class LegacyBackupRetentionTest {
         } finally {
             Thread.interrupted();
         }
-        java.util.List<File> candidates = BackupTask.readLegacyBackups(temporary.getRoot(), true);
+        java.util.List<BackupRetention.Archive> candidates = BackupTask.readLegacyBackups(temporary.getRoot(), true);
         Thread.currentThread().interrupt();
         try {
             org.junit.Assert.assertThrows(
@@ -212,7 +264,7 @@ public class LegacyBackupRetentionTest {
             File folder = mock(File.class);
             when(folder.listFiles()).thenReturn(new File[] { old, middle.toFile(), latest.toFile() });
             long cap = sizeMode ? Files.size(undeletable) + Files.size(latest) : 0;
-            java.util.List<File> candidates = BackupTask.readLegacyBackups(folder, true);
+            java.util.List<BackupRetention.Archive> candidates = BackupTask.readLegacyBackups(folder, true);
             // Simulate the filesystem refusing removal after the candidate was verified.
             when(old.toPath()).thenReturn(failure);
             BackupTask.clearLegacyBackups(candidates, 1, cap);

@@ -96,23 +96,27 @@ public class CmdBackup extends CmdTreeBase {
         @Override
         public void processCommand(ICommandSender sender, String[] args) throws WrongUsageException {
             final boolean oc = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=oc"));
-            final String target = Arrays.stream(args).filter(arg -> !arg.equalsIgnoreCase("=oc")).findFirst()
+            final boolean overwrite = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=overwrite"));
+            final String target = Arrays.stream(args)
+                    .filter(arg -> !arg.equalsIgnoreCase("=oc") && !arg.equalsIgnoreCase("=overwrite")).findFirst()
                     .orElse("");
             try {
                 ThreadBackup.validateBackupName(target);
+                if (!target.isEmpty() || overwrite) ThreadBackup.backupDestination(target, overwrite);
             } catch (IOException ex) {
                 throw new WrongUsageException(ex.getMessage());
             }
 
-            final BackupTask task = new BackupTask(sender, target, oc);
+            final BackupTask task = new BackupTask(sender, target, oc, overwrite);
 
             if (!BackupTask.isBackupRunning()) {
                 task.execute(Universe.get());
-                if (BackupTask.isBackupRunning() && !BackupTask.isWorldSavingSuspended()) {
+                if (task.isDeferred()) {
                     sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
-                } else sender.addChatMessage(
+                } else if (task.hasStarted()) sender.addChatMessage(
                         ServerUtilities
                                 .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
+                else sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
             } else {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
             }

@@ -75,6 +75,7 @@ public class ThreadBackup extends Thread {
     private final Map<Integer, File> dimensionFolders;
     private final String worldId;
     private final long createdAt;
+    private final boolean overwrite;
     boolean successful;
 
     public ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
@@ -99,6 +100,11 @@ public class ThreadBackup extends Thread {
 
     ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
             Snapshot snapshot, boolean onlyClaimed, String worldId, long createdAt) {
+        this(compress, sourceFile, backupName, backupChunks, snapshot, onlyClaimed, worldId, createdAt, false);
+    }
+
+    ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks,
+            Snapshot snapshot, boolean onlyClaimed, String worldId, long createdAt, boolean overwrite) {
         src0 = sourceFile;
         customName = backupName;
         chunksToBackup = new HashSet<>(backupChunks);
@@ -109,6 +115,7 @@ public class ThreadBackup extends Thread {
         this.onlyClaimed = onlyClaimed;
         this.worldId = worldId;
         this.createdAt = createdAt;
+        this.overwrite = overwrite;
         setPriority(7);
     }
 
@@ -123,7 +130,8 @@ public class ThreadBackup extends Thread {
                     onlyClaimed,
                     dimensionFolders,
                     worldId,
-                    createdAt);
+                    createdAt,
+                    overwrite);
         } finally {
             if (snapshot != null) deleteSnapshot();
         }
@@ -288,22 +296,38 @@ public class ThreadBackup extends Thread {
                 onlyClaimed,
                 dimensionFolders,
                 null,
-                System.currentTimeMillis());
+                System.currentTimeMillis(),
+                false);
     }
 
     static boolean doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
             Snapshot snapshot, boolean onlyClaimed, String worldId, long createdAt) {
-        return writeBackup(compressor, src, customName, chunks, snapshot, onlyClaimed, null, worldId, createdAt);
+        return doBackup(compressor, src, customName, chunks, snapshot, onlyClaimed, worldId, createdAt, false);
+    }
+
+    static boolean doBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
+            Snapshot snapshot, boolean onlyClaimed, String worldId, long createdAt, boolean overwrite) {
+        return writeBackup(
+                compressor,
+                src,
+                customName,
+                chunks,
+                snapshot,
+                onlyClaimed,
+                null,
+                worldId,
+                createdAt,
+                overwrite);
     }
 
     private static boolean writeBackup(ICompress compressor, File src, String customName, Set<ChunkDimPos> chunks,
-            Snapshot snapshot, boolean onlyClaimed, Map<Integer, File> dimensionFolders, String worldId,
-            long createdAt) {
+            Snapshot snapshot, boolean onlyClaimed, Map<Integer, File> dimensionFolders, String worldId, long createdAt,
+            boolean overwrite) {
         File dstFile = null;
         Path temporary = null;
         boolean published = false;
         try {
-            dstFile = backupDestination(customName);
+            dstFile = backupDestination(customName, overwrite);
             validateBackupSource(src);
             if (onlyClaimed && chunks.isEmpty()) {
                 ServerUtilities.LOGGER
@@ -337,11 +361,18 @@ public class ThreadBackup extends Thread {
 
             }
             if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup cancelled");
-            if (Files.exists(destination)
+            if (overwrite && Files.exists(destination)
                     && Files.getFileAttributeView(destination, PosixFileAttributeView.class) != null) {
                 Files.setPosixFilePermissions(temporary, Files.getPosixFilePermissions(destination));
             }
-            Files.move(temporary, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            if (overwrite) {
+                // Recheck the destination type after compression before replacing an existing checkpoint.
+                backupDestination(customName, true);
+                Files.move(temporary, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                // ATOMIC_MOVE may replace an existing file even without REPLACE_EXISTING.
+                Files.move(temporary, destination);
+            }
             temporary = null;
             published = true;
             String backupSize = FileUtils.getSizeString(dstFile);
@@ -383,16 +414,25 @@ public class ThreadBackup extends Thread {
         }
     }
 
-    private static File backupDestination(String customName) throws IOException {
+    public static File backupDestination(String customName, boolean overwrite) throws IOException {
         validateBackupName(customName);
+        if (overwrite && customName.isEmpty()) throw new IOException("Overwrite requires a custom backup name");
         String name = (customName.isEmpty() ? DATE_FORMAT.format(Calendar.getInstance().getTime()) : customName)
                 + ".zip";
         Path folder = BackupTask.BACKUP_FOLDER.toPath().toAbsolutePath().normalize();
         Path destination = folder.resolve(name).normalize();
+        if (customName.isEmpty()) {
+            for (int suffix = 1; Files.exists(destination, LinkOption.NOFOLLOW_LINKS); suffix++) {
+                destination = folder.resolve(name.substring(0, name.length() - 4) + "-" + suffix + ".zip");
+            }
+        }
         if (!folder.equals(destination.getParent())) throw new IOException("Backup must stay inside backup storage");
         if (Files.exists(destination, LinkOption.NOFOLLOW_LINKS)
                 && !Files.isRegularFile(destination, LinkOption.NOFOLLOW_LINKS)) {
             throw new IOException("Backup destination is not a regular file: " + name);
+        }
+        if (!overwrite && Files.exists(destination, LinkOption.NOFOLLOW_LINKS)) {
+            throw new IOException("Backup already exists: " + name + ". Use =overwrite to replace it explicitly");
         }
         return destination.toFile();
     }

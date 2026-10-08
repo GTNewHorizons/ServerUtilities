@@ -154,15 +154,16 @@ public final class BackupRetention {
         Set<String> worlds = new HashSet<>();
         for (Archive archive : archives) {
             plan.remainingSize = Math.addExact(plan.remainingSize, archive.size);
-            if (!deleteCustom && archive.custom) plan.sizeExempt.add(archive.file);
             if (archive.problem != null || archive.created > now || (!deleteCustom && archive.custom)) {
+                plan.sizeExempt.add(archive.file);
                 plan.keep(
                         archive.file,
                         archive.problem != null ? archive.problem
                                 : archive.created > now ? "Timestamp is in the future" : "Protected custom backup");
                 protectedFiles.add(archive.file);
+                continue;
             }
-            if (archive.problem == null && archive.created <= now && worlds.add(archive.world)) {
+            if (worlds.add(archive.world)) {
                 plan.keep(archive.file, "Latest backup for world");
                 protectedFiles.add(archive.file);
             }
@@ -170,7 +171,10 @@ public final class BackupRetention {
         for (Rule rule : rules) {
             Map<String, Set<Long>> buckets = new HashMap<>();
             for (Archive archive : archives) {
-                if (archive.problem != null || archive.created > now || now - archive.created > rule.age) continue;
+                if (archive.problem != null || archive.created > now
+                        || (!deleteCustom && archive.custom)
+                        || now - archive.created > rule.age)
+                    continue;
                 if (rule.interval == 0 || buckets.computeIfAbsent(archive.world, key -> new HashSet<>())
                         .add(Math.floorDiv(archive.created - BUCKET_ORIGIN, rule.interval))) {
                     plan.keep(archive.file, rule.text);
@@ -203,10 +207,11 @@ public final class BackupRetention {
         return plan;
     }
 
-    private static Archive read(File file, long size) throws IOException {
+    static Archive read(File file, long size) throws IOException {
         try (ZipFile zip = new ZipFile(file)) {
             String worldPrefix = worldPrefix(zip);
-            String worldName = zip.getComment();
+            String worldName = worldPrefix.substring(0, worldPrefix.length() - 1);
+            worldName = worldName.substring(worldName.lastIndexOf('/') + 1);
             Archive metadata = readMetadata(file, zip, size);
             if (metadata != null) return metadata;
             String world = "name:" + worldName;
@@ -272,11 +277,11 @@ public final class BackupRetention {
 
     private static String worldPrefix(ZipFile zip) throws IOException {
         String worldName = zip.getComment();
-        if (worldName == null || worldName.isEmpty()) throw new IOException("Missing world identifier");
-        if (worldName.equals(".") || worldName.equals("..")
+        boolean hasComment = worldName != null && !worldName.isEmpty();
+        if (hasComment && (worldName.equals(".") || worldName.equals("..")
                 || worldName.contains("/")
                 || worldName.contains("\\")
-                || worldName.contains(":")) {
+                || worldName.contains(":"))) {
             throw new IOException("Invalid world identifier");
         }
         Set<String> prefixes = new HashSet<>();
@@ -291,7 +296,7 @@ public final class BackupRetention {
             String filename = name.substring(separator + 1);
             if (!filename.equals("level.dat") && !filename.equals("level.dat_old")) continue;
             String prefix = name.substring(0, separator + 1);
-            if (!prefix.equals(worldName + "/") && !prefix.endsWith("/" + worldName + "/")) continue;
+            if (hasComment && !prefix.equals(worldName + "/") && !prefix.endsWith("/" + worldName + "/")) continue;
             if (prefix.startsWith("/") || prefix.contains("\\")
                     || prefix.contains(":")
                     || prefix.contains("//")

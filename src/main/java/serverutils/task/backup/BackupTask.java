@@ -58,6 +58,7 @@ public class BackupTask extends Task {
     private static boolean backupSucceeded;
     private static volatile boolean backupPreparing;
     private static volatile boolean stopping;
+    private static volatile boolean prunePending;
     static volatile Thread retentionThread;
     public static volatile ThreadBackup thread;
     public static boolean hadPlayer = false;
@@ -65,6 +66,9 @@ public class BackupTask extends Task {
     private String customName = "";
     private boolean post = false;
     private boolean forceOnlyClaimed = false;
+    private boolean overwrite;
+    private boolean deferred;
+    private boolean started;
 
     static {
         BACKUP_FOLDER = backups.backup_folder_path.isEmpty() ? new File("/backups/")
@@ -83,6 +87,24 @@ public class BackupTask extends Task {
     public BackupTask(@Nullable ICommandSender ics, String customName, final boolean forceOnlyClaimed) {
         this(ics, customName);
         this.forceOnlyClaimed = forceOnlyClaimed;
+    }
+
+    public BackupTask(@Nullable ICommandSender ics, String customName, boolean forceOnlyClaimed, boolean overwrite) {
+        this(ics, customName, forceOnlyClaimed);
+        this.overwrite = overwrite;
+    }
+
+    public boolean hasStarted() {
+        return started;
+    }
+
+    public boolean isDeferred() {
+        return deferred;
+    }
+
+    @Override
+    public long getInterval() {
+        return deferred && sender == null ? Ticks.SECOND.millis() : super.getInterval();
     }
 
     public BackupTask(@Nullable ICommandSender ics, String customName) {
@@ -106,7 +128,9 @@ public class BackupTask extends Task {
             postBackup(universe);
             return;
         }
-        if (backupPreparing || isBackupRunning()) return;
+        started = false;
+        deferred = backupPreparing || isBackupRunning();
+        if (deferred) return;
         if (!worldSaveStates.isEmpty()) postBackup(universe);
         boolean auto = sender == null;
 
@@ -119,7 +143,10 @@ public class BackupTask extends Task {
         }
 
         synchronized (BackupTask.class) {
-            if (backupPreparing || isBackupRunning()) return;
+            if (backupPreparing || isBackupRunning()) {
+                deferred = true;
+                return;
+            }
             backupPreparing = true;
         }
         backupSucceeded = false;
@@ -132,6 +159,7 @@ public class BackupTask extends Task {
         boolean snapshotPrepared = false;
         try {
             ThreadBackup.validateBackupName(customName);
+            if (!customName.isEmpty() || overwrite) ThreadBackup.backupDestination(customName, overwrite);
             // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
             // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
             server.getConfigurationManager().saveAllPlayerData();
@@ -183,8 +211,10 @@ public class BackupTask extends Task {
                         snapshot,
                         onlyClaimed,
                         backupWorldId,
-                        createdAt);
+                        createdAt,
+                        overwrite);
                 thread.start();
+                backupStarted = true;
             } else {
                 phase = recordBackupPhase(timings, "setup", phase);
                 backupSucceeded = ThreadBackup.doBackup(
@@ -195,10 +225,12 @@ public class BackupTask extends Task {
                         null,
                         onlyClaimed,
                         backupWorldId,
-                        createdAt);
+                        createdAt,
+                        overwrite);
                 recordBackupPhase(timings, "archive", phase);
+                backupStarted = backupSucceeded;
             }
-            backupStarted = true;
+            this.started = backupStarted;
         } catch (Exception ex) {
             if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
             ServerUtils.notifyChat(
@@ -343,17 +375,18 @@ public class BackupTask extends Task {
     }
 
     public static synchronized void clearOldBackups() {
+        prunePending = true;
         if (hasRetentionPolicy()) {
             String[] policy = backups.retention_policy.clone();
             boolean deleteCustom = backups.delete_custom_name_backups;
             long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
-            startRetentionTask(() -> pruneRetention(policy, deleteCustom, maxSize));
+            if (startRetentionTask(() -> pruneRetention(policy, deleteCustom, maxSize))) prunePending = false;
             return;
         }
         int keepCount = backups.backups_to_keep;
         long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
         boolean deleteCustom = backups.delete_custom_name_backups;
-        startRetentionTask(() -> pruneLegacy(keepCount, maxSize, deleteCustom));
+        if (startRetentionTask(() -> pruneLegacy(keepCount, maxSize, deleteCustom))) prunePending = false;
     }
 
     private static void pruneLegacy(int keepCount, long maxSize, boolean deleteCustom) {
@@ -362,7 +395,7 @@ public class BackupTask extends Task {
             return;
         }
         try {
-            List<File> backupFiles = readLegacyBackups(BACKUP_FOLDER, deleteCustom);
+            List<BackupRetention.Archive> backupFiles = readLegacyBackups(BACKUP_FOLDER, deleteCustom);
             if (hasRetentionPolicy() || keepCount != backups.backups_to_keep
                     || deleteCustom != backups.delete_custom_name_backups
                     || maxSize != backups.max_folder_size * SizeUnit.GB.getSize()) {
@@ -377,38 +410,49 @@ public class BackupTask extends Task {
         }
     }
 
-    static List<File> readLegacyBackups(File folder, boolean deleteCustom) throws IOException {
+    static List<BackupRetention.Archive> readLegacyBackups(File folder, boolean deleteCustom) throws IOException {
         File[] files = folder.listFiles();
         if (files == null) throw new IOException("Cannot list backup folder: " + folder);
-        List<File> backupFiles = new ArrayList<>();
+        List<BackupRetention.Archive> backupFiles = new ArrayList<>();
         for (File file : files) {
             BackupRetention.checkInterrupted();
             if (!file.getName().endsWith(".zip") || !Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS))
                 continue;
             try {
-                boolean custom = BackupRetention.isCustomWorldArchive(file);
-                if (deleteCustom || !custom) backupFiles.add(file);
+                BackupRetention.Archive archive = BackupRetention.read(file, file.length());
+                if (archive.created > System.currentTimeMillis()) {
+                    ServerUtilities.LOGGER.warn("Preserving future-dated backup {}", file);
+                } else if (deleteCustom || !archive.custom) backupFiles.add(archive);
             } catch (IOException | RuntimeException ex) {
                 ServerUtilities.LOGGER.warn("Preserving unrecognized/unreadable backup {}: {}", file, ex.getMessage());
             }
         }
-        backupFiles.sort(Comparator.comparingLong(File::lastModified).thenComparing(File::getName));
+        backupFiles.sort(
+                Comparator.comparingLong((BackupRetention.Archive archive) -> archive.file.lastModified())
+                        .thenComparing(archive -> archive.file.getName()));
         BackupRetention.checkInterrupted();
         return backupFiles;
     }
 
-    static void clearLegacyBackups(List<File> backupFiles, int keepCount, long maxSize) throws InterruptedIOException {
+    static void clearLegacyBackups(List<BackupRetention.Archive> backupFiles, int keepCount, long maxSize)
+            throws InterruptedIOException {
         if (maxSize < 0) {
             ServerUtilities.LOGGER.warn("Skipping legacy backup pruning: negative size limit");
             return;
         }
-        long currentSize = backupFiles.stream().mapToLong(File::length).sum();
+        long currentSize = backupFiles.stream().mapToLong(archive -> archive.file.length()).sum();
         int remainingCount = backupFiles.size();
-        // Legacy retention is global and ordered by mtime; keep at least its newest eligible archive.
-        for (int i = 0; i < backupFiles.size() - 1; i++) {
+        Set<String> worlds = new HashSet<>();
+        Set<File> latest = new HashSet<>();
+        for (int i = backupFiles.size() - 1; i >= 0; i--) {
+            BackupRetention.Archive archive = backupFiles.get(i);
+            if (worlds.add(archive.world)) latest.add(archive.file);
+        }
+        for (BackupRetention.Archive archive : backupFiles) {
             BackupRetention.checkInterrupted();
             if (maxSize > 0 ? currentSize <= maxSize : remainingCount <= Math.max(1, keepCount)) break;
-            File file = backupFiles.get(i);
+            File file = archive.file;
+            if (latest.contains(file)) continue;
             long size = file.length();
             try {
                 Files.delete(file.toPath());
@@ -421,7 +465,7 @@ public class BackupTask extends Task {
         }
         if (maxSize > 0 && currentSize > maxSize) {
             ServerUtilities.LOGGER.warn(
-                    "Legacy backup size limit could not be met: {} bytes remain; newest backup or failed deletions",
+                    "Legacy backup size limit could not be met: {} bytes remain; latest backups per world or failed deletions",
                     currentSize);
         } else if (maxSize == 0 && remainingCount > Math.max(1, keepCount)) {
             ServerUtilities.LOGGER
@@ -481,7 +525,18 @@ public class BackupTask extends Task {
     // ponytail: one retention worker serializes scans and deletion; no preview queue to grow without bound.
     static synchronized boolean startRetentionTask(Runnable task) {
         if (backupPreparing || isBackupRunning() || isWorldSavingSuspended()) return false;
-        retentionThread = new Thread(task, "ServerUtilities backup retention");
+        retentionThread = new Thread(() -> {
+            try {
+                task.run();
+            } finally {
+                synchronized (BackupTask.class) {
+                    if (prunePending && !stopping) {
+                        retentionThread = null;
+                        clearOldBackups();
+                    }
+                }
+            }
+        }, "ServerUtilities backup retention");
         retentionThread.setDaemon(true);
         retentionThread.start();
         return true;
@@ -555,6 +610,7 @@ public class BackupTask extends Task {
             thread = null;
             retentionThread = null;
             backupSucceeded = false;
+            prunePending = false;
             stopping = false;
         }
         if (interrupted) Thread.currentThread().interrupt();
@@ -576,7 +632,7 @@ public class BackupTask extends Task {
         thread = null;
         backupSucceeded = false;
         restoreWorldSaving();
-        if (successful) clearOldBackups();
+        if (successful || prunePending) clearOldBackups();
         FileUtils.delete(BACKUP_TEMP_FOLDER);
     }
 }
