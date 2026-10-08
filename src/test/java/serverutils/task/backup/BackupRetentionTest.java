@@ -235,6 +235,13 @@ public class BackupRetentionTest {
         assertEquals(10, plan.remainingRotationSize);
     }
 
+    private static void assertReason(BackupRetention.Plan plan, File file, String reason, String... args) {
+        String[] expected = new String[args.length + 1];
+        expected[0] = "cmd.backup_prune_reason_" + reason;
+        System.arraycopy(args, 0, expected, 1, args.length);
+        assertArrayEquals(expected, plan.label(file));
+    }
+
     @Test
     public void previewLabelsExplainEachDecisionOldestFirst() {
         long now = MONDAY + 2 * DAY;
@@ -254,24 +261,24 @@ public class BackupRetentionTest {
         assertEquals(
                 Arrays.asList("ancient-replaced", "ancient", "replaced", "sampled", "named", "recent", "latest"),
                 order);
-        assertEquals("latest, forever:1w", plan.label(latest.file));
+        assertReason(plan, latest.file, "latest_rule", "forever:1w");
         assertEquals(-1L, plan.keptUntil(latest.file));
-        assertEquals("1h:all", plan.label(recent.file));
+        assertReason(plan, recent.file, "rule", "1h:all");
         assertEquals(recent.created + HOUR, plan.keptUntil(recent.file));
-        assertEquals("1d:30m", plan.label(sampled.file));
+        assertReason(plan, sampled.file, "rule", "1d:30m");
         assertEquals(sampled.created + DAY, plan.keptUntil(sampled.file));
-        assertEquals("replaced in 1d:30m", plan.label(replaced.file));
-        assertEquals("forever:1w", plan.label(ancient.file));
+        assertReason(plan, replaced.file, "replaced", "1d:30m");
+        assertReason(plan, ancient.file, "rule", "forever:1w");
         assertEquals(-1L, plan.keptUntil(ancient.file));
-        assertEquals("replaced in forever:1w", plan.label(ancientReplaced.file));
-        assertEquals("custom", plan.label(named.file));
+        assertReason(plan, ancientReplaced.file, "replaced", "forever:1w");
+        assertReason(plan, named.file, "custom");
         assertTrue(plan.isPreserved(named.file));
         assertFalse(plan.isPreserved(latest.file));
 
         plan = select(Arrays.asList(latest, sampled), now, 0, false, "1h:all");
-        assertEquals("older than all rules", plan.label(sampled.file));
+        assertReason(plan, sampled.file, "older");
         plan = select(Arrays.asList(latest, recent), now, 1, false, "1d:all");
-        assertEquals("size limit", plan.label(recent.file));
+        assertReason(plan, recent.file, "size");
     }
 
     @Test
@@ -481,7 +488,8 @@ public class BackupRetentionTest {
     @Test
     public void readsLegacyUuidAlongsideNewMetadataAndLeavesOtherFilesAlone() throws Exception {
         NBTTagCompound universe = new NBTTagCompound();
-        universe.setString("UUID", WORLD);
+        // Universe writes UUIDs without hyphens, while metadata uses the standard form.
+        universe.setString("UUID", serverutils.lib.util.StringUtils.fromUUID(java.util.UUID.fromString(WORLD)));
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         CompressedStreamTools.writeCompressed(universe, bytes);
         Path legacy = zip(
@@ -499,9 +507,20 @@ public class BackupRetentionTest {
         Path incomplete = Files.write(temporary.getRoot().toPath().resolve(".su-save-123.tmp"), new byte[] { 1 });
         Path corrupt = Files.write(temporary.getRoot().toPath().resolve("corrupt.zip"), new byte[] { 1 });
         Path unknown = zip("unknown.zip", null, "file", new byte[] { 1 });
+        NBTTagCompound invalid = new NBTTagCompound();
+        invalid.setString("UUID", "not-a-uuid");
+        ByteArrayOutputStream invalidBytes = new ByteArrayOutputStream();
+        CompressedStreamTools.writeCompressed(invalid, invalidBytes);
+        Path invalidUuid = zip(
+                "invalid-uuid.zip",
+                "world",
+                "saves/world/serverutilities/universe.dat",
+                invalidBytes.toByteArray());
+        Files.setLastModifiedTime(invalidUuid, FileTime.fromMillis(MONDAY));
         BackupRetention.Plan plan = BackupRetention
                 .plan(temporary.getRoot(), new String[] { "1h:all" }, MONDAY + 2 * DAY, true, 0);
-        assertTrue(plan.delete.containsKey(legacy.toFile()));
+        assertTrue("Same world as the newer metadata backup", plan.delete.containsKey(legacy.toFile()));
+        assertTrue(plan.isPreserved(invalidUuid.toFile()));
         assertTrue(plan.keep.containsKey(modern.toFile()));
         assertTrue(plan.keep.containsKey(corrupt.toFile()));
         assertTrue(plan.keep.containsKey(unknown.toFile()));

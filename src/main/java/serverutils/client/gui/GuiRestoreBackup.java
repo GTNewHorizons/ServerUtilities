@@ -145,7 +145,8 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
     private static boolean needsRefresh() {
         File[] files = BackupTask.BACKUP_FOLDER.listFiles();
-        if (files == null) return false;
+        // A missing folder must still clear backups cached from before it disappeared.
+        if (files == null) return !allBackupFiles.isEmpty();
         if (files.length != allBackupFiles.size()) return true;
         for (File file : files) {
             BasicFileAttributes previous = allBackupFiles.get(file);

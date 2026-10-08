@@ -40,7 +40,10 @@ public class LegacyBackupRetentionTest {
                 zip.write(new byte[size]);
                 zip.putNextEntry(new ZipEntry("world/serverutilities/universe.dat"));
                 net.minecraft.nbt.NBTTagCompound universe = new net.minecraft.nbt.NBTTagCompound();
-                universe.setString("UUID", "12345678-1234-1234-1234-123456789abc");
+                universe.setString(
+                        "UUID",
+                        serverutils.lib.util.StringUtils
+                                .fromUUID(java.util.UUID.fromString("12345678-1234-1234-1234-123456789abc")));
                 java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
                 net.minecraft.nbt.CompressedStreamTools.writeCompressed(universe, output);
                 zip.write(output.toByteArray());

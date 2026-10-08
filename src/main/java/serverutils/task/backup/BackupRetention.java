@@ -35,6 +35,7 @@ import java.util.zip.ZipFile;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTSizeTracker;
 
+import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.compression.ICompress;
 
 /** Selects complete, independent ZIP backups. Chained archives would also need dependency preservation. */
@@ -103,7 +104,7 @@ public final class BackupRetention {
         final Set<File> sizeCandidates = new LinkedHashSet<>();
         final Set<File> sizeExempt = new HashSet<>();
         final List<Archive> archives = new ArrayList<>();
-        final Map<File, String> labels = new HashMap<>();
+        final Map<File, String[]> labels = new HashMap<>();
         final Map<File, Long> keptUntil = new HashMap<>();
         final Set<File> preserved = new HashSet<>();
         public long remainingSize;
@@ -118,9 +119,9 @@ public final class BackupRetention {
             return archives;
         }
 
-        /** Short reason for display, e.g. "latest", "30d:1d" or "replaced in 1d:30m". */
-        public String label(File file) {
-            return labels.getOrDefault(file, "");
+        /** Short display reason: a lang key followed by its arguments. */
+        public String[] label(File file) {
+            return labels.getOrDefault(file, reason("rule", ""));
         }
 
         /** When finite rules stop keeping this archive, or -1 if no finite rule decides it. */
@@ -193,7 +194,7 @@ public final class BackupRetention {
                                 : archive.created > now ? "Timestamp is in the future" : "Protected custom backup");
                 plan.labels.put(
                         archive.file,
-                        archive.problem != null ? "unreadable" : archive.created > now ? "future date" : "custom");
+                        reason(archive.problem != null ? "unreadable" : archive.created > now ? "future" : "custom"));
                 plan.preserved.add(archive.file);
                 protectedFiles.add(archive.file);
                 continue;
@@ -254,16 +255,23 @@ public final class BackupRetention {
                 Rule replaced = replacedIn.get(file);
                 plan.labels.put(
                         file,
-                        "Folder size limit".equals(plan.delete.get(file)) ? "size limit"
-                                : replaced != null ? "replaced in " + replaced.text : "older than all rules");
+                        "Folder size limit".equals(plan.delete.get(file)) ? reason("size")
+                                : replaced != null ? reason("replaced", replaced.text) : reason("older"));
             } else if (latest.contains(file)) {
-                plan.labels.put(file, rule == null ? "latest" : "latest, " + rule.text);
+                plan.labels.put(file, rule == null ? reason("latest") : reason("latest_rule", rule.text));
             } else {
-                plan.labels.put(file, rule.text);
+                plan.labels.put(file, reason("rule", rule.text));
                 if (rule.age != Long.MAX_VALUE) plan.keptUntil.put(file, archive.created + rule.age);
             }
         }
         return plan;
+    }
+
+    private static String[] reason(String name, String... args) {
+        String[] reason = new String[args.length + 1];
+        reason[0] = "cmd.backup_prune_reason_" + name;
+        System.arraycopy(args, 0, reason, 1, args.length);
+        return reason;
     }
 
     static Archive read(File file, long size) throws IOException {
@@ -280,7 +288,12 @@ public final class BackupRetention {
                 try (DataInputStream input = new DataInputStream(new GZIPInputStream(zip.getInputStream(universe)))) {
                     String id = CompressedStreamTools.func_152456_a(input, new NBTSizeTracker(16 * 1024 * 1024L))
                             .getString("UUID");
-                    if (!id.isEmpty()) world = UUID.fromString(id).toString();
+                    if (!id.isEmpty()) {
+                        // Universe saves UUIDs without hyphens.
+                        UUID uuid = StringUtils.fromString(id);
+                        if (uuid == null) throw new IOException("Invalid world UUID in universe.dat: " + id);
+                        world = uuid.toString();
+                    }
                 }
             }
             long created = file.lastModified();

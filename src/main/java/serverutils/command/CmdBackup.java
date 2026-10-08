@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -45,10 +47,31 @@ public class CmdBackup extends CmdTreeBase {
     private static IChatComponent age(long created, long now) {
         if (created > now) return ServerUtilities.lang("cmd.backup_age_future");
         long seconds = (now - created) / 1000;
-        String age = seconds < 60 ? seconds + "s"
-                : seconds < 3600 ? seconds / 60 + "m"
-                        : seconds < 172_800 ? seconds / 3600 + "h" : seconds / 86_400 + "d";
-        return ServerUtilities.lang("cmd.backup_age", age);
+        if (seconds < 60) return ServerUtilities.lang("cmd.backup_age_seconds", seconds);
+        if (seconds < 3600) return ServerUtilities.lang("cmd.backup_age_minutes", seconds / 60);
+        if (seconds < 172_800) return ServerUtilities.lang("cmd.backup_age_hours", seconds / 3600);
+        return ServerUtilities.lang("cmd.backup_age_days", seconds / 86_400);
+    }
+
+    /** Runs a background backup scan and replies on the server thread, or inline for RCON. */
+    private static <T> void replyAsync(ICommandSender sender, Supplier<CompletableFuture<T>> scan,
+            BiConsumer<T, Throwable> reply) {
+        BiConsumer<T, Throwable> unwrapped = (result, error) -> reply.accept(
+                result,
+                error instanceof CompletionException && error.getCause() != null ? error.getCause() : error);
+        try {
+            CompletableFuture<T> future = scan.get();
+            if (sender instanceof RConConsoleSource) {
+                // RCON collects the reply before returning from this command, on its own thread.
+                unwrapped.accept(future.join(), null);
+            } else {
+                future.whenComplete(
+                        (result, error) -> ServerUtilitiesServerEventHandler
+                                .scheduleServerTask(() -> unwrapped.accept(result, error)));
+            }
+        } catch (RuntimeException ex) {
+            unwrapped.accept(null, ex);
+        }
     }
 
     /** Timestamp names already show the date, so only custom names get it spelled out. */
@@ -70,24 +93,11 @@ public class CmdBackup extends CmdTreeBase {
             if (args.length != 1 || !args[0].equals("preview")) {
                 throw new WrongUsageException(getCommandUsage(sender));
             }
-            try {
-                CompletableFuture<BackupRetention.Plan> preview = BackupTask.previewRetentionAsync();
-                if (sender instanceof RConConsoleSource) {
-                    // RCON collects the reply before returning from this command, on its own thread.
-                    sendPreview(sender, preview.join(), null);
-                } else {
-                    preview.whenComplete(
-                            (plan, error) -> ServerUtilitiesServerEventHandler
-                                    .scheduleServerTask(() -> sendPreview(sender, plan, error)));
-                }
-            } catch (RuntimeException ex) {
-                sendPreview(sender, null, ex);
-            }
+            replyAsync(sender, BackupTask::previewRetentionAsync, (plan, error) -> sendPreview(sender, plan, error));
         }
 
         private static void sendPreview(ICommandSender sender, BackupRetention.Plan plan, Throwable error) {
             if (error != null) {
-                if (error instanceof CompletionException && error.getCause() != null) error = error.getCause();
                 sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_error", error.getMessage()));
                 return;
             }
@@ -104,8 +114,10 @@ public class CmdBackup extends CmdTreeBase {
                         delete ? EnumChatFormatting.RED
                                 : plan.isPreserved(file) ? EnumChatFormatting.YELLOW : EnumChatFormatting.GREEN);
                 long until = plan.keptUntil(file);
-                Object reason = until < 0 ? plan.label(file)
-                        : ServerUtilities.lang("cmd.backup_prune_until", plan.label(file), date(until));
+                String[] label = plan.label(file);
+                IChatComponent reason = ServerUtilities
+                        .lang(label[0], (Object[]) Arrays.copyOfRange(label, 1, label.length));
+                if (until >= 0) reason = ServerUtilities.lang("cmd.backup_prune_until", reason, date(until));
                 sender.addChatMessage(
                         ServerUtilities.lang(
                                 "cmd.backup_prune_entry",
@@ -220,23 +232,11 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            try {
-                CompletableFuture<List<BackupRetention.Archive>> listing = BackupTask.listBackupsAsync();
-                if (sender instanceof RConConsoleSource) {
-                    sendList(sender, listing.join(), null);
-                } else {
-                    listing.whenComplete(
-                            (archives, error) -> ServerUtilitiesServerEventHandler
-                                    .scheduleServerTask(() -> sendList(sender, archives, error)));
-                }
-            } catch (RuntimeException ex) {
-                sendList(sender, null, ex);
-            }
+            replyAsync(sender, BackupTask::listBackupsAsync, (archives, error) -> sendList(sender, archives, error));
         }
 
         private static void sendList(ICommandSender sender, List<BackupRetention.Archive> archives, Throwable error) {
             if (error != null) {
-                if (error instanceof CompletionException && error.getCause() != null) error = error.getCause();
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_list_error", error.getMessage()));
                 return;
             }
