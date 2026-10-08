@@ -17,13 +17,17 @@ Frequent backups and long retention can use considerable disk space.
 
 ## Default mode: keep by count or size
 
-With an empty `retention_policy`, ServerUtilities uses **legacy retention**:
+With an empty `retention_policy`, ServerUtilities uses **count/size retention** (called legacy retention in logs):
 
 - **Count:** `backups_to_keep=12` keeps the newest 12 eligible backups.
 - **Size:** a positive `max_folder_size` removes older eligible backups until they fit the limit. This overrides
   `backups_to_keep`.
 - **Named backups:** set `delete_custom_name_backups=false` to protect custom-named backups. Protected files do not
   count toward the legacy count or size limit.
+
+Both retention modes use new archives' metadata to identify custom names, including names that look like timestamps.
+Archives without metadata use the original filename-based detection. Invalid metadata is preserved rather than
+falling back to the filename.
 
 Only recognized world backups in regular `.zip` files directly in the backup folder are eligible. They are ordered
 by file modification time, with filename breaking ties. The newest eligible archive is always kept, even if it alone
@@ -143,8 +147,8 @@ one safe world folder whose final name matches its ZIP comment. This includes `<
 nested folders such as `worlds/<world>/`. Unsafe paths or multiple matching world folders are rejected. Archives
 that fail this check are preserved and cannot replace the latest recognized backup.
 
-Legacy checks use the ZIP index without reading world-file contents. These are archive structure checks, not full
-payload-integrity checks.
+Both modes validate backup metadata when present. Legacy checks use the ZIP index without reading world-file
+contents. These are archive structure checks, not full payload-integrity checks.
 
 ### Command replies and invalid legacy limits
 

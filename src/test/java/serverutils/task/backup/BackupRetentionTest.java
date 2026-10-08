@@ -248,7 +248,7 @@ public class BackupRetentionTest {
         assertTrue(plan.keep.get(valid.toFile()).contains("Latest backup for world"));
         for (Path file : rejected) {
             assertTrue(file.toString(), plan.keep.get(file.toFile()).contains("Unrecognized/unreadable"));
-            assertThrows(java.io.IOException.class, () -> BackupRetention.validateWorldArchive(file.toFile()));
+            assertThrows(java.io.IOException.class, () -> BackupRetention.isCustomWorldArchive(file.toFile()));
         }
         assertTrue(plan.delete.isEmpty());
     }
@@ -358,6 +358,8 @@ public class BackupRetentionTest {
         assertTrue(plan.delete.isEmpty());
         assertTrue(plan.keep.get(corrupted.toFile()).contains("checksum"));
         assertTrue(plan.keep.get(oversized.toFile()).contains("too large"));
+        assertThrows(java.io.IOException.class, () -> BackupRetention.isCustomWorldArchive(corrupted.toFile()));
+        assertThrows(java.io.IOException.class, () -> BackupRetention.isCustomWorldArchive(oversized.toFile()));
     }
 
     @Test

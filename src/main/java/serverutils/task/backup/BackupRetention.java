@@ -217,34 +217,8 @@ public final class BackupRetention {
         try (ZipFile zip = new ZipFile(file)) {
             String worldPrefix = worldPrefix(zip);
             String worldName = zip.getComment();
-            ZipEntry metadata = zip.getEntry(ICompress.BACKUP_METADATA_ENTRY);
-            if (metadata != null) {
-                Properties properties = new Properties();
-                try (InputStream input = zip.getInputStream(metadata)) {
-                    // Metadata is tiny; cap the read even when the ZIP's declared entry size is wrong.
-                    byte[] buffer = new byte[16_385];
-                    int length = 0;
-                    int read;
-                    while (length < buffer.length && (read = input.read(buffer, length, buffer.length - length)) != -1)
-                        length += read;
-                    if (length == buffer.length) throw new IOException("Backup metadata is too large");
-                    CRC32 checksum = new CRC32();
-                    checksum.update(buffer, 0, length);
-                    if (length != metadata.getSize() || checksum.getValue() != metadata.getCrc()) {
-                        throw new IOException("Backup metadata checksum or size mismatch");
-                    }
-                    properties.load(new ByteArrayInputStream(buffer, 0, length));
-                }
-                String custom = properties.getProperty("customName");
-                if (!"1".equals(properties.getProperty("version"))
-                        || !("true".equals(custom) || "false".equals(custom))) {
-                    throw new IOException("Unsupported or invalid backup metadata");
-                }
-                String world = UUID.fromString(properties.getProperty("worldId", "")).toString();
-                long created = Long.parseLong(properties.getProperty("createdAt", ""));
-                if (created < 0) throw new IOException("Invalid backup timestamp");
-                return new Archive(file, world, created, size, Boolean.parseBoolean(custom), null);
-            }
+            Archive metadata = readMetadata(file, zip, size);
+            if (metadata != null) return metadata;
             String world = "name:" + worldName;
             // Existing SU archives already contain the persistent world UUID when universe.dat was saved.
             ZipEntry universe = zip.getEntry(worldPrefix + "serverutilities/universe.dat");
@@ -269,9 +243,40 @@ public final class BackupRetention {
         }
     }
 
-    static void validateWorldArchive(File file) throws IOException {
+    private static Archive readMetadata(File file, ZipFile zip, long size) throws IOException {
+        ZipEntry metadata = zip.getEntry(ICompress.BACKUP_METADATA_ENTRY);
+        if (metadata == null) return null;
+        Properties properties = new Properties();
+        try (InputStream input = zip.getInputStream(metadata)) {
+            // Metadata is tiny; cap the read even when the ZIP's declared entry size is wrong.
+            byte[] buffer = new byte[16_385];
+            int length = 0;
+            int read;
+            while (length < buffer.length && (read = input.read(buffer, length, buffer.length - length)) != -1)
+                length += read;
+            if (length == buffer.length) throw new IOException("Backup metadata is too large");
+            CRC32 checksum = new CRC32();
+            checksum.update(buffer, 0, length);
+            if (length != metadata.getSize() || checksum.getValue() != metadata.getCrc()) {
+                throw new IOException("Backup metadata checksum or size mismatch");
+            }
+            properties.load(new ByteArrayInputStream(buffer, 0, length));
+        }
+        String custom = properties.getProperty("customName");
+        if (!"1".equals(properties.getProperty("version")) || !("true".equals(custom) || "false".equals(custom))) {
+            throw new IOException("Unsupported or invalid backup metadata");
+        }
+        String world = UUID.fromString(properties.getProperty("worldId", "")).toString();
+        long created = Long.parseLong(properties.getProperty("createdAt", ""));
+        if (created < 0) throw new IOException("Invalid backup timestamp");
+        return new Archive(file, world, created, size, Boolean.parseBoolean(custom), null);
+    }
+
+    static boolean isCustomWorldArchive(File file) throws IOException {
         try (ZipFile zip = new ZipFile(file)) {
             worldPrefix(zip);
+            Archive metadata = readMetadata(file, zip, file.length());
+            return metadata == null ? !LEGACY_NAME.matcher(file.getName()).matches() : metadata.custom;
         }
     }
 

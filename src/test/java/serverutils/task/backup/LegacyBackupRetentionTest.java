@@ -9,6 +9,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -18,6 +19,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import serverutils.ServerUtilitiesConfig;
+import serverutils.lib.util.compression.ICompress;
 
 public class LegacyBackupRetentionTest {
 
@@ -44,6 +46,64 @@ public class LegacyBackupRetentionTest {
 
     private static void clearLegacyBackups(File folder, int count, long size, boolean deleteCustom) throws Exception {
         BackupTask.clearLegacyBackups(BackupTask.readLegacyBackups(folder, deleteCustom), count, size);
+    }
+
+    private Path metadataArchive(String name, String custom, long modified) throws Exception {
+        Path file = temporary.getRoot().toPath().resolve(name);
+        Properties metadata = new Properties();
+        metadata.setProperty("version", "1");
+        metadata.setProperty("worldId", "12345678-1234-1234-1234-123456789abc");
+        metadata.setProperty("createdAt", "123");
+        if (custom != null) metadata.setProperty("customName", custom);
+        try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(file))) {
+            zip.setComment("world");
+            zip.putNextEntry(new ZipEntry("world/level.dat"));
+            zip.write(1);
+            zip.putNextEntry(new ZipEntry(ICompress.BACKUP_METADATA_ENTRY));
+            metadata.store(zip, null);
+        }
+        Files.setLastModifiedTime(file, FileTime.fromMillis(modified));
+        return file;
+    }
+
+    @Test
+    public void metadataOverridesFilenameProtectionInBothRotationModes() throws Exception {
+        for (long cap : new long[] { 0, 1 }) {
+            for (boolean deleteCustom : new boolean[] { false, true }) {
+                Path old = metadataArchive("renamed-automatic.zip", "false", 1);
+                Path latest = metadataArchive("latest.zip", "false", 2);
+                Path custom = metadataArchive("2026-10-07-12-00-00-milestone.zip", "true", 0);
+                Path legacyCustom = file("pre-metadata-milestone.zip", 10, 0);
+                clearLegacyBackups(temporary.getRoot(), 1, cap, deleteCustom);
+                assertFalse("Metadata identifies renamed automatic backups as eligible", Files.exists(old));
+                assertTrue("Rotation still orders archives by mtime", Files.exists(latest));
+                org.junit.Assert.assertEquals(
+                        "Metadata protects timestamp-shaped custom names",
+                        !deleteCustom,
+                        Files.exists(custom));
+                org.junit.Assert.assertEquals(
+                        "Archives without metadata keep filename-based protection",
+                        !deleteCustom,
+                        Files.exists(legacyCustom));
+            }
+        }
+    }
+
+    @Test
+    public void malformedMetadataCannotDisplaceUsableHistoryInEitherRotationMode() throws Exception {
+        Path invalid = metadataArchive("2026-10-07-12-00-00-invalid.zip", "not-a-boolean", 3);
+        Path missing = metadataArchive("2026-10-07-12-00-00-missing.zip", null, 3);
+        for (long cap : new long[] { 0, 1 }) {
+            for (boolean deleteCustom : new boolean[] { false, true }) {
+                Path old = metadataArchive("old.zip", "false", 1);
+                Path latest = metadataArchive("latest.zip", "false", 2);
+                clearLegacyBackups(temporary.getRoot(), 1, cap, deleteCustom);
+                assertFalse(Files.exists(old));
+                assertTrue("Malformed metadata must not replace the last eligible backup", Files.exists(latest));
+                assertTrue(Files.exists(invalid));
+                assertTrue(Files.exists(missing));
+            }
+        }
     }
 
     @Test

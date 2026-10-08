@@ -382,12 +382,11 @@ public class BackupTask extends Task {
         List<File> backupFiles = new ArrayList<>();
         for (File file : files) {
             BackupRetention.checkInterrupted();
-            if (!file.getName().endsWith(".zip") || !Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS)
-                    || (!deleteCustom && !BACKUP_NAME_PATTERN.matcher(file.getName()).matches()))
+            if (!file.getName().endsWith(".zip") || !Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS))
                 continue;
             try {
-                BackupRetention.validateWorldArchive(file);
-                backupFiles.add(file);
+                boolean custom = BackupRetention.isCustomWorldArchive(file);
+                if (deleteCustom || !custom) backupFiles.add(file);
             } catch (IOException | RuntimeException ex) {
                 ServerUtilities.LOGGER.warn("Preserving unrecognized/unreadable backup {}: {}", file, ex.getMessage());
             }
