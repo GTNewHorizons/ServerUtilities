@@ -22,7 +22,7 @@ public final class TimeUtil {
         if (seconds < 60) {
             return "just now";
         } else if (seconds < 3600) {
-            return duration.toMillis() + " mins ago";
+            return duration.toMinutes() + " mins ago";
         } else if (seconds < 86400) {
             return duration.toHours() + " hrs ago";
         } else if (seconds < 604800) {

@@ -17,26 +17,50 @@ public class SnapshotStore {
     private final File root;
 
     public final File packsDirectory;
+    public final File filesDirectory;
     public final File manifestsDirectory;
 
-    private final ManifestStore manifestStore;
+    private final PackStore manifestStore;
+    private final PackStore fileStore;
+    // there is an entry per stored chunk, so it is only read when something needs chunk data
+    private PackStore chunkStore;
 
     private SnapshotStore(File root) throws IOException {
         this.root = root;
         packsDirectory = new File(root, "objects/packs");
+        filesDirectory = new File(root, "objects/files");
         manifestsDirectory = new File(root, "objects/manifests");
 
         FileUtils.ensureExists(packsDirectory);
+        FileUtils.ensureExists(filesDirectory);
         FileUtils.ensureExists(manifestsDirectory);
-        manifestStore = new ManifestStore(manifestsDirectory);
+        manifestStore = new PackStore(manifestsDirectory);
+        fileStore = new PackStore(filesDirectory);
     }
 
     public static SnapshotStore load(File root) throws IOException {
         return new SnapshotStore(root);
     }
 
-    public ManifestStore manifests() {
+    /** Region manifests */
+    public PackStore manifests() {
         return manifestStore;
+    }
+
+    /** Blobs of the non-region files */
+    public PackStore files() {
+        return fileStore;
+    }
+
+    public synchronized PackStore chunks() {
+        if (chunkStore == null) {
+            try {
+                chunkStore = new PackStore(packsDirectory);
+            } catch (IOException e) {
+                throw new SnapshotException("Failed to read chunk packs", e);
+            }
+        }
+        return chunkStore;
     }
 
     public static File backupDirectoryFor(File backupsRoot, File worldDirectory) {
@@ -47,24 +71,23 @@ public class SnapshotStore {
         reloadManifests();
         List<SnapshotManifest> files = listManifest();
         if (files.isEmpty()) return null;
-        return Snapshot.fromJson(manifestStore, files.get(files.size() - 1));
+        return Snapshot.fromJson(this, files.get(files.size() - 1));
     }
 
     public Snapshot findOldest() {
         reloadManifests();
         List<SnapshotManifest> files = listManifest();
         if (files.isEmpty()) return null;
-        return Snapshot.fromJson(manifestStore, files.get(0));
+        return Snapshot.fromJson(this, files.get(0));
     }
 
     public Snapshot get(SnapshotManifest manifest) {
-        return Snapshot.fromJson(manifestStore, manifest);
+        return Snapshot.fromJson(this, manifest);
     }
 
     public List<Snapshot> listAll() {
         reloadManifests();
-        return listManifest().stream().map(json -> Snapshot.fromJson(manifestStore, json, true))
-                .collect(Collectors.toList());
+        return listManifest().stream().map(json -> Snapshot.fromJson(this, json, true)).collect(Collectors.toList());
     }
 
     public List<SnapshotManifest> listManifest() {
@@ -85,12 +108,24 @@ public class SnapshotStore {
         return manifest;
     }
 
-    public void reloadManifests() {
+    public synchronized void reloadManifests() {
         try {
             manifestStore.reload();
+            fileStore.reload();
         } catch (IOException e) {
             throw new SnapshotException("Failed to read manifest packs", e);
         }
+
+        if (chunkStore != null) {
+            chunkStore.close();
+            chunkStore = null;
+        }
+    }
+
+    public synchronized void closeHandles() {
+        manifestStore.closeHandles();
+        fileStore.closeHandles();
+        if (chunkStore != null) chunkStore.closeHandles();
     }
 
     public int count() {

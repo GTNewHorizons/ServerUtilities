@@ -25,11 +25,10 @@ public class SnapshotManifest {
     public String minecraftVersion;
     public String modVersion;
     public List<Dimension> dimensions = new ArrayList<>();
-    public Map<String, String> files = new HashMap<>();
 
     public static class Dimension {
 
-        public int id;
+        public String id;
         public Kinds kinds = new Kinds();
 
         public static class Kinds {

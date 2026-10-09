@@ -13,11 +13,11 @@ public final class SnapshotRegion implements Hashable {
     public final long size;
 
     private final SHAHash hash;
-    private final ManifestStore store;
+    private final PackStore store;
     private byte[] bytes;
     private NavigableMap<Integer, ChunkBlob.Metadata> chunks;
 
-    private SnapshotRegion(String name, long mtime, long size, SHAHash hash, byte[] bytes, ManifestStore store,
+    private SnapshotRegion(String name, long mtime, long size, SHAHash hash, byte[] bytes, PackStore store,
             NavigableMap<Integer, ChunkBlob.Metadata> chunks) {
         this.name = name;
         this.mtime = mtime;
@@ -38,12 +38,12 @@ public final class SnapshotRegion implements Hashable {
         return new SnapshotRegion(name, mtime, size, SHAHash.compute(bytes), bytes, null, chunks);
     }
 
-    public static SnapshotRegion stored(String name, SHAHash hash, ManifestDescriptor descriptor, ManifestStore store) {
+    public static SnapshotRegion stored(String name, SHAHash hash, ManifestDescriptor descriptor, PackStore store) {
         return new SnapshotRegion(name, descriptor.mtime, descriptor.size, hash, null, store, null);
     }
 
     @Override
-    public SHAHash getHash() {
+    public SHAHash hash() {
         return hash;
     }
 
@@ -58,7 +58,7 @@ public final class SnapshotRegion implements Hashable {
     public byte[] toBytes() {
         if (bytes == null) {
             try {
-                bytes = store.read(hash);
+                bytes = store.readBlob(hash).data();
             } catch (IOException e) {
                 throw new SnapshotException("Failed to read region manifest " + hash, e);
             }

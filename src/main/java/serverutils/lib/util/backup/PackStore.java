@@ -11,12 +11,16 @@ import java.util.Map;
 
 import com.github.bsideup.jabel.Desugar;
 
-public final class ManifestStore implements Closeable {
+public final class PackStore implements Closeable {
 
     private static final int MAX_OPEN_PACKS = 16;
 
     @Desugar
-    private record Location(File pack, long offset, int length) {}
+    private record Location(File pack, long offset, int length, int compression) {}
+
+    /** A stored entry exactly as it sits in the pack, {@code compression} is the type recorded in the pack index. */
+    @Desugar
+    public record Blob(int compression, byte[] data) {}
 
     private final File directory;
     private final Map<SHAHash, Location> locations = new HashMap<>();
@@ -30,7 +34,7 @@ public final class ManifestStore implements Closeable {
         }
     };
 
-    public ManifestStore(File directory) throws IOException {
+    public PackStore(File directory) throws IOException {
         this.directory = directory;
         reload();
     }
@@ -49,7 +53,9 @@ public final class ManifestStore implements Closeable {
                 if (!pack.isFile()) continue; // interrupted before the pack was moved into place
 
                 for (PackIndex.Entry entry : PackIndex.read(index)) {
-                    loaded.put(entry.hash(), new Location(pack, entry.offset(), entry.length()));
+                    loaded.put(
+                            entry.hash(),
+                            new Location(pack, entry.offset(), entry.length(), entry.compressionType()));
                 }
             }
         }
@@ -63,15 +69,15 @@ public final class ManifestStore implements Closeable {
         return locations.containsKey(hash);
     }
 
-    public synchronized byte[] read(SHAHash hash) throws IOException {
+    public synchronized Blob readBlob(SHAHash hash) throws IOException {
         Location location = locations.get(hash);
-        if (location == null) throw new IOException("Region manifest " + hash + " is not in any pack");
+        if (location == null) throw new IOException("Entry " + hash + " is not in any pack in " + directory);
 
         byte[] bytes = new byte[location.length()];
         RandomAccessFile file = handle(location.pack());
         file.seek(location.offset());
         file.readFully(bytes);
-        return bytes;
+        return new Blob(location.compression(), bytes);
     }
 
     /** Closes every cached pack handle, the store stays usable. */

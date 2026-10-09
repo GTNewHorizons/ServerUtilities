@@ -49,7 +49,7 @@ public class PackWriter implements Closeable {
     }
 
     public boolean add(ChunkBlob blob) throws IOException {
-        if (!known.add(blob.getHash())) {
+        if (!known.add(blob.hash())) {
             int skipped = blob.data().remaining(); // 0 for references to earlier snapshots
             if (skipped > 0) {
                 blobsDeduplicated++;
@@ -58,12 +58,12 @@ public class PackWriter implements Closeable {
             return false;
         }
 
-        write(blob.getHash(), blob.metadata().compressionType(), blob.data());
+        write(blob.hash(), blob.metadata().compressionType(), blob.data());
         return true;
     }
 
     public boolean add(SnapshotRegion region) throws IOException {
-        return add(region.getHash(), 0, ByteBuffer.wrap(region.toBytes()));
+        return add(region.hash(), 0, ByteBuffer.wrap(region.toBytes()));
     }
 
     public boolean add(SHAHash hash, int compression, ByteBuffer data) throws IOException {
