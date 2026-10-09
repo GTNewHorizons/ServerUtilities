@@ -9,6 +9,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 import net.minecraftforge.oredict.OreDictionary;
 
 import com.gtnewhorizon.gtnhlib.config.Config;
@@ -19,6 +21,7 @@ import serverutils.lib.config.EnumTristate;
 import serverutils.lib.item.ItemStackSerializer;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.ServerUtils;
+import serverutils.task.backup.BackupDuration;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", configSubDirectory = "../serverutilities/")
 @Config.RequiresWorldRestart
@@ -44,6 +47,27 @@ public class ServerUtilitiesConfig {
     public static final MOTD motd = new MOTD();
     public static final Transfer transfer = new Transfer();
     public static final Tab tab = new Tab();
+
+    public static void migrateBackupTimer(Configuration config) {
+        Property property = config.getCategory("backups").get("backup_timer");
+        String previous = property.getString();
+        String timer = previous;
+        try {
+            timer = BackupDuration.normalizeTimer(previous);
+        } catch (IllegalArgumentException ex) {
+            ServerUtilities.LOGGER.error("Invalid backup_timer '{}': {}", previous, ex.getMessage());
+        }
+        if (!timer.equals(previous) || property.getType() != Property.Type.STRING) {
+            Property migrated = new Property(property.getName(), timer, Property.Type.STRING)
+                    .setDefaultValue(property.getDefault()).setLanguageKey(property.getLanguageKey())
+                    .setRequiresMcRestart(property.requiresMcRestart())
+                    .setRequiresWorldRestart(property.requiresWorldRestart());
+            migrated.comment = property.comment;
+            config.getCategory("backups").put("backup_timer", migrated);
+            config.save();
+        }
+        backups.backup_timer = timer;
+    }
 
     public static class General {
 
@@ -302,15 +326,34 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean enable_backups;
 
-        @Config.Comment("Time between backups in hours. \n1.0 - backups every hour 6.0 - backups every 6 hours 0.5 - backups every 30 minutes.")
-        @Config.DefaultDouble(0.5)
-        @Config.RangeDouble(min = 0)
-        public double backup_timer;
+        @Config.Comment("""
+                Time between backups. Examples: 30m, 1h, 6h, 1d.
+                Units: s=seconds, m=minutes, h=hours, d=24 hours, w=7 days. Positive integers only; minimum 1s.
+                Values without units are legacy hours, converted and saved with units on startup.
+                Legacy hours round up to whole seconds; zero becomes 1s.
+                Invalid values prevent automatic backups until corrected; manual backups remain available.""")
+        @Config.DefaultString("30m")
+        public String backup_timer;
 
-        @Config.Comment("Number of backup files to keep before deleting old ones.")
+        @Config.Comment("Number of backup files to keep before deleting old ones. Always preserves the latest eligible backup per world. Ignored when retention_policy is nonempty.")
         @Config.DefaultInt(12)
         @Config.RangeInt(min = 1)
         public int backups_to_keep;
+
+        @Config.Comment("""
+                Optional age-window retention rules, one maximum-age:sampling-interval per line.
+                Example: 1h:all, 1d:30m, 7d:1h, 30d:1d, forever:1w.
+                Units: s=seconds, m=minutes, h=hours, d=24 hours, w=7 days. All durations must be positive integers.
+                Keeps the newest backup per populated UTC bucket; weeks start Monday. Rules combine regardless of order.
+                'all' keeps every backup in the window; 'forever' has no age limit.
+                The current bucket's representative may be replaced. Completed forever buckets remain under an unchanged policy.
+                Always keeps the latest backup per world. Missing/offline periods are not filled.
+                Protected custom backups are kept separately and do not fill time buckets or replace the latest backup.
+                Empty = existing count/size retention. Invalid rules disable pruning until corrected.
+                This only controls retention; backup_timer still controls how frequently backups are created.
+                Use /backup prune preview to inspect the decisions without deleting anything.""")
+        @Config.DefaultStringList({})
+        public String[] retention_policy;
 
         @Config.Comment("How much the backup file will be compressed. 0 - uncompressed, 1 - best speed, 9 - smallest file size.")
         @Config.DefaultInt(1)
@@ -343,7 +386,11 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean display_file_size;
 
-        @Config.Comment("Backups won't run if no players are online.")
+        @Config.Comment("""
+                Skip automatic backups while no players are online and no player activity is pending.
+                Login/logout activity permits a final backup after everyone leaves; failed attempts remain pending.
+                Retention uses elapsed time, so empty-server periods can leave gaps in policy history.
+                Set false for backups while empty, especially if automation keeps changing the world.""")
         @Config.DefaultBoolean(true)
         public boolean need_online_players;
 
@@ -352,8 +399,15 @@ public class ServerUtilitiesConfig {
         public boolean silent_backup;
 
         @Config.Comment("""
-                Max size of backup folder in GB. If total folder size exceeds this value it will delete old backups until the size is under.
-                0 = Disabled and backups_to_keep will be used instead.""")
+                Size allowance for rotating backup archives in GB. Deletes eligible old backups when exceeded.
+                0 = Disabled and backups_to_keep will be used instead, unless retention_policy is set.
+                With legacy retention, counts only eligible ZIP files and preserves the newest eligible backup per world.
+                Protected custom backups are excluded from the size allowance in both modes.
+                Unrecognized/unreadable and future-dated archives are also preserved and excluded.
+                With retention_policy, removes the oldest finite-retention backups after age pruning.
+                Forever representatives are also excluded from the allowance; total folder size can exceed it.
+                The latest backup per world is never removed to meet this allowance, but counts unless otherwise excluded.
+                Logs a warning if counted protected backups or failed deletions prevent meeting the allowance.""")
         @Config.DefaultInt(0)
         @Config.RangeInt(min = 0)
         public int max_folder_size;

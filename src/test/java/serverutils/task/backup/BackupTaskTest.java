@@ -16,7 +16,9 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -51,6 +53,7 @@ public class BackupTaskTest {
         ServerUtilitiesConfig.backups.additional_backup_files = new String[0];
         ServerUtilitiesConfig.backups.excluded_backup_files = new String[0];
         ServerUtilitiesConfig.backups.backups_to_keep = 12;
+        ServerUtilitiesConfig.backups.backup_timer = "30m";
         ServerUtilitiesConfig.backups.compression_level = 1;
         ServerUtilitiesConfig.backups.enable_backups = true;
         ServerUtilitiesConfig.backups.need_online_players = false;
@@ -67,6 +70,770 @@ public class BackupTaskTest {
     @After
     public void resetBackupState() {
         BackupTask.stopBackupThread();
+        BackupTask.hadPlayer = false;
+    }
+
+    private static Universe universeWithId(MinecraftServer server) throws Exception {
+        Universe universe = new Universe(server);
+        Field uuid = Universe.class.getDeclaredField("uuid");
+        uuid.setAccessible(true);
+        uuid.set(universe, java.util.UUID.randomUUID());
+        return universe;
+    }
+
+    @Test
+    public void previewMatchesCleanupAndInvalidPolicySkipsDeletion() throws Exception {
+        String[] previousPolicy = ServerUtilitiesConfig.backups.retention_policy;
+        boolean previousCustom = ServerUtilitiesConfig.backups.delete_custom_name_backups;
+        int previousLimit = ServerUtilitiesConfig.backups.max_folder_size;
+        File old = new File(BackupTask.BACKUP_FOLDER, "retention-history.zip");
+        File latest = new File(BackupTask.BACKUP_FOLDER, "retention-latest.zip");
+        String worldId = java.util.UUID.randomUUID().toString();
+        long now = System.currentTimeMillis();
+        try {
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
+            ServerUtilitiesConfig.backups.max_folder_size = 0;
+            for (File file : new File[] { old, latest }) {
+                writeRetentionArchive(file, worldId, file.equals(old) ? now - TimeUnit.DAYS.toMillis(2) : now);
+            }
+            ServerUtilitiesConfig.backups.retention_policy = new String[] { "1h:all", "invalid" };
+            BackupTask.clearOldBackups();
+            waitForRetention();
+            assertTrue(old.exists());
+            assertTrue(latest.exists());
+            ServerUtilitiesConfig.backups.retention_policy = new String[] { "1h:all" };
+            BackupRetention.Plan preview = BackupTask.previewRetention();
+            assertTrue(preview.delete.containsKey(old));
+            assertTrue(preview.keep.containsKey(latest));
+            assertTrue("Preview must not delete anything", old.exists());
+            BackupTask.clearOldBackups();
+            assertTrue(BackupTask.retentionThread != Thread.currentThread());
+            waitForRetention();
+            assertFalse(old.exists());
+            assertTrue(latest.exists());
+        } finally {
+            BackupTask.stopBackupThread();
+            ServerUtilitiesConfig.backups.retention_policy = previousPolicy;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = previousCustom;
+            ServerUtilitiesConfig.backups.max_folder_size = previousLimit;
+            Files.deleteIfExists(old.toPath());
+            Files.deleteIfExists(latest.toPath());
+        }
+    }
+
+    private static void writeRetentionArchive(File file, String worldId, long created) throws IOException {
+        java.util.Properties metadata = new java.util.Properties();
+        metadata.setProperty("version", "1");
+        metadata.setProperty("worldId", worldId);
+        metadata.setProperty("createdAt", Long.toString(created));
+        metadata.setProperty("customName", "true");
+        try (java.util.zip.ZipOutputStream zip = new java.util.zip.ZipOutputStream(
+                Files.newOutputStream(file.toPath()))) {
+            zip.setComment("world");
+            zip.putNextEntry(new ZipEntry(ICompress.BACKUP_METADATA_ENTRY));
+            metadata.store(zip, null);
+            zip.putNextEntry(new ZipEntry("saves/world/level.dat"));
+            zip.write(1);
+        }
+    }
+
+    private static void waitForRetention() throws InterruptedException {
+        Thread worker = BackupTask.retentionThread;
+        assertTrue("Retention must run on a worker", worker != null);
+        worker.join(TimeUnit.SECONDS.toMillis(5));
+        assertFalse("Retention worker did not stop", worker.isAlive());
+    }
+
+    @Test
+    public void nestedWorldBackupsParticipateInBothRetentionModes() throws Exception {
+        Path root = Files.createTempDirectory(new File("build").toPath(), "nested-world-");
+        Path source = Files.createDirectories(root.resolve("worlds/world"));
+        Files.write(source.resolve("level.dat"), new byte[] { 1 });
+        String id = java.util.UUID.randomUUID().toString();
+        net.minecraft.nbt.NBTTagCompound universe = new net.minecraft.nbt.NBTTagCompound();
+        universe.setString("UUID", id);
+        Path universeFile = Files.createDirectories(source.resolve("serverutilities")).resolve("universe.dat");
+        try (java.io.OutputStream output = Files.newOutputStream(universeFile)) {
+            net.minecraft.nbt.CompressedStreamTools.writeCompressed(universe, output);
+        }
+        MinecraftServer previousServer = MinecraftServer.getServer();
+        MinecraftServer server = mock(MinecraftServer.class);
+        ISaveFormat format = mock(ISaveFormat.class);
+        SaveHandler handler = mock(SaveHandler.class);
+        when(server.getFolderName()).thenReturn("worlds/world");
+        when(server.getActiveAnvilConverter()).thenReturn(format);
+        when(format.getSaveLoader("worlds/world", false)).thenReturn(handler);
+        when(handler.getWorldDirectory()).thenReturn(source.toFile());
+        File old = new File(BackupTask.BACKUP_FOLDER, "nested-legacy.zip");
+        File latest = new File(BackupTask.BACKUP_FOLDER, "nested-modern.zip");
+        setCurrentServer(server);
+        try {
+            for (File archive : new File[] { old, latest }) {
+                assertTrue(
+                        ThreadBackup.doBackup(
+                                ICompress.createCompressor(),
+                                source.toFile(),
+                                FileUtils.getBaseName(archive),
+                                Collections.emptySet(),
+                                null,
+                                false,
+                                archive.equals(old) ? null : id,
+                                2));
+            }
+            Files.setLastModifiedTime(old.toPath(), java.nio.file.attribute.FileTime.fromMillis(1));
+            List<BackupRetention.Archive> legacy = BackupTask.readLegacyBackups(BackupTask.BACKUP_FOLDER, true);
+            assertTrue(
+                    legacy.stream().map(archive -> archive.file).collect(java.util.stream.Collectors.toSet())
+                            .containsAll(Arrays.asList(old, latest)));
+            BackupRetention.Plan plan = BackupRetention
+                    .plan(BackupTask.BACKUP_FOLDER, new String[] { "1h:all" }, System.currentTimeMillis(), true, 0);
+            assertTrue("Legacy UUID must be read from the nested world folder", plan.delete.containsKey(old));
+            assertTrue(plan.keep.get(latest).contains("Latest backup for world"));
+            BackupTask.clearLegacyBackups(legacy, 1, 0);
+            assertFalse(old.exists());
+            assertTrue(latest.exists());
+        } finally {
+            setCurrentServer(previousServer);
+            FileUtils.delete(root.toFile());
+            Files.deleteIfExists(old.toPath());
+            Files.deleteIfExists(latest.toPath());
+        }
+    }
+
+    @Test
+    public void scheduledBackupsRetryOnlyForRetentionScans() throws Exception {
+        boolean enabled = ServerUtilitiesConfig.backups.enable_backups;
+        Field instance = Universe.class.getDeclaredField("INSTANCE");
+        instance.setAccessible(true);
+        Object previousUniverse = instance.get(null);
+        CountDownLatch finish = new CountDownLatch(1);
+        CountDownLatch finishBackup = new CountDownLatch(1);
+        try {
+            instance.set(null, mock(Universe.class));
+            BackupTask automatic = new BackupTask();
+            long configuredInterval = automatic.getInterval();
+            assertTrue(BackupTask.startRetentionTask(() -> {
+                try {
+                    finish.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }));
+            automatic.execute(mock(Universe.class));
+            assertTrue(automatic.isDeferred());
+            assertEquals(1_000, automatic.getInterval());
+            long now = System.currentTimeMillis();
+            automatic.setNextTime(now + automatic.getInterval());
+            assertEquals(now + 1_000, automatic.getNextTime());
+            finish.countDown();
+            waitForRetention();
+            ServerUtilitiesConfig.backups.enable_backups = false;
+            automatic.execute(mock(Universe.class));
+            assertFalse(automatic.isDeferred());
+            assertEquals(configuredInterval, automatic.getInterval());
+            ThreadBackup worker = new ThreadBackup(null, null, "", Collections.emptySet()) {
+
+                @Override
+                public void run() {
+                    try {
+                        finishBackup.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            };
+            BackupTask.thread = worker;
+            worker.start();
+            BackupTask.hadPlayer = true;
+            automatic.execute(mock(Universe.class));
+            assertTrue(automatic.isDeferred());
+            assertEquals(
+                    "An active backup must not cause catch-up retries",
+                    configuredInterval,
+                    automatic.getInterval());
+            assertTrue("A skipped attempt must not consume player activity", BackupTask.hadPlayer);
+        } finally {
+            finish.countDown();
+            finishBackup.countDown();
+            BackupTask.stopBackupThread();
+            ServerUtilitiesConfig.backups.enable_backups = enabled;
+            instance.set(null, previousUniverse);
+        }
+    }
+
+    @Test
+    public void logoutRecordsActivityAfterTheLastOnlineBackup() {
+        net.minecraft.entity.player.EntityPlayerMP player = mock(net.minecraft.entity.player.EntityPlayerMP.class);
+        when(player.getEntityData()).thenReturn(new net.minecraft.nbt.NBTTagCompound());
+        serverutils.lib.data.ForgePlayer forgePlayer = mock(serverutils.lib.data.ForgePlayer.class);
+        when(forgePlayer.getPlayer()).thenReturn(player);
+        serverutils.events.player.ForgePlayerLoggedOutEvent event = mock(
+                serverutils.events.player.ForgePlayerLoggedOutEvent.class);
+        when(event.getPlayer()).thenReturn(forgePlayer);
+        BackupTask.hadPlayer = false;
+        serverutils.handlers.ServerUtilitiesPlayerEventHandler.onPlayerLoggedOut(event);
+        assertTrue("Logout must permit a final backup of changes since the last online backup", BackupTask.hadPlayer);
+    }
+
+    @Test
+    public void emptyServerActivitySurvivesArchiveFailuresAndNewActivityDuringAsyncSuccess() throws Exception {
+        boolean previousGuard = ServerUtilitiesConfig.backups.need_online_players;
+        boolean previousThread = ServerUtilitiesConfig.backups.use_separate_thread;
+        int previousCompression = ServerUtilitiesConfig.backups.compression_level;
+        File source = Files.createTempDirectory(new File("build").toPath(), "player-activity-").toFile();
+        Files.write(new File(source, "level.dat").toPath(), new byte[] { 42 });
+        MinecraftServer previousServer = MinecraftServer.getServer();
+        MinecraftServer server = mock(MinecraftServer.class);
+        ServerConfigurationManager manager = mock(ServerConfigurationManager.class);
+        Field players = ServerConfigurationManager.class.getDeclaredField("playerEntityList");
+        players.setAccessible(true);
+        players.set(manager, Collections.emptyList());
+        when(server.getConfigurationManager()).thenReturn(manager);
+        WorldServer world = mock(WorldServer.class);
+        server.worldServers = new WorldServer[] { world };
+        ISaveFormat format = mock(ISaveFormat.class);
+        SaveHandler handler = mock(SaveHandler.class);
+        when(server.getActiveAnvilConverter()).thenReturn(format);
+        when(format.getSaveLoader(server.getFolderName(), false)).thenReturn(handler);
+        when(handler.getWorldDirectory()).thenReturn(source);
+        cpw.mods.fml.common.FMLCommonHandler fml = cpw.mods.fml.common.FMLCommonHandler.instance();
+        Field delegate = cpw.mods.fml.common.FMLCommonHandler.class.getDeclaredField("sidedDelegate");
+        delegate.setAccessible(true);
+        Object previousDelegate = delegate.get(fml);
+        cpw.mods.fml.common.IFMLSidedHandler side = mock(cpw.mods.fml.common.IFMLSidedHandler.class);
+        when(side.getServer()).thenReturn(server);
+        java.util.Set<File> previousFiles = new java.util.HashSet<>(
+                Arrays.asList(BackupTask.BACKUP_FOLDER.listFiles()));
+        try {
+            setCurrentServer(server);
+            delegate.set(fml, side);
+            ServerUtilitiesConfig.backups.need_online_players = true;
+            AtomicInteger attempts = new AtomicInteger();
+            Universe universe = new Universe(server) {
+
+                @Override
+                public void saveForBackup() {
+                    attempts.incrementAndGet();
+                    assertFalse("Activity must be consumed only after reserving the backup", BackupTask.hadPlayer);
+                }
+            };
+            for (String mode : new String[] { "sync-failure", "sync-success", "async-failure", "stop-failure",
+                    "async-success", "async-new-activity" }) {
+                boolean failure = mode.endsWith("failure");
+                boolean async = !mode.startsWith("sync");
+                boolean newActivity = mode.endsWith("new-activity");
+                ServerUtilitiesConfig.backups.use_separate_thread = async;
+                ServerUtilitiesConfig.backups.compression_level = failure ? 10 : 1;
+                BackupTask.hadPlayer = true;
+                int before = attempts.get();
+                for (int attempt = 0; attempt < (failure ? 2 : 1); attempt++) {
+                    BackupTask task = new BackupTask();
+                    task.execute(universe);
+                    if (async) {
+                        assertTrue(task.hasStarted());
+                        assertFalse(BackupTask.hadPlayer);
+                        if (newActivity) BackupTask.hadPlayer = true;
+                        waitForBackup();
+                        assertEquals(!failure, BackupTask.thread.successful);
+                        if (mode.equals("stop-failure")) BackupTask.stopBackupThread();
+                        else new BackupTask(true).execute(universe);
+                        if (!failure) waitForRetention();
+                    } else {
+                        assertEquals(!failure, task.hasStarted());
+                        if (!failure) {
+                            new BackupTask(true).execute(universe);
+                            waitForRetention();
+                        }
+                    }
+                    assertEquals(mode, failure || newActivity, BackupTask.hadPlayer);
+                    assertFalse(world.levelSaving);
+                }
+                assertEquals(before + (failure ? 2 : 1), attempts.get());
+                if (!failure && !newActivity) {
+                    new BackupTask().execute(universe);
+                    assertEquals(
+                            "No pending activity means no further empty-server backup",
+                            before + 1,
+                            attempts.get());
+                }
+                BackupTask.stopBackupThread();
+            }
+        } finally {
+            BackupTask.stopBackupThread();
+            setCurrentServer(previousServer);
+            delegate.set(fml, previousDelegate);
+            ServerUtilitiesConfig.backups.need_online_players = previousGuard;
+            ServerUtilitiesConfig.backups.use_separate_thread = previousThread;
+            ServerUtilitiesConfig.backups.compression_level = previousCompression;
+            FileUtils.delete(source);
+            for (File file : BackupTask.BACKUP_FOLDER.listFiles()) {
+                if (!previousFiles.contains(file)) FileUtils.delete(file);
+            }
+        }
+    }
+
+    @Test
+    public void pruningRequestedDuringPreviewRunsAfterWorkerFinishes() throws Exception {
+        String[] policy = ServerUtilitiesConfig.backups.retention_policy;
+        boolean deleteCustom = ServerUtilitiesConfig.backups.delete_custom_name_backups;
+        int count = ServerUtilitiesConfig.backups.backups_to_keep;
+        int cap = ServerUtilitiesConfig.backups.max_folder_size;
+        File old = new File(BackupTask.BACKUP_FOLDER, "pending-old.zip");
+        File latest = new File(BackupTask.BACKUP_FOLDER, "pending-latest.zip");
+        CountDownLatch finish = new CountDownLatch(1);
+        try {
+            String id = java.util.UUID.randomUUID().toString();
+            long now = System.currentTimeMillis();
+            writeRetentionArchive(old, id, now - TimeUnit.DAYS.toMillis(2));
+            writeRetentionArchive(latest, id, now);
+            ServerUtilitiesConfig.backups.retention_policy = new String[] { "1h:all" };
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
+            ServerUtilitiesConfig.backups.max_folder_size = 0;
+            assertTrue(BackupTask.startRetentionTask(() -> {
+                try {
+                    finish.await();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }));
+            Thread preview = BackupTask.retentionThread;
+            BackupTask.clearOldBackups();
+            assertTrue(old.exists());
+            finish.countDown();
+            preview.join(5_000);
+            assertFalse(preview.isAlive());
+            waitForRetention();
+            assertFalse(old.exists());
+            assertTrue(latest.exists());
+        } finally {
+            finish.countDown();
+            BackupTask.stopBackupThread();
+            ServerUtilitiesConfig.backups.retention_policy = policy;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = deleteCustom;
+            ServerUtilitiesConfig.backups.backups_to_keep = count;
+            ServerUtilitiesConfig.backups.max_folder_size = cap;
+            Files.deleteIfExists(old.toPath());
+            Files.deleteIfExists(latest.toPath());
+        }
+    }
+
+    @Test
+    public void manualCommandReportsPreparationFailureAndRequiresExplicitOverwrite() throws Exception {
+        MinecraftServer server = mock(MinecraftServer.class);
+        ServerConfigurationManager manager = mock(ServerConfigurationManager.class);
+        Field players = ServerConfigurationManager.class.getDeclaredField("playerEntityList");
+        players.setAccessible(true);
+        players.set(manager, Collections.emptyList());
+        when(server.getConfigurationManager()).thenReturn(manager);
+        doThrow(new IllegalStateException("preparation failed")).when(manager).saveAllPlayerData();
+        Field instance = Universe.class.getDeclaredField("INSTANCE");
+        instance.setAccessible(true);
+        Object previous = instance.get(null);
+        File checkpoint = new File(BackupTask.BACKUP_FOLDER, "command-checkpoint.zip");
+        byte[] contents = { 1, 2, 3 };
+        try {
+            instance.set(null, universeWithId(server));
+            ICommandSender sender = mock(ICommandSender.class);
+            serverutils.command.CmdBackup.CmdBackupStart command = new serverutils.command.CmdBackup.CmdBackupStart(
+                    "start");
+            command.processCommand(sender, new String[] { "command-checkpoint" });
+            org.mockito.Mockito.verify(sender).addChatMessage(
+                    org.mockito.ArgumentMatchers.argThat(
+                            message -> message instanceof net.minecraft.util.ChatComponentTranslation
+                                    && ((net.minecraft.util.ChatComponentTranslation) message).getKey()
+                                            .equals("cmd.backup_manual_failed")));
+            org.mockito.Mockito.verify(sender, org.mockito.Mockito.never()).addChatMessage(
+                    org.mockito.ArgumentMatchers.argThat(
+                            message -> message instanceof net.minecraft.util.ChatComponentTranslation
+                                    && ((net.minecraft.util.ChatComponentTranslation) message).getKey()
+                                            .startsWith("cmd.backup_manual_launch")));
+            Files.write(checkpoint.toPath(), contents);
+            org.mockito.Mockito.clearInvocations(manager);
+            org.junit.Assert.assertThrows(
+                    net.minecraft.command.WrongUsageException.class,
+                    () -> command.processCommand(sender, new String[] { "command-checkpoint" }));
+            org.mockito.Mockito.verify(manager, org.mockito.Mockito.never()).saveAllPlayerData();
+            org.junit.Assert.assertThrows(
+                    net.minecraft.command.WrongUsageException.class,
+                    () -> command.processCommand(sender, new String[] { "=overwrite" }));
+            command.processCommand(sender, new String[] { "=overwrite", "command-checkpoint" });
+            org.mockito.Mockito.verify(manager).saveAllPlayerData();
+            org.junit.Assert.assertArrayEquals(contents, Files.readAllBytes(checkpoint.toPath()));
+        } finally {
+            instance.set(null, previous);
+            Files.deleteIfExists(checkpoint.toPath());
+        }
+    }
+
+    @Test
+    public void automaticTimersUseDurationUnitsAndManualBackupsIgnoreInvalidTimers() {
+        String previous = ServerUtilitiesConfig.backups.backup_timer;
+        try {
+            for (String timer : new String[] { "5m", "0.0834", "0" }) {
+                ServerUtilitiesConfig.backups.backup_timer = timer;
+                long expected = BackupDuration.parse(BackupDuration.normalizeTimer(timer));
+                long before = System.currentTimeMillis();
+                BackupTask task = new BackupTask();
+                assertEquals(expected, task.getInterval());
+                assertTrue(task.getNextTime() >= before + expected);
+            }
+            for (String invalid : new String[] { "invalid", "9223372036854775s" }) {
+                ServerUtilitiesConfig.backups.backup_timer = invalid;
+                org.junit.Assert.assertThrows(IllegalArgumentException.class, BackupTask::new);
+                assertEquals(0, new BackupTask(mock(ICommandSender.class), "manual").getInterval());
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.backup_timer = previous;
+        }
+    }
+
+    @Test
+    public void invalidTimersSkipAutomaticSchedulingWithoutStoppingOtherTasks() throws Exception {
+        Field instance = Universe.class.getDeclaredField("INSTANCE");
+        instance.setAccessible(true);
+        Object previousUniverse = instance.get(null);
+        String previousTimer = ServerUtilitiesConfig.backups.backup_timer;
+        boolean previousEnabled = ServerUtilitiesConfig.backups.enable_backups;
+        try {
+            Universe universe = mock(Universe.class);
+            instance.set(null, universe);
+            ServerUtilitiesConfig.backups.enable_backups = true;
+            ServerUtilitiesConfig.backups.backup_timer = "invalid";
+            new serverutils.ServerUtilitiesCommon().registerTasks();
+            org.mockito.Mockito.verify(universe, org.mockito.Mockito.never())
+                    .scheduleTask(org.mockito.ArgumentMatchers.isA(BackupTask.class));
+            org.mockito.Mockito.verify(universe).scheduleTask(
+                    org.mockito.ArgumentMatchers.isA(serverutils.task.CleanupTask.class),
+                    org.mockito.ArgumentMatchers.anyBoolean());
+            ServerUtilitiesConfig.backups.backup_timer = "5m";
+            new serverutils.ServerUtilitiesCommon().registerTasks();
+            org.mockito.Mockito.verify(universe).scheduleTask(org.mockito.ArgumentMatchers.isA(BackupTask.class));
+        } finally {
+            instance.set(null, previousUniverse);
+            ServerUtilitiesConfig.backups.backup_timer = previousTimer;
+            ServerUtilitiesConfig.backups.enable_backups = previousEnabled;
+        }
+    }
+
+    @Test
+    public void policySizePruningTriesAnotherCandidateWithoutRemovingProtectedArchives() throws Exception {
+        Path root = Files.createTempDirectory(new File("build").toPath(), "policy-deletion-");
+        long now = TimeUnit.DAYS.toMillis(20);
+        String[] names = { "blocked", "fallback", "custom", "latest", "other-world", "weekly", "future", "unknown" };
+        List<File> files = new java.util.ArrayList<>();
+        for (String name : names) files.add(Files.write(root.resolve(name), new byte[10]).toFile());
+        Path failure = Files.createDirectories(root.resolve("nonempty"));
+        Files.write(failure.resolve("keep"), new byte[] { 1 });
+        File blocked = mock(File.class);
+        when(blocked.getName()).thenReturn("blocked");
+        when(blocked.length()).thenReturn(10L);
+        when(blocked.toPath()).thenReturn(failure);
+        List<BackupRetention.Archive> archives = Arrays.asList(
+                new BackupRetention.Archive(blocked, "a", now - 5, 10, false, null),
+                new BackupRetention.Archive(files.get(1), "a", now - 4, 10, false, null),
+                new BackupRetention.Archive(files.get(2), "a", now - 3, 10, true, null),
+                new BackupRetention.Archive(files.get(3), "a", now, 10, false, null),
+                new BackupRetention.Archive(files.get(4), "b", now - 1, 10, false, null),
+                new BackupRetention.Archive(files.get(5), "a", now - TimeUnit.DAYS.toMillis(7), 10, false, null),
+                new BackupRetention.Archive(files.get(6), "a", now + 1, 10, false, null),
+                new BackupRetention.Archive(files.get(7), null, 0, 10, false, "Unrecognized/unreadable archive"));
+        try {
+            for (long limit : new long[] { 20, 10, 1, 0 }) {
+                Files.write(files.get(1).toPath(), new byte[10]);
+                BackupRetention.Plan plan = BackupRetention.select(
+                        archives,
+                        BackupRetention.parse(new String[] { "1d:all", "forever:1w" }),
+                        now,
+                        false,
+                        limit);
+                if (limit == 10) {
+                    assertEquals(Collections.singleton(blocked), plan.delete.keySet());
+                    assertTrue("Fallback archive starts out retained", plan.keep.containsKey(files.get(1)));
+                }
+                Thread.currentThread().interrupt();
+                try {
+                    org.junit.Assert.assertThrows(
+                            java.io.InterruptedIOException.class,
+                            () -> BackupTask.clearRetentionBackups(plan, limit));
+                } finally {
+                    Thread.interrupted();
+                }
+                assertTrue(files.get(1).exists());
+                BackupTask.clearRetentionBackups(plan, limit);
+                assertEquals(
+                        "Only an exceeded rotation size allowance can sacrifice the fallback archive",
+                        limit == 0 || limit >= 20,
+                        files.get(1).exists());
+                for (int i = 0; i < files.size(); i++) {
+                    if (i != 1)
+                        assertTrue("Protected or undeletable archive must remain: " + names[i], files.get(i).exists());
+                }
+            }
+        } finally {
+            FileUtils.delete(root.toFile());
+        }
+    }
+
+    @Test
+    public void retentionWorkerSerializesBackupStartAndShutdownWithoutBlockingTheCaller() throws Exception {
+        CountDownLatch started = new CountDownLatch(1);
+        CountDownLatch cancelled = new CountDownLatch(1);
+        CountDownLatch finish = new CountDownLatch(1);
+        java.util.concurrent.ExecutorService stopper = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            assertTrue(BackupTask.startRetentionTask(() -> {
+                started.countDown();
+                try {
+                    finish.await();
+                } catch (InterruptedException ex) {
+                    cancelled.countDown();
+                    try {
+                        finish.await();
+                    } catch (InterruptedException ignored) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }));
+            assertTrue(started.await(5, TimeUnit.SECONDS));
+            assertTrue(BackupTask.isBackupRunning());
+            assertFalse(BackupTask.isWorldSavingSuspended());
+            assertFalse(BackupTask.startRetentionTask(() -> { throw new AssertionError("Overlapping worker"); }));
+            org.junit.Assert
+                    .assertThrows(java.util.concurrent.RejectedExecutionException.class, BackupTask::listBackupsAsync);
+            ICommandSender listSender = mock(ICommandSender.class);
+            new serverutils.command.CmdBackup.CmdBackupList().processCommand(listSender, new String[0]);
+            org.mockito.Mockito.verify(listSender).addChatMessage(
+                    org.mockito.ArgumentMatchers.argThat(
+                            message -> message instanceof net.minecraft.util.ChatComponentTranslation
+                                    && ((net.minecraft.util.ChatComponentTranslation) message).getKey()
+                                            .equals("cmd.backup_list_error")));
+            Universe universe = mock(Universe.class);
+            new BackupTask(mock(ICommandSender.class), "busy").execute(universe);
+            org.mockito.Mockito.verifyNoInteractions(universe);
+            java.util.concurrent.Future<?> stopped = stopper.submit(BackupTask::stopBackupThread);
+            assertTrue(cancelled.await(5, TimeUnit.SECONDS));
+            org.junit.Assert.assertThrows(
+                    java.util.concurrent.TimeoutException.class,
+                    () -> stopped.get(100, TimeUnit.MILLISECONDS));
+            assertFalse(BackupTask.startRetentionTask(() -> { throw new AssertionError("Worker during shutdown"); }));
+            finish.countDown();
+            stopped.get(5, TimeUnit.SECONDS);
+            assertFalse(BackupTask.isBackupRunning());
+            assertNull(BackupTask.retentionThread);
+        } finally {
+            finish.countDown();
+            stopper.shutdownNow();
+            BackupTask.stopBackupThread();
+        }
+    }
+
+    @Test
+    public void successfulPostBackupRestoresSavingBeforeAsynchronousPruning() throws Exception {
+        String[] previousPolicy = ServerUtilitiesConfig.backups.retention_policy;
+        File old = new File(BackupTask.BACKUP_FOLDER, "post-retention-old.zip");
+        File latest = new File(BackupTask.BACKUP_FOLDER, "post-retention-latest.zip");
+        long now = System.currentTimeMillis();
+        String id = java.util.UUID.randomUUID().toString();
+        try {
+            boolean previousCustom = ServerUtilitiesConfig.backups.delete_custom_name_backups;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
+            try {
+                for (String[] policy : new String[][] { { "1h:all" }, {} }) {
+                    writeRetentionArchive(old, id, now - TimeUnit.DAYS.toMillis(2));
+                    writeRetentionArchive(latest, id, now);
+                    Files.setLastModifiedTime(
+                            old.toPath(),
+                            java.nio.file.attribute.FileTime.fromMillis(now - TimeUnit.DAYS.toMillis(2)));
+                    Files.setLastModifiedTime(latest.toPath(), java.nio.file.attribute.FileTime.fromMillis(now));
+                    ServerUtilitiesConfig.backups.retention_policy = policy;
+                    int previousCount = ServerUtilitiesConfig.backups.backups_to_keep;
+                    ServerUtilitiesConfig.backups.backups_to_keep = 1;
+                    try {
+                        WorldServer world = mock(WorldServer.class);
+                        BackupTask.saveAndDisableWorldSaving(new WorldServer[] { world });
+                        ThreadBackup worker = new ThreadBackup(null, null, "", Collections.emptySet()) {
+
+                            @Override
+                            public void run() {}
+                        };
+                        worker.successful = true;
+                        BackupTask.thread = worker;
+                        new BackupTask(true).execute(mock(Universe.class));
+                        assertFalse(world.levelSaving);
+                        assertFalse(BackupTask.isWorldSavingSuspended());
+                        assertTrue(BackupTask.retentionThread != Thread.currentThread());
+                        waitForRetention();
+                        assertFalse(old.exists());
+                        assertTrue(latest.exists());
+                    } finally {
+                        BackupTask.stopBackupThread();
+                        ServerUtilitiesConfig.backups.backups_to_keep = previousCount;
+                    }
+                }
+            } finally {
+                BackupTask.stopBackupThread();
+                ServerUtilitiesConfig.backups.delete_custom_name_backups = previousCustom;
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.retention_policy = previousPolicy;
+            Files.deleteIfExists(old.toPath());
+            Files.deleteIfExists(latest.toPath());
+        }
+    }
+
+    @Test
+    public void listUsesMetadataAndSharedArchiveFilteringWithServerThreadAndRconReplies() throws Exception {
+        File old = new File(BackupTask.BACKUP_FOLDER, "list-old.zip");
+        File recent = new File(BackupTask.BACKUP_FOLDER, "list-recent.zip");
+        File unknown = new File(BackupTask.BACKUP_FOLDER, "list-unknown.zip");
+        Path directory = BackupTask.BACKUP_FOLDER.toPath().resolve("list-directory.zip");
+        Path unrelated = BackupTask.BACKUP_FOLDER.toPath().resolve("list-noise.txt");
+        String[] previousPolicy = ServerUtilitiesConfig.backups.retention_policy;
+        serverutils.handlers.ServerUtilitiesServerEventHandler.clearServerTasks();
+        try {
+            ServerUtilitiesConfig.backups.retention_policy = new String[0];
+            String id = java.util.UUID.randomUUID().toString();
+            writeRetentionArchive(old, id, 1_000);
+            writeRetentionArchive(recent, id, 2_000);
+            Files.write(unknown.toPath(), new byte[] { 1, 2, 3 });
+            Files.setLastModifiedTime(old.toPath(), java.nio.file.attribute.FileTime.fromMillis(9_000));
+            Files.setLastModifiedTime(recent.toPath(), java.nio.file.attribute.FileTime.fromMillis(1));
+            Files.setLastModifiedTime(unknown.toPath(), java.nio.file.attribute.FileTime.fromMillis(3_000));
+            Files.createDirectory(directory);
+            Files.write(unrelated, new byte[1_000]);
+            List<BackupRetention.Archive> archives = BackupRetention.readArchives(BackupTask.BACKUP_FOLDER);
+            long total = archives.stream().mapToLong(archive -> archive.size).sum();
+            ICommandSender player = mock(ICommandSender.class);
+            List<net.minecraft.util.ChatComponentTranslation> replies = new java.util.ArrayList<>();
+            Thread caller = Thread.currentThread();
+            doAnswer(call -> {
+                org.junit.Assert.assertSame(caller, Thread.currentThread());
+                replies.add(call.getArgument(0));
+                return null;
+            }).when(player).addChatMessage(org.mockito.ArgumentMatchers.any());
+            serverutils.command.CmdBackup commands = new serverutils.command.CmdBackup();
+            assertTrue(commands.getSubCommands().stream().anyMatch(command -> command.getCommandName().equals("list")));
+            assertTrue(
+                    commands.getSubCommands().stream().anyMatch(command -> command.getCommandName().equals("prune")));
+            serverutils.command.CmdBackup.CmdBackupList command = new serverutils.command.CmdBackup.CmdBackupList();
+            command.processCommand(player, new String[0]);
+            waitForRetention();
+            assertTrue("Player replies must wait for the server task queue", replies.isEmpty());
+            serverutils.handlers.ServerUtilitiesServerEventHandler.onServerTick(
+                    new cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent(
+                            cpw.mods.fml.common.gameevent.TickEvent.Phase.START));
+            assertEquals("cmd.backup_list_header", replies.get(0).getKey());
+            assertEquals(archives.size(), replies.get(0).getFormatArgs()[0]);
+            assertEquals(FileUtils.getSizeString(total), replies.get(0).getFormatArgs()[1]);
+            List<String> names = new java.util.ArrayList<>();
+            java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm");
+            for (net.minecraft.util.ChatComponentTranslation reply : replies) {
+                if (!reply.getKey().equals("cmd.backup_list_file")) continue;
+                String name = (String) reply.getFormatArgs()[0];
+                names.add(name);
+                if (!Arrays.asList(old.getName(), recent.getName(), unknown.getName()).contains(name)) continue;
+                assertEquals(
+                        FileUtils.getSizeString(new File(BackupTask.BACKUP_FOLDER, name).length()),
+                        reply.getFormatArgs()[1]);
+                // Custom names spell out the creation date next to the age.
+                net.minecraft.util.ChatComponentTranslation when = (net.minecraft.util.ChatComponentTranslation) reply
+                        .getFormatArgs()[2];
+                assertEquals("cmd.backup_when", when.getKey());
+                long created = name.equals(old.getName()) ? 1_000 : name.equals(recent.getName()) ? 2_000 : 3_000;
+                assertEquals(format.format(new java.util.Date(created)), when.getFormatArgs()[0]);
+            }
+            assertTrue(names.containsAll(Arrays.asList(old.getName(), recent.getName(), unknown.getName())));
+            assertTrue(
+                    "Sort by creation time, rather than the reversed mtimes",
+                    names.indexOf(old.getName()) < names.indexOf(recent.getName()));
+            assertTrue(names.indexOf(recent.getName()) < names.indexOf(unknown.getName()));
+            assertFalse(names.contains(directory.getFileName().toString()));
+            assertFalse(names.contains(unrelated.getFileName().toString()));
+            net.minecraft.network.rcon.RConConsoleSource rcon = mock(
+                    net.minecraft.network.rcon.RConConsoleSource.class);
+            command.processCommand(rcon, new String[0]);
+            org.mockito.Mockito.verify(rcon, org.mockito.Mockito.atLeastOnce())
+                    .addChatMessage(org.mockito.ArgumentMatchers.any());
+            waitForRetention();
+            assertTrue("Listing must not delete archives", old.exists() && recent.exists() && unknown.exists());
+        } finally {
+            BackupTask.stopBackupThread();
+            serverutils.handlers.ServerUtilitiesServerEventHandler.clearServerTasks();
+            ServerUtilitiesConfig.backups.retention_policy = previousPolicy;
+            Files.deleteIfExists(old.toPath());
+            Files.deleteIfExists(recent.toPath());
+            Files.deleteIfExists(unknown.toPath());
+            Files.deleteIfExists(directory);
+            Files.deleteIfExists(unrelated);
+        }
+    }
+
+    @Test
+    public void previewReturnsPlayerRepliesOnTheServerThreadAndRconRepliesBeforeReturning() throws Exception {
+        String[] previousPolicy = ServerUtilitiesConfig.backups.retention_policy;
+        File archive = new File(BackupTask.BACKUP_FOLDER, "preview-reply.zip");
+        serverutils.handlers.ServerUtilitiesServerEventHandler.clearServerTasks();
+        try {
+            writeRetentionArchive(archive, java.util.UUID.randomUUID().toString(), System.currentTimeMillis());
+            for (String policy : new String[] { "forever:all", "invalid" }) {
+                ServerUtilitiesConfig.backups.retention_policy = new String[] { policy };
+                ICommandSender player = mock(ICommandSender.class);
+                Thread caller = Thread.currentThread();
+                AtomicInteger replies = new AtomicInteger();
+                doAnswer(call -> {
+                    org.junit.Assert.assertSame(caller, Thread.currentThread());
+                    replies.incrementAndGet();
+                    return null;
+                }).when(player).addChatMessage(org.mockito.ArgumentMatchers.any());
+                serverutils.command.CmdBackup.CmdBackupPrune command = new serverutils.command.CmdBackup.CmdBackupPrune();
+                command.processCommand(player, new String[] { "preview" });
+                waitForRetention();
+                assertEquals("Replies must wait for the server task queue", 0, replies.get());
+                serverutils.handlers.ServerUtilitiesServerEventHandler.onServerTick(
+                        new cpw.mods.fml.common.gameevent.TickEvent.ServerTickEvent(
+                                cpw.mods.fml.common.gameevent.TickEvent.Phase.START));
+                assertTrue(replies.get() > 0);
+                net.minecraft.network.rcon.RConConsoleSource rcon = mock(
+                        net.minecraft.network.rcon.RConConsoleSource.class);
+                command.processCommand(rcon, new String[] { "preview" });
+                org.mockito.Mockito.verify(rcon, org.mockito.Mockito.atLeastOnce())
+                        .addChatMessage(org.mockito.ArgumentMatchers.any());
+                waitForRetention();
+                assertTrue("Preview must not delete archives", archive.exists());
+            }
+        } finally {
+            BackupTask.stopBackupThread();
+            serverutils.handlers.ServerUtilitiesServerEventHandler.clearServerTasks();
+            ServerUtilitiesConfig.backups.retention_policy = previousPolicy;
+            Files.deleteIfExists(archive.toPath());
+        }
+    }
+
+    @Test
+    public void failedBackupCleanupRestoresWorldSavingWithoutPruning() throws Exception {
+        File first = new File(BackupTask.BACKUP_FOLDER, "failed-backup-history-first.zip");
+        File second = new File(BackupTask.BACKUP_FOLDER, "failed-backup-history-second.zip");
+        String worldId = java.util.UUID.randomUUID().toString();
+        writeRetentionArchive(first, worldId, 1);
+        writeRetentionArchive(second, worldId, 2);
+        int previousCount = ServerUtilitiesConfig.backups.backups_to_keep;
+        boolean previousCustom = ServerUtilitiesConfig.backups.delete_custom_name_backups;
+        try {
+            ServerUtilitiesConfig.backups.backups_to_keep = 1;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
+            WorldServer world = mock(WorldServer.class);
+            BackupTask.saveAndDisableWorldSaving(new WorldServer[] { world });
+            new BackupTask(true).execute(mock(Universe.class));
+            assertFalse(world.levelSaving);
+            assertTrue(first.exists());
+            assertTrue(second.exists());
+            assertNull("A failed backup must not launch pruning", BackupTask.retentionThread);
+        } finally {
+            ServerUtilitiesConfig.backups.backups_to_keep = previousCount;
+            ServerUtilitiesConfig.backups.delete_custom_name_backups = previousCustom;
+            Files.deleteIfExists(first.toPath());
+            Files.deleteIfExists(second.toPath());
+        }
     }
 
     @Test
@@ -109,7 +876,7 @@ public class BackupTaskTest {
                 }
             }
             doThrow(new IllegalStateException("injected preparation failure")).when(manager).saveAllPlayerData();
-            new BackupTask(mock(ICommandSender.class), "invalid-source").execute(new Universe(server));
+            new BackupTask(mock(ICommandSender.class), "invalid-source").execute(universeWithId(server));
             assertTrue("Failed preparation must not delete an unowned snapshot", sentinel.isFile());
         } finally {
             delegate.set(fml, previous);
@@ -339,7 +1106,7 @@ public class BackupTaskTest {
         net.minecraftforge.common.DimensionManager.registerProviderType(9, BrokenFolderProvider.class, false);
         net.minecraftforge.common.DimensionManager.registerDimension(9, 9);
         try {
-            Universe universe = new Universe(server);
+            Universe universe = universeWithId(server);
             universe.dataFolder = new File(source, "serverutilities");
             serverutils.lib.data.ForgeTeam team = new serverutils.lib.data.ForgeTeam(
                     universe,
@@ -366,9 +1133,13 @@ public class BackupTaskTest {
                     }
                     ServerUtilitiesConfig.backups.use_separate_thread = async;
                     ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = entire;
-                    new BackupTask(mock(ICommandSender.class), "forced-claims", true).execute(universe);
+                    BackupTask backup = new BackupTask(mock(ICommandSender.class), "forced-claims", true, true);
+                    backup.execute(universe);
+                    assertTrue("Backup must start, not be deferred", backup.hasStarted());
                     if (async) waitForBackup();
                     new BackupTask(true).execute(universe);
+                    // Post-backup cleanup must finish, or the next iteration's backup is deferred.
+                    waitForRetention();
                     assertFalse(world.levelSaving);
                     try (ZipFile zip = new ZipFile(new File(BackupTask.BACKUP_FOLDER, "forced-claims.zip"))) {
                         try (InputStream input = zip
@@ -415,6 +1186,7 @@ public class BackupTaskTest {
                 for (boolean entire : new boolean[] { false, true }) {
                     ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = entire;
                     for (boolean threaded : new boolean[] { false, true }) {
+                        Files.deleteIfExists(new File(BackupTask.BACKUP_FOLDER, "unregistered.zip").toPath());
                         java.util.Set<serverutils.lib.math.ChunkDimPos> staleClaims = new java.util.HashSet<>();
                         staleClaims.add(new serverutils.lib.math.ChunkDimPos(0, 0, 999999));
                         staleClaims.add(new serverutils.lib.math.ChunkDimPos(0, 0, 0));
@@ -468,6 +1240,7 @@ public class BackupTaskTest {
             }
             ServerUtilitiesConfig.backups.only_backup_claimed_chunks = false;
             for (boolean empty : new boolean[] { false, true }) {
+                Files.deleteIfExists(new File(BackupTask.BACKUP_FOLDER, "forced-claims.zip").toPath());
                 java.util.Set<serverutils.lib.math.ChunkDimPos> claims = empty ? Collections.emptySet()
                         : Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 0));
                 ThreadBackup.doBackup(ICompress.createCompressor(), source, "forced-claims", claims, null, true);
@@ -484,6 +1257,7 @@ public class BackupTaskTest {
             for (boolean entire : new boolean[] { false, true }) {
                 ServerUtilitiesConfig.backups.backup_entire_regions_with_claims = entire;
                 for (int size : new int[] { 0, 4096, 8193 }) {
+                    Files.deleteIfExists(new File(BackupTask.BACKUP_FOLDER, "malformed-region.zip").toPath());
                     File malformed = new File(regions, "r.2.0.mca");
                     byte[] original = new byte[size];
                     java.util.Arrays.fill(original, (byte) 42);
@@ -513,6 +1287,7 @@ public class BackupTaskTest {
                     java.util.Set<serverutils.lib.math.ChunkDimPos> claims = empty ? Collections.emptySet()
                             : Collections.singleton(new serverutils.lib.math.ChunkDimPos(0, 0, 0));
                     for (boolean threaded : new boolean[] { false, true }) {
+                        Files.deleteIfExists(new File(BackupTask.BACKUP_FOLDER, "legacy-api.zip").toPath());
                         if (threaded) {
                             ThreadBackup legacy = new ThreadBackup(
                                     ICompress.createCompressor(),
@@ -636,12 +1411,19 @@ public class BackupTaskTest {
         setCurrentServer(server);
 
         try {
-            Universe universe = new Universe(server);
+            Universe universe = universeWithId(server);
             new BackupTask(mock(ICommandSender.class), "first").execute(universe);
             waitForBackup();
-            new BackupTask(mock(ICommandSender.class), "second").execute(universe);
+            BackupTask next = new BackupTask(mock(ICommandSender.class), "second");
+            next.execute(universe);
+            if (BackupTask.thread == null) {
+                assertFalse("World saving resumes while cleanup delays the next backup", world.levelSaving);
+                waitForRetention();
+                next.execute(universe);
+            }
             waitForBackup();
             new BackupTask(true).execute(universe);
+            waitForRetention();
         } finally {
             setCurrentServer(null);
             FileUtils.delete(source);
@@ -681,10 +1463,26 @@ public class BackupTaskTest {
 
             @Override
             public void saveForBackup() throws IOException {
+                assertFalse(
+                        BackupTask.startRetentionTask(
+                                () -> {
+                                    throw new AssertionError("Retention must not run during backup preparation");
+                                }));
                 throw new IOException("injected save failure");
             }
         };
-        new BackupTask(mock(ICommandSender.class), "failed-universe").execute(universe);
+        boolean previousGuard = ServerUtilitiesConfig.backups.need_online_players;
+        try {
+            ServerUtilitiesConfig.backups.need_online_players = true;
+            BackupTask.hadPlayer = true;
+            for (int attempt = 0; attempt < 2; attempt++) {
+                new BackupTask().execute(universe);
+                assertTrue("Failed preparation must preserve the empty-server backup request", BackupTask.hadPlayer);
+            }
+            org.mockito.Mockito.verify(manager, org.mockito.Mockito.times(2)).saveAllPlayerData();
+        } finally {
+            ServerUtilitiesConfig.backups.need_online_players = previousGuard;
+        }
         assertFalse(world.levelSaving);
         assertFalse(BackupTask.isWorldSavingSuspended());
         assertNull(BackupTask.thread);
@@ -874,6 +1672,7 @@ public class BackupTaskTest {
         try {
             // Wildcards and literal directories must both exclude backup-owned files.
             for (boolean wildcard : new boolean[] { true, false }) {
+                Files.deleteIfExists(new File(BackupTask.BACKUP_FOLDER, "snapshot-test.zip").toPath());
                 if (!wildcard) {
                     ServerUtilitiesConfig.backups.additional_backup_files = new String[] {
                             BackupTask.BACKUP_TEMP_FOLDER.getPath(), BackupTask.BACKUP_FOLDER.getPath() };
@@ -1135,7 +1934,11 @@ public class BackupTaskTest {
                             source,
                             "spool-failure",
                             Collections.emptySet(),
-                            snapshot);
+                            snapshot,
+                            false,
+                            null,
+                            System.currentTimeMillis(),
+                            true);
                     BackupTask.thread = worker;
                     java.util.concurrent.atomic.AtomicReference<Throwable> uncaught = new java.util.concurrent.atomic.AtomicReference<>();
                     worker.setUncaughtExceptionHandler((thread, error) -> uncaught.set(error));
@@ -1171,6 +1974,53 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void automaticBackupDestinationsNeverReuseOccupiedTimestampNames() throws Exception {
+        File first = ThreadBackup.backupDestination("", false);
+        byte[] original = { 1, 2, 3 };
+        try {
+            Files.write(first.toPath(), original, java.nio.file.StandardOpenOption.CREATE_NEW);
+            File next = ThreadBackup.backupDestination("", false);
+            assertFalse(first.equals(next));
+            assertFalse(next.exists());
+            assertTrue(BackupTask.BACKUP_NAME_PATTERN.matcher(next.getName()).matches());
+            assertEquals(first.getParentFile(), next.getParentFile());
+            org.junit.Assert.assertArrayEquals(original, Files.readAllBytes(first.toPath()));
+        } finally {
+            Files.deleteIfExists(first.toPath());
+        }
+    }
+
+    @Test
+    public void automaticBackupNamesMatchMetadataCreationTime() throws Exception {
+        File source = Files.createTempDirectory(new File("build").toPath(), "backup-name-").toFile();
+        Files.write(new File(source, "level.dat").toPath(), new byte[] { 42 });
+        // An old fixed time cannot collide with backups created by other tests.
+        long createdAt = 1_000_000_000_000L + 999;
+        File archive = new File(
+                BackupTask.BACKUP_FOLDER,
+                new java.text.SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", java.util.Locale.ROOT)
+                        .format(new java.util.Date(createdAt)) + ".zip");
+        try {
+            assertTrue(
+                    ThreadBackup.doBackup(
+                            ICompress.createCompressor(),
+                            source,
+                            "",
+                            Collections.emptySet(),
+                            null,
+                            false,
+                            java.util.UUID.randomUUID().toString(),
+                            createdAt,
+                            false));
+            assertTrue(archive.exists());
+            assertEquals(createdAt, BackupRetention.read(archive, archive.length()).created);
+        } finally {
+            Files.deleteIfExists(archive.toPath());
+            FileUtils.delete(source);
+        }
+    }
+
+    @Test
     public void archiveReplacementKeepsPreviousBackupUntilCloseSucceeds() throws Exception {
         File source = Files.createTempDirectory(new File("build").toPath(), "archive-replace-").toFile();
         File payload = new File(source, "level.dat");
@@ -1196,14 +2046,32 @@ public class BackupTaskTest {
                         if (failOnClose) throw new java.io.InterruptedIOException("cancelled during close");
                     }
                 };
-                ThreadBackup.doBackup(compressor, source, "reused-name", Collections.emptySet());
+                ThreadBackup.doBackup(
+                        compressor,
+                        source,
+                        "reused-name",
+                        Collections.emptySet(),
+                        null,
+                        false,
+                        null,
+                        System.currentTimeMillis(),
+                        true);
                 org.junit.Assert.assertArrayEquals(original, Files.readAllBytes(previous.toPath()));
                 try (java.util.stream.Stream<java.nio.file.Path> paths = Files
                         .list(BackupTask.BACKUP_FOLDER.toPath())) {
                     assertFalse(paths.anyMatch(path -> path.getFileName().toString().startsWith(".su-save-")));
                 }
             }
-            ThreadBackup.doBackup(ICompress.createCompressor(), source, "reused-name", Collections.emptySet());
+            ThreadBackup.doBackup(
+                    ICompress.createCompressor(),
+                    source,
+                    "reused-name",
+                    Collections.emptySet(),
+                    null,
+                    false,
+                    null,
+                    System.currentTimeMillis(),
+                    true);
             try (ZipFile zip = new ZipFile(previous)) {
                 try (InputStream in = zip.getInputStream(zip.getEntry(FileUtils.getRelativePath(payload)))) {
                     org.junit.Assert.assertArrayEquals(new byte[] { 42 }, IOUtils.toByteArray(in));
@@ -1212,6 +2080,100 @@ public class BackupTaskTest {
         } finally {
             FileUtils.delete(source);
             Files.deleteIfExists(previous.toPath());
+        }
+    }
+
+    @Test
+    public void customBackupNamesCannotEscapeStorageOrTargetDirectories() throws Exception {
+        Path root = Files.createTempDirectory(new File("build").toPath(), "backup-name-");
+        Path payload = Files.write(root.resolve("level.dat"), new byte[] { 42 });
+        Path escaped = root.resolve("escape.zip");
+        Path directory = Files.createDirectory(BackupTask.BACKUP_FOLDER.toPath().resolve(root.getFileName() + ".zip"));
+        Path contents = Files.write(directory.resolve("keep"), new byte[] { 1 });
+        Path checkpoint = BackupTask.BACKUP_FOLDER.toPath().resolve(root.getFileName() + "-checkpoint.zip");
+        MinecraftServer server = mock(MinecraftServer.class);
+        ServerConfigurationManager manager = mock(ServerConfigurationManager.class);
+        Field players = ServerConfigurationManager.class.getDeclaredField("playerEntityList");
+        players.setAccessible(true);
+        players.set(manager, Collections.emptyList());
+        when(server.getConfigurationManager()).thenReturn(manager);
+        cpw.mods.fml.common.FMLCommonHandler fml = cpw.mods.fml.common.FMLCommonHandler.instance();
+        Field delegate = cpw.mods.fml.common.FMLCommonHandler.class.getDeclaredField("sidedDelegate");
+        delegate.setAccessible(true);
+        Object previous = delegate.get(fml);
+        cpw.mods.fml.common.IFMLSidedHandler side = mock(cpw.mods.fml.common.IFMLSidedHandler.class);
+        when(side.getServer()).thenReturn(server);
+        delegate.set(fml, side);
+        try {
+            for (String name : new String[] { "../" + root.getFileName() + "/escape",
+                    "..\\" + root.getFileName() + "\\escape", escaped.toAbsolutePath().toString(), "C:escape",
+                    "invalid\u0000name", root.getFileName().toString() }) {
+                assertFalse(
+                        "Invalid names must not publish an archive: " + name,
+                        ThreadBackup.doBackup(
+                                ICompress.createCompressor(),
+                                root.toFile(),
+                                name,
+                                Collections.emptySet(),
+                                null,
+                                false,
+                                null,
+                                System.currentTimeMillis()));
+                assertFalse("The archive must stay inside backup storage", Files.exists(escaped));
+                assertTrue(Files.exists(contents));
+                assertTrue(Files.exists(payload));
+            }
+            byte[] original = { 1, 2, 3 };
+            Files.write(checkpoint, original);
+            ICompress rejected = mock(ICompress.class);
+            assertFalse(
+                    ThreadBackup.doBackup(
+                            rejected,
+                            root.toFile(),
+                            FileUtils.getBaseName(checkpoint.toFile()),
+                            Collections.emptySet(),
+                            null,
+                            false,
+                            null,
+                            System.currentTimeMillis()));
+            org.mockito.Mockito.verifyNoInteractions(rejected);
+            org.junit.Assert.assertArrayEquals(original, Files.readAllBytes(checkpoint));
+            Files.delete(checkpoint);
+            ICompress race = new serverutils.lib.util.compression.LegacyCompressor() {
+
+                @Override
+                public void close() throws Exception {
+                    super.close();
+                    Files.write(checkpoint, original);
+                }
+            };
+            assertFalse(
+                    "A collision created during compression must not be replaced",
+                    ThreadBackup.doBackup(
+                            race,
+                            root.toFile(),
+                            FileUtils.getBaseName(checkpoint.toFile()),
+                            Collections.emptySet(),
+                            null,
+                            false,
+                            null,
+                            System.currentTimeMillis()));
+            org.junit.Assert.assertArrayEquals(original, Files.readAllBytes(checkpoint));
+            new BackupTask(mock(ICommandSender.class), "../escape").execute(universeWithId(server));
+            org.mockito.Mockito.verify(manager, org.mockito.Mockito.never()).saveAllPlayerData();
+            ICommandSender sender = mock(ICommandSender.class);
+            org.junit.Assert.assertThrows(
+                    net.minecraft.command.WrongUsageException.class,
+                    () -> new serverutils.command.CmdBackup.CmdBackupStart("start")
+                            .processCommand(sender, new String[] { "../escape" }));
+            org.mockito.Mockito.verifyNoInteractions(sender);
+            assertFalse(BackupTask.isWorldSavingSuspended());
+            assertNull(BackupTask.thread);
+        } finally {
+            delegate.set(fml, previous);
+            FileUtils.delete(root.toFile());
+            FileUtils.delete(directory.toFile());
+            Files.deleteIfExists(checkpoint);
         }
     }
 
@@ -1243,6 +2205,7 @@ public class BackupTaskTest {
             ServerUtilitiesConfig.backups.backups_to_keep = 0;
             ServerUtilitiesConfig.backups.delete_custom_name_backups = true;
             BackupTask.clearOldBackups();
+            waitForRetention();
             assertTrue("Ordinary retention must leave worker-owned staging alone", Files.exists(active));
         } finally {
             ServerUtilitiesConfig.backups.backups_to_keep = previousCount;
@@ -1537,6 +2500,56 @@ public class BackupTaskTest {
     }
 
     @Test
+    public void retentionMetadataSurvivesExclusionsWithAndWithoutSnapshot() throws Exception {
+        Path root = Files.createTempDirectory(new File("build").toPath(), "retention-exclusions-");
+        Path world = Files.createDirectory(root.resolve("world"));
+        Path excluded = Files.write(world.resolve("excluded.dat"), new byte[] { 1 });
+        Path included = Files.write(world.resolve("level.dat"), new byte[] { 2 });
+        Path additional = Files.write(root.resolve("excluded.cfg"), new byte[] { 3 });
+        File archive = new File(BackupTask.BACKUP_FOLDER, "retention-exclusions.zip");
+        String[] previousIncludes = ServerUtilitiesConfig.backups.additional_backup_files;
+        String[] previousExcludes = ServerUtilitiesConfig.backups.excluded_backup_files;
+        String worldId = java.util.UUID.randomUUID().toString();
+        try {
+            ServerUtilitiesConfig.backups.additional_backup_files = new String[] {
+                    FileUtils.getRelativePath(additional.toFile()) };
+            ServerUtilitiesConfig.backups.excluded_backup_files = new String[] {
+                    FileUtils.getRelativePath(excluded.toFile()), FileUtils.getRelativePath(additional.toFile()),
+                    ICompress.BACKUP_METADATA_ENTRY };
+            for (boolean useSnapshot : new boolean[] { false, true }) {
+                Files.deleteIfExists(archive.toPath());
+                ThreadBackup.Snapshot snapshot = useSnapshot ? ThreadBackup.snapshotFiles(world.toFile()) : null;
+                assertTrue(
+                        ThreadBackup.doBackup(
+                                ICompress.createCompressor(),
+                                world.toFile(),
+                                "retention-exclusions",
+                                Collections.emptySet(),
+                                snapshot,
+                                false,
+                                worldId,
+                                System.currentTimeMillis()));
+                try (ZipFile zip = new ZipFile(archive)) {
+                    assertNull(zip.getEntry(FileUtils.getRelativePath(excluded.toFile())));
+                    assertNull(zip.getEntry(FileUtils.getRelativePath(additional.toFile())));
+                    assertTrue(zip.getEntry(FileUtils.getRelativePath(included.toFile())) != null);
+                    java.util.Properties metadata = new java.util.Properties();
+                    try (InputStream input = zip.getInputStream(zip.getEntry(ICompress.BACKUP_METADATA_ENTRY))) {
+                        metadata.load(input);
+                    }
+                    assertEquals(worldId, metadata.getProperty("worldId"));
+                }
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.additional_backup_files = previousIncludes;
+            ServerUtilitiesConfig.backups.excluded_backup_files = previousExcludes;
+            ThreadBackup.deleteSnapshot();
+            FileUtils.delete(root.toFile());
+            Files.deleteIfExists(archive.toPath());
+        }
+    }
+
+    @Test
     public void snapshotDoesNotCaptureExcludedFiles() throws Exception {
         Path world = Files.createTempDirectory(new File("build").toPath(), "exclude-snapshot-");
         Path excluded = Files.write(world.resolve("excluded.dat"), new byte[] { 1, 2, 3, 4, 5 });
@@ -1668,11 +2681,17 @@ public class BackupTaskTest {
                 java.util.Set<java.nio.file.attribute.PosixFilePermission> permissions = java.nio.file.attribute.PosixFilePermissions
                         .fromString("rw-r-----");
                 Files.setPosixFilePermissions(archive, permissions);
-                ThreadBackup.doBackup(
-                        ICompress.createCompressor(),
-                        root.toFile(),
-                        "posix-permissions",
-                        Collections.emptySet());
+                assertTrue(
+                        ThreadBackup.doBackup(
+                                ICompress.createCompressor(),
+                                root.toFile(),
+                                "posix-permissions",
+                                Collections.emptySet(),
+                                null,
+                                false,
+                                null,
+                                System.currentTimeMillis(),
+                                true));
                 assertEquals(permissions, Files.getPosixFilePermissions(archive));
             } finally {
                 Files.deleteIfExists(archive);

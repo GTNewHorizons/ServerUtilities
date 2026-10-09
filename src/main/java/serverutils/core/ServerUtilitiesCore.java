@@ -22,6 +22,7 @@ public class ServerUtilitiesCore implements IFMLLoadingPlugin, IEarlyMixinLoader
     static {
         removeBrigadierExceptions();
         ConfigurationManager.registerConfig(ServerUtilitiesConfig.class);
+        ServerUtilitiesConfig.migrateBackupTimer(ConfigurationManager.getConfig(ServerUtilitiesConfig.class));
         ConfigurationManager.registerConfig(AuroraConfig.class);
     }
 

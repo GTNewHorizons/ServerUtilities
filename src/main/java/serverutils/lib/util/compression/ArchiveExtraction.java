@@ -59,7 +59,7 @@ final class ArchiveExtraction {
             Enumeration<? extends ZipEntry> entries = zip.entries();
             while (entries.hasMoreElements()) {
                 ZipEntry entry = entries.nextElement();
-                if (entry.isDirectory()) continue;
+                if (entry.isDirectory() || entry.getName().equals(ICompress.BACKUP_METADATA_ENTRY)) continue;
                 Path path = restorePath(entry.getName(), legacy, worldName);
                 hasWorldMetadata |= path.equals(Paths.get("saves", worldName, "level.dat"))
                         || path.equals(Paths.get("saves", worldName, "level.dat_old"));
@@ -141,6 +141,7 @@ final class ArchiveExtraction {
                 Enumeration<? extends ZipEntry> entries = zip.entries();
                 while (entries.hasMoreElements()) {
                     ZipEntry entry = entries.nextElement();
+                    if (entry.getName().equals(ICompress.BACKUP_METADATA_ENTRY)) continue;
                     String name = entry.getName().replace('\\', '/');
                     if (name.startsWith("/") || name.contains(":") || name.matches("(^|.*/)\\.\\.(/.*|$)")) {
                         throw new IOException("Unsafe backup entry: " + name);
