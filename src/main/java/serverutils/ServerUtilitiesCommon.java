@@ -45,7 +45,6 @@ import serverutils.lib.config.IConfigCallback;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.net.MessageToClient;
-import serverutils.lib.util.MOTDFormatter;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.ServerUtilitiesNetHandler;
@@ -133,9 +132,7 @@ public class ServerUtilitiesCommon {
         MinecraftServer server = event.getServer();
         ServerUtilitiesCommands.registerCommands(event);
         // -- Initial MOTD setup
-        if (event.getSide().isServer() && server != null && motd.enabled) {
-            IChatComponent motd = MOTDFormatter.buildMOTD(server);
-            server.func_147134_at().func_151315_a(motd);
+        if (server != null && server.isDedicatedServer()) {
             updateMotDTask = new UpdateMOTDTask();
         }
         if (AuroraConfig.general.enable && server != null) {
@@ -188,11 +185,10 @@ public class ServerUtilitiesCommon {
         universe.scheduleTask(new DecayTask(), world.chunk_claiming);
         universe.scheduleTask(new CleanupTask(), tasks.cleanup.enabled);
         universe.scheduleTask(new BackupTask(), backups.enable_backups);
-        universe.scheduleTask(updateMotDTask, motd.enabled);
-        universe.scheduleTask(
-                new ShutdownTask(),
-                auto_shutdown.enabled && auto_shutdown.times.length > 0
-                        && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer()));
+        if (updateMotDTask != null) {
+            universe.scheduleTask(updateMotDTask, motd.enabled);
+        }
+        universe.scheduleTask(new ShutdownTask(), auto_shutdown.enabled && auto_shutdown.times.length > 0 && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer()));
     }
 
     static boolean onReload(ServerReloadEvent event) {
