@@ -188,7 +188,10 @@ public class ServerUtilitiesCommon {
         if (updateMotDTask != null) {
             universe.scheduleTask(updateMotDTask, motd.enabled);
         }
-        universe.scheduleTask(new ShutdownTask(), auto_shutdown.enabled && auto_shutdown.times.length > 0 && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer()));
+        universe.scheduleTask(
+                new ShutdownTask(),
+                auto_shutdown.enabled && auto_shutdown.times.length > 0
+                        && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer()));
     }
 
     static boolean onReload(ServerReloadEvent event) {

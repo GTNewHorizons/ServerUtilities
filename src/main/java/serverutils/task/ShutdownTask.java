@@ -63,15 +63,15 @@ public class ShutdownTask extends Task {
             ServerUtilities.LOGGER.info("Server will shut down in {}", StringUtils.getTimeString(shutdownTime - now));
 
             Ticks[] ticks = { Ticks.MINUTE.x(30), Ticks.MINUTE.x(10), Ticks.MINUTE.x(5), Ticks.MINUTE.x(1),
-                Ticks.SECOND.x(10), Ticks.SECOND.x(9), Ticks.SECOND.x(8), Ticks.SECOND.x(7), Ticks.SECOND.x(6),
-                Ticks.SECOND.x(5), Ticks.SECOND.x(4), Ticks.SECOND.x(3), Ticks.SECOND.x(2), Ticks.SECOND.x(1) };
+                    Ticks.SECOND.x(10), Ticks.SECOND.x(9), Ticks.SECOND.x(8), Ticks.SECOND.x(7), Ticks.SECOND.x(6),
+                    Ticks.SECOND.x(5), Ticks.SECOND.x(4), Ticks.SECOND.x(3), Ticks.SECOND.x(2), Ticks.SECOND.x(1) };
 
             for (Ticks t : ticks) {
                 Notification notification = RESTART_TIMER.createNotification(
-                    StringUtils.color(
-                        "serverutilities.lang.timer.shutdown",
-                        EnumChatFormatting.LIGHT_PURPLE,
-                        t.toTimeString()));
+                        StringUtils.color(
+                                "serverutilities.lang.timer.shutdown",
+                                EnumChatFormatting.LIGHT_PURPLE,
+                                t.toTimeString()));
                 // Escalate to title display at ≤60 seconds
                 if (t.millis() <= Ticks.MINUTE.millis()) {
                     notification.setImportant(true);
@@ -98,7 +98,7 @@ public class ShutdownTask extends Task {
         shutdownTime = 0L;
         Calendar calendar = Calendar.getInstance();
         int currentTime = calendar.get(Calendar.HOUR_OF_DAY) * 3600 + calendar.get(Calendar.MINUTE) * 60
-            + calendar.get(Calendar.SECOND);
+                + calendar.get(Calendar.SECOND);
         IntArrayList times = new IntArrayList(ServerUtilitiesConfig.auto_shutdown.times.length);
 
         for (String s0 : ServerUtilitiesConfig.auto_shutdown.times) {

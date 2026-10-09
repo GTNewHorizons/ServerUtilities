@@ -29,8 +29,7 @@ public class UpdateMOTDTask extends Task {
     public void execute(Universe universe) {
         if (universe.server != null) {
             IChatComponent motdComponents = MOTDFormatter.buildMOTD(universe.server);
-            universe.server.func_147134_at()
-                .func_151315_a(motdComponents);
+            universe.server.func_147134_at().func_151315_a(motdComponents);
         }
     }
 
