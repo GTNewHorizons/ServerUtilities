@@ -11,6 +11,7 @@ import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -42,6 +43,7 @@ import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.backup.SimpleChunkReader;
+import serverutils.lib.util.backup.SnapshotRemover;
 import serverutils.lib.util.backup.SnapshotStats;
 import serverutils.lib.util.backup.SnapshotStore;
 import serverutils.lib.util.backup.SnapshotWriter;
@@ -199,8 +201,10 @@ public class BackupTask extends Task {
         MinecraftServer server = universe.server;
         File worldDir = DimensionManager.getCurrentSaveRootDirectory();
         File snapshotDir;
+        SnapshotStore store;
         try {
             snapshotDir = SnapshotStore.backupDirectoryFor(worldDir, BACKUP_FOLDER);
+            store = SnapshotStore.load(snapshotDir);
             server.getConfigurationManager().saveAllPlayerData();
             saveAndDisableWorldSaving(server.worldServers);
             flushChunkSaves(server.worldServers);
@@ -215,25 +219,30 @@ public class BackupTask extends Task {
                             EnumChatFormatting.RED + "An error occurred while preparing snapshot. " + ex.getMessage()));
             return;
         }
-
         universe.scheduleTask(new BackupTask(true));
 
         // TODO actually add to the lang file
         // also probably customize the thread class or at least make a helper method
         snapshotThread = new Thread(() -> {
             try {
-                SnapshotWriter writer = new SnapshotWriter(new SimpleChunkReader());
-                writer.write(worldDir, snapshotDir);
+                SnapshotWriter writer = new SnapshotWriter(store, new SimpleChunkReader());
+                writer.write(worldDir);
                 SnapshotStats stats = writer.getStats();
 
                 sender.addChatMessage(
                         new ChatComponentText(
                                 String.format(
-                                        "Finished snapshot in %.1fs (New: %s, %d chunks and %d regions unchanged)",
+                                        "Finished snapshot in %.1fs (New: %s; %d chunks and %d regions unchanged)",
                                         stats.durationMillis / 1000.0,
                                         FileUtils.getSizeString(stats.newBytes),
                                         stats.unmodifiedChunks,
                                         stats.unmodifiedFiles)));
+
+                // arbitrary, I need to wire
+                if (store.count() > 3) {
+                    SnapshotRemover remover = new SnapshotRemover(store);
+                    remover.remove(s -> Collections.singletonList(s.get(0)));
+                }
             } catch (Exception ex) {
                 ServerUtilities.LOGGER.error("Snapshot failed", ex);
                 sender.addChatMessage(

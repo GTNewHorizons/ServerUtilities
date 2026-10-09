@@ -4,46 +4,83 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import serverutils.ServerUtilities;
 
-public final class SnapshotStore {
+public class SnapshotStore {
 
     private static final String ID_FILE = "serverutilities/snapshot_id";
+    private final File root;
 
-    private SnapshotStore() {}
+    public final File packsDirectory;
+    public final File manifestsDirectory;
 
-    public static File packsDirectory(File store) {
-        return new File(store, "objects/packs");
+    private final ManifestStore manifestStore;
+
+    private SnapshotStore(File root) throws IOException {
+        this.root = root;
+        packsDirectory = new File(root, "objects/packs");
+        manifestsDirectory = new File(root, "objects/manifests");
+
+        ensureDirectory(packsDirectory);
+        ensureDirectory(manifestsDirectory);
+        manifestStore = new ManifestStore(manifestsDirectory);
     }
 
-    public static File manifestsDirectory(File store) {
-        return new File(store, "objects/manifests");
+    public static SnapshotStore load(File root) throws IOException {
+        return new SnapshotStore(root);
     }
 
-    /** @return the most recent readable snapshot in the store, or null if there is none */
-    public static Snapshot findLatest(File store) {
-        File[] files = store.listFiles(f -> f.isFile() && Snapshot.FILE_PATTERN.matcher(f.getName()).matches());
-        if (files == null || files.length == 0) return null;
+    public ManifestStore manifests() {
+        return manifestStore;
+    }
 
-        Arrays.sort(files, Comparator.comparing(File::getName).reversed());
+    public static File backupDirectoryFor(File worldDirectory, File backupsRoot) {
+        String name = worldDirectory.getName().replaceAll("[^A-Za-z0-9._-]", "_");
+        return new File(backupsRoot, name + "-" + getOrCreateWorldId(worldDirectory));
+    }
 
-        for (File file : files) {
-            try {
-                return Snapshot.fromJson(manifestsDirectory(store), SnapshotJson.read(file));
-            } catch (Exception e) {
-                // an interrupted run can leave a corrupt file, fall back to the one before it
-                ServerUtilities.LOGGER.error("Failed to read snapshot file {}", file, e);
-            }
+    public Snapshot findLatest() {
+        reloadManifests();
+        List<SnapshotJson> files = listJsonFiles();
+        if (files.isEmpty()) return null;
+        return Snapshot.fromJson(manifestStore, files.get(files.size() - 1));
+    }
+
+    public Snapshot findOldest() {
+        reloadManifests();
+        List<SnapshotJson> files = listJsonFiles();
+        if (files.isEmpty()) return null;
+        return Snapshot.fromJson(manifestStore, files.get(0));
+    }
+
+    public List<Snapshot> listAll() {
+        reloadManifests();
+        return listJsonFiles().stream().map(json -> Snapshot.fromJson(manifestStore, json, true))
+                .collect(Collectors.toList());
+    }
+
+    public void reloadManifests() {
+        try {
+            manifestStore.reload();
+        } catch (IOException e) {
+            throw new SnapshotException("Failed to read manifest packs", e);
         }
-        return null;
     }
 
-    public static void write(File store, Snapshot snapshot) {
-        File file = new File(store, snapshot.getName() + ".json");
+    public int count() {
+        return listJsonFiles().size();
+    }
+
+    public void write(Snapshot snapshot) {
+        File file = new File(root, snapshot.getName() + ".json");
         try {
             SnapshotJson.write(file, snapshot.toJson());
         } catch (IOException e) {
@@ -51,9 +88,32 @@ public final class SnapshotStore {
         }
     }
 
-    public static File backupDirectoryFor(File worldDirectory, File backupsRoot) {
-        String name = worldDirectory.getName().replaceAll("[^A-Za-z0-9._-]", "_");
-        return new File(backupsRoot, name + "-" + getOrCreateWorldId(worldDirectory));
+    /**
+     * Removes the snapshot **json** file from the snapshot store. This does NOT clean up old chunks
+     */
+    public void removeEntry(Snapshot snapshot) {
+        File file = new File(root, snapshot.getName() + ".json");
+        if (file.exists() && !file.delete()) {
+            throw new SnapshotException("Failed to delete snapshot file " + file);
+        }
+    }
+
+    private List<SnapshotJson> listJsonFiles() {
+        File[] files = root.listFiles(f -> f.isFile() && Snapshot.FILE_PATTERN.matcher(f.getName()).matches());
+        if (files == null || files.length == 0) return Collections.emptyList();
+
+        Arrays.sort(files, Comparator.comparing(File::getName));
+        List<SnapshotJson> json = new ArrayList<>(files.length);
+
+        for (File file : files) {
+            try {
+                json.add(SnapshotJson.read(file));
+            } catch (IOException e) {
+                ServerUtilities.LOGGER.error("Failed to read snapshot file {}", file, e);
+            }
+        }
+
+        return json;
     }
 
     // TODO: I'm not too familiar with all of GTNH yet, im sure there's a uuid generated per world but
@@ -78,5 +138,11 @@ public final class SnapshotStore {
             throw new SnapshotException("Failed to save snapshot id " + idFile, e);
         }
         return id;
+    }
+
+    private static void ensureDirectory(File directory) {
+        if (!directory.isDirectory() && !directory.mkdirs()) {
+            throw new SnapshotException("Failed to create directory " + directory);
+        }
     }
 }

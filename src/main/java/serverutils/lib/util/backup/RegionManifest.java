@@ -33,8 +33,9 @@ public final class RegionManifest {
 
             for (ChunkBlob.Metadata metadata : chunks) {
                 out.writeShort(metadata.index());
+                // timestamp is a u32 stored in a long, this conversion does not truncate
                 out.writeInt((int) metadata.timestamp());
-                out.write(metadata.hash());
+                out.write(metadata.hash().getBytes());
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -57,7 +58,7 @@ public final class RegionManifest {
                 long timestamp = Integer.toUnsignedLong(in.readInt());
                 byte[] hash = new byte[HASH_SIZE];
                 in.readFully(hash);
-                chunks.put(index, new ChunkBlob.Metadata(index, timestamp, 0, hash));
+                chunks.put(index, new ChunkBlob.Metadata(index, timestamp, 0, new SHAHash(hash)));
             }
             return chunks;
         }

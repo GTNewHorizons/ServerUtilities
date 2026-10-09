@@ -1,6 +1,5 @@
 package serverutils.lib.util.backup;
 
-import java.io.File;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -59,7 +58,7 @@ public class Snapshot {
 
             for (SnapshotRegion region : dimension.getRegions()) {
                 ManifestDescriptor descriptor = new ManifestDescriptor();
-                descriptor.manifest = region.getHash();
+                descriptor.manifest = region.getHash().toString();
                 descriptor.size = region.size;
                 descriptor.mtime = region.mtime;
                 dimensionJson.kinds.regions.put(region.name, descriptor);
@@ -71,8 +70,12 @@ public class Snapshot {
         return json;
     }
 
-    /** @param manifestsDirectory where region manifests are stored, named by their hash */
-    public static Snapshot fromJson(File manifestsDirectory, SnapshotJson json) {
+    /** @param manifests where region manifests are stored, keyed by their hash */
+    public static Snapshot fromJson(ManifestStore manifests, SnapshotJson json) {
+        return fromJson(manifests, json, false);
+    }
+
+    public static Snapshot fromJson(ManifestStore manifests, SnapshotJson json, boolean strict) {
         Map<Integer, SnapshotDimension> dimensions = new HashMap<>(json.dimensions.size());
 
         for (SnapshotJson.Dimension dimensionJson : json.dimensions) {
@@ -80,15 +83,19 @@ public class Snapshot {
 
             for (Map.Entry<String, ManifestDescriptor> entry : dimensionJson.kinds.regions.entrySet()) {
                 ManifestDescriptor descriptor = entry.getValue();
-                File manifestFile = new File(manifestsDirectory, descriptor.manifest);
-                if (!manifestFile.isFile()) {
+                SHAHash hash = new SHAHash(descriptor.manifest);
+                if (!manifests.contains(hash)) {
+                    if (strict) {
+                        throw new SnapshotException(
+                                "Region manifest " + descriptor.manifest + " for " + entry.getKey() + " is missing");
+                    }
                     ServerUtilities.LOGGER.warn(
                             "Region manifest {} for {} is missing, it will not be reused",
-                            manifestFile,
+                            descriptor.manifest,
                             entry.getKey());
                     continue;
                 }
-                dimension.addRegion(SnapshotRegion.stored(entry.getKey(), descriptor, manifestFile));
+                dimension.addRegion(SnapshotRegion.stored(entry.getKey(), hash, descriptor, manifests));
             }
 
             dimensions.put(dimension.id, dimension);
