@@ -6,6 +6,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +15,7 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 
-public class SnapshotJson {
+public class SnapshotManifest {
 
     private static final Gson GSON = new Gson();
     private String name;
@@ -33,11 +35,12 @@ public class SnapshotJson {
         public static class Kinds {
 
             public Map<String, ManifestDescriptor> regions = new HashMap<>();
+            public Map<String, ManifestDescriptor> files = new HashMap<>();
         }
     }
 
     // Atomic writing for JSON
-    public static void write(File file, SnapshotJson snapshot) throws IOException {
+    public static void write(File file, SnapshotManifest snapshot) throws IOException {
         File temp = new File(file.getParentFile(), file.getName() + ".tmp");
         try (FileWriter fileWriter = new FileWriter(temp)) {
             GSON.toJson(snapshot, fileWriter);
@@ -45,9 +48,9 @@ public class SnapshotJson {
         Files.move(temp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
-    public static SnapshotJson read(File file) throws IOException {
+    public static SnapshotManifest read(File file) throws IOException {
         try (FileReader reader = new FileReader(file)) {
-            SnapshotJson json = GSON.fromJson(reader, SnapshotJson.class);
+            SnapshotManifest json = GSON.fromJson(reader, SnapshotManifest.class);
             json.name = file.getName();
             return json;
         }
@@ -55,5 +58,13 @@ public class SnapshotJson {
 
     public String getName() {
         return name;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return ZonedDateTime.parse(createdAt, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }
+
+    public ZonedDateTime getCompletedAt() {
+        return ZonedDateTime.parse(completedAt, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 }
