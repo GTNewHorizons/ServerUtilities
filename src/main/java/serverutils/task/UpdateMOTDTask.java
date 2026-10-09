@@ -32,6 +32,8 @@ public class UpdateMOTDTask extends Task {
      * Handle the mod configuration being reloaded.
      */
     public void onConfigReload() {
+        long scheduledTime = this.nextTime - this.interval;
         this.interval = motd.updateFrequency;
+        this.setNextTime(scheduledTime + this.interval);
     }
 }
