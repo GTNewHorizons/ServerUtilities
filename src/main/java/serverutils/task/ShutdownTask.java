@@ -2,6 +2,8 @@ package serverutils.task;
 
 import static serverutils.ServerUtilitiesNotifications.RESTART_TIMER;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -25,8 +27,72 @@ public class ShutdownTask extends Task {
 
     public static long shutdownTime = 0L;
 
+    private boolean isFirstExecute = true;
+
     public ShutdownTask() {
         super();
+    }
+
+    @Override
+    public long getNextTime() {
+        if (isFirstExecute) {
+            return 1;
+        }
+        return shutdownTime;
+    }
+
+    @Override
+    public void execute(Universe universe) {
+        if (isFirstExecute) {
+            executeFirstTimeLogic();
+        } else {
+            try {
+                executeNormalLogic(universe);
+            } catch (FileNotFoundException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+    }
+
+    @Override
+    public List<NotifyTask> getNotifications() {
+        List<NotifyTask> notifications = new ArrayList<>();
+        long now = System.currentTimeMillis();
+        if (shutdownTime > 0L) {
+            ServerUtilities.LOGGER.info("Server will shut down in {}", StringUtils.getTimeString(shutdownTime - now));
+
+            Ticks[] ticks = { Ticks.MINUTE.x(30), Ticks.MINUTE.x(10), Ticks.MINUTE.x(5), Ticks.MINUTE.x(1),
+                    Ticks.SECOND.x(10), Ticks.SECOND.x(9), Ticks.SECOND.x(8), Ticks.SECOND.x(7), Ticks.SECOND.x(6),
+                    Ticks.SECOND.x(5), Ticks.SECOND.x(4), Ticks.SECOND.x(3), Ticks.SECOND.x(2), Ticks.SECOND.x(1) };
+
+            for (Ticks t : ticks) {
+                Notification notification = RESTART_TIMER.createNotification(
+                        StringUtils.color(
+                                "serverutilities.lang.timer.shutdown",
+                                EnumChatFormatting.LIGHT_PURPLE,
+                                t.toTimeString()));
+                // Escalate to title display at ≤60 seconds
+                if (t.millis() <= Ticks.MINUTE.millis()) {
+                    notification.setImportant(true);
+                }
+                NotifyTask task = new NotifyTask(shutdownTime - t.millis(), notification);
+                notifications.add(task);
+            }
+        }
+        return notifications;
+    }
+
+    private void executeNormalLogic(Universe universe) throws FileNotFoundException {
+        File autostartTimestampFile = universe.server.getFile("autostart.stamp");
+        if (autostartTimestampFile != null) {
+            FileUtils.newFile(autostartTimestampFile);
+            universe.server.initiateShutdown();
+            return;
+        }
+        throw new FileNotFoundException("Could not locate \"autostart.stamp\"");
+    }
+
+    private void executeFirstTimeLogic() {
         long now = System.currentTimeMillis();
         shutdownTime = 0L;
         Calendar calendar = Calendar.getInstance();
@@ -56,44 +122,6 @@ public class ShutdownTask extends Task {
                 break;
             }
         }
-    }
-
-    @Override
-    public long getNextTime() {
-        return shutdownTime;
-    }
-
-    @Override
-    public void execute(Universe universe) {
-        FileUtils.newFile(universe.server.getFile("autostart.stamp"));
-        universe.server.initiateShutdown();
-    }
-
-    @Override
-    public List<NotifyTask> getNotifications() {
-        List<NotifyTask> notifications = new ArrayList<>();
-        long now = System.currentTimeMillis();
-        if (shutdownTime > 0L) {
-            ServerUtilities.LOGGER.info("Server will shut down in {}", StringUtils.getTimeString(shutdownTime - now));
-
-            Ticks[] ticks = { Ticks.MINUTE.x(30), Ticks.MINUTE.x(10), Ticks.MINUTE.x(5), Ticks.MINUTE.x(1),
-                    Ticks.SECOND.x(10), Ticks.SECOND.x(9), Ticks.SECOND.x(8), Ticks.SECOND.x(7), Ticks.SECOND.x(6),
-                    Ticks.SECOND.x(5), Ticks.SECOND.x(4), Ticks.SECOND.x(3), Ticks.SECOND.x(2), Ticks.SECOND.x(1) };
-
-            for (Ticks t : ticks) {
-                Notification notification = RESTART_TIMER.createNotification(
-                        StringUtils.color(
-                                "serverutilities.lang.timer.shutdown",
-                                EnumChatFormatting.LIGHT_PURPLE,
-                                t.toTimeString()));
-                // Escalate to title display at ≤60 seconds
-                if (t.millis() <= Ticks.MINUTE.millis()) {
-                    notification.setImportant(true);
-                }
-                NotifyTask task = new NotifyTask(shutdownTime - t.millis(), notification);
-                notifications.add(task);
-            }
-        }
-        return notifications;
+        isFirstExecute = false;
     }
 }
