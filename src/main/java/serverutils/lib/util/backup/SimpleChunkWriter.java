@@ -19,10 +19,8 @@ public class SimpleChunkWriter implements ChunkWriter {
             throw new IllegalArgumentException("ChunkFile must be an instance of RegionChunkFile");
         }
 
-        try (FileChannel channel = rcf.open(
-                StandardOpenOption.CREATE,
-                StandardOpenOption.WRITE,
-                StandardOpenOption.TRUNCATE_EXISTING)) {
+        try (FileChannel channel = rcf
+                .open(StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             ByteBuffer header = ByteBuffer.allocate(HEADER_SIZE);
             long position = HEADER_SIZE;
             int sector = HEADER_SIZE / SECTOR_SIZE;
