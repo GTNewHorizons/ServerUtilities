@@ -111,7 +111,7 @@ serverutilities.login.starting_items=Стартовые предметы
 
 # Multiplayer Browser "Message of the Day"
 serverutilities.motd=Сервер MotD
-serverutilities.motd.updateFrequency=MotD Частота обновления (миллисекунды)
+serverutilities.motd.update_frequency=MotD Частота обновления (миллисекунды)
 serverutilities.motd.line1=MotD Первая линия
 serverutilities.motd.line2=MotD Вторая линия
 

@@ -156,7 +156,7 @@ serverutilities.debugging.log_events=记录事件
 
 # Multiplayer Browser "Message of the Day"
 serverutilities.motd=服务器 MotD
-serverutilities.motd.updateFrequency=MotD 更新频率（毫秒）
+serverutilities.motd.update_frequency=MotD 更新频率（毫秒）
 serverutilities.motd.line1=MotD 第一行
 serverutilities.motd.line2=MotD 第二行
 

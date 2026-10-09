@@ -94,7 +94,7 @@ serverutilities.debugging.log_events=Mostrar Eventos
 
 # Multiplayer Browser "Message of the Day"
 serverutilities.motd=Servidor MotD
-serverutilities.motd.updateFrequency=MotD Frecuencia de Actualización (Milisegundos)
+serverutilities.motd.update_frequency=MotD Frecuencia de Actualización (Milisegundos)
 serverutilities.motd.line1=MotD Primera línea
 serverutilities.motd.line2=MotD Segunda línea
 

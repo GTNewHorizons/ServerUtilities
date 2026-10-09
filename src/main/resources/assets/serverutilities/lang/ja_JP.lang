@@ -26,7 +26,7 @@ serverutilities.login.starting_items=開始時アイテム
 
 # Multiplayer Browser "Message of the Day"
 serverutilities.motd=サーバ MotD
-serverutilities.motd.updateFrequency=MotD 更新頻度（ミリ秒）
+serverutilities.motd.update_frequency=MotD 更新頻度（ミリ秒）
 serverutilities.motd.line1=MotD 最初の行
 serverutilities.motd.line2=MotD セカンドライン
 
