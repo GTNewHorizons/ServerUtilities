@@ -8,6 +8,9 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.MOTDFormatter;
 
+/**
+ * A task to update the server message of the day text.
+ */
 public class UpdateMOTDTask extends Task {
 
     /**
@@ -24,8 +27,11 @@ public class UpdateMOTDTask extends Task {
      */
     @Override
     public void execute(Universe universe) {
-        IChatComponent motdComponents = MOTDFormatter.buildMOTD(universe.server);
-        universe.server.func_147134_at().func_151315_a(motdComponents);
+        if (universe.server != null) {
+            IChatComponent motdComponents = MOTDFormatter.buildMOTD(universe.server);
+            universe.server.func_147134_at()
+                .func_151315_a(motdComponents);
+        }
     }
 
     /**
