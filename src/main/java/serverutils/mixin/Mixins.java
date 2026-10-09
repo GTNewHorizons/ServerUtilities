@@ -11,37 +11,48 @@ import com.gtnewhorizon.gtnhmixins.builders.MixinBuilder;
 public enum Mixins implements IMixins {
 
     // spotless:off
-    COMMAND_PERMISSIONS(new MixinBuilder().setPhase(Phase.EARLY)
-        .setApplyIf(() -> ranks.enabled && ranks.command_permissions)
-        .addCommonMixins("minecraft.MixinCommandBase", "minecraft.MixinCommandHandler", "minecraft.MixinICommand")),
-    REPLACE_TAB_NAMES(new MixinBuilder().setPhase(Phase.EARLY)
-        .setApplyIf(() -> !mixins.modernTabOverlay)
-        .addClientMixins("forge.MixinGuiIngameForge")),
-    VANILLA_TP_BACK_COMPAT(new MixinBuilder("/back compat for the vanilla /tp").setPhase(Phase.EARLY)
-        .setApplyIf(() -> commands.back)
-        .addCommonMixins("minecraft.MixinCommandTeleport")),
-    VANISH_COMMAND(new MixinBuilder().setPhase(Phase.EARLY)
-        .setApplyIf(() -> commands.vanish)
-        .addServerMixins(
-            "minecraft.vanish.MixinServerConfigurationManager",
-            "minecraft.vanish.MixinMinecraftServer",
-            "minecraft.vanish.MixinEntityTrackerEntry",
-            "minecraft.vanish.MixinNetHandlerPlayServer",
-            "minecraft.vanish.MixinCommandListPlayers",
-            "minecraft.vanish.MixinEntityPlayer",
-            "minecraft.vanish.MixinEntityPlayerMP",
-            "minecraft.vanish.MixinWorld",
-            "minecraft.vanish.MixinItemInWorldManager")),
-    HIDE_VANISHED_FROM_DETECTOR(
-        new MixinBuilder("Hide vanished players from the RandomThings online detector").addRequiredMod(RANDOMTHINGS)
+    BACKUP_SHUTDOWN(new MixinBuilder()
+            .setPhase(Phase.EARLY)
+            .addCommonMixins("minecraft.MixinMinecraftServer_BackupShutdown")),
+    COMMAND_PERMISSIONS(new MixinBuilder()
+            .setPhase(Phase.EARLY)
+            .setApplyIf(() -> ranks.enabled && ranks.command_permissions)
+            .addCommonMixins(
+                    "minecraft.MixinCommandBase",
+                    "minecraft.MixinCommandHandler",
+                    "minecraft.MixinICommand")),
+    REPLACE_TAB_NAMES(new MixinBuilder()
+            .setPhase(Phase.EARLY)
+            .setApplyIf(() -> !mixins.modernTabOverlay)
+            .addClientMixins("forge.MixinGuiIngameForge")),
+    VANILLA_TP_BACK_COMPAT(new MixinBuilder("/back compat for the vanilla /tp")
+            .setPhase(Phase.EARLY)
+            .setApplyIf(() -> commands.back)
+            .addCommonMixins("minecraft.MixinCommandTeleport")),
+    VANISH_COMMAND(new MixinBuilder()
+            .setPhase(Phase.EARLY)
+            .setApplyIf(() -> commands.vanish)
+            .addServerMixins(
+                    "minecraft.vanish.MixinServerConfigurationManager",
+                    "minecraft.vanish.MixinMinecraftServer",
+                    "minecraft.vanish.MixinEntityTrackerEntry",
+                    "minecraft.vanish.MixinNetHandlerPlayServer",
+                    "minecraft.vanish.MixinCommandListPlayers",
+                    "minecraft.vanish.MixinEntityPlayer",
+                    "minecraft.vanish.MixinEntityPlayerMP",
+                    "minecraft.vanish.MixinWorld",
+                    "minecraft.vanish.MixinItemInWorldManager")),
+    HIDE_VANISHED_FROM_DETECTOR(new MixinBuilder("Hide vanished players from the RandomThings online detector")
+            .addRequiredMod(RANDOMTHINGS)
             .setPhase(Phase.LATE)
             .setApplyIf(() -> commands.vanish)
             .addServerMixins("randomthings.MixinWorldUtils")),
     PAUSE_WHEN_EMPTY(
         new MixinBuilder("Pauses the server when empty after X seconds; Servers Only").setPhase(Phase.EARLY)
             .addServerMixins(
-                "minecraft.MixinMinecraftServer_PauseWhenEmpty",
-                "minecraft.MixinDedicatedServer_PauseWhenEmpty")
+                    "minecraft.MixinMinecraftServer_PauseWhenEmpty",
+                    "minecraft.MixinDedicatedServer_PauseWhenEmpty")
+            .addExcludedMod(TargetedMod.ULTRAMINE)
             .setApplyIf(() -> general.enable_pause_when_empty_property)),
     MAX_TICK_TIME(new MixinBuilder().setPhase(Phase.EARLY)
         .addServerMixins("minecraft.MixinDedicatedServer_MaxTickTime", "minecraft.MixinMinecraftServer_MaxTickTime")

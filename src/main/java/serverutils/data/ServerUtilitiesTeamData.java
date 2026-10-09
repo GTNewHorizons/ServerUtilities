@@ -3,6 +3,8 @@ package serverutils.data;
 import static net.minecraft.entity.EnumCreatureType.creature;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -35,7 +37,6 @@ import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.TeamData;
 import serverutils.lib.enums.EnumCreature;
 import serverutils.lib.math.ChunkDimPos;
-import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.NBTUtils;
 
 public class ServerUtilitiesTeamData extends TeamData {
@@ -89,10 +90,19 @@ public class ServerUtilitiesTeamData extends TeamData {
 
         File file = event.getTeam().getDataFile("claimedchunks");
 
-        if (nbt.hasNoTags()) {
-            FileUtils.deleteSafe(file);
-        } else {
-            NBTUtils.writeNBTSafe(file, nbt);
+        saveClaimData(event, file, nbt);
+    }
+
+    static void saveClaimData(ForgeTeamSavedEvent event, File file, NBTTagCompound nbt) {
+        if (!nbt.hasNoTags()) {
+            if (!NBTUtils.writeNBTChecked(file, nbt)) event.markFailed();
+            return;
+        }
+        try {
+            Files.deleteIfExists(file.toPath());
+        } catch (IOException e) {
+            ServerUtilities.LOGGER.error("Failed to remove claimed chunk data {}", file, e);
+            event.markFailed();
         }
     }
 

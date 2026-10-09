@@ -28,25 +28,16 @@ serverutilities.stat.time_active=活跃时长（非挂机）
 serverutilities.stat.dph=每小时死亡次数
 serverutilities.stat.last_seen=最后在线时间
 
-wip=开发中！
-deprecated=此方法已弃用，请使用%s
 example=Example:
 click_here=[点击此处]
-feature_disabled=此功能已禁用！
 feature_disabled_server=此功能已被服务器禁用！
 error=错误：%s
 owner=所有者：%s
 delete_item=您是否要删除'%s'?
-server_forced=服务器强制修改为'%s'
 commands=指令
-my_permissions=我的权限
-all_permissions=所有权限
 key.categories.serverutilities=服务器实用工具
 stand_still=请在%d秒内保持站立不动。
-stand_still_failed=你移动了！传送已取消。
 teleporting=正在传送...
-cooldown=冷却时间
-cant_use_now=现在不能使用！
 cant_use_now_cooldown=现在不能使用！冷却时间：%s
 action_bar=操作栏
 nothing_changed=没有任何更改！
@@ -112,8 +103,6 @@ serverutilities.commands=指令
 serverutilities.login=登录
 serverutilities.login.enable_motd=启用登录欢迎信息
 serverutilities.login.enable_starting_items=启用初始物品
-serverutilities.login.enable_global_badges=启用全局徽章
-serverutilities.login.enable_event_badges=启用活动徽章
 serverutilities.login.motd=登录欢迎信息
 serverutilities.login.starting_items=初始物品
 
@@ -142,17 +131,12 @@ serverutilities.world.logging.item_clicked_in_air=记录在空中使用的物品
 
 serverutilities.ranks=权限组
 serverutilities.ranks.override_chat=覆盖聊天
-serverutilities.ranks.crash_client_side_permissions=崩溃客户端权限
-serverutilities.ranks.load_from_config_folder=从配置文件夹加载
-serverutilities.ranks.print_command_errors=输出指令错误
 
 serverutilities.ranks.tags.default_player_rank=默认玩家权限
 serverutilities.ranks.tags.default_op_rank=默认管理员权限
 
 serverutilities.debugging.log_chunkloading=记录区块加载
 
-serverutilities.general.clientless_mode=无客户端模式
-serverutilities.general.replace_reload_command=替换/reload 指令
 serverutilities.general.merge_offline_mode_players=合并离线模式玩家
 
 serverutilities.teams=队伍
@@ -178,10 +162,6 @@ serverutilities.motd.line2=MotD 第二行
 
 # Client Config
 serverutilities_client=客户端配置
-serverutilities_client.render_badges=显示徽章
-serverutilities_client.journeymap_overlay=启用旅行地图联动
-serverutilities_client.scan_items_whitelist=/scan_items 白名单
-serverutilities_client.scan_items_blacklist=/scan_items 黑名单
 serverutilities_client.show_shutdown_timer=显示关机计时器
 serverutilities_client.shutdown_timer_start=关机计时器启动
 serverutilities_client.button_daytime=白天
@@ -192,7 +172,6 @@ serverutilities_client.item_nbt=显示物品NBT
 serverutilities_client.sidebar_buttons=侧边栏位置
 serverutilities_client.sidebar_buttons_above_potion=在药水标签上方绘制按钮
 serverutilities_client.sidebar_placement=侧边栏位置
-serverutilities_client.notification_location=通知位置
 serverutilities_client.show_dotted_lines=在已加载区块上显示虚线
 
 # Rank Config
@@ -306,13 +285,8 @@ sidebar_button.serverutilities.mail=邮件
 serverutilities.sidebar_button.reset=重置侧边栏
 serverutilities.sidebar_button.reset.tooltip=重置侧边栏位置
 
-serverutilities.admin_panel.file_browser=文件浏览器
 serverutilities.admin_panel.crash_reports=查看崩溃报告
-serverutilities.admin_panel.config=编辑配置
 serverutilities.admin_panel.claimed_chunks=查看所有已声明的区块
-serverutilities.admin_panel.loaded_chunks=查看所有已加载的区块
-serverutilities.admin_panel.whitelist=编辑白名单
-serverutilities.admin_panel.ops=编辑管理员
 serverutilities.admin_panel.edit_world=编辑世界
 serverutilities.admin_panel.ranks.player_ranks=玩家等级
 serverutilities.admin_panel.ranks.select_rank=选择等级
@@ -475,7 +449,6 @@ serverutilities.lang.homes.set=家'%s'已设置！
 serverutilities.lang.homes.del=家'%s'已删除！
 serverutilities.lang.homes.not_set=未知的家：'%s'！
 serverutilities.lang.homes.cooldown=使用 home 传送还需 %s！
-serverutilities.lang.homes.cross_dim=你不能传送至其它维度！
 serverutilities.lang.homes.limit=家数量已达到上限！
 serverutilities.lang.homes.spectator=请先退出旁观模式！
 
@@ -503,7 +476,6 @@ commands.tree_base.invalid_cmd.list_subcommands=无效的子命令 '%s'！可用
 commands.tree_base.available_subcommands=可用子命令有：%s
 
 # Backup
-cmd.timer_backup=下次备份：%s
 cmd.backup_start=已启动服务器备份！
 cmd.backup_stop=已停止服务器备份！
 cmd.backup_end_1=服务器备份完成，用时 %s！
@@ -518,40 +490,25 @@ cmd.backup_size=当前世界大小: %s，总备份文件夹大小：%s
 ## Buttons
 gui.accept=接受
 gui.add=添加
-gui.added=已添加
 gui.remove=移除
-gui.removed=已移除
 gui.close=关闭
-gui.open=打开
 gui.saved=已保存
 gui.loaded=已载入
 gui.info=信息
 gui.collapse_all=全部折叠
 gui.expand_all=全部展开
-gui.download=下载
-gui.downloaded=已下载
 gui.update=更新
-gui.updated=已更新
 gui.active=启用
 gui.inactive=停用
 gui.settings=设置
 gui.rename=重命名
 gui.search_box=搜索中...
-gui.move=移动
 gui.copy=复制
-gui.paste=粘贴
-gui.cut=剪切
 
 ## Labels
 gui.other=其他
-gui.server_forced=服务器强制: %s
 gui.online=在线
-gui.offline=离线
-gui.whitelist=白名单
-gui.blacklist=黑名单
 gui.color=颜色
-gui.downloading=下载中...
-gui.infinite=无限
 
 ## Sides
 facing.north=北
@@ -562,7 +519,6 @@ facing.east=东
 relative_facing.bottom=底
 relative_facing.top=顶
 relative_facing.back=后
-relative_facing.front=前
 relative_facing.left=左
 relative_facing.right=右
 
@@ -572,9 +528,6 @@ serverutilities.lang.team.created=组"%s"已经创建
 serverutilities.lang.team.id_already_exists=ID已经被注册!
 serverutilities.lang.team.id_invalid=ID只能包含小写字母、_（下划线）和|（垂直线）!
 serverutilities.lang.team.deleted=组'%s'已删除
-serverutilities.lang.team.member_left=%s 离开了你的组！
-serverutilities.lang.team.member_joined=%s 加入了你的组！
-serverutilities.lang.team.transferred_ownership=新的组长是 %s
 serverutilities.lang.team.invited=已邀请 %s 加入'%s'
 serverutilities.lang.team.invited_you=你已被 %s 邀请加入'%s'。点击这里加入！
 serverutilities.lang.team.cancel_invite=取消邀请
@@ -585,13 +538,10 @@ serverutilities.lang.team.error.not_owner=你不是这个组的所有者！
 serverutilities.lang.team.error.not_member=%s 不是这个组的成员！
 serverutilities.lang.team.error.already_member=%s 已经是这个组的成员了！
 serverutilities.lang.team.error.must_transfer_ownership=你必须转让所有权！
-serverutilities.lang.team.error.already_invited=%s 已经被邀请了！
-serverutilities.lang.team.error.failed_to_join=无法加入此组！
 serverutilities.lang.team.permission.set=对于 %s 的权限 '%s' 设置为 %s
 serverutilities.lang.team.permission.owner=不能更改组长的权限！
 serverutilities.lang.team.notification=你还没有加入或创建组！%s 打开组GUI 或 %s 隐藏此消息。
 serverutilities.lang.team.notification.hide=隐藏此消息
-serverutilities.lang.team.chat_message=[组 %s] %s
 
 team_action.serverutilities.select_team=选择加入的组
 team_action.serverutilities.create_team=创建新组
@@ -599,7 +549,6 @@ team_action.serverutilities.members=成员
 team_action.serverutilities.allies=盟友
 team_action.serverutilities.moderators=管理员
 team_action.serverutilities.enemies=敌人
-team_action.serverutilities.change_team=加入另一个组
 team_action.serverutilities.leave=离开组
 team_action.serverutilities.leave.confirmation=警告！离开组可能会导致任务进度和其他内容丢失!
 team_action.serverutilities.transfer_ownership=转让所有权
@@ -622,7 +571,6 @@ serverutilities.lang.team_status.mod=管理员
 serverutilities.lang.team_status.owner=组长
 
 # Privacy Level
-privacy=隐私
 privacy.public=公开
 privacy.private=私密
 privacy.team=组可见
@@ -642,15 +590,11 @@ io_mode.out=仅输出
 io_mode.none=已禁用
 
 # Click Actions
-click_action.cmd=指令
-click_action.show_cmd=显示指令
 click_action.url=打开网址
 click_action.file=打开文件
-click_action.gui=打开GUI
 
 # Aurora
 aurora=Server Utilities Aurora
-aurora.port=Port
 
 # JourneyMap
 serverutilities.jm.own_team=你的组

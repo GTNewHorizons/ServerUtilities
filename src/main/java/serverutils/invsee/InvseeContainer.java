@@ -24,6 +24,11 @@ import serverutils.lib.gui.ContainerBase;
 
 public class InvseeContainer extends ContainerBase {
 
+    private static final int SLOT_SIZE = 16;
+    private static final int MARGIN = 8;
+    private static final int VANILLA_WIDTH = 176;
+    private static final int PLAYER_GRID_WIDTH = 8 * 18 + SLOT_SIZE;
+
     private final Map<IModdedInventory, IInventory> inventories;
     private final ForgePlayer otherPlayer;
     private final Map<IModdedInventory, List<Slot>> moddedInventorySlots = new HashMap<>();
@@ -43,10 +48,16 @@ public class InvseeContainer extends ContainerBase {
 
             List<Slot> inventorySlots = moddedInventorySlots
                     .computeIfAbsent(entry.getKey(), a -> new ArrayList<>(inventory.getSizeInventory()));
+            // the last row is always anchored at the bottom, rows are stacked upwards from there
+            IModdedInventory moddedInventory = entry.getKey();
+            int columns = moddedInventory.getColumns(inventory);
+            int lastRow = (inventory.getSizeInventory() - 1) / columns;
+            boolean bottomUp = moddedInventory.isBottomUpLayout();
             int slotsInRow = 0;
             for (int i = 0; i < inventory.getSizeInventory(); i++) {
-                if (slotsInRow == 9) slotsInRow = 0;
-                Slot slot = entry.getKey().getSlot(player, inventory, i, 8 + slotsInRow++ * 18, 54 - (i / 9) * 18);
+                if (slotsInRow == columns) slotsInRow = 0;
+                int row = bottomUp ? i / columns : lastRow - i / columns;
+                Slot slot = moddedInventory.getSlot(player, inventory, i, 8 + slotsInRow++ * 18, 54 - row * 18);
                 if (slot != null) {
                     inventorySlots.add(slot);
                 } else if (slotsInRow > 0) {
@@ -72,8 +83,17 @@ public class InvseeContainer extends ContainerBase {
         }
 
         playerSlotStart = inventorySlots.size();
-        addPlayerSlots(8, 85);
+        // the player grid is always 9 wide, so it has to be centered under inventories that are wider than that
+        addPlayerSlots((getWidth() - PLAYER_GRID_WIDTH) / 2, 85);
         detectAndSendChanges();
+    }
+
+    /**
+     * Width the gui needs to fit the active inventory, never narrower than a vanilla container.
+     */
+    public int getWidth() {
+        int rightmostSlot = inventorySlots.stream().mapToInt(e -> e.xDisplayPosition).max().orElse(0);
+        return Math.max(VANILLA_WIDTH, rightmostSlot + SLOT_SIZE + MARGIN);
     }
 
     public boolean isArmorSlot(int containerIndex) {

@@ -69,7 +69,8 @@ public class BattlegearInventory implements IModdedInventory {
             inventorySlot += WEAPON_SETS;
             x += 36;
         }
-        return new WeaponSlotNoPartner(inventory, inventorySlot, x, y - 36 + (index / 2) * 18);
+        // only a handful of the player inventory slots are used, so the grid position is ignored
+        return new WeaponSlotNoPartner(inventory, inventorySlot, x, 18 + (index / 2) * 18);
     }
 
     @Override

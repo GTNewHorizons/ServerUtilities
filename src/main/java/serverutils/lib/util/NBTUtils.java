@@ -1,8 +1,8 @@
 package serverutils.lib.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.Set;
 
@@ -36,10 +36,18 @@ public class NBTUtils {
     }
 
     public static void writeNBT(File file, NBTTagCompound tag) {
-        try (FileOutputStream stream = new FileOutputStream(FileUtils.newFile(file))) {
-            CompressedStreamTools.writeCompressed(tag, stream);
+        writeNBTChecked(file, tag);
+    }
+
+    public static boolean writeNBTChecked(File file, NBTTagCompound tag) {
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            CompressedStreamTools.writeCompressed(tag, bytes);
+            FileUtils.writeAtomic(file, bytes.toByteArray());
+            return true;
         } catch (Exception ex) {
             ex.printStackTrace();
+            return false;
         }
     }
 

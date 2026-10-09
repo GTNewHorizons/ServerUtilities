@@ -30,25 +30,16 @@ serverutilities.stat.last_seen=Последнее посещение
 serverutilities.stat.killed_by=Смертей от %s
 serverutilities.stat.entities_killed=Убито %s
 
-wip=Работа в процессе!
-deprecated=Этот метод устарел, используйте %s
 example=Пример:
 click_here=[Нажмите здесь]
-feature_disabled=Эта функция отключена!
 feature_disabled_server=Эта функция отключена на сервере!
 error=Ошибка: %s
 owner=Владелец: %s
 delete_item=Вы хотите удалить '%s'?
-server_forced=Переопределение сервера на '%s'
 commands=Команды
-my_permissions=Мои разрешения
-all_permissions=все разрешения
 key.categories.serverutilities=Server Utilities
 stand_still=Пожалуйста, остановитесь на %d секунд.
-stand_still_failed=Вы переместились! Телепорт отменен.
 teleporting=Телепортация...
-cooldown=Кулдаун
-cant_use_now=Не могу использовать это прямо сейчас!
 cant_use_now_cooldown=Не могу использовать это прямо сейчас! Кулдаун: %s
 action_bar=Панель действий
 nothing_changed=Ничего не изменилось!
@@ -115,8 +106,6 @@ serverutilities.commands=Команды
 serverutilities.login=Вход
 serverutilities.login.enable_motd=Включить MOTD
 serverutilities.login.enable_starting_items=Включить стартовые предметы
-serverutilities.login.enable_global_badges=Включить глобальные значки
-serverutilities.login.enable_event_badges=Включить значки событий
 serverutilities.login.motd=MOTD
 serverutilities.login.starting_items=Стартовые предметы
 
@@ -153,18 +142,12 @@ serverutilities.world.logging.item_clicked_in_air=Предмет нажатог�
 
 serverutilities.ranks=Ранги
 serverutilities.ranks.override_chat=Переопределить чат
-serverutilities.ranks.override_commands=Переопределить команды
-serverutilities.ranks.crash_client_side_permissions=Разрешения крашей на стороне клиента
-serverutilities.ranks.load_from_config_folder=Загрузить из конфигурационной папки
-serverutilities.ranks.print_command_errors=Печатать командные ошибки
 
 serverutilities.ranks.tags.default_player_rank=По умолчанию ранк игрока
 serverutilities.ranks.tags.default_op_rank=По умолчанию ранк OP
 
 serverutilities.debugging.log_chunkloading=Журнал загрузки чанков
 
-serverutilities.general.clientless_mode=Безклиентский режим
-serverutilities.general.replace_reload_command=Заменить команду /reload
 serverutilities.general.merge_offline_mode_players=Объединение игроков в автономном режиме
 serverutilities.general.toggle_cheats=Переключить читы
 serverutilities.general.enable_cheats=Включить читы
@@ -187,10 +170,6 @@ serverutilities.debugging.log_events=Журнал событий
 
 # Client Config
 serverutilities_client=Конфигурация клиента
-serverutilities_client.render_badges=Показать значки
-serverutilities_client.journeymap_overlay=Включить интеграцию с Journeymap
-serverutilities_client.scan_items_whitelist=Белый список /scan_items
-serverutilities_client.scan_items_blacklist=Чёрный список /scan_items
 serverutilities_client.show_shutdown_timer=Показать таймер выключения
 serverutilities_client.shutdown_timer_start=Начало таймера выключения
 serverutilities_client.button_daytime=Кнопка дневного времени
@@ -201,7 +180,6 @@ serverutilities_client.item_nbt=Показать предмет NBT
 serverutilities_client.sidebar_buttons=Расположение боковой панели
 serverutilities_client.sidebar_buttons_above_potion=Рисовать кнопки над меткой зелья
 serverutilities_client.sidebar_placement=Размещение боковой панели
-serverutilities_client.notification_location=Расположение уведомлений
 serverutilities_client.show_dotted_lines=Показывать пунктирную линию на загруженных чанках
 
 # Notification Config
@@ -358,13 +336,8 @@ sidebar_button.serverutilities.mail=Почта
 serverutilities.sidebar_button.reset=Сбросить боковую панель
 serverutilities.sidebar_button.reset.tooltip=Сбросить позицию боковой панели
 
-serverutilities.admin_panel.file_browser=Обозреватель файлов
 serverutilities.admin_panel.crash_reports=Просмотр отчётов о сбоях
-serverutilities.admin_panel.config=Редактировать конфигурацию
 serverutilities.admin_panel.claimed_chunks=Просмотр всех занятых чанков
-serverutilities.admin_panel.loaded_chunks=Просмотр всех загруженных чанков
-serverutilities.admin_panel.whitelist=Редактировать белый список
-serverutilities.admin_panel.ops=Редактировать OP
 serverutilities.admin_panel.edit_world=Редактировать мир
 serverutilities.admin_panel.ranks.player_ranks=Ранги игроков
 serverutilities.admin_panel.ranks.select_rank=Выбрать ранг
@@ -607,12 +580,6 @@ commands.kickme.usage=/kickme
 commands.ranks.usage=/ranks
 commands.ranks.not_found=Ранг '%s' не найден!
 commands.ranks.add.usage=/ranks add <id> [parent]
-commands.ranks.add.id_invalid=Недопустимый ID ранга: '%s'. Он должен быть буквенно-цифровым и строчным.
-commands.ranks.add.id_exists=Ранг '%s' уже существует!
-commands.ranks.add.added=Ранг %s добавлен!
-commands.ranks.get.usage=/ranks get [player]
-commands.ranks.set.usage=/ranks set <player> <rank|none>
-commands.ranks.set.set=Установить ранг для %s в %s
 commands.ranks.get_permission.usage=/ranks get_permission <player> <permission>
 commands.ranks.get_permission.text=%s для %s %s
 commands.ranks.set_permission.usage=/ranks set_permission <rank> <permission> <true|false|value|none>
@@ -623,7 +590,6 @@ commands.upload_crash_report.usage=/upload_crash_report <file>
 commands.heal.usage=/heal [player]
 commands.killall.usage=/killall [type] [dimension]
 commands.nbtedit.usage=/nbtedit
-commands.nbtedit.tile.usage=/nbtedit tile <x> <y> <z>
 commands.nbtedit.entity.usage=/nbtedit entity <id>
 commands.nbtedit.player.usage=/nbtedit player <player>
 commands.nbtedit.item.usage=/nbtedit item
@@ -653,7 +619,6 @@ commands.tree_base.invalid_cmd.list_subcommands=Неверная подкома�
 commands.tree_base.available_subcommands=Доступные подкоманды: %s
 
 # Backup
-cmd.timer_backup=Следующее резервное копирование: %s
 cmd.backup_start=Резервное копирование сервера начато!
 cmd.backup_stop=Резервное копирование сервера остановлено!
 cmd.backup_end_1=Резервное копирование сервера завершено за %s!
@@ -684,40 +649,25 @@ commands.pause_when_empty.mask.usage=/pause_when_empty mask <секунды> (в
 ## Buttons
 gui.accept=Принять
 gui.add=Добавить
-gui.added=Добавлено
 gui.remove=Удалить
-gui.removed=Удалено
 gui.close=Закрыть
-gui.open=Открыть
 gui.saved=Сохранено
 gui.loaded=Загружено
 gui.info=Инфо
 gui.collapse_all=Свернуть все
 gui.expand_all=Развернуть все
-gui.download=Скачать
-gui.downloaded=Загружено
 gui.update=Обновление
-gui.updated=Обновлено
 gui.active=Активный
 gui.inactive=Неактивный
 gui.settings=Настройки
 gui.rename=Переименовать
 gui.search_box=Поиск...
-gui.move=Переместить
 gui.copy=Копировать
-gui.paste=Вставить
-gui.cut=Вырезать
 
 ## Labels
 gui.other=Другой
-gui.server_forced=Сервер принудительно: %s
 gui.online=В сети
-gui.offline=Не в сети
-gui.whitelist=Белый список
-gui.blacklist=Черный список
 gui.color=Цвет
-gui.downloading=Скачивание...
-gui.infinite=Бесконечный
 
 ## Sides
 facing.north=Север
@@ -728,7 +678,6 @@ facing.east=Восток
 relative_facing.bottom=Снизу
 relative_facing.top=Сверху
 relative_facing.back=Сзади
-relative_facing.front=Спереди
 relative_facing.left=Слева
 relative_facing.right=Справа
 
@@ -738,9 +687,6 @@ serverutilities.lang.team.created=Команда '%s' создана
 serverutilities.lang.team.id_already_exists=ID уже зарегистрирован!
 serverutilities.lang.team.id_invalid=ID может содержать только строчные буквы a-z, _ и |!
 serverutilities.lang.team.deleted=Команда '%s' удалена
-serverutilities.lang.team.member_left=%s покинул вашу команду!
-serverutilities.lang.team.member_joined=%s присоединился к вашей команде!
-serverutilities.lang.team.transferred_ownership=Новый владелец сейчас %s
 serverutilities.lang.team.invited=Приглашен %s в '%s'
 serverutilities.lang.team.invited_you=Вы были приглашены в '%s' от %s
 serverutilities.lang.team.cancel_invite=Отменить приглашение
@@ -751,13 +697,10 @@ serverutilities.lang.team.error.not_owner=Вы не являетесь влад�
 serverutilities.lang.team.error.not_member=%s не является членом этой команды!
 serverutilities.lang.team.error.already_member=%s уже является членом этой команды!
 serverutilities.lang.team.error.must_transfer_ownership=Вы должны передать право собственности!
-serverutilities.lang.team.error.already_invited=%s уже приглашен!
-serverutilities.lang.team.error.failed_to_join=Не могу присоединиться к этой команде!
 serverutilities.lang.team.permission.set=Разрешение '%s' для %s установлены на %s
 serverutilities.lang.team.permission.owner=Невозможно изменить права владельца!
 serverutilities.lang.team.notification=Вы еще не присоединились или не создали команду! %s, чтобы открыть командный интерфейс или %s, чтобы скрыть это сообщение.
 serverutilities.lang.team.notification.hide=Скрыть это сообщение
-serverutilities.lang.team.chat_message=[Команда %s] %s
 
 team_action.serverutilities.select_team=Выбрать команду для присоединения
 team_action.serverutilities.create_team=Создать новую команду
@@ -765,7 +708,6 @@ team_action.serverutilities.members=Члены
 team_action.serverutilities.allies=Союзники
 team_action.serverutilities.moderators=Модераторы
 team_action.serverutilities.enemies=Враги
-team_action.serverutilities.change_team=Присоединиться к другой команде
 team_action.serverutilities.leave=Выйти из команды
 team_action.serverutilities.leave.confirmation=Внимание! Вы можете потерять прогресс заданий и другие вещи, если сделаете это!
 team_action.serverutilities.transfer_ownership=Передача прав владельца
@@ -788,7 +730,6 @@ serverutilities.lang.team_status.mod=Модератор
 serverutilities.lang.team_status.owner=Владелец
 
 # Privacy Level
-privacy=Конфиденциальность
 privacy.public=Общественный
 privacy.private=Частный
 privacy.team=Команда
@@ -808,15 +749,11 @@ io_mode.out=Только выход
 io_mode.none=Отключено
 
 # Click Actions
-click_action.cmd=Команда
-click_action.show_cmd=Показать команду
 click_action.url=Открыть ссылку
 click_action.file=Открыть файл
-click_action.gui=Открыть графический интерфейс
 
 # Aurora
 aurora=Server Utilities Aurora
-aurora.port=Порт
 
 # JourneyMap
 serverutilities.jm.own_team=Ваша команда
