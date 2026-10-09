@@ -806,7 +806,7 @@ public class ServerUtilitiesConfig {
         public boolean enabled;
 
         @Config.Comment("The rate at which the custom, configurable, server MotD updates (in milliseconds between updates)")
-        @Config.RangeInt(min = 20)
+        @Config.RangeInt(min = 50)
         @Config.DefaultInt(5000)
         @Config.Reloadable("server_motd")
         @Config.LangKey("serverutilities.motd.update_frequency")
