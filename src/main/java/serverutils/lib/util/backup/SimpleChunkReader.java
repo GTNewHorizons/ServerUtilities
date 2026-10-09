@@ -46,7 +46,7 @@ public class SimpleChunkReader implements ChunkReader {
                 channel.read(data, offset + 4);
                 data.flip();
 
-                byte[] hash = Hasher.hashChunk(compression, data.array());
+                SHAHash hash = SHAHash.compute(compression, data.array());
                 ChunkBlob.Metadata metadata = new ChunkBlob.Metadata(i, timestamp, compression, hash);
 
                 SimpleChunkBlob blob = new SimpleChunkBlob(metadata, data);

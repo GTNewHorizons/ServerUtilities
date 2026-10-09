@@ -16,6 +16,7 @@ import com.google.gson.Gson;
 public class SnapshotJson {
 
     private static final Gson GSON = new Gson();
+    private String name;
 
     public String createdAt;
     public String completedAt;
@@ -46,7 +47,13 @@ public class SnapshotJson {
 
     public static SnapshotJson read(File file) throws IOException {
         try (FileReader reader = new FileReader(file)) {
-            return GSON.fromJson(reader, SnapshotJson.class);
+            SnapshotJson json = GSON.fromJson(reader, SnapshotJson.class);
+            json.name = file.getName();
+            return json;
         }
+    }
+
+    public String getName() {
+        return name;
     }
 }

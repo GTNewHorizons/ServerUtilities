@@ -1,7 +1,6 @@
 package serverutils.lib.util.backup;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -14,15 +13,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.github.bsideup.jabel.Desugar;
+
 import cpw.mods.fml.common.Loader;
 import serverutils.ServerUtilities;
 
 public class SnapshotWriter {
 
+    private final SnapshotStore store;
     private final ChunkReader reader;
     private SnapshotStats stats = new SnapshotStats();
 
-    public SnapshotWriter(ChunkReader reader) {
+    public SnapshotWriter(SnapshotStore store, ChunkReader reader) {
+        this.store = store;
         this.reader = reader;
     }
 
@@ -30,36 +33,38 @@ public class SnapshotWriter {
         return stats;
     }
 
-    public Snapshot write(File source, File destination) {
+    public Snapshot write(File source) {
         if (!source.isDirectory()) throw new IllegalArgumentException("Not a directory");
 
         long started = System.nanoTime();
         stats = new SnapshotStats();
         ZonedDateTime createdAt = ZonedDateTime.now(ZoneOffset.UTC);
 
-        Snapshot previous = SnapshotStore.findLatest(destination);
         List<SourceDimension> sources = discoverDimensions(source);
 
-        File packs = SnapshotStore.packsDirectory(destination);
-        File manifests = SnapshotStore.manifestsDirectory(destination);
-        ensureDirectory(packs);
-        ensureDirectory(manifests);
+        File packs = store.packsDirectory;
+        File manifestPacks = store.manifestsDirectory;
 
-        Set<String> known;
+        Set<SHAHash> known;
+        Set<SHAHash> knownManifests;
         try {
             known = PackIndex.loadKnownHashes(packs);
+            knownManifests = PackIndex.loadKnownHashes(manifestPacks);
         } catch (IOException e) {
             throw new SnapshotException("Failed to read existing pack indexes", e);
         }
 
+        Snapshot previous = store.findLatest();
+
         Map<Integer, SnapshotDimension> dimensions = new HashMap<>();
-        try (PackWriter packWriter = new PackWriter(packs, known)) {
+        try (PackWriter packWriter = new PackWriter(packs, known);
+                PackWriter manifestWriter = new PackWriter(manifestPacks, knownManifests)) {
             for (SourceDimension sourceDimension : sources) {
                 SnapshotDimension previousDimension = previous == null ? null
                         : previous.getDimension(sourceDimension.id);
                 dimensions.put(
                         sourceDimension.id,
-                        writeDimension(sourceDimension, previousDimension, packWriter, manifests));
+                        writeDimension(sourceDimension, previousDimension, packWriter, manifestWriter));
             }
             stats.newChunks = packWriter.getBlobsWritten();
             stats.newBytes = packWriter.getBytesWritten();
@@ -77,7 +82,8 @@ public class SnapshotWriter {
                                          // version
                 new HashMap<>(),
                 dimensions);
-        SnapshotStore.write(destination, snapshot);
+
+        store.write(snapshot);
 
         stats.durationMillis = (System.nanoTime() - started) / 1_000_000L;
         ServerUtilities.LOGGER.info(
@@ -94,7 +100,7 @@ public class SnapshotWriter {
     }
 
     private SnapshotDimension writeDimension(SourceDimension source, SnapshotDimension previous, PackWriter packWriter,
-            File manifests) throws IOException {
+            PackWriter manifestWriter) throws IOException {
         SnapshotDimension dimension = new SnapshotDimension(source.id);
 
         for (File regionFile : source.regionFiles) {
@@ -110,14 +116,14 @@ public class SnapshotWriter {
                 continue;
             }
 
-            dimension.addRegion(writeRegion(regionFile, name, previousRegion, packWriter, manifests));
+            dimension.addRegion(writeRegion(regionFile, name, previousRegion, packWriter, manifestWriter));
         }
 
         return dimension;
     }
 
     private SnapshotRegion writeRegion(File regionFile, String name, SnapshotRegion previousRegion,
-            PackWriter packWriter, File manifests) throws IOException {
+            PackWriter packWriter, PackWriter manifestWriter) throws IOException {
         long mtime = regionFile.lastModified();
         long size = regionFile.length();
 
@@ -145,10 +151,11 @@ public class SnapshotWriter {
             ChunkBlob.Metadata meta = blob.metadata();
             ChunkBlob.Metadata previousMeta = previousRegion == null ? null : previousRegion.getChunk(meta.index());
 
-            if (previousMeta != null && (previousMeta.timestamp() == meta.timestamp()
-                    || Arrays.equals(meta.hash(), previousMeta.hash()))) {
-                blob = new ChunkBlob.Empty(previousMeta);
-                stats.unmodifiedChunks++;
+            if (previousMeta != null) {
+                if (previousMeta.timestamp() == meta.timestamp() || previousMeta.hash().equals(meta.hash())) {
+                    blob = new ChunkBlob.Empty(previousMeta);
+                    stats.unmodifiedChunks++;
+                }
             }
 
             chunks.put(blob.metadata().index(), blob.metadata());
@@ -156,9 +163,7 @@ public class SnapshotWriter {
         }
 
         SnapshotRegion region = SnapshotRegion.create(name, mtime, size, chunks);
-        try (FileOutputStream out = new FileOutputStream(new File(manifests, region.getHash()))) {
-            out.write(region.toBytes());
-        }
+        manifestWriter.add(region);
         return region;
     }
 
@@ -189,11 +194,6 @@ public class SnapshotWriter {
         return discovered;
     }
 
-    private static void ensureDirectory(File directory) {
-        if (!directory.isDirectory() && !directory.mkdirs()) {
-            throw new SnapshotException("Failed to create directory " + directory);
-        }
-    }
-
+    @Desugar
     private record SourceDimension(int id, List<File> regionFiles) {}
 }

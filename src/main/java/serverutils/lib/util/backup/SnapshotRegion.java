@@ -2,32 +2,29 @@ package serverutils.lib.util.backup;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
 
-import org.apache.commons.codec.binary.Hex;
-
-public final class SnapshotRegion {
+public final class SnapshotRegion implements Hashable {
 
     public final String name;
     public final long mtime;
     public final long size;
 
-    private final String hash;
-    private final File manifestFile;
+    private final SHAHash hash;
+    private final ManifestStore store;
     private byte[] bytes;
     private NavigableMap<Integer, ChunkBlob.Metadata> chunks;
 
-    private SnapshotRegion(String name, long mtime, long size, String hash, byte[] bytes, File manifestFile,
+    private SnapshotRegion(String name, long mtime, long size, SHAHash hash, byte[] bytes, ManifestStore store,
             NavigableMap<Integer, ChunkBlob.Metadata> chunks) {
         this.name = name;
         this.mtime = mtime;
         this.size = size;
         this.hash = hash;
         this.bytes = bytes;
-        this.manifestFile = manifestFile;
+        this.store = store;
         this.chunks = chunks;
     }
 
@@ -38,21 +35,15 @@ public final class SnapshotRegion {
     public static SnapshotRegion create(String name, long mtime, long size,
             NavigableMap<Integer, ChunkBlob.Metadata> chunks) {
         byte[] bytes = RegionManifest.encode(chunks.values());
-        return new SnapshotRegion(name, mtime, size, Hex.encodeHexString(Hasher.hash(bytes)), bytes, null, chunks);
+        return new SnapshotRegion(name, mtime, size, SHAHash.compute(bytes), bytes, null, chunks);
     }
 
-    public static SnapshotRegion stored(String name, ManifestDescriptor descriptor, File manifestFile) {
-        return new SnapshotRegion(
-                name,
-                descriptor.mtime,
-                descriptor.size,
-                descriptor.manifest,
-                null,
-                manifestFile,
-                null);
+    public static SnapshotRegion stored(String name, SHAHash hash, ManifestDescriptor descriptor, ManifestStore store) {
+        return new SnapshotRegion(name, descriptor.mtime, descriptor.size, hash, null, store, null);
     }
 
-    public String getHash() {
+    @Override
+    public SHAHash getHash() {
         return hash;
     }
 
@@ -67,9 +58,9 @@ public final class SnapshotRegion {
     public byte[] toBytes() {
         if (bytes == null) {
             try {
-                bytes = Files.readAllBytes(manifestFile.toPath());
+                bytes = store.read(hash);
             } catch (IOException e) {
-                throw new SnapshotException("Failed to read region manifest " + manifestFile, e);
+                throw new SnapshotException("Failed to read region manifest " + hash, e);
             }
         }
         return bytes;
@@ -80,7 +71,7 @@ public final class SnapshotRegion {
             try {
                 chunks = RegionManifest.decode(toBytes());
             } catch (IOException e) {
-                throw new SnapshotException("Corrupt region manifest " + manifestFile, e);
+                throw new SnapshotException("Corrupt region manifest " + hash, e);
             }
         }
         return chunks;

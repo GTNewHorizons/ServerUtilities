@@ -10,11 +10,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.codec.binary.Hex;
 
 import com.github.bsideup.jabel.Desugar;
 
@@ -25,12 +26,7 @@ public final class PackIndex {
     private static final int HASH_SIZE = 32;
 
     @Desugar
-    public record Entry(byte[] hash, long offset, int length, int compressionType) {
-
-        public String hexHash() {
-            return Hex.encodeHexString(hash);
-        }
-    }
+    public record Entry(SHAHash hash, long offset, int length, int compressionType) {}
 
     private PackIndex() {}
 
@@ -39,7 +35,7 @@ public final class PackIndex {
             out.writeBytes(MAGIC);
             out.writeInt(entries.size());
             for (Entry entry : entries) {
-                out.write(entry.hash());
+                out.write(entry.hash.getBytes());
                 out.writeLong(entry.offset());
                 out.writeInt(entry.length());
                 out.writeByte(entry.compressionType());
@@ -60,22 +56,33 @@ public final class PackIndex {
             for (int i = 0; i < count; i++) {
                 byte[] hash = new byte[HASH_SIZE];
                 in.readFully(hash);
-                entries.add(new Entry(hash, in.readLong(), in.readInt(), in.readUnsignedByte()));
+                entries.add(new Entry(new SHAHash(hash), in.readLong(), in.readInt(), in.readUnsignedByte()));
             }
             return entries;
         }
     }
 
-    public static Set<String> loadKnownHashes(File packsDirectory) throws IOException {
-        Set<String> known = new HashSet<>();
+    public static Map<File, List<Entry>> loadAllEntries(File packsDirectory) throws IOException {
         File[] indexes = packsDirectory.listFiles((dir, name) -> name.endsWith(EXTENSION));
-        if (indexes == null) return known;
+        if (indexes == null) return Collections.emptyMap();
+        Map<File, List<Entry>> result = new HashMap<>(indexes.length);
 
         for (File index : indexes) {
-            for (Entry entry : read(index)) {
-                known.add(entry.hexHash());
+            result.put(index, read(index));
+        }
+
+        return result;
+    }
+
+    public static Set<SHAHash> loadKnownHashes(File packsDirectory) throws IOException {
+        Set<SHAHash> hashes = new HashSet<>();
+
+        for (List<Entry> entries : loadAllEntries(packsDirectory).values()) {
+            for (Entry entry : entries) {
+                hashes.add(entry.hash());
             }
         }
-        return known;
+
+        return hashes;
     }
 }

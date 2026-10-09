@@ -2,26 +2,22 @@ package serverutils.lib.util.backup;
 
 import java.nio.ByteBuffer;
 
-import org.apache.commons.codec.binary.Hex;
-
 import com.github.bsideup.jabel.Desugar;
 
-public interface ChunkBlob {
+public interface ChunkBlob extends Hashable {
 
     Metadata metadata();
 
     ByteBuffer data();
 
-    default String getHash() {
-        return metadata().hexHash();
+    @Override
+    default SHAHash getHash() {
+        return metadata().hash;
     }
 
     @Desugar
-    record Metadata(int index, long timestamp, int compressionType, byte[] hash) {
+    record Metadata(int index, long timestamp, int compressionType, SHAHash hash) {
 
-        public String hexHash() {
-            return Hex.encodeHexString(hash);
-        }
     }
 
     @Desugar
