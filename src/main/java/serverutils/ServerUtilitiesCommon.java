@@ -130,16 +130,16 @@ public class ServerUtilitiesCommon {
     }
 
     public void onServerStarting(FMLServerStartingEvent event) {
+        MinecraftServer server = event.getServer();
         ServerUtilitiesCommands.registerCommands(event);
         // -- Initial MOTD setup
-        if (motd.enabled) {
-            MinecraftServer server = event.getServer();
+        if (event.getSide().isServer() && server != null && motd.enabled) {
             IChatComponent motd = MOTDFormatter.buildMOTD(server);
             server.func_147134_at().func_151315_a(motd);
             updateMotDTask = new UpdateMOTDTask();
         }
-        if (AuroraConfig.general.enable) {
-            Aurora.start(event.getServer());
+        if (AuroraConfig.general.enable && server != null) {
+            Aurora.start(server);
         }
     }
 
