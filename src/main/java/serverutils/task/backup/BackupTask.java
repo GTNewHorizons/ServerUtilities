@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -46,6 +47,11 @@ import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.lib.util.backup.SimpleChunkReader;
+import serverutils.lib.util.backup.SnapshotRemover;
+import serverutils.lib.util.backup.SnapshotStats;
+import serverutils.lib.util.backup.SnapshotStore;
+import serverutils.lib.util.backup.SnapshotWriter;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.task.Task;
 
@@ -62,6 +68,7 @@ public class BackupTask extends Task {
     private static volatile boolean prunePending;
     static volatile Thread retentionThread;
     public static volatile ThreadBackup thread;
+    private static Thread snapshotThread;
     public static boolean hadPlayer = false;
     private ICommandSender sender;
     private String customName = "";
@@ -75,7 +82,7 @@ public class BackupTask extends Task {
     static {
         BACKUP_FOLDER = backups.backup_folder_path.isEmpty() ? new File("/backups/")
                 : new File(backups.backup_folder_path);
-        if (!BACKUP_FOLDER.exists()) BACKUP_FOLDER.mkdirs();
+        FileUtils.ensureExists(BACKUP_FOLDER);
         // Class initialization runs before any backup worker can own an archive staging file.
         deleteAbandonedArchives(BACKUP_FOLDER);
         ServerUtilities.LOGGER.info("Backups folder - {}", BACKUP_FOLDER.getAbsolutePath());
@@ -266,6 +273,80 @@ public class BackupTask extends Task {
     private static void finishPlayerActivity(boolean successful) {
         if (!successful) hadPlayer |= backupHadPlayer;
         backupHadPlayer = false;
+    }
+
+    public static void startSnapshot(Universe universe, ICommandSender sender) {
+        if (isBackupRunning() || isWorldSavingSuspended()) {
+            sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
+            return;
+        }
+
+        MinecraftServer server = universe.server;
+        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
+        File snapshotDir;
+        SnapshotStore store;
+        try {
+            snapshotDir = SnapshotStore.backupDirectoryFor(BACKUP_FOLDER, worldDir);
+            store = SnapshotStore.load(snapshotDir);
+            server.getConfigurationManager().saveAllPlayerData();
+            saveAndDisableWorldSaving(server.worldServers);
+            flushChunkSaves(server.worldServers);
+            universe.saveForBackup();
+            drainQueuedWrites();
+        } catch (Exception ex) {
+            if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
+            restoreWorldSaving();
+            ServerUtilities.LOGGER.error("An error occurred while preparing snapshot, Aborting!", ex);
+            sender.addChatMessage(
+                    new ChatComponentText(
+                            EnumChatFormatting.RED + "An error occurred while preparing snapshot. " + ex.getMessage()));
+            return;
+        }
+        universe.scheduleTask(new BackupTask(true));
+
+        // TODO actually add to the lang file
+        // also probably customize the thread class or at least make a helper method
+        snapshotThread = new Thread(() -> {
+            try {
+                SnapshotWriter writer = new SnapshotWriter(store, new SimpleChunkReader());
+                writer.write(worldDir);
+
+                SnapshotStats stats = writer.getStats();
+                long removedBytes = 0;
+
+                // arbitrary, I need to wire
+                if (store.count() > 20) {
+                    SnapshotRemover remover = new SnapshotRemover(store);
+                    removedBytes = remover.remove(s -> Collections.singletonList(s.get(0)));
+                }
+
+                sender.addChatMessage(
+                        new ChatComponentText(
+                                String.format("Finished snapshot in %.1fs", stats.durationMillis / 1000.0)));
+
+                sender.addChatMessage(
+                        new ChatComponentText(
+                                String.format(
+                                        "Total bytes: %s (+%s / -%s)",
+                                        FileUtils.getSizeString(stats.newBytes - removedBytes),
+                                        FileUtils.getSizeString(stats.newBytes),
+                                        FileUtils.getSizeString(removedBytes))));
+
+                sender.addChatMessage(
+                        new ChatComponentText(
+                                String.format(
+                                        "%d new chunks, %d regions and %d chunks unchanged",
+                                        stats.newChunks,
+                                        stats.unmodifiedFiles,
+                                        stats.unmodifiedChunks)));
+            } catch (Exception ex) {
+                ServerUtilities.LOGGER.error("Snapshot failed", ex);
+                sender.addChatMessage(
+                        new ChatComponentText(EnumChatFormatting.RED + "Snapshot failed. " + ex.getMessage()));
+            }
+        }, "ServerUtilities-Snapshot");
+        snapshotThread.start();
+        sender.addChatMessage(new ChatComponentText("Started snapshot"));
     }
 
     private static long recordBackupPhase(StringBuilder timings, String phase, long started) {
@@ -608,16 +689,32 @@ public class BackupTask extends Task {
     public static boolean isBackupRunning() {
         Thread backupWorker = thread;
         Thread retentionWorker = retentionThread;
-        return stopping || (backupWorker != null && backupWorker.isAlive())
-                || (retentionWorker != null && retentionWorker.isAlive());
+        if (stopping) return true;
+        if (backupWorker != null && backupWorker.isAlive()) return true;
+        if (retentionWorker != null && retentionWorker.isAlive()) return true;
+        return snapshotThread != null && snapshotThread.isAlive();
     }
 
     public static void stopBackupThread() {
         Thread[] workers;
         synchronized (BackupTask.class) {
             stopping = true;
-            workers = new Thread[] { thread, retentionThread };
+            workers = new Thread[] { thread, retentionThread, snapshotThread };
         }
+        boolean interrupted = stopThreads(workers);
+        restoreWorldSaving();
+        synchronized (BackupTask.class) {
+            finishPlayerActivity(thread == null ? backupSucceeded : thread.successful);
+            thread = null;
+            retentionThread = null;
+            backupSucceeded = false;
+            prunePending = false;
+            stopping = false;
+        }
+        if (interrupted) Thread.currentThread().interrupt();
+    }
+
+    private static boolean stopThreads(Thread[] workers) {
         boolean interrupted = false;
         for (Thread worker : workers) {
             if (worker == null) continue;
@@ -631,16 +728,7 @@ public class BackupTask extends Task {
                 }
             }
         }
-        restoreWorldSaving();
-        synchronized (BackupTask.class) {
-            finishPlayerActivity(thread == null ? backupSucceeded : thread.successful);
-            thread = null;
-            retentionThread = null;
-            backupSucceeded = false;
-            prunePending = false;
-            stopping = false;
-        }
-        if (interrupted) Thread.currentThread().interrupt();
+        return interrupted;
     }
 
     private boolean hasOnlinePlayers(MinecraftServer server) {
@@ -658,6 +746,7 @@ public class BackupTask extends Task {
         boolean successful = thread == null ? backupSucceeded : thread.successful;
         finishPlayerActivity(successful);
         thread = null;
+        snapshotThread = null;
         backupSucceeded = false;
         restoreWorldSaving();
         if (successful || prunePending) clearOldBackups();

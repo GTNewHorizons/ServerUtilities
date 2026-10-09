@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import net.minecraft.client.Minecraft;
@@ -42,6 +43,7 @@ import cpw.mods.fml.relauncher.Side;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.gui.Button;
@@ -55,6 +57,12 @@ import serverutils.lib.gui.WidgetLayout;
 import serverutils.lib.gui.misc.GuiButtonListBase;
 import serverutils.lib.icon.Icon;
 import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.TimeUtil;
+import serverutils.lib.util.backup.Snapshot;
+import serverutils.lib.util.backup.SnapshotManifest;
+import serverutils.lib.util.backup.SnapshotRemover;
+import serverutils.lib.util.backup.SnapshotRestorer;
+import serverutils.lib.util.backup.SnapshotStore;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.lib.util.misc.MouseButton;
 import serverutils.task.backup.BackupTask;
@@ -71,10 +79,21 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     private final String title;
     private final Button backButton, recreateWorldButton;
     private final String worldName;
+    private SnapshotStore snapshotStore;
+
+    private static final Set<String> worldsWithSnapshots = new ObjectOpenHashSet<>();
 
     public GuiRestoreBackup(String worldName, GuiSelectWorld selectWorld) {
+        File snapshotDir = SnapshotStore.backupDirectoryFor(BackupTask.BACKUP_FOLDER, new File(worldName));
+
+        try {
+            snapshotStore = SnapshotStore.load(snapshotDir);
+        } catch (IOException e) {
+            ServerUtilities.LOGGER.error("Failed to load snapshot store for world {}", worldName, e);
+        }
+
         this.worldName = worldName;
-        this.backupFiles = worldBackups.get(worldName);
+        this.backupFiles = worldBackups.getOrDefault(worldName, new ObjectArrayList<>());
         this.title = StatCollector.translateToLocalFormatted("serverutilities.gui.backup.title", worldName);
         backupFiles.sort(Comparator.comparing(File::lastModified).reversed());
         backButton = new SimpleTextButton(this, StatCollector.translateToLocal("gui.cancel"), GuiIcons.CANCEL) {
@@ -120,6 +139,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         }
 
         if (event.gui instanceof GuiSelectWorld gui) {
+            findWorldsWithSnapshots();
             if (needsRefresh()) {
                 worldBackups.clear();
                 allBackupFiles.clear();
@@ -164,12 +184,25 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         return false;
     }
 
+    private static void findWorldsWithSnapshots() {
+        worldsWithSnapshots.clear();
+        File[] directories = BackupTask.BACKUP_FOLDER.listFiles(File::isDirectory);
+        if (directories == null) return;
+
+        for (File directory : directories) {
+            File[] manifests = directory
+                    .listFiles(f -> f.isFile() && Snapshot.FILE_PATTERN.matcher(f.getName()).matches());
+            if (manifests != null && manifests.length > 0) worldsWithSnapshots.add(directory.getName());
+        }
+    }
+
     private static void preProcess() {
         File[] files = BackupTask.BACKUP_FOLDER.listFiles();
         if (files == null) return;
 
         ICompress compressor = ICompress.createCompressor();
         for (File file : files) {
+            if (file.isDirectory()) continue; // snapshot store
             try {
                 allBackupFiles.put(
                         file,
@@ -216,31 +249,43 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
     @Override
     public void addButtons(Panel panel) {
+        addZipBackupButtons(panel);
+        addSnapshotButtons(panel);
+    }
+
+    private void addZipBackupButtons(Panel panel) {
         for (File file : backupFiles) {
-            ButtonContainer container = new ButtonContainer(panel, file.getName(), Icon.EMPTY);
-            container.addSubButton(
-                    new BackupEntryButton(
-                            panel,
-                            StatCollector.translateToLocal("serverutilities.gui.backup.restore"),
-                            GuiIcons.ACCEPT,
-                            file,
-                            this::loadBackupWorld));
-            container.addSubButton(
-                    new BackupEntryButton(
-                            panel,
-                            StatCollector.translateToLocal("serverutilities.gui.backup.restore_global"),
-                            GuiIcons.ACCEPT,
-                            file,
-                            this::loadBackupGlobal));
-            container.addSubButton(
-                    new BackupEntryButton(
-                            panel,
-                            StatCollector.translateToLocal("selectWorld.delete"),
-                            GuiIcons.REMOVE,
-                            file,
-                            this::deleteBackup));
-            container.setXOffset(9);
-            panel.add(container);
+            BackupEntryRow row = new BackupEntryRow(panel, file.getName(), action -> {
+                if (action == Action.Restore) {
+                    loadBackupWorld(file);
+                } else if (action == Action.RestoreGlobal) {
+                    loadBackupGlobal(file);
+                } else if (action == Action.Delete) {
+                    deleteBackup(file);
+                }
+            });
+            panel.add(row);
+        }
+    }
+
+    private void addSnapshotButtons(Panel panel) {
+        if (snapshotStore == null) return;
+        for (SnapshotManifest manifest : this.snapshotStore.listManifest()) {
+            String text = String.format(
+                    "%s (%s)",
+                    TimeUtil.format(manifest.getCreatedAt()),
+                    TimeUtil.timeAgo(manifest.getCreatedAt().toInstant()));
+            BackupEntryRow row = new BackupEntryRow(panel, text, action -> {
+                Snapshot snapshot = snapshotStore.get(manifest);
+                if (action == Action.Restore) {
+                    restoreSnapshot(snapshot);
+                } else if (action == Action.RestoreGlobal) {
+
+                } else if (action == Action.Delete) {
+                    deleteSnapshot(snapshot);
+                }
+            });
+            panel.add(row);
         }
     }
 
@@ -296,6 +341,22 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                 moved.put(file, destFile);
             }
         }
+    }
+
+    private void restoreSnapshot(Snapshot snapshot) {
+        openYesNo(
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm"),
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"),
+                () -> {
+                    File savesDir = new File("saves/");
+                    File worldDir = new File(savesDir, worldName);
+                    try {
+                        SnapshotRestorer.restore(snapshotStore, snapshot, worldDir);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    closeGui();
+                });
     }
 
     private void loadBackupWorld(File file) {
@@ -391,6 +452,16 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         });
     }
 
+    private void deleteSnapshot(Snapshot snapshot) {
+        openYesNo(StatCollector.translateToLocal("serverutilities.gui.backup.delete_confirm"), "", () -> {
+            try {
+                SnapshotRemover.remove(snapshotStore, snapshot);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     @Override
     public void drawBackground(Theme theme, int x, int y, int w, int h) {
         super.drawBackground(theme, x, y, w, h);
@@ -433,20 +504,47 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         };
     }
 
+    private static class BackupEntryRow extends ButtonContainer {
+
+        public BackupEntryRow(Panel panel, String txt, Consumer<Action> callback) {
+            super(panel, txt, Icon.EMPTY);
+            addSubButton(
+                    new BackupEntryButton(
+                            panel,
+                            StatCollector.translateToLocal("serverutilities.gui.backup.restore"),
+                            GuiIcons.ACCEPT,
+                            () -> callback.accept(Action.Restore)));
+
+            addSubButton(
+                    new BackupEntryButton(
+                            panel,
+                            StatCollector.translateToLocal("serverutilities.gui.backup.restore_global"),
+                            GuiIcons.ACCEPT,
+                            () -> callback.accept(Action.RestoreGlobal)));
+
+            addSubButton(
+                    new BackupEntryButton(
+                            panel,
+                            StatCollector.translateToLocal("selectWorld.delete"),
+                            GuiIcons.REMOVE,
+                            () -> callback.accept(Action.Delete)));
+
+            setXOffset(9);
+        }
+    }
+
     private static class BackupEntryButton extends SimpleTextButton {
 
-        private final File file;
-        private final Consumer<File> callback;
+        private final Runnable callback;
 
-        public BackupEntryButton(Panel panel, String text, Icon icon, File file, Consumer<File> callback) {
+        public BackupEntryButton(Panel panel, String text, Icon icon, Runnable callback) {
             super(panel, text, icon);
-            this.file = file;
             this.callback = callback;
         }
 
         @Override
         public void onClicked(MouseButton button) {
-            callback.accept(file);
+            callback.run();
         }
     }
 
@@ -468,7 +566,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                 enabled = false;
             } else {
                 currentWorld = ((SaveFormatComparator) gui.field_146639_s.get(worldIndex)).getFileName();
-                enabled = worldBackups.containsKey(currentWorld);
+                enabled = worldBackups.containsKey(currentWorld) || worldsWithSnapshots.contains(currentWorld);
             }
 
             super.drawButton(mc, mouseX, mouseY);
@@ -486,4 +584,9 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         }
     }
 
+    private enum Action {
+        Restore,
+        RestoreGlobal,
+        Delete
+    }
 }

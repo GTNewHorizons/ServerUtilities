@@ -1,7 +1,6 @@
 package serverutils.command;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -27,7 +26,6 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
 import serverutils.task.backup.BackupRetention;
 import serverutils.task.backup.BackupTask;
-import serverutils.task.backup.ThreadBackup;
 
 public class CmdBackup extends CmdTreeBase {
 
@@ -165,31 +163,32 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) throws WrongUsageException {
-            final boolean oc = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=oc"));
-            final boolean overwrite = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=overwrite"));
-            final String target = Arrays.stream(args)
-                    .filter(arg -> !arg.equalsIgnoreCase("=oc") && !arg.equalsIgnoreCase("=overwrite")).findFirst()
-                    .orElse("");
-            try {
-                ThreadBackup.validateBackupName(target);
-                if (!target.isEmpty() || overwrite) ThreadBackup.backupDestination(target, overwrite);
-            } catch (IOException ex) {
-                throw new WrongUsageException(ex.getMessage());
-            }
-
-            final BackupTask task = new BackupTask(sender, target, oc, overwrite);
-
-            if (!BackupTask.isBackupRunning()) {
-                task.execute(Universe.get());
-                if (task.isDeferred()) {
-                    sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
-                } else if (task.hasStarted()) sender.addChatMessage(
-                        ServerUtilities
-                                .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
-                else sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
-            } else {
-                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
-            }
+            BackupTask.startSnapshot(Universe.get(), sender);
+            // final boolean oc = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=oc"));
+            // final boolean overwrite = Arrays.stream(args).anyMatch(arg -> arg.equalsIgnoreCase("=overwrite"));
+            // final String target = Arrays.stream(args)
+            // .filter(arg -> !arg.equalsIgnoreCase("=oc") && !arg.equalsIgnoreCase("=overwrite")).findFirst()
+            // .orElse("");
+            // try {
+            // ThreadBackup.validateBackupName(target);
+            // if (!target.isEmpty() || overwrite) ThreadBackup.backupDestination(target, overwrite);
+            // } catch (IOException ex) {
+            // throw new WrongUsageException(ex.getMessage());
+            // }
+            //
+            // final BackupTask task = new BackupTask(sender, target, oc, overwrite);
+            //
+            // if (!BackupTask.isBackupRunning()) {
+            // task.execute(Universe.get());
+            // if (task.isDeferred()) {
+            // sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
+            // } else if (task.hasStarted()) sender.addChatMessage(
+            // ServerUtilities
+            // .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
+            // else sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
+            // } else {
+            // sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
+            // }
         }
     }
 
