@@ -9,9 +9,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+
 import serverutils.lib.util.FileUtils;
 
 public class SnapshotRestorer {
+
     private final SnapshotStore store;
     private final ChunkWriter writer;
 
@@ -74,7 +76,8 @@ public class SnapshotRestorer {
                 // recompute hash to verify blob actually matches expected hash
                 SHAHash blobHash = SHAHash.compute(blob.compression(), blob.data());
                 if (!blobHash.equals(metadata.hash())) {
-                    throw new SnapshotException("Chunk blob hash mismatch for region " + region.name + " chunk " + metadata.index());
+                    throw new SnapshotException(
+                            "Chunk blob hash mismatch for region " + region.name + " chunk " + metadata.index());
                 }
                 blobs.add(new SimpleChunkBlob(metadata, ByteBuffer.wrap(blob.data())));
             }

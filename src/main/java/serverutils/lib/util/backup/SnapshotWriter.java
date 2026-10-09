@@ -136,10 +136,14 @@ public class SnapshotWriter {
 
             SnapshotFile previousFile = previous == null ? null : previous.getFile(file.path);
 
-            // I don't believe any file should hit this size, if it is hitting this size it (likely) shouldn't be backed up anyway
-            // if in the future there is a valid use case here, file can be chunked, but that involves changing up the blob format
+            // I don't believe any file should hit this size, if it is hitting this size it (likely) shouldn't be backed
+            // up anyway
+            // if in the future there is a valid use case here, file can be chunked, but that involves changing up the
+            // blob format
             if (file.file.length() > MAX_FILE_SIZE) {
-                ServerUtilities.LOGGER.warn("File {} is too large to be saved in a snapshot. This file will be skipped in this version of ServerUtilities.", file);
+                ServerUtilities.LOGGER.warn(
+                        "File {} is too large to be saved in a snapshot. This file will be skipped in this version of ServerUtilities.",
+                        file);
                 continue;
             }
 

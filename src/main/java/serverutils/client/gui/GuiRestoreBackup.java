@@ -2,8 +2,6 @@ package serverutils.client.gui;
 
 import static serverutils.ServerUtilitiesConfig.backups;
 
-
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -27,7 +25,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import java.util.function.Function;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiErrorScreen;
@@ -46,6 +43,7 @@ import cpw.mods.fml.relauncher.Side;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.gui.Button;
@@ -347,18 +345,18 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
     private void restoreSnapshot(Snapshot snapshot) {
         openYesNo(
-            StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm"),
-            StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"),
-            () -> {
-                File savesDir = new File("saves/");
-                File worldDir = new File(savesDir, worldName);
-                try {
-                    SnapshotRestorer.restore(snapshotStore, snapshot, worldDir);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                closeGui();
-            });
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm"),
+                StatCollector.translateToLocal("serverutilities.gui.backup.restore_confirm_desc"),
+                () -> {
+                    File savesDir = new File("saves/");
+                    File worldDir = new File(savesDir, worldName);
+                    try {
+                        SnapshotRestorer.restore(snapshotStore, snapshot, worldDir);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    closeGui();
+                });
     }
 
     private void loadBackupWorld(File file) {
