@@ -51,15 +51,19 @@ public class SnapshotRemover {
         // throws, and we stop with all the data still in place.
         Set<SHAHash> liveRegions = new HashSet<>();
         Set<SHAHash> liveChunks = new HashSet<>();
+        Set<SHAHash> liveFiles = new HashSet<>();
         for (Snapshot snapshot : all) {
             if (deleted.contains(snapshot.getName())) continue;
 
             for (SnapshotDimension dimension : snapshot.getDimensions().values()) {
                 for (SnapshotRegion region : dimension.getRegions()) {
-                    liveRegions.add(region.getHash());
+                    liveRegions.add(region.hash());
                     for (ChunkBlob.Metadata chunk : region.getChunks()) {
                         liveChunks.add(chunk.hash());
                     }
+                }
+                for (SnapshotFile file : dimension.getFiles()) {
+                    liveFiles.add(file.hash());
                 }
             }
         }
@@ -70,9 +74,10 @@ public class SnapshotRemover {
         }
 
         // the sweep deletes manifest packs, which can't happen while we hold them open
-        store.manifests().closeHandles();
+        store.closeHandles();
 
         long freed = sweep(store.packsDirectory, liveChunks);
+        freed += sweep(store.filesDirectory, liveFiles);
         freed += sweep(store.manifestsDirectory, liveRegions);
 
         store.reloadManifests();

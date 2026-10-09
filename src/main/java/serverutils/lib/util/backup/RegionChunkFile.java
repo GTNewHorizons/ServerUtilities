@@ -2,6 +2,7 @@ package serverutils.lib.util.backup;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 
 public class RegionChunkFile implements ChunkFile {
@@ -17,7 +18,7 @@ public class RegionChunkFile implements ChunkFile {
         this.path = path;
     }
 
-    public FileChannel open() throws IOException {
-        return FileChannel.open(path);
+    public FileChannel open(OpenOption... options) throws IOException {
+        return FileChannel.open(path, options);
     }
 }

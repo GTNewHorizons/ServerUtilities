@@ -12,4 +12,8 @@ public class SnapshotStats {
 
     public int unmodifiedChunks;
     public int unmodifiedFiles;
+
+    /** Counts for the non-region files of the world. */
+    public int newMiscFiles;
+    public int unmodifiedMiscFiles;
 }

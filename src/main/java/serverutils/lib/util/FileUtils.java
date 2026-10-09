@@ -259,6 +259,7 @@ public class FileUtils {
     }
 
     public static void ensureExists(File directory) {
+        if (directory.exists()) return;
         if (!directory.isDirectory() && !directory.mkdirs()) {
             throw new SnapshotException("Failed to create directory " + directory);
         }

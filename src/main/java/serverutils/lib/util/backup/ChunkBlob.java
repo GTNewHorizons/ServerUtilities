@@ -11,7 +11,7 @@ public interface ChunkBlob extends Hashable {
     ByteBuffer data();
 
     @Override
-    default SHAHash getHash() {
+    default SHAHash hash() {
         return metadata().hash;
     }
 

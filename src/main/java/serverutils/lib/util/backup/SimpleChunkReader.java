@@ -35,7 +35,7 @@ public class SimpleChunkReader implements ChunkReader {
                 lenBuf.flip();
 
                 int len = lenBuf.getInt();
-                int compression = len & 0xFF;
+                int compression = lenBuf.get();
 
                 if (len <= 0 || len > (loc & 0xFF) * SECTOR_SIZE) continue; // corrupt
 

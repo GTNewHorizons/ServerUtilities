@@ -315,7 +315,7 @@ public class BackupTask extends Task {
                 long removedBytes = 0;
 
                 // arbitrary, I need to wire
-                if (store.count() > 3) {
+                if (store.count() > 20) {
                     SnapshotRemover remover = new SnapshotRemover(store);
                     removedBytes = remover.remove(s -> Collections.singletonList(s.get(0)));
                 }

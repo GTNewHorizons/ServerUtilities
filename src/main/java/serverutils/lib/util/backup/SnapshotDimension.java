@@ -5,14 +5,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** The regions of one dimension as recorded by a snapshot. */
+/** The regions and other files of one dimension as recorded by a snapshot. */
 public class SnapshotDimension {
 
-    public final int id;
+    /** The id of the dimension stored in the world folder itself, every other id is the name of its folder. */
+    public static final String OVERWORLD = "overworld";
+
+    public final String id;
 
     private final Map<String, SnapshotRegion> regions = new HashMap<>();
+    private final Map<String, SnapshotFile> files = new HashMap<>();
 
-    public SnapshotDimension(int id) {
+    public SnapshotDimension(String id) {
         this.id = id;
     }
 
@@ -26,5 +30,25 @@ public class SnapshotDimension {
 
     public void addRegion(SnapshotRegion region) {
         regions.put(region.name, region);
+    }
+
+    public List<SnapshotFile> getFiles() {
+        return new ArrayList<>(files.values());
+    }
+
+    public SnapshotFile getFile(String path) {
+        return files.get(path);
+    }
+
+    public void addFile(SnapshotFile file) {
+        files.put(file.path(), file);
+    }
+
+    public String getDirName() {
+        return id;
+    }
+
+    public boolean isOverworld() {
+        return id.equals(OVERWORLD);
     }
 }
