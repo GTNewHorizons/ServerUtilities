@@ -20,6 +20,18 @@ public class ArchiveExtractionTest {
     public TemporaryFolder temporary = new TemporaryFolder();
 
     @Test
+    public void retentionMetadataIsExcludedFromValidationAndBothRestoreModes() throws Exception {
+        for (boolean includeGlobal : new boolean[] { true, false }) {
+            Path root = temporary.newFolder().toPath();
+            Path archive = archiveWithComment("world", "saves/world/level.dat", ICompress.BACKUP_METADATA_ENTRY);
+            ArchiveExtraction.validateRestoreTargets(archive.toFile(), "world", false, includeGlobal);
+            ArchiveExtraction.extract(archive.toFile(), includeGlobal, false, root);
+            assertTrue(Files.exists(root.resolve("saves/world/level.dat")));
+            assertFalse(Files.exists(root.resolve(ICompress.BACKUP_METADATA_ENTRY)));
+        }
+    }
+
+    @Test
     public void includePatternsCannotWriteIntoThePreservedWorld() throws Exception {
         String[] previous = serverutils.ServerUtilitiesConfig.backups.additional_backup_files;
         serverutils.ServerUtilitiesConfig.backups.additional_backup_files = new String[] { "saves/**" };

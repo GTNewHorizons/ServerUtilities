@@ -163,7 +163,7 @@ public class BackwardsCompat {
         ServerUtilities.LOGGER.info("Loading config from LatMod");
         JsonObject latBackup = LATCONFIG.get("backups").getAsJsonObject();
         ServerUtilitiesConfig.backups.enable_backups = latBackup.get("enabled").getAsBoolean();
-        ServerUtilitiesConfig.backups.backup_timer = latBackup.get("backup_timer").getAsDouble();
+        ServerUtilitiesConfig.backups.backup_timer = latBackup.get("backup_timer").getAsString();
         ServerUtilitiesConfig.backups.backups_to_keep = latBackup.get("backups_to_keep").getAsInt();
         ServerUtilitiesConfig.backups.backup_folder_path = latBackup.get("folder").getAsString();
         ServerUtilitiesConfig.backups.use_separate_thread = latBackup.get("use_separate_thread").getAsBoolean();
@@ -178,6 +178,7 @@ public class BackwardsCompat {
                 .getAsBoolean();
 
         ConfigurationManager.save(ServerUtilitiesConfig.class);
+        ServerUtilitiesConfig.migrateBackupTimer(ConfigurationManager.getConfig(ServerUtilitiesConfig.class));
         ServerUtilities.LOGGER.info("Finished loading configs from LatMod");
     }
 
