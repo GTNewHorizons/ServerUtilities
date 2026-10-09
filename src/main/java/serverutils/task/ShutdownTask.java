@@ -11,7 +11,6 @@ import java.util.List;
 import net.minecraft.util.EnumChatFormatting;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import journeymap.shadow.org.eclipse.jetty.io.RuntimeIOException;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.data.Universe;
@@ -50,7 +49,7 @@ public class ShutdownTask extends Task {
             try {
                 executeNormalLogic(universe);
             } catch (FileNotFoundException ex) {
-                throw new RuntimeIOException(ex);
+                throw new RuntimeException(ex);
             }
         }
     }
