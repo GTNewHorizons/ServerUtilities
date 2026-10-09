@@ -67,7 +67,7 @@ public class BackupTask extends Task {
     static {
         BACKUP_FOLDER = backups.backup_folder_path.isEmpty() ? new File("/backups/")
                 : new File(backups.backup_folder_path);
-        if (!BACKUP_FOLDER.exists()) BACKUP_FOLDER.mkdirs();
+        FileUtils.ensureExists(BACKUP_FOLDER);
         // Class initialization runs before any backup worker can own an archive staging file.
         deleteAbandonedArchives(BACKUP_FOLDER);
         clearOldBackups();
@@ -203,7 +203,7 @@ public class BackupTask extends Task {
         File snapshotDir;
         SnapshotStore store;
         try {
-            snapshotDir = SnapshotStore.backupDirectoryFor(worldDir, BACKUP_FOLDER);
+            snapshotDir = SnapshotStore.backupDirectoryFor(BACKUP_FOLDER, worldDir);
             store = SnapshotStore.load(snapshotDir);
             server.getConfigurationManager().saveAllPlayerData();
             saveAndDisableWorldSaving(server.worldServers);
@@ -227,22 +227,35 @@ public class BackupTask extends Task {
             try {
                 SnapshotWriter writer = new SnapshotWriter(store, new SimpleChunkReader());
                 writer.write(worldDir);
-                SnapshotStats stats = writer.getStats();
 
-                sender.addChatMessage(
-                        new ChatComponentText(
-                                String.format(
-                                        "Finished snapshot in %.1fs (New: %s; %d chunks and %d regions unchanged)",
-                                        stats.durationMillis / 1000.0,
-                                        FileUtils.getSizeString(stats.newBytes),
-                                        stats.unmodifiedChunks,
-                                        stats.unmodifiedFiles)));
+                SnapshotStats stats = writer.getStats();
+                long removedBytes = 0;
 
                 // arbitrary, I need to wire
                 if (store.count() > 3) {
                     SnapshotRemover remover = new SnapshotRemover(store);
-                    remover.remove(s -> Collections.singletonList(s.get(0)));
+                    removedBytes = remover.remove(s -> Collections.singletonList(s.get(0)));
                 }
+
+                sender.addChatMessage(
+                        new ChatComponentText(
+                                String.format("Finished snapshot in %.1fs", stats.durationMillis / 1000.0)));
+
+                sender.addChatMessage(
+                        new ChatComponentText(
+                                String.format(
+                                        "Total bytes: %s (+%s / -%s)",
+                                        FileUtils.getSizeString(stats.newBytes - removedBytes),
+                                        FileUtils.getSizeString(stats.newBytes),
+                                        FileUtils.getSizeString(removedBytes))));
+
+                sender.addChatMessage(
+                        new ChatComponentText(
+                                String.format(
+                                        "%d new chunks, %d regions and %d chunks unchanged",
+                                        stats.newChunks,
+                                        stats.unmodifiedFiles,
+                                        stats.unmodifiedChunks)));
             } catch (Exception ex) {
                 ServerUtilities.LOGGER.error("Snapshot failed", ex);
                 sender.addChatMessage(

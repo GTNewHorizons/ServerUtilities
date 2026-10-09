@@ -24,6 +24,8 @@ import java.util.List;
 
 import net.minecraft.world.storage.ThreadedFileIOBase;
 
+import serverutils.lib.util.backup.SnapshotException;
+
 public class FileUtils {
 
     public enum SizeUnit {
@@ -185,11 +187,13 @@ public class FileUtils {
     }
 
     public static String getSizeString(double b) {
-        if (b >= GB.getSize()) {
+        double abs = Math.abs(b);
+
+        if (abs >= GB.getSize()) {
             return String.format("%.1fGB", b / (double) GB.getSize());
-        } else if (b >= MB.getSize()) {
+        } else if (abs >= MB.getSize()) {
             return String.format("%.1fMB", b / (double) MB.getSize());
-        } else if (b >= KB.getSize()) {
+        } else if (abs >= KB.getSize()) {
             return String.format("%.1fKB", b / (double) KB.getSize());
         }
 
@@ -252,6 +256,12 @@ public class FileUtils {
 
             return false;
         });
+    }
+
+    public static void ensureExists(File directory) {
+        if (!directory.isDirectory() && !directory.mkdirs()) {
+            throw new SnapshotException("Failed to create directory " + directory);
+        }
     }
 
     public static String getBaseName(File file) {

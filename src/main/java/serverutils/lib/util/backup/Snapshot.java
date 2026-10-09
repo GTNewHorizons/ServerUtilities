@@ -44,8 +44,8 @@ public class Snapshot {
         return Collections.unmodifiableMap(dimensions);
     }
 
-    public SnapshotJson toJson() {
-        SnapshotJson json = new SnapshotJson();
+    public SnapshotManifest toJson() {
+        SnapshotManifest json = new SnapshotManifest();
         json.createdAt = createdAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         json.completedAt = completedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         json.minecraftVersion = minecraftVersion;
@@ -53,7 +53,7 @@ public class Snapshot {
         json.files = files;
 
         for (SnapshotDimension dimension : dimensions.values()) {
-            SnapshotJson.Dimension dimensionJson = new SnapshotJson.Dimension();
+            SnapshotManifest.Dimension dimensionJson = new SnapshotManifest.Dimension();
             dimensionJson.id = dimension.id;
 
             for (SnapshotRegion region : dimension.getRegions()) {
@@ -71,14 +71,14 @@ public class Snapshot {
     }
 
     /** @param manifests where region manifests are stored, keyed by their hash */
-    public static Snapshot fromJson(ManifestStore manifests, SnapshotJson json) {
+    public static Snapshot fromJson(ManifestStore manifests, SnapshotManifest json) {
         return fromJson(manifests, json, false);
     }
 
-    public static Snapshot fromJson(ManifestStore manifests, SnapshotJson json, boolean strict) {
+    public static Snapshot fromJson(ManifestStore manifests, SnapshotManifest json, boolean strict) {
         Map<Integer, SnapshotDimension> dimensions = new HashMap<>(json.dimensions.size());
 
-        for (SnapshotJson.Dimension dimensionJson : json.dimensions) {
+        for (SnapshotManifest.Dimension dimensionJson : json.dimensions) {
             SnapshotDimension dimension = new SnapshotDimension(dimensionJson.id);
 
             for (Map.Entry<String, ManifestDescriptor> entry : dimensionJson.kinds.regions.entrySet()) {
@@ -102,8 +102,8 @@ public class Snapshot {
         }
 
         return new Snapshot(
-                ZonedDateTime.parse(json.createdAt, DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-                ZonedDateTime.parse(json.completedAt, DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                json.getCreatedAt(),
+                json.getCompletedAt(),
                 json.minecraftVersion,
                 json.modVersion,
                 json.files,

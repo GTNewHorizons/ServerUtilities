@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,11 @@ public class SnapshotRemover {
 
     public SnapshotRemover(SnapshotStore store) {
         this(store, DEFAULT_REWRITE_FRACTION);
+    }
+
+    public static long remove(SnapshotStore store, Snapshot... snapshots) throws IOException {
+        SnapshotRemover remover = new SnapshotRemover(store);
+        return remover.remove((_present) -> Arrays.asList(snapshots));
     }
 
     public long remove(Function<List<Snapshot>, List<Snapshot>> picker) throws IOException {
