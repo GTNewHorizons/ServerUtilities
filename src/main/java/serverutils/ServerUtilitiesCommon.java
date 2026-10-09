@@ -117,6 +117,8 @@ public class ServerUtilitiesCommon {
     public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
         ServerUtilitiesServerEventHandler.clearServerTasks();
         BackupTask.stopBackupThread();
+        // Start cleanup with the server, so background scans cannot race the title-screen restore GUI.
+        BackupTask.clearOldBackups();
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());
@@ -174,7 +176,16 @@ public class ServerUtilitiesCommon {
         Universe universe = Universe.get();
         universe.scheduleTask(new DecayTask(), world.chunk_claiming);
         universe.scheduleTask(new CleanupTask(), tasks.cleanup.enabled);
-        universe.scheduleTask(new BackupTask(), backups.enable_backups);
+        if (backups.enable_backups) {
+            try {
+                universe.scheduleTask(new BackupTask());
+            } catch (IllegalArgumentException ex) {
+                ServerUtilities.LOGGER.error(
+                        "Automatic backups disabled: invalid backup_timer '{}': {}",
+                        backups.backup_timer,
+                        ex.getMessage());
+            }
+        }
         if (auto_shutdown.enabled && auto_shutdown.times.length > 0
                 && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
             universe.scheduleTask(new ShutdownTask());

@@ -17,6 +17,8 @@ import serverutils.lib.util.CommonUtils;
 
 public interface ICompress extends AutoCloseable {
 
+    String BACKUP_METADATA_ENTRY = ".serverutilities-backup.properties";
+
     boolean useLegacy = !CommonUtils.getClassExists("org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream");
 
     void createOutputStream(File file) throws IOException;
