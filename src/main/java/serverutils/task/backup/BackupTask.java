@@ -11,8 +11,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -46,6 +48,11 @@ import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.lib.util.backup.SimpleChunkReader;
+import serverutils.lib.util.backup.SnapshotRemover;
+import serverutils.lib.util.backup.SnapshotStats;
+import serverutils.lib.util.backup.SnapshotStore;
+import serverutils.lib.util.backup.SnapshotWriter;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.task.Task;
 
@@ -62,7 +69,7 @@ public class BackupTask extends Task {
     private static volatile boolean prunePending;
     static volatile Thread retentionThread;
     public static volatile ThreadBackup thread;
-    public static boolean hadPlayer = false;
+    private static Thread snapshotThread;
     private ICommandSender sender;
     private String customName = "";
     private boolean post = false;
@@ -72,10 +79,13 @@ public class BackupTask extends Task {
     private boolean retryRetention;
     private boolean started;
 
+    public static Instant lastSuccessfulBackup = Instant.MIN;
+    public static Instant lastPlayerActivity = Instant.MIN;
+
     static {
         BACKUP_FOLDER = backups.backup_folder_path.isEmpty() ? new File("/backups/")
                 : new File(backups.backup_folder_path);
-        if (!BACKUP_FOLDER.exists()) BACKUP_FOLDER.mkdirs();
+        FileUtils.ensureExists(BACKUP_FOLDER);
         // Class initialization runs before any backup worker can own an archive staging file.
         deleteAbandonedArchives(BACKUP_FOLDER);
         ServerUtilities.LOGGER.info("Backups folder - {}", BACKUP_FOLDER.getAbsolutePath());
@@ -126,29 +136,23 @@ public class BackupTask extends Task {
 
     @Override
     public void execute(Universe universe) {
-        if (post) {
-            postBackup(universe);
-            return;
-        }
-        started = false;
-        if (deferIfBusy()) return;
-        if (!worldSaveStates.isEmpty()) postBackup(universe);
-        boolean auto = sender == null;
-
-        if (auto && !backups.enable_backups) return;
+        if (!backups.enable_backups) return;
 
         MinecraftServer server = universe.server;
-        if (auto && backups.need_online_players) {
-            if (!hasOnlinePlayers(server) && !hadPlayer) return;
+        if (hasOnlinePlayers(server)) lastPlayerActivity = Instant.now();
+
+        if (backups.need_online_players && !lastPlayerActivity.isAfter(lastSuccessfulBackup)) {
+            return;
         }
+
+        started = false;
+        if (deferIfBusy()) return;
 
         synchronized (BackupTask.class) {
             if (deferIfBusy()) return;
             backupPreparing = true;
-            backupHadPlayer = hadPlayer;
-            hadPlayer = false;
         }
-        backupSucceeded = false;
+
         long createdAt = System.currentTimeMillis();
 
         long started = System.nanoTime();
@@ -156,6 +160,28 @@ public class BackupTask extends Task {
         StringBuilder timings = new StringBuilder();
         boolean backupStarted = false;
         boolean snapshotPrepared = false;
+
+
+        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
+
+        BackupRoutine.BackupOptions options = new BackupRoutine.BackupOptions(
+            worldDir,
+            backups.only_backup_claimed_chunks,
+            false,
+            !backups.prefer_speed_over_backup_consistency,
+            backups.use_separate_thread
+        );
+
+        BackupFinalizer finalizer = new BackupFinalizer();
+
+        try (ICompress compressor = ICompress.createCompressor()) {
+            BackupRoutine routine = new BackupRoutine(compressor, options);
+            routine.save(universe, finalizer);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
         try {
             ThreadBackup.validateBackupName(customName);
             if (!customName.isEmpty() || overwrite) ThreadBackup.backupDestination(customName, overwrite);
@@ -163,6 +189,7 @@ public class BackupTask extends Task {
             // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
             server.getConfigurationManager().saveAllPlayerData();
             phase = recordBackupPhase(timings, "player save", phase);
+            universe.disableWorldSaving();
             saveAndDisableWorldSaving(server.worldServers);
             phase = recordBackupPhase(timings, "world save", phase);
 
@@ -172,6 +199,7 @@ public class BackupTask extends Task {
             if (!backups.silent_backup) {
                 BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
             }
+
             Set<ChunkDimPos> backupChunks = new HashSet<>();
             boolean onlyClaimed = this.forceOnlyClaimed || backups.only_backup_claimed_chunks;
             if (onlyClaimed) {
@@ -191,7 +219,8 @@ public class BackupTask extends Task {
             phase = recordBackupPhase(timings, "queued data flush", phase);
             File worldDir = DimensionManager.getCurrentSaveRootDirectory();
             ICompress compressor = ICompress.createCompressor();
-            universe.scheduleTask(new BackupTask(true));
+
+
             if (backups.use_separate_thread) {
                 phase = recordBackupPhase(timings, "setup", phase);
                 // Without a snapshot the worker lists and reads the live files itself, so the server thread does no
@@ -263,9 +292,83 @@ public class BackupTask extends Task {
         return deferred;
     }
 
-    private static void finishPlayerActivity(boolean successful) {
+    public static void finishPlayerActivity(boolean successful) {
         if (!successful) hadPlayer |= backupHadPlayer;
         backupHadPlayer = false;
+    }
+
+    public static void startSnapshot(Universe universe, ICommandSender sender) {
+        if (isBackupRunning() || isWorldSavingSuspended()) {
+            sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
+            return;
+        }
+
+        MinecraftServer server = universe.server;
+        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
+        File snapshotDir;
+        SnapshotStore store;
+        try {
+            snapshotDir = SnapshotStore.backupDirectoryFor(BACKUP_FOLDER, worldDir);
+            store = SnapshotStore.load(snapshotDir);
+            server.getConfigurationManager().saveAllPlayerData();
+            saveAndDisableWorldSaving(server.worldServers);
+            flushChunkSaves(server.worldServers);
+            universe.saveForBackup();
+            drainQueuedWrites();
+        } catch (Exception ex) {
+            if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
+            restoreWorldSaving();
+            ServerUtilities.LOGGER.error("An error occurred while preparing snapshot, Aborting!", ex);
+            sender.addChatMessage(
+                    new ChatComponentText(
+                            EnumChatFormatting.RED + "An error occurred while preparing snapshot. " + ex.getMessage()));
+            return;
+        }
+        universe.scheduleTask(new BackupTask(true));
+
+        // TODO actually add to the lang file
+        // also probably customize the thread class or at least make a helper method
+        snapshotThread = new Thread(() -> {
+            try {
+                SnapshotWriter writer = new SnapshotWriter(store, new SimpleChunkReader());
+                writer.write(worldDir);
+
+                SnapshotStats stats = writer.getStats();
+                long removedBytes = 0;
+
+                // arbitrary, I need to wire
+                if (store.count() > 20) {
+                    SnapshotRemover remover = new SnapshotRemover(store);
+                    removedBytes = remover.remove(s -> Collections.singletonList(s.get(0)));
+                }
+
+                sender.addChatMessage(
+                        new ChatComponentText(
+                                String.format("Finished snapshot in %.1fs", stats.durationMillis / 1000.0)));
+
+                sender.addChatMessage(
+                        new ChatComponentText(
+                                String.format(
+                                        "Total bytes: %s (+%s / -%s)",
+                                        FileUtils.getSizeString(stats.newBytes - removedBytes),
+                                        FileUtils.getSizeString(stats.newBytes),
+                                        FileUtils.getSizeString(removedBytes))));
+
+                sender.addChatMessage(
+                        new ChatComponentText(
+                                String.format(
+                                        "%d new chunks, %d regions and %d chunks unchanged",
+                                        stats.newChunks,
+                                        stats.unmodifiedRegions,
+                                        stats.unmodifiedChunks)));
+            } catch (Exception ex) {
+                ServerUtilities.LOGGER.error("Snapshot failed", ex);
+                sender.addChatMessage(
+                        new ChatComponentText(EnumChatFormatting.RED + "Snapshot failed. " + ex.getMessage()));
+            }
+        }, "ServerUtilities-Snapshot");
+        snapshotThread.start();
+        sender.addChatMessage(new ChatComponentText("Started snapshot"));
     }
 
     private static long recordBackupPhase(StringBuilder timings, String phase, long started) {
@@ -273,103 +376,6 @@ public class BackupTask extends Task {
         if (timings.length() > 0) timings.append("; ");
         timings.append(phase).append('=').append((finished - started) / 1_000_000L).append(" ms");
         return finished;
-    }
-
-    /** Reports retained Hodgepodge failures without requiring that mod, or its newer flush API. */
-    static void drainQueuedWrites() throws Exception {
-        ThreadedFileIOBase.threadedIOInstance.waitForFinish();
-        if (!OtherMods.isHodgepodgeLoaded()) return;
-        Class<?> tweaks;
-        try {
-            tweaks = Class.forName("com.mitchej123.hodgepodge.config.TweaksConfig");
-        } catch (ClassNotFoundException e) {
-            return;
-        }
-        try {
-            if (!tweaks.getField("threadedWorldDataSaving").getBoolean(null)) return;
-        } catch (NoSuchFieldException e) {
-            return;
-        }
-        flushWorldDataSaver(Class.forName("com.mitchej123.hodgepodge.util.WorldDataSaver"));
-    }
-
-    static void flushWorldDataSaver(Class<?> saver) throws Exception {
-        Method flush;
-        try {
-            flush = saver.getMethod("flush");
-        } catch (NoSuchMethodException e) {
-            ServerUtilities.LOGGER.warn(
-                    "Hodgepodge WorldDataSaver has no flush(); queued writes drained, but write failures cannot be confirmed");
-            return;
-        }
-        try {
-            flush.invoke(saver.getField("INSTANCE").get(null));
-        } catch (InvocationTargetException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof Exception) throw (Exception) cause;
-            if (cause instanceof Error) throw (Error) cause;
-            throw new IllegalStateException(cause);
-        }
-    }
-
-    static void flushChunkSaves(WorldServer[] worlds) throws InterruptedException {
-        // Let the worker finish first: concurrent writers can commit older chunk data last.
-        ThreadedFileIOBase.threadedIOInstance.waitForFinish();
-        for (WorldServer world : worlds) {
-            if (world == null) continue;
-            boolean suspended = world.levelSaving;
-            try {
-                world.levelSaving = false;
-                // Vanilla can remove a loader just after new work is submitted to it. Drain that stranded work too.
-                world.saveChunkData();
-            } finally {
-                world.levelSaving = suspended;
-            }
-        }
-        ThreadedFileIOBase.threadedIOInstance.waitForFinish();
-    }
-
-    static void saveAndDisableWorldSaving(WorldServer[] worlds) throws MinecraftException {
-        try {
-            for (WorldServer world : worlds) {
-                if (world == null) continue;
-                worldSaveStates.putIfAbsent(world, world.levelSaving);
-                world.levelSaving = false;
-                world.saveAllChunks(true, null);
-                world.levelSaving = true;
-            }
-            // A suspended world logs its usual "Saving chunks for level" line and then saves nothing, so record the
-            // suspension so missing state restoration can be diagnosed from the log.
-            ServerUtilities.LOGGER.info("Suspended world saving in {} dimensions for backup", worldSaveStates.size());
-        } catch (MinecraftException | RuntimeException ex) {
-            restoreWorldSaving();
-            throw ex;
-        }
-    }
-
-    static void restoreWorldSaving() {
-        if (!worldSaveStates.isEmpty()) {
-            ServerUtilities.LOGGER.info(
-                    "Restored previous world-saving states in {} dimensions after backup",
-                    worldSaveStates.size());
-        }
-        worldSaveStates.forEach((world, levelSaving) -> world.levelSaving = levelSaving);
-        worldSaveStates.clear();
-    }
-
-    public static boolean isWorldSavingSuspended() {
-        return !worldSaveStates.isEmpty();
-    }
-
-    public static void suspendNewWorldSaving(WorldServer world) {
-        if (isWorldSavingSuspended()) {
-            if (worldSaveStates.putIfAbsent(world, world.levelSaving) == null) {
-                ServerUtilities.LOGGER.info(
-                        "Dimension {} loaded during a backup; world saving suspended there until it finishes",
-                        world.provider.dimensionId);
-            }
-            world.levelSaving = true;
-        }
     }
 
     static void deleteAbandonedArchives(File folder) {
@@ -486,6 +492,10 @@ public class BackupTask extends Task {
             ServerUtilities.LOGGER
                     .warn("Legacy backup count limit could not be met: {} backups remain", remainingCount);
         }
+    }
+
+    public static void newPlayerActivity() {
+        lastPlayerActivity = Instant.now();
     }
 
     private static void pruneRetention(String[] policy, boolean deleteCustom, long maxSize) {
@@ -608,16 +618,32 @@ public class BackupTask extends Task {
     public static boolean isBackupRunning() {
         Thread backupWorker = thread;
         Thread retentionWorker = retentionThread;
-        return stopping || (backupWorker != null && backupWorker.isAlive())
-                || (retentionWorker != null && retentionWorker.isAlive());
+        if (stopping) return true;
+        if (backupWorker != null && backupWorker.isAlive()) return true;
+        if (retentionWorker != null && retentionWorker.isAlive()) return true;
+        return snapshotThread != null && snapshotThread.isAlive();
     }
 
     public static void stopBackupThread() {
         Thread[] workers;
         synchronized (BackupTask.class) {
             stopping = true;
-            workers = new Thread[] { thread, retentionThread };
+            workers = new Thread[] { thread, retentionThread, snapshotThread };
         }
+        boolean interrupted = stopThreads(workers);
+        restoreWorldSaving();
+        synchronized (BackupTask.class) {
+            finishPlayerActivity(thread == null ? backupSucceeded : thread.successful);
+            thread = null;
+            retentionThread = null;
+            backupSucceeded = false;
+            prunePending = false;
+            stopping = false;
+        }
+        if (interrupted) Thread.currentThread().interrupt();
+    }
+
+    private static boolean stopThreads(Thread[] workers) {
         boolean interrupted = false;
         for (Thread worker : workers) {
             if (worker == null) continue;
@@ -631,21 +657,14 @@ public class BackupTask extends Task {
                 }
             }
         }
-        restoreWorldSaving();
-        synchronized (BackupTask.class) {
-            finishPlayerActivity(thread == null ? backupSucceeded : thread.successful);
-            thread = null;
-            retentionThread = null;
-            backupSucceeded = false;
-            prunePending = false;
-            stopping = false;
-        }
-        if (interrupted) Thread.currentThread().interrupt();
+        return interrupted;
     }
 
     private boolean hasOnlinePlayers(MinecraftServer server) {
         return !server.getConfigurationManager().playerEntityList.isEmpty();
     }
+
+    // for myself - this method keeps looping thorugh on this task until the thread is done and then passes to cleanp mode
 
     private void postBackup(Universe universe) {
         if (worldSaveStates.isEmpty()) return;
@@ -658,6 +677,7 @@ public class BackupTask extends Task {
         boolean successful = thread == null ? backupSucceeded : thread.successful;
         finishPlayerActivity(successful);
         thread = null;
+        snapshotThread = null;
         backupSucceeded = false;
         restoreWorldSaving();
         if (successful || prunePending) clearOldBackups();

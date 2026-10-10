@@ -65,17 +65,18 @@ public class ThreadBackup extends Thread {
     // Root locale, BackupTask.BACKUP_NAME_PATTERN only matches ASCII digits.
     private static final String DATE_PATTERN = "yyyy-MM-dd-HH-mm-ss";
     private static long logMillis;
+    private final BackupCandidates candidates;
     private final File src0;
     private final String customName;
     private final Set<ChunkDimPos> chunksToBackup;
     private final ICompress compressor;
     private final Snapshot snapshot;
     private final boolean onlyClaimed;
-    private final Map<Integer, File> dimensionFolders;
     private final String worldId;
     private final long createdAt;
     private final boolean overwrite;
     boolean successful;
+    private Runnable callback;
 
     public ThreadBackup(ICompress compress, File sourceFile, String backupName, Set<ChunkDimPos> backupChunks) {
         this(compress, sourceFile, backupName, backupChunks, null);
@@ -109,8 +110,7 @@ public class ThreadBackup extends Thread {
         chunksToBackup = new HashSet<>(backupChunks);
         compressor = compress;
         this.snapshot = snapshot;
-        // Capture provider paths on the calling server thread before starting the backup worker.
-        dimensionFolders = onlyClaimed ? resolveDimensionFolders(sourceFile) : Collections.emptyMap();
+        candidates = BackupCandidates.scanWorld(sourceFile);
         this.onlyClaimed = onlyClaimed;
         this.worldId = worldId;
         this.createdAt = createdAt;
@@ -118,6 +118,7 @@ public class ThreadBackup extends Thread {
         setPriority(7);
     }
 
+    @Override
     public void run() {
         try {
             successful = writeBackup(
@@ -132,8 +133,13 @@ public class ThreadBackup extends Thread {
                     createdAt,
                     overwrite);
         } finally {
+            callback.run();
             if (snapshot != null) deleteSnapshot();
         }
+    }
+
+    public void setCallback(Runnable callback) {
+        this.callback = callback;
     }
 
     private static void addBaseFolderFiles(Map<String, File> files, File saveFile) throws IOException {

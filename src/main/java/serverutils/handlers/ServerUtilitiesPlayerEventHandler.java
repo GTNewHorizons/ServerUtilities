@@ -90,12 +90,12 @@ public class ServerUtilitiesPlayerEventHandler {
             new MessageUpdateTabName(Universe.get().getOnlinePlayers()).sendTo(player);
         }
 
-        BackupTask.hadPlayer = true;
+        BackupTask.newPlayerActivity();
     }
 
     @SubscribeEvent
     public static void onPlayerLoggedOut(ForgePlayerLoggedOutEvent event) {
-        BackupTask.hadPlayer = true;
+        BackupTask.newPlayerActivity();
         EntityPlayerMP player = event.getPlayer().getPlayer();
 
         if (ClaimedChunks.isActive()) {

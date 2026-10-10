@@ -185,11 +185,13 @@ public class FileUtils {
     }
 
     public static String getSizeString(double b) {
-        if (b >= GB.getSize()) {
+        double abs = Math.abs(b);
+
+        if (abs >= GB.getSize()) {
             return String.format("%.1fGB", b / (double) GB.getSize());
-        } else if (b >= MB.getSize()) {
+        } else if (abs >= MB.getSize()) {
             return String.format("%.1fMB", b / (double) MB.getSize());
-        } else if (b >= KB.getSize()) {
+        } else if (abs >= KB.getSize()) {
             return String.format("%.1fKB", b / (double) KB.getSize());
         }
 
@@ -254,6 +256,13 @@ public class FileUtils {
         });
     }
 
+    public static void ensureExists(File directory) {
+        if (directory.exists()) return;
+        if (!directory.isDirectory() && !directory.mkdirs()) {
+            throw new RuntimeException("Failed to create directory " + directory);
+        }
+    }
+
     public static String getBaseName(File file) {
         if (file.isDirectory()) {
             return file.getName();
@@ -262,6 +271,14 @@ public class FileUtils {
             int index = name.lastIndexOf('.');
             return index == -1 ? name : name.substring(0, index);
         }
+    }
+
+    public static boolean isRegionFile(File file) {
+        return file.getName().endsWith(".mca");
+    }
+
+    public static boolean isDimensionFolder(File directory) {
+        return directory.getName().matches("DIM-?\\d+") || new File(directory, "region").isDirectory();
     }
 
     public static String getRelativePath(File file) {
