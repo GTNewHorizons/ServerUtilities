@@ -57,8 +57,7 @@ import serverutils.lib.icon.Icon;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.lib.util.misc.MouseButton;
-import serverutils.task.backup.BackupTask;
-import serverutils.task.backup.ThreadBackup;
+import serverutils.task.backup.BackupRoutine;
 
 @EventBusSubscriber(side = Side.CLIENT)
 public class GuiRestoreBackup extends GuiButtonListBase {
@@ -144,7 +143,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     }
 
     private static boolean needsRefresh() {
-        File[] files = BackupTask.BACKUP_FOLDER.listFiles();
+        File[] files = BackupRoutine.BACKUP_FOLDER.listFiles();
         // A missing folder must still clear backups cached from before it disappeared.
         if (files == null) return !allBackupFiles.isEmpty();
         if (files.length != allBackupFiles.size()) return true;
@@ -165,7 +164,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     }
 
     private static void preProcess() {
-        File[] files = BackupTask.BACKUP_FOLDER.listFiles();
+        File[] files = BackupRoutine.BACKUP_FOLDER.listFiles();
         if (files == null) return;
 
         ICompress compressor = ICompress.createCompressor();
@@ -251,6 +250,8 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         Path recoveryPath = FileUtils.resolveRealPath(previousRoot.getParentFile().toPath());
         Path preservedWorldPath = FileUtils.resolveRealPath(preservedWorld.toPath());
         Path recoveryStorage = FileUtils.resolveRealPath(Paths.get("backups_before_restore"));
+        Path tempStorage = FileUtils.resolveRealPath(BackupRoutine.BACKUP_TEMP_FOLDER.toPath());
+        Path backupStorage = FileUtils.resolveRealPath(BackupRoutine.BACKUP_FOLDER.toPath());
         for (String pattern : backups.additional_backup_files) {
             if (!pattern.contains("$WORLDNAME") && !includeGlobal) {
                 continue;
@@ -287,7 +288,8 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                 if (path.equals(archivePath) || path.startsWith(recoveryPath)
                         || path.startsWith(preservedWorldPath)
                         || path.startsWith(recoveryStorage)
-                        || ThreadBackup.isBackupStorage(file))
+                        || path.startsWith(tempStorage)
+                        || path.startsWith(backupStorage))
                     continue;
                 String pathRelative = FileUtils.getRelativePath(file);
                 File destFile = new File(previousRoot, pathRelative);

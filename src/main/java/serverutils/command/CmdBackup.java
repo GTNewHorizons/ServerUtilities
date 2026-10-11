@@ -1,7 +1,6 @@
 package serverutils.command;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -29,9 +28,7 @@ import serverutils.lib.util.compression.ICompress;
 import serverutils.task.backup.BackupCoordinator;
 import serverutils.task.backup.BackupRetention;
 import serverutils.task.backup.BackupRoutine;
-import serverutils.task.backup.BackupTask;
 import serverutils.task.backup.RetentionRoutine;
-import serverutils.task.backup.ThreadBackup;
 
 public class CmdBackup extends CmdTreeBase {
 
@@ -80,7 +77,7 @@ public class CmdBackup extends CmdTreeBase {
 
     /** Timestamp names already show the date, so only custom names get it spelled out. */
     private static IChatComponent when(BackupRetention.Archive archive, long now) {
-        if (BackupTask.BACKUP_NAME_PATTERN.matcher(archive.file.getName()).matches()) {
+        if (BackupRoutine.BACKUP_NAME_PATTERN.matcher(archive.file.getName()).matches()) {
             return age(archive.created, now);
         }
         return ServerUtilities.lang("cmd.backup_when", date(archive.created), age(archive.created, now));
@@ -97,7 +94,10 @@ public class CmdBackup extends CmdTreeBase {
             if (args.length != 1 || !args[0].equals("preview")) {
                 throw new WrongUsageException(getCommandUsage(sender));
             }
-            replyAsync(sender, CmdBackupPrune::previewRetentionAsync, (plan, error) -> sendPreview(sender, plan, error));
+            replyAsync(
+                    sender,
+                    CmdBackupPrune::previewRetentionAsync,
+                    (plan, error) -> sendPreview(sender, plan, error));
         }
 
         private static CompletableFuture<BackupRetention.Plan> previewRetentionAsync() {
@@ -194,14 +194,13 @@ public class CmdBackup extends CmdTreeBase {
 
             if (!BackupCoordinator.startBackup(routine)) {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
+            } else {
+                sender.addChatMessage(
+                        ServerUtilities.lang(
+                                sender,
+                                "cmd.backup_manual_launch" + (oc ? "_oc" : ""),
+                                sender.getCommandSenderName()));
             }
-
-//            if (task.isDeferred()) {
-//                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
-//            } else if (task.hasStarted()) sender.addChatMessage(
-//                ServerUtilities
-//                    .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
-//            else sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
         }
     }
 
@@ -231,7 +230,7 @@ public class CmdBackup extends CmdTreeBase {
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
             String sizeW = FileUtils.getSizeString(sender.getEntityWorld().getSaveHandler().getWorldDirectory());
-            String sizeT = FileUtils.getSizeString(BackupTask.BACKUP_FOLDER);
+            String sizeT = FileUtils.getSizeString(BackupRoutine.BACKUP_FOLDER);
             sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_size", sizeW, sizeT));
         }
     }

@@ -10,10 +10,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
+import java.util.function.Consumer;
+
 import serverutils.ServerUtilities;
 
 public final class BackupCoordinator {
+
     private static final Object LOCK = BackupCoordinator.class;
     private static final long STOP_TIMEOUT_SECONDS = 30;
 
@@ -31,10 +33,12 @@ public final class BackupCoordinator {
     private static final ExecutorService BACKUP = executor("ServerUtilities backup", 7);
 
     public static boolean isRunning() {
-        synchronized (LOCK) { return backupActive || retentionActive; }
+        synchronized (LOCK) {
+            return backupActive || retentionActive;
+        }
     }
 
-    public static boolean startBackup(BackupRoutine routine) {
+    public static boolean startBackup(BackupRoutine routine, Consumer<Throwable> callback) {
         synchronized (LOCK) {
             if (isBackupBlocked()) return false;
             backupActive = true;
@@ -50,8 +54,15 @@ public final class BackupCoordinator {
         synchronized (LOCK) {
             backupDone = result;
         }
-        result.whenComplete((_v, error) -> completeBackup(error == null));
+        result.whenComplete((_v, error) -> {
+            completeBackup(error == null);
+            callback.accept(error);
+        });
         return true;
+    }
+
+    public static boolean startBackup(BackupRoutine routine) {
+        return startBackup(routine, null);
     }
 
     /** Runs a one-shot retention job now, or fails the future if a backup or retention job is running. */
@@ -166,15 +177,15 @@ public final class BackupCoordinator {
             Thread thread = new Thread(r, name);
             thread.setDaemon(true);
             thread.setPriority(priority);
-            thread.setUncaughtExceptionHandler((t, e) -> {
-                ServerUtilities.LOGGER.error("Uncaught exception in backup thread", e);
-            });
+            thread.setUncaughtExceptionHandler(
+                    (t, e) -> { ServerUtilities.LOGGER.error("Uncaught exception in backup thread", e); });
             return thread;
         });
     }
 
     @FunctionalInterface
     public interface Job<T> {
+
         T run(RetentionRoutine routine) throws IOException;
 
     }

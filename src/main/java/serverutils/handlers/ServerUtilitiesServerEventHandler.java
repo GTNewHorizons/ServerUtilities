@@ -54,7 +54,6 @@ import serverutils.net.MessageUpdatePlayTime;
 import serverutils.net.MessageUpdateTabName;
 import serverutils.pregenerator.ChunkLoaderManager;
 import serverutils.ranks.Ranks;
-import serverutils.task.backup.BackupTask;
 
 @EventBusSubscriber
 public class ServerUtilitiesServerEventHandler {

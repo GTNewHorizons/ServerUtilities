@@ -3,6 +3,7 @@ package serverutils.lib.util;
 import java.io.InterruptedIOException;
 
 public class CancellationToken {
+
     private volatile boolean cancelled;
     private volatile Thread runner;
 

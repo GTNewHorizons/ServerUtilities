@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
 import java.util.concurrent.ConcurrentLinkedQueue;
+
 import javax.annotation.Nullable;
 
 import net.minecraft.command.ICommandSender;
@@ -257,8 +257,8 @@ public class Universe {
         if (isWorldSavingSuspended()) {
             if (worldSaveStates.putIfAbsent(world, world.levelSaving) == null) {
                 ServerUtilities.LOGGER.info(
-                    "Dimension {} loaded during a backup; world saving suspended there until it finishes",
-                    world.provider.dimensionId);
+                        "Dimension {} loaded during a backup; world saving suspended there until it finishes",
+                        world.provider.dimensionId);
             }
             world.levelSaving = true;
         }
@@ -283,8 +283,8 @@ public class Universe {
     public void restoreWorldSaving() {
         if (!worldSaveStates.isEmpty()) {
             ServerUtilities.LOGGER.info(
-                "Restored previous world-saving states in {} dimensions after backup",
-                worldSaveStates.size());
+                    "Restored previous world-saving states in {} dimensions after backup",
+                    worldSaveStates.size());
         }
         worldSaveStates.forEach((world, levelSaving) -> world.levelSaving = levelSaving);
         worldSaveStates.clear();

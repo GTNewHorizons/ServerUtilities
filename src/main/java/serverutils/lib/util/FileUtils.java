@@ -336,32 +336,37 @@ public class FileUtils {
         List<Path> skipped = new ArrayList<>();
         for (Path path : excluded) skipped.add(resolveRealPath(path));
 
-        Files.walkFileTree(start, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(
+                start,
+                EnumSet.of(FileVisitOption.FOLLOW_LINKS),
+                Integer.MAX_VALUE,
+                new SimpleFileVisitor<Path>() {
 
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes) throws IOException {
-                Path real = resolveRealPath(dir);
-                for (Path skip : skipped) {
-                    if (real.startsWith(skip)) return FileVisitResult.SKIP_SUBTREE;
-                }
-                return FileVisitResult.CONTINUE;
-            }
+                    @Override
+                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes)
+                            throws IOException {
+                        Path real = resolveRealPath(dir);
+                        for (Path skip : skipped) {
+                            if (real.startsWith(skip)) return FileVisitResult.SKIP_SUBTREE;
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
 
-            @Override
-            public FileVisitResult visitFile(Path path, BasicFileAttributes attributes) {
-                if (attributes.isRegularFile() && filter.test(path)) found.add(path.toFile());
-                return FileVisitResult.CONTINUE;
-            }
+                    @Override
+                    public FileVisitResult visitFile(Path path, BasicFileAttributes attributes) {
+                        if (attributes.isRegularFile() && filter.test(path)) found.add(path.toFile());
+                        return FileVisitResult.CONTINUE;
+                    }
 
-            @Override
-            public FileVisitResult visitFileFailed(Path path, IOException failure) throws IOException {
-                // Link cycles and files removed mid-walk are not worth failing over.
-                if (failure instanceof FileSystemLoopException || failure instanceof NoSuchFileException) {
-                    return FileVisitResult.CONTINUE;
-                }
-                throw failure;
-            }
-        });
+                    @Override
+                    public FileVisitResult visitFileFailed(Path path, IOException failure) throws IOException {
+                        // Link cycles and files removed mid-walk are not worth failing over.
+                        if (failure instanceof FileSystemLoopException || failure instanceof NoSuchFileException) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                        throw failure;
+                    }
+                });
         return found;
     }
 

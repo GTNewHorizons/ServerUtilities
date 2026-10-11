@@ -16,9 +16,11 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import serverutils.lib.util.FileUtils;
 
 public class BackupCandidates {
+
     public static final String OVERWORLD = "overworld";
 
     private final List<WorldFile> additionalFiles = new ArrayList<>();
@@ -72,13 +74,12 @@ public class BackupCandidates {
     }
 
     public List<WorldFile> getFiles() {
-        return Stream.concat(
-            filesByDimension
-                .values()
-                .stream()
-                .flatMap(Collection::stream),
-            additionalFiles.stream()
-        ).collect(Collectors.toList());
+        return getFiles(worldFile -> true);
+    }
+
+    public List<WorldFile> getFiles(Predicate<WorldFile> predicate) {
+        return Stream.concat(filesByDimension.values().stream().flatMap(Collection::stream), additionalFiles.stream())
+                .filter(predicate).collect(Collectors.toList());
     }
 
     public Map<String, List<WorldFile>> getFilesByDimension() {
@@ -147,8 +148,8 @@ public class BackupCandidates {
     }
 
     private void scan(File directory, File dimensionRoot, String dimension) {
-        if (BackupTask.BACKUP_FOLDER.equals(directory)) return;
-        if (BackupTask.BACKUP_TEMP_FOLDER.equals(directory)) return;
+        if (BackupRoutine.BACKUP_FOLDER.equals(directory)) return;
+        if (BackupRoutine.BACKUP_TEMP_FOLDER.equals(directory)) return;
 
         Path real;
         try {
@@ -170,7 +171,8 @@ public class BackupCandidates {
                 // exists() follows links, so this ignores broken ones.
                 if (!child.exists()) continue;
                 if (!child.isDirectory()) {
-                    WorldFile file = relativeToWorld ? WorldFile.from(scanRoot, child) : WorldFile.from(dimensionRoot, child);
+                    WorldFile file = relativeToWorld ? WorldFile.from(scanRoot, child)
+                            : WorldFile.from(dimensionRoot, child);
                     if (known.add(child.toPath().toAbsolutePath().normalize())) files.add(file);
                 } else if (isSaveRoot && FileUtils.isDimensionFolder(child)) {
                     scan(child, child, child.getName());

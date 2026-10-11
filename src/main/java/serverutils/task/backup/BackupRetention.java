@@ -135,8 +135,7 @@ public final class BackupRetention {
         }
     }
 
-    public static Plan plan(File folder, List<String> policy, boolean deleteCustom, long maxSize)
-            throws IOException {
+    public static Plan plan(File folder, List<String> policy, boolean deleteCustom, long maxSize) throws IOException {
         List<Rule> rules = parse(policy);
         Plan plan = select(readArchives(folder), rules, deleteCustom, maxSize);
         checkInterrupted();

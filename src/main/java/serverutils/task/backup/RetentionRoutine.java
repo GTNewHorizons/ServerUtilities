@@ -1,5 +1,7 @@
 package serverutils.task.backup;
 
+import static serverutils.ServerUtilitiesConfig.backups;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -12,14 +14,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import serverutils.ServerUtilities;
 import serverutils.lib.util.CancellationToken;
 import serverutils.lib.util.FileUtils;
 
-
-import static serverutils.ServerUtilitiesConfig.backups;
-
 public class RetentionRoutine {
+
     private final CancellationToken cancellation = new CancellationToken();
     private final Options options;
 
@@ -31,7 +32,7 @@ public class RetentionRoutine {
         return new RetentionRoutine(Options.fromConfig());
     }
 
-    public void prune()  {
+    public void prune() {
         cancellation.enable();
         try {
             if (options.hasPolicy()) {
@@ -95,8 +96,8 @@ public class RetentionRoutine {
 
         if (maxSize > 0 && remaining > maxSize) {
             ServerUtilities.LOGGER.warn(
-                "Backup rotation size allowance could not be met: {} counted bytes remain; protected backups or failed deletions",
-                remaining);
+                    "Backup rotation size allowance could not be met: {} counted bytes remain; protected backups or failed deletions",
+                    remaining);
         }
         for (Map.Entry<File, String> decision : plan.keep.entrySet()) {
             if (decision.getValue().startsWith("Unrecognized/unreadable")) {
@@ -131,11 +132,11 @@ public class RetentionRoutine {
 
         if (maxSize > 0 && currentSize > maxSize) {
             ServerUtilities.LOGGER.warn(
-                "Legacy backup size limit could not be met: {} bytes remain; latest backups per world or failed deletions",
-                currentSize);
+                    "Legacy backup size limit could not be met: {} bytes remain; latest backups per world or failed deletions",
+                    currentSize);
         } else if (maxSize == 0 && remainingCount > keepCount) {
             ServerUtilities.LOGGER
-                .warn("Legacy backup count limit could not be met: {} backups remain", remainingCount);
+                    .warn("Legacy backup count limit could not be met: {} backups remain", remainingCount);
         }
     }
 
@@ -179,8 +180,9 @@ public class RetentionRoutine {
             return archive.custom && !options.deleteCustom;
         });
 
-        archives.sort(Comparator.comparingLong((BackupRetention.Archive archive) -> archive.file.lastModified())
-            .thenComparing(archive -> archive.file.getName()));
+        archives.sort(
+                Comparator.comparingLong((BackupRetention.Archive archive) -> archive.file.lastModified())
+                        .thenComparing(archive -> archive.file.getName()));
 
         BackupRetention.checkInterrupted();
         return archives;
@@ -191,6 +193,7 @@ public class RetentionRoutine {
     }
 
     public static class Options {
+
         public File backupFolder;
         public List<String> policy;
         public boolean deleteCustom;
@@ -207,12 +210,11 @@ public class RetentionRoutine {
 
         public static Options fromConfig() {
             return new Options(
-                BackupTask.BACKUP_FOLDER,
-                Collections.unmodifiableList(Arrays.asList(backups.retention_policy)),
-                backups.delete_custom_name_backups,
-                backups.max_folder_size,
-                backups.backups_to_keep
-            );
+                    BackupRoutine.BACKUP_FOLDER,
+                    Collections.unmodifiableList(Arrays.asList(backups.retention_policy)),
+                    backups.delete_custom_name_backups,
+                    backups.max_folder_size,
+                    backups.backups_to_keep);
         }
 
         public boolean hasPolicy() {

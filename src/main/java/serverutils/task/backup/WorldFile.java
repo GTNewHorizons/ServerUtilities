@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 public final class WorldFile {
+
     private static final Pattern REGION_PATH = Pattern.compile("region/r\\.-?\\d+\\.-?\\d+\\.mca");
     private final String relativePath;
     private final File backing;
@@ -59,9 +60,8 @@ public final class WorldFile {
         if (obj == this) return true;
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (WorldFile) obj;
-        return Objects.equals(this.relativePath, that.relativePath) &&
-            Objects.equals(this.backing, that.backing) &&
-            Objects.equals(this.kind, that.kind);
+        return Objects.equals(this.relativePath, that.relativePath) && Objects.equals(this.backing, that.backing)
+                && Objects.equals(this.kind, that.kind);
     }
 
     @Override
@@ -71,10 +71,15 @@ public final class WorldFile {
 
     @Override
     public String toString() {
-        return "WorldFile[" +
-            "relativePath=" + relativePath + ", " +
-            "backing=" + backing + ", " +
-            "kind=" + kind + ']';
+        return "WorldFile[" + "relativePath="
+                + relativePath
+                + ", "
+                + "backing="
+                + backing
+                + ", "
+                + "kind="
+                + kind
+                + ']';
     }
 
     public enum Kind {

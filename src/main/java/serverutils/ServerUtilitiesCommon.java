@@ -54,6 +54,7 @@ import serverutils.task.DecayTask;
 import serverutils.task.ShutdownTask;
 import serverutils.task.backup.BackupCoordinator;
 import serverutils.task.backup.BackupTask;
+import serverutils.task.backup.RetentionRoutine;
 
 public class ServerUtilitiesCommon {
 
@@ -118,10 +119,8 @@ public class ServerUtilitiesCommon {
     public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
         ServerUtilitiesServerEventHandler.clearServerTasks();
         BackupCoordinator.stop();
-        //BackupTask.stopBackupThread();
         // Start cleanup with the server, so background scans cannot race the title-screen restore GUI.
-        //BackupTask.clearOldBackups();
-        // TODO MUST DO!
+        RetentionRoutine.fromConfig().prune();
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());
