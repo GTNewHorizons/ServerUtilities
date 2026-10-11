@@ -25,8 +25,12 @@ import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.compression.ICompress;
+import serverutils.task.backup.BackupCoordinator;
 import serverutils.task.backup.BackupRetention;
+import serverutils.task.backup.BackupRoutine;
 import serverutils.task.backup.BackupTask;
+import serverutils.task.backup.RetentionRoutine;
 import serverutils.task.backup.ThreadBackup;
 
 public class CmdBackup extends CmdTreeBase {
@@ -93,7 +97,11 @@ public class CmdBackup extends CmdTreeBase {
             if (args.length != 1 || !args[0].equals("preview")) {
                 throw new WrongUsageException(getCommandUsage(sender));
             }
-            replyAsync(sender, BackupTask::previewRetentionAsync, (plan, error) -> sendPreview(sender, plan, error));
+            replyAsync(sender, CmdBackupPrune::previewRetentionAsync, (plan, error) -> sendPreview(sender, plan, error));
+        }
+
+        private static CompletableFuture<BackupRetention.Plan> previewRetentionAsync() {
+            return BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::preview);
         }
 
         private static void sendPreview(ICommandSender sender, BackupRetention.Plan plan, Throwable error) {
@@ -170,26 +178,30 @@ public class CmdBackup extends CmdTreeBase {
             final String target = Arrays.stream(args)
                     .filter(arg -> !arg.equalsIgnoreCase("=oc") && !arg.equalsIgnoreCase("=overwrite")).findFirst()
                     .orElse("");
+
+            BackupRoutine.Options options = BackupRoutine.Options.fromConfig();
+            options.overwrite = overwrite;
+            options.customName = target.isEmpty() ? null : target;
+
+            ICompress compressor = ICompress.createCompressor();
+            BackupRoutine routine = new BackupRoutine(Universe.get(), compressor, options);
+
             try {
-                ThreadBackup.validateBackupName(target);
-                if (!target.isEmpty() || overwrite) ThreadBackup.backupDestination(target, overwrite);
-            } catch (IOException ex) {
-                throw new WrongUsageException(ex.getMessage());
+                routine.verifyBackupName();
+            } catch (IllegalArgumentException e) {
+                throw new WrongUsageException(e.getMessage());
             }
 
-            final BackupTask task = new BackupTask(sender, target, oc, overwrite);
-
-            if (!BackupTask.isBackupRunning()) {
-                task.execute(Universe.get());
-                if (task.isDeferred()) {
-                    sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
-                } else if (task.hasStarted()) sender.addChatMessage(
-                        ServerUtilities
-                                .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
-                else sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
-            } else {
+            if (!BackupCoordinator.startBackup(routine)) {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
             }
+
+//            if (task.isDeferred()) {
+//                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
+//            } else if (task.hasStarted()) sender.addChatMessage(
+//                ServerUtilities
+//                    .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
+//            else sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
         }
     }
 
@@ -201,8 +213,8 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            if (BackupTask.isBackupRunning()) {
-                BackupTask.stopBackupThread();
+            if (BackupCoordinator.isRunning()) {
+                BackupCoordinator.stop();
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_stop"));
             } else {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_not_running"));
@@ -232,7 +244,11 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            replyAsync(sender, BackupTask::listBackupsAsync, (archives, error) -> sendList(sender, archives, error));
+            replyAsync(sender, CmdBackupList::listBackupsAsync, (archives, error) -> sendList(sender, archives, error));
+        }
+
+        private static CompletableFuture<List<BackupRetention.Archive>> listBackupsAsync() {
+            return BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::list);
         }
 
         private static void sendList(ICommandSender sender, List<BackupRetention.Archive> archives, Throwable error) {

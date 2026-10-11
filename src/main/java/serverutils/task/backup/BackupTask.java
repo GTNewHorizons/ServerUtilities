@@ -1,58 +1,21 @@
 package serverutils.task.backup;
 
 import static serverutils.ServerUtilitiesConfig.backups;
-import static serverutils.ServerUtilitiesNotifications.BACKUP;
-import static serverutils.lib.util.FileUtils.SizeUnit;
+
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
-
-import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.world.MinecraftException;
-import net.minecraft.world.WorldServer;
-import net.minecraft.world.storage.ThreadedFileIOBase;
-import net.minecraftforge.common.DimensionManager;
 
 import serverutils.ServerUtilities;
-import serverutils.data.ClaimedChunks;
-import serverutils.lib.OtherMods;
 import serverutils.lib.data.Universe;
-import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.FileUtils;
-import serverutils.lib.util.ServerUtils;
-import serverutils.lib.util.StringUtils;
-import serverutils.lib.util.backup.SimpleChunkReader;
-import serverutils.lib.util.backup.SnapshotRemover;
-import serverutils.lib.util.backup.SnapshotStats;
-import serverutils.lib.util.backup.SnapshotStore;
-import serverutils.lib.util.backup.SnapshotWriter;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.task.Task;
 
@@ -61,25 +24,12 @@ public class BackupTask extends Task {
     public static final Pattern BACKUP_NAME_PATTERN = BackupRetention.LEGACY_NAME;
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
     public static final File BACKUP_FOLDER;
-    private static final Map<WorldServer, Boolean> worldSaveStates = new IdentityHashMap<>();
-    private static boolean backupSucceeded;
-    private static boolean backupHadPlayer;
-    private static volatile boolean backupPreparing;
-    private static volatile boolean stopping;
-    private static volatile boolean prunePending;
     static volatile Thread retentionThread;
     public static volatile ThreadBackup thread;
-    private static Thread snapshotThread;
-    private ICommandSender sender;
-    private String customName = "";
     private boolean post = false;
     private boolean forceOnlyClaimed = false;
     private boolean overwrite;
-    private boolean deferred;
-    private boolean retryRetention;
-    private boolean started;
 
-    public static Instant lastSuccessfulBackup = Instant.MIN;
     public static Instant lastPlayerActivity = Instant.MIN;
 
     static {
@@ -96,39 +46,6 @@ public class BackupTask extends Task {
         if (getNextTime() < 0) throw new IllegalArgumentException("backup_timer exceeds scheduling range");
     }
 
-    public BackupTask(@Nullable ICommandSender ics, String customName, final boolean forceOnlyClaimed) {
-        this(ics, customName);
-        this.forceOnlyClaimed = forceOnlyClaimed;
-    }
-
-    public BackupTask(@Nullable ICommandSender ics, String customName, boolean forceOnlyClaimed, boolean overwrite) {
-        this(ics, customName, forceOnlyClaimed);
-        this.overwrite = overwrite;
-    }
-
-    public boolean hasStarted() {
-        return started;
-    }
-
-    public boolean isDeferred() {
-        return deferred;
-    }
-
-    @Override
-    public long getInterval() {
-        return retryRetention && sender == null ? Ticks.SECOND.millis() : super.getInterval();
-    }
-
-    public BackupTask(@Nullable ICommandSender ics, String customName) {
-        this.customName = customName;
-        this.sender = ics;
-    }
-
-    public BackupTask(boolean postCleanup) {
-        super(0);
-        this.post = postCleanup;
-    }
-
     @Override
     public boolean isRepeatable() {
         return !post;
@@ -141,241 +58,37 @@ public class BackupTask extends Task {
         MinecraftServer server = universe.server;
         if (hasOnlinePlayers(server)) lastPlayerActivity = Instant.now();
 
-        if (backups.need_online_players && !lastPlayerActivity.isAfter(lastSuccessfulBackup)) {
+        if (backups.need_online_players && !lastPlayerActivity.isAfter(BackupRoutine.getLastSuccessTime())) {
             return;
         }
 
-        started = false;
-        if (deferIfBusy()) return;
+        BackupRoutine.Options options = BackupRoutine.Options.fromConfig();
 
-        synchronized (BackupTask.class) {
-            if (deferIfBusy()) return;
-            backupPreparing = true;
-        }
+        ICompress compressor = ICompress.createCompressor();
+        BackupRoutine routine = new BackupRoutine(universe, compressor, options);
+        boolean isStarted = BackupCoordinator.startBackup(routine);
 
-        long createdAt = System.currentTimeMillis();
-
-        long started = System.nanoTime();
-        long phase = started;
-        StringBuilder timings = new StringBuilder();
-        boolean backupStarted = false;
-        boolean snapshotPrepared = false;
-
-
-        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
-
-        BackupRoutine.BackupOptions options = new BackupRoutine.BackupOptions(
-            worldDir,
-            backups.only_backup_claimed_chunks,
-            false,
-            !backups.prefer_speed_over_backup_consistency,
-            backups.use_separate_thread
-        );
-
-        BackupFinalizer finalizer = new BackupFinalizer();
-
-        try (ICompress compressor = ICompress.createCompressor()) {
-            BackupRoutine routine = new BackupRoutine(compressor, options);
-            routine.save(universe, finalizer);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-
-        try {
-            ThreadBackup.validateBackupName(customName);
-            if (!customName.isEmpty() || overwrite) ThreadBackup.backupDestination(customName, overwrite);
-            // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
-            // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
-            server.getConfigurationManager().saveAllPlayerData();
-            phase = recordBackupPhase(timings, "player save", phase);
-            universe.disableWorldSaving();
-            saveAndDisableWorldSaving(server.worldServers);
-            phase = recordBackupPhase(timings, "world save", phase);
-
-            flushChunkSaves(server.worldServers);
-            phase = recordBackupPhase(timings, "chunk flush", phase);
-
-            if (!backups.silent_backup) {
-                BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
-            }
-
-            Set<ChunkDimPos> backupChunks = new HashSet<>();
-            boolean onlyClaimed = this.forceOnlyClaimed || backups.only_backup_claimed_chunks;
-            if (onlyClaimed) {
-                if (!ClaimedChunks.isActive()) throw new IllegalStateException("Chunk claiming is not active");
-                ClaimedChunks.instance.processQueue();
-                backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
-                // noinspection ResultOfMethodCallIgnored
-                BACKUP_TEMP_FOLDER.mkdirs();
-            }
-
-            phase = recordBackupPhase(timings, "notification and claims", phase);
-            UUID worldId = universe.getUUID();
-            String backupWorldId = worldId == null ? null : worldId.toString();
-            universe.saveForBackup();
-            phase = recordBackupPhase(timings, "SU data save", phase);
-            drainQueuedWrites();
-            phase = recordBackupPhase(timings, "queued data flush", phase);
-            File worldDir = DimensionManager.getCurrentSaveRootDirectory();
-            ICompress compressor = ICompress.createCompressor();
-
-
-            if (backups.use_separate_thread) {
-                phase = recordBackupPhase(timings, "setup", phase);
-                // Without a snapshot the worker lists and reads the live files itself, so the server thread does no
-                // file I/O here, at the cost of files changing while the archive is written.
-                ThreadBackup.Snapshot snapshot = null;
-                if (!backups.prefer_speed_over_backup_consistency) {
-                    snapshot = ThreadBackup.snapshotFiles(worldDir);
-                    recordBackupPhase(timings, "file snapshot", phase);
-                    snapshotPrepared = true;
-                }
-                thread = new ThreadBackup(
-                        compressor,
-                        worldDir,
-                        customName,
-                        backupChunks,
-                        snapshot,
-                        onlyClaimed,
-                        backupWorldId,
-                        createdAt,
-                        overwrite);
-                thread.start();
-                backupStarted = true;
-            } else {
-                phase = recordBackupPhase(timings, "setup", phase);
-                backupSucceeded = ThreadBackup.doBackup(
-                        compressor,
-                        worldDir,
-                        customName,
-                        backupChunks,
-                        null,
-                        onlyClaimed,
-                        backupWorldId,
-                        createdAt,
-                        overwrite);
-                recordBackupPhase(timings, "archive", phase);
-                backupStarted = backupSucceeded;
-            }
-            this.started = backupStarted;
-        } catch (Exception ex) {
-            if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
-            ServerUtils.notifyChat(
-                    server,
-                    null,
-                    new ChatComponentText(
-                            EnumChatFormatting.RED + "An error occurred while preparing backup. " + ex.getMessage()));
-            ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", ex);
-        } finally {
-            if (!backupStarted) {
-                finishPlayerActivity(false);
-                restoreWorldSaving();
-                if (snapshotPrepared) ThreadBackup.deleteSnapshot();
-            } else if (thread == null) finishPlayerActivity(backupSucceeded);
-            backupPreparing = false;
-            ServerUtilities.LOGGER.info(
-                    "Backup server-thread timing: started={}; total={} ms; {}",
-                    backupStarted,
-                    (System.nanoTime() - started) / 1_000_000L,
-                    timings);
-        }
-    }
-
-    private boolean deferIfBusy() {
-        Thread backupWorker = thread;
-        Thread scanWorker = retentionThread;
-        boolean backupBusy = backupPreparing || stopping || (backupWorker != null && backupWorker.isAlive());
-        boolean scanBusy = scanWorker != null && scanWorker.isAlive();
-        deferred = backupBusy || scanBusy;
-        retryRetention = scanBusy && !backupBusy;
-        return deferred;
-    }
-
-    public static void finishPlayerActivity(boolean successful) {
-        if (!successful) hadPlayer |= backupHadPlayer;
-        backupHadPlayer = false;
-    }
-
-    public static void startSnapshot(Universe universe, ICommandSender sender) {
-        if (isBackupRunning() || isWorldSavingSuspended()) {
-            sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
-            return;
-        }
-
-        MinecraftServer server = universe.server;
-        File worldDir = DimensionManager.getCurrentSaveRootDirectory();
-        File snapshotDir;
-        SnapshotStore store;
-        try {
-            snapshotDir = SnapshotStore.backupDirectoryFor(BACKUP_FOLDER, worldDir);
-            store = SnapshotStore.load(snapshotDir);
-            server.getConfigurationManager().saveAllPlayerData();
-            saveAndDisableWorldSaving(server.worldServers);
-            flushChunkSaves(server.worldServers);
-            universe.saveForBackup();
-            drainQueuedWrites();
-        } catch (Exception ex) {
-            if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
-            restoreWorldSaving();
-            ServerUtilities.LOGGER.error("An error occurred while preparing snapshot, Aborting!", ex);
-            sender.addChatMessage(
-                    new ChatComponentText(
-                            EnumChatFormatting.RED + "An error occurred while preparing snapshot. " + ex.getMessage()));
-            return;
-        }
-        universe.scheduleTask(new BackupTask(true));
-
-        // TODO actually add to the lang file
-        // also probably customize the thread class or at least make a helper method
-        snapshotThread = new Thread(() -> {
-            try {
-                SnapshotWriter writer = new SnapshotWriter(store, new SimpleChunkReader());
-                writer.write(worldDir);
-
-                SnapshotStats stats = writer.getStats();
-                long removedBytes = 0;
-
-                // arbitrary, I need to wire
-                if (store.count() > 20) {
-                    SnapshotRemover remover = new SnapshotRemover(store);
-                    removedBytes = remover.remove(s -> Collections.singletonList(s.get(0)));
-                }
-
-                sender.addChatMessage(
-                        new ChatComponentText(
-                                String.format("Finished snapshot in %.1fs", stats.durationMillis / 1000.0)));
-
-                sender.addChatMessage(
-                        new ChatComponentText(
-                                String.format(
-                                        "Total bytes: %s (+%s / -%s)",
-                                        FileUtils.getSizeString(stats.newBytes - removedBytes),
-                                        FileUtils.getSizeString(stats.newBytes),
-                                        FileUtils.getSizeString(removedBytes))));
-
-                sender.addChatMessage(
-                        new ChatComponentText(
-                                String.format(
-                                        "%d new chunks, %d regions and %d chunks unchanged",
-                                        stats.newChunks,
-                                        stats.unmodifiedRegions,
-                                        stats.unmodifiedChunks)));
-            } catch (Exception ex) {
-                ServerUtilities.LOGGER.error("Snapshot failed", ex);
-                sender.addChatMessage(
-                        new ChatComponentText(EnumChatFormatting.RED + "Snapshot failed. " + ex.getMessage()));
-            }
-        }, "ServerUtilities-Snapshot");
-        snapshotThread.start();
-        sender.addChatMessage(new ChatComponentText("Started snapshot"));
-    }
-
-    private static long recordBackupPhase(StringBuilder timings, String phase, long started) {
-        long finished = System.nanoTime();
-        if (timings.length() > 0) timings.append("; ");
-        timings.append(phase).append('=').append((finished - started) / 1_000_000L).append(" ms");
-        return finished;
+//        } catch (Exception ex) {
+//            if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
+//            ServerUtils.notifyChat(
+//                    server,
+//                    null,
+//                    new ChatComponentText(
+//                            EnumChatFormatting.RED + "An error occurred while preparing backup. " + ex.getMessage()));
+//            ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", ex);
+//        } finally {
+//            if (!backupStarted) {
+//                finishPlayerActivity(false);
+//                restoreWorldSaving();
+//                if (snapshotPrepared) ThreadBackup.deleteSnapshot();
+//            } else if (thread == null) finishPlayerActivity(backupSucceeded);
+//            backupPreparing = false;
+//            ServerUtilities.LOGGER.info(
+//                    "Backup server-thread timing: started={}; total={} ms; {}",
+//                    backupStarted,
+//                    (System.nanoTime() - started) / 1_000_000L,
+//                    timings);
+//        }
     }
 
     static void deleteAbandonedArchives(File folder) {
@@ -395,292 +108,11 @@ public class BackupTask extends Task {
         return file.getName().startsWith(".su-save-") && file.getName().endsWith(".tmp");
     }
 
-    public static synchronized void clearOldBackups() {
-        prunePending = true;
-        if (hasRetentionPolicy()) {
-            String[] policy = backups.retention_policy.clone();
-            boolean deleteCustom = backups.delete_custom_name_backups;
-            long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
-            if (startRetentionTask(() -> pruneRetention(policy, deleteCustom, maxSize))) prunePending = false;
-            return;
-        }
-        int keepCount = backups.backups_to_keep;
-        long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
-        boolean deleteCustom = backups.delete_custom_name_backups;
-        if (startRetentionTask(() -> pruneLegacy(keepCount, maxSize, deleteCustom))) prunePending = false;
-    }
-
-    private static void pruneLegacy(int keepCount, long maxSize, boolean deleteCustom) {
-        if (maxSize < 0) {
-            ServerUtilities.LOGGER.warn("Skipping legacy backup pruning: negative size limit");
-            return;
-        }
-        try {
-            List<BackupRetention.Archive> backupFiles = readLegacyBackups(BACKUP_FOLDER, deleteCustom);
-            if (hasRetentionPolicy() || keepCount != backups.backups_to_keep
-                    || deleteCustom != backups.delete_custom_name_backups
-                    || maxSize != backups.max_folder_size * SizeUnit.GB.getSize()) {
-                ServerUtilities.LOGGER.info("Retention settings changed; skipping stale legacy pruning plan");
-                return;
-            }
-            clearLegacyBackups(backupFiles, keepCount, maxSize);
-        } catch (InterruptedIOException ex) {
-            ServerUtilities.LOGGER.info("Backup retention cancelled");
-        } catch (IOException ex) {
-            ServerUtilities.LOGGER.warn("Skipping legacy backup pruning: {}", ex.getMessage());
-        }
-    }
-
-    static List<BackupRetention.Archive> readLegacyBackups(File folder, boolean deleteCustom) throws IOException {
-        File[] files = folder.listFiles();
-        if (files == null) throw new IOException("Cannot list backup folder: " + folder);
-        List<BackupRetention.Archive> backupFiles = new ArrayList<>();
-        for (File file : files) {
-            BackupRetention.checkInterrupted();
-            if (!file.getName().endsWith(".zip") || !Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS))
-                continue;
-            try {
-                BackupRetention.Archive archive = BackupRetention.read(file, file.length());
-                if (archive.created > System.currentTimeMillis()) {
-                    ServerUtilities.LOGGER.warn("Preserving future-dated backup {}", file);
-                } else if (deleteCustom || !archive.custom) backupFiles.add(archive);
-            } catch (IOException | RuntimeException ex) {
-                ServerUtilities.LOGGER.warn("Preserving unrecognized/unreadable backup {}: {}", file, ex.getMessage());
-            }
-        }
-        backupFiles.sort(
-                Comparator.comparingLong((BackupRetention.Archive archive) -> archive.file.lastModified())
-                        .thenComparing(archive -> archive.file.getName()));
-        BackupRetention.checkInterrupted();
-        return backupFiles;
-    }
-
-    static void clearLegacyBackups(List<BackupRetention.Archive> backupFiles, int keepCount, long maxSize)
-            throws InterruptedIOException {
-        if (maxSize < 0) {
-            ServerUtilities.LOGGER.warn("Skipping legacy backup pruning: negative size limit");
-            return;
-        }
-        long currentSize = backupFiles.stream().mapToLong(archive -> archive.file.length()).sum();
-        int remainingCount = backupFiles.size();
-        Set<String> worlds = new HashSet<>();
-        Set<File> latest = new HashSet<>();
-        for (int i = backupFiles.size() - 1; i >= 0; i--) {
-            BackupRetention.Archive archive = backupFiles.get(i);
-            if (worlds.add(archive.world)) latest.add(archive.file);
-        }
-        for (BackupRetention.Archive archive : backupFiles) {
-            BackupRetention.checkInterrupted();
-            if (maxSize > 0 ? currentSize <= maxSize : remainingCount <= Math.max(1, keepCount)) break;
-            File file = archive.file;
-            if (latest.contains(file)) continue;
-            long size = file.length();
-            try {
-                Files.delete(file.toPath());
-                currentSize -= size;
-                remainingCount--;
-                ServerUtilities.LOGGER.info("Deleted old backup: {}", file);
-            } catch (IOException ex) {
-                ServerUtilities.LOGGER.warn("Could not delete old backup {}", file, ex);
-            }
-        }
-        if (maxSize > 0 && currentSize > maxSize) {
-            ServerUtilities.LOGGER.warn(
-                    "Legacy backup size limit could not be met: {} bytes remain; latest backups per world or failed deletions",
-                    currentSize);
-        } else if (maxSize == 0 && remainingCount > Math.max(1, keepCount)) {
-            ServerUtilities.LOGGER
-                    .warn("Legacy backup count limit could not be met: {} backups remain", remainingCount);
-        }
-    }
-
     public static void newPlayerActivity() {
         lastPlayerActivity = Instant.now();
     }
 
-    private static void pruneRetention(String[] policy, boolean deleteCustom, long maxSize) {
-        try {
-            BackupRetention.Plan plan = retentionPlan(policy, deleteCustom, maxSize);
-            if (!Arrays.equals(policy, backups.retention_policy) || deleteCustom != backups.delete_custom_name_backups
-                    || maxSize != backups.max_folder_size * SizeUnit.GB.getSize()) {
-                ServerUtilities.LOGGER.info("Retention settings changed; skipping stale pruning plan");
-                return;
-            }
-            clearRetentionBackups(plan, maxSize);
-            for (Map.Entry<File, String> decision : plan.keep.entrySet()) {
-                if (decision.getValue().startsWith("Unrecognized/unreadable")) {
-                    ServerUtilities.LOGGER.warn("Preserving backup {}: {}", decision.getKey(), decision.getValue());
-                }
-            }
-        } catch (InterruptedIOException ex) {
-            ServerUtilities.LOGGER.info("Backup retention cancelled");
-        } catch (IOException | IllegalArgumentException | ArithmeticException ex) {
-            ServerUtilities.LOGGER.warn("Skipping backup pruning: {}", ex.getMessage());
-        }
-    }
-
-    static void clearRetentionBackups(BackupRetention.Plan plan, long maxSize) throws InterruptedIOException {
-        long remaining = 0;
-        for (File file : plan.keep.keySet()) {
-            if (!plan.sizeExempt.contains(file)) remaining += file.length();
-        }
-        for (File file : plan.delete.keySet()) remaining += file.length();
-        Map<File, String> candidates = new LinkedHashMap<>(plan.delete);
-        for (File file : plan.sizeCandidates) candidates.putIfAbsent(file, "Folder size limit");
-        for (Map.Entry<File, String> decision : candidates.entrySet()) {
-            BackupRetention.checkInterrupted();
-            File file = decision.getKey();
-            if (!plan.delete.containsKey(file) && (maxSize <= 0 || remaining <= maxSize)) continue;
-            long size = file.length();
-            try {
-                Files.delete(file.toPath());
-                remaining -= size;
-                ServerUtilities.LOGGER.info("Deleted old backup: {} ({})", file, decision.getValue());
-            } catch (IOException ex) {
-                ServerUtilities.LOGGER.warn("Could not delete old backup {}", file, ex);
-            }
-        }
-        if (maxSize > 0 && remaining > maxSize) {
-            ServerUtilities.LOGGER.warn(
-                    "Backup rotation size allowance could not be met: {} counted bytes remain; protected backups or failed deletions",
-                    remaining);
-        }
-    }
-
-    // ponytail: one retention worker serializes scans and deletion; no preview queue to grow without bound.
-    static synchronized boolean startRetentionTask(Runnable task) {
-        if (backupPreparing || isBackupRunning() || isWorldSavingSuspended()) return false;
-        retentionThread = new Thread(() -> {
-            try {
-                task.run();
-            } finally {
-                synchronized (BackupTask.class) {
-                    if (prunePending && !stopping) {
-                        retentionThread = null;
-                        clearOldBackups();
-                    }
-                }
-            }
-        }, "ServerUtilities backup retention");
-        retentionThread.setDaemon(true);
-        retentionThread.start();
-        return true;
-    }
-
-    private static boolean hasRetentionPolicy() {
-        return backups.retention_policy != null && backups.retention_policy.length > 0;
-    }
-
-    private static BackupRetention.Plan retentionPlan(String[] policy, boolean deleteCustom, long maxSize)
-            throws IOException {
-        return BackupRetention.plan(BACKUP_FOLDER, policy, System.currentTimeMillis(), deleteCustom, maxSize);
-    }
-
-    public static BackupRetention.Plan previewRetention() throws IOException {
-        if (!hasRetentionPolicy())
-            throw new IllegalArgumentException("retention_policy is empty; legacy retention is active");
-        return retentionPlan(
-                backups.retention_policy.clone(),
-                backups.delete_custom_name_backups,
-                backups.max_folder_size * SizeUnit.GB.getSize());
-    }
-
-    public static CompletableFuture<BackupRetention.Plan> previewRetentionAsync() {
-        if (!hasRetentionPolicy())
-            throw new IllegalArgumentException("retention_policy is empty; legacy retention is active");
-        String[] policy = backups.retention_policy.clone();
-        boolean deleteCustom = backups.delete_custom_name_backups;
-        long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return retentionPlan(policy, deleteCustom, maxSize);
-            } catch (IOException ex) {
-                throw new CompletionException(ex);
-            }
-        }, BackupTask::executeRetentionTask);
-    }
-
-    public static CompletableFuture<List<BackupRetention.Archive>> listBackupsAsync() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return BackupRetention.readArchives(BACKUP_FOLDER);
-            } catch (IOException ex) {
-                throw new CompletionException(ex);
-            }
-        }, BackupTask::executeRetentionTask);
-    }
-
-    private static void executeRetentionTask(Runnable task) {
-        if (!startRetentionTask(task))
-            throw new RejectedExecutionException("Backup or retention scan is already running");
-    }
-
-    public static boolean isBackupRunning() {
-        Thread backupWorker = thread;
-        Thread retentionWorker = retentionThread;
-        if (stopping) return true;
-        if (backupWorker != null && backupWorker.isAlive()) return true;
-        if (retentionWorker != null && retentionWorker.isAlive()) return true;
-        return snapshotThread != null && snapshotThread.isAlive();
-    }
-
-    public static void stopBackupThread() {
-        Thread[] workers;
-        synchronized (BackupTask.class) {
-            stopping = true;
-            workers = new Thread[] { thread, retentionThread, snapshotThread };
-        }
-        boolean interrupted = stopThreads(workers);
-        restoreWorldSaving();
-        synchronized (BackupTask.class) {
-            finishPlayerActivity(thread == null ? backupSucceeded : thread.successful);
-            thread = null;
-            retentionThread = null;
-            backupSucceeded = false;
-            prunePending = false;
-            stopping = false;
-        }
-        if (interrupted) Thread.currentThread().interrupt();
-    }
-
-    private static boolean stopThreads(Thread[] workers) {
-        boolean interrupted = false;
-        for (Thread worker : workers) {
-            if (worker == null) continue;
-            worker.interrupt();
-            while (worker.isAlive()) {
-                try {
-                    worker.join();
-                } catch (InterruptedException ex) {
-                    interrupted = true;
-                    worker.interrupt();
-                }
-            }
-        }
-        return interrupted;
-    }
-
     private boolean hasOnlinePlayers(MinecraftServer server) {
         return !server.getConfigurationManager().playerEntityList.isEmpty();
-    }
-
-    // for myself - this method keeps looping thorugh on this task until the thread is done and then passes to cleanp mode
-
-    private void postBackup(Universe universe) {
-        if (worldSaveStates.isEmpty()) return;
-        if (thread != null && thread.isAlive()) {
-            setNextTime(System.currentTimeMillis() + Ticks.SECOND.millis());
-            universe.scheduleTask(this);
-            return;
-        }
-
-        boolean successful = thread == null ? backupSucceeded : thread.successful;
-        finishPlayerActivity(successful);
-        thread = null;
-        snapshotThread = null;
-        backupSucceeded = false;
-        restoreWorldSaving();
-        if (successful || prunePending) clearOldBackups();
-        FileUtils.delete(BACKUP_TEMP_FOLDER);
     }
 }

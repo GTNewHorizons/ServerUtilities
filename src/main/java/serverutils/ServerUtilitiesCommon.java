@@ -52,6 +52,7 @@ import serverutils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.task.CleanupTask;
 import serverutils.task.DecayTask;
 import serverutils.task.ShutdownTask;
+import serverutils.task.backup.BackupCoordinator;
 import serverutils.task.backup.BackupTask;
 
 public class ServerUtilitiesCommon {
@@ -116,9 +117,11 @@ public class ServerUtilitiesCommon {
 
     public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
         ServerUtilitiesServerEventHandler.clearServerTasks();
-        BackupTask.stopBackupThread();
+        BackupCoordinator.stop();
+        //BackupTask.stopBackupThread();
         // Start cleanup with the server, so background scans cannot race the title-screen restore GUI.
-        BackupTask.clearOldBackups();
+        //BackupTask.clearOldBackups();
+        // TODO MUST DO!
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());
@@ -162,7 +165,7 @@ public class ServerUtilitiesCommon {
     }
 
     public void onServerStopping(FMLServerStoppingEvent event) {
-        BackupTask.stopBackupThread();
+        BackupCoordinator.stop();
         // Save the universe since onServerStopping clears the instance variable
         Universe oldUniverse = Universe.get();
         Universe.onServerStopping(event);

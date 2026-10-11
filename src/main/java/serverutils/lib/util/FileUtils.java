@@ -10,17 +10,25 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemLoopException;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.function.Predicate;
 
 import net.minecraft.world.storage.ThreadedFileIOBase;
 
@@ -304,6 +312,65 @@ public class FileUtils {
         while (pattern.contains("/./")) pattern = pattern.replace("/./", "/");
         if (pattern.endsWith("/.")) pattern = pattern.substring(0, pattern.length() - 2);
         return pattern;
+    }
+
+    /**
+     * Finds every regular file matched by {@code pattern}, resolved against the run folder. A pattern without wildcards
+     * selects that file or everything below that directory; otherwise it is a glob. Links are followed, directories
+     * whose real path lies under one of {@code excluded} are not entered, and missing paths are ignored.
+     */
+    public static List<File> findMatching(String pattern, Path... excluded) throws IOException {
+        pattern = normalizeBackupPattern(pattern);
+        int wildcard = indexOfWildcard(pattern);
+        if (wildcard < 0) return findFiles(Paths.get(pattern), path -> true, excluded);
+
+        // Walk from the last directory the pattern names before its first wildcard.
+        String root = pattern.substring(0, pattern.lastIndexOf('/', wildcard) + 1);
+        PathMatcher glob = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+        return findFiles(Paths.get(root.isEmpty() ? "." : root), path -> glob.matches(path.normalize()), excluded);
+    }
+
+    private static List<File> findFiles(Path start, Predicate<Path> filter, Path... excluded) throws IOException {
+        List<File> found = new ArrayList<>();
+        if (Files.notExists(start)) return found;
+        List<Path> skipped = new ArrayList<>();
+        for (Path path : excluded) skipped.add(resolveRealPath(path));
+
+        Files.walkFileTree(start, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes) throws IOException {
+                Path real = resolveRealPath(dir);
+                for (Path skip : skipped) {
+                    if (real.startsWith(skip)) return FileVisitResult.SKIP_SUBTREE;
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attributes) {
+                if (attributes.isRegularFile() && filter.test(path)) found.add(path.toFile());
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path path, IOException failure) throws IOException {
+                // Link cycles and files removed mid-walk are not worth failing over.
+                if (failure instanceof FileSystemLoopException || failure instanceof NoSuchFileException) {
+                    return FileVisitResult.CONTINUE;
+                }
+                throw failure;
+            }
+        });
+        return found;
+    }
+
+    /** Returns the index of the first glob special character in {@code pattern}, or -1 if it is a plain path. */
+    public static int indexOfWildcard(String pattern) {
+        for (int i = 0; i < pattern.length(); i++) {
+            if ("*?[{".indexOf(pattern.charAt(i)) >= 0) return i;
+        }
+        return -1;
     }
 
     public static boolean matchesBackupPath(Path path, String pattern) {

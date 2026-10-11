@@ -62,7 +62,7 @@ public final class BackupRetention {
         }
     }
 
-    static List<Rule> parse(String[] policy) {
+    static List<Rule> parse(List<String> policy) {
         List<Rule> rules = new ArrayList<>();
         for (String value : policy) {
             String[] parts = value == null ? new String[0] : value.trim().split(":", -1);
@@ -135,10 +135,10 @@ public final class BackupRetention {
         }
     }
 
-    public static Plan plan(File folder, String[] policy, long now, boolean deleteCustom, long maxSize)
+    public static Plan plan(File folder, List<String> policy, boolean deleteCustom, long maxSize)
             throws IOException {
         List<Rule> rules = parse(policy);
-        Plan plan = select(readArchives(folder), rules, now, deleteCustom, maxSize);
+        Plan plan = select(readArchives(folder), rules, deleteCustom, maxSize);
         checkInterrupted();
         return plan;
     }
@@ -173,7 +173,8 @@ public final class BackupRetention {
         if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup retention cancelled");
     }
 
-    static Plan select(List<Archive> input, List<Rule> rules, long now, boolean deleteCustom, long maxSize) {
+    static Plan select(List<Archive> input, List<Rule> rules, boolean deleteCustom, long maxSize) {
+        long now = System.currentTimeMillis();
         List<Archive> archives = new ArrayList<>(input);
         archives.sort(
                 Comparator.comparingLong((Archive archive) -> archive.created).reversed()

@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import serverutils.task.backup.BackupTask;
+import serverutils.task.backup.BackupCoordinator;
 
 @Mixin(MinecraftServer.class)
 public abstract class MixinMinecraftServer_BackupShutdown {
@@ -21,12 +21,12 @@ public abstract class MixinMinecraftServer_BackupShutdown {
                     target = "Lcpw/mods/fml/common/FMLCommonHandler;handleServerStopping()V",
                     remap = false))
     private void serverutilities$stopBackupBeforeModSaves(CallbackInfo ci) {
-        BackupTask.stopBackupThread();
+        BackupCoordinator.stop();
     }
 
     // Crash shutdown skips FMLServerStoppingEvent, but still calls stopServer before its final save.
     @Inject(method = "stopServer", at = @At("HEAD"))
     private void serverutilities$stopBackup(CallbackInfo ci) {
-        BackupTask.stopBackupThread();
+        BackupCoordinator.stop();
     }
 }

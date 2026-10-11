@@ -3,8 +3,6 @@ package serverutils.task.backup;
 import java.io.File;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
-import serverutils.lib.util.backup.SnapshotEntry;
 
 public final class WorldFile {
     private static final Pattern REGION_PATH = Pattern.compile("region/r\\.-?\\d+\\.-?\\d+\\.mca");
@@ -12,15 +10,10 @@ public final class WorldFile {
     private final File backing;
     private final Kind kind;
 
-    private final long size;
-    private final long mtime;
-
     public WorldFile(String relativePath, File backing, Kind kind) {
         this.relativePath = relativePath;
         this.backing = backing;
         this.kind = kind;
-        this.size = backing.length();
-        this.mtime = backing.lastModified();
     }
 
     /**
@@ -47,13 +40,6 @@ public final class WorldFile {
 
     public long size() {
         return backing.length();
-    }
-
-    public boolean isUnmodified(@Nullable SnapshotEntry entry) {
-        if (entry == null) return false;
-        if (entry.kind() != kind()) return false;
-        if (entry.mtime() != mtime()) return false;
-        return entry.size() == size();
     }
 
     public String relativePath() {

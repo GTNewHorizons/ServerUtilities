@@ -110,7 +110,7 @@ public class ThreadBackup extends Thread {
         chunksToBackup = new HashSet<>(backupChunks);
         compressor = compress;
         this.snapshot = snapshot;
-        candidates = BackupCandidates.scanWorld(sourceFile);
+        candidates = BackupCandidates.scanWorld(sourceFile, true);
         this.onlyClaimed = onlyClaimed;
         this.worldId = worldId;
         this.createdAt = createdAt;
@@ -120,22 +120,7 @@ public class ThreadBackup extends Thread {
 
     @Override
     public void run() {
-        try {
-            successful = writeBackup(
-                    compressor,
-                    src0,
-                    customName,
-                    chunksToBackup,
-                    snapshot,
-                    onlyClaimed,
-                    dimensionFolders,
-                    worldId,
-                    createdAt,
-                    overwrite);
-        } finally {
-            callback.run();
-            if (snapshot != null) deleteSnapshot();
-        }
+
     }
 
     public void setCallback(Runnable callback) {
