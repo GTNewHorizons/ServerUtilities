@@ -33,6 +33,8 @@ import serverutils.lib.util.backup.SnapshotRestorer;
 import serverutils.lib.util.backup.SnapshotStore;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.task.backup.BackupCoordinator;
+import serverutils.task.backup.BackupEntry;
+import serverutils.task.backup.BackupResult;
 import serverutils.task.backup.BackupRetention;
 import serverutils.task.backup.BackupRoutine;
 import serverutils.task.backup.RetentionRoutine;
@@ -84,11 +86,11 @@ public class CmdBackup extends CmdTreeBase {
     }
 
     /** Timestamp names already show the date, so only custom names get it spelled out. */
-    private static IChatComponent when(BackupRetention.Archive archive, long now) {
-        if (BackupRoutine.BACKUP_NAME_PATTERN.matcher(archive.file.getName()).matches()) {
-            return age(archive.created, now);
+    private static IChatComponent when(BackupEntry entry, long now) {
+        if (BackupRoutine.BACKUP_NAME_PATTERN.matcher(entry.id()).matches()) {
+            return age(entry.createdAt(), now);
         }
-        return ServerUtilities.lang("cmd.backup_when", date(archive.created), age(archive.created, now));
+        return ServerUtilities.lang("cmd.backup_when", date(entry.createdAt()), age(entry.createdAt(), now));
     }
 
     public static class CmdBackupPrune extends CmdBase {
@@ -108,11 +110,12 @@ public class CmdBackup extends CmdTreeBase {
                     (plan, error) -> sendPreview(sender, plan, error));
         }
 
-        private static CompletableFuture<BackupRetention.Plan> previewRetentionAsync() {
+        private static CompletableFuture<BackupRetention.Plan<? extends BackupEntry>> previewRetentionAsync() {
             return BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::preview);
         }
 
-        private static void sendPreview(ICommandSender sender, BackupRetention.Plan plan, Throwable error) {
+        private static <T extends BackupEntry> void sendPreview(ICommandSender sender, BackupRetention.Plan<T> plan,
+                Throwable error) {
             if (error != null) {
                 sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_error", error.getMessage()));
                 return;
@@ -120,17 +123,16 @@ public class CmdBackup extends CmdTreeBase {
             long now = System.currentTimeMillis();
             long deletedSize = 0;
             sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_header"));
-            for (BackupRetention.Archive archive : plan.archives()) {
-                File file = archive.file;
-                boolean delete = plan.delete.containsKey(file);
-                if (delete) deletedSize += archive.size;
+            for (T entry : plan.entries()) {
+                boolean delete = plan.delete.containsKey(entry);
+                if (delete) deletedSize += entry.size();
                 IChatComponent status = ServerUtilities
                         .lang(delete ? "cmd.backup_prune_delete" : "cmd.backup_prune_keep");
                 status.getChatStyle().setColor(
                         delete ? EnumChatFormatting.RED
-                                : plan.isPreserved(file) ? EnumChatFormatting.YELLOW : EnumChatFormatting.GREEN);
-                long until = plan.keptUntil(file);
-                String[] label = plan.label(file);
+                                : plan.isPreserved(entry) ? EnumChatFormatting.YELLOW : EnumChatFormatting.GREEN);
+                long until = plan.keptUntil(entry);
+                String[] label = plan.label(entry);
                 IChatComponent reason = ServerUtilities
                         .lang(label[0], (Object[]) Arrays.copyOfRange(label, 1, label.length));
                 if (until >= 0) reason = ServerUtilities.lang("cmd.backup_prune_until", reason, date(until));
@@ -138,9 +140,9 @@ public class CmdBackup extends CmdTreeBase {
                         ServerUtilities.lang(
                                 "cmd.backup_prune_entry",
                                 status,
-                                file.getName(),
-                                FileUtils.getSizeString(archive.size),
-                                when(archive, now),
+                                entry.id(),
+                                FileUtils.getSizeString(entry.size()),
+                                when(entry, now),
                                 reason));
             }
             sender.addChatMessage(
@@ -228,7 +230,7 @@ public class CmdBackup extends CmdTreeBase {
                 throw new WrongUsageException(e.getMessage());
             }
 
-            if (!BackupCoordinator.startBackup(routine)) {
+            if (!BackupCoordinator.startBackup(routine, result -> outputResult(sender, result))) {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
             } else {
                 sender.addChatMessage(
@@ -237,6 +239,40 @@ public class CmdBackup extends CmdTreeBase {
                                 "cmd.backup_manual_launch" + (oc ? "_oc" : ""),
                                 sender.getCommandSenderName()));
             }
+        }
+
+        private void outputResult(ICommandSender sender, BackupResult result) {
+            if (!result.isSuccess()) {
+                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
+                return;
+            }
+
+            // only incremental reports the output in chat
+            if (!result.save.isIncremental) return;
+
+            BackupResult.Save saveResult = result.save;
+            long bytesRemoved = result.retention == null ? 0 : result.retention.bytesRemoved;
+
+            sender.addChatMessage(
+                    new ChatComponentText(
+                            String.format("Finished snapshot in %.1fs", saveResult.duration.toMillis() / 1000.0)));
+
+            sender.addChatMessage(
+                    new ChatComponentText(
+                            String.format(
+                                    "Total bytes: %s (+%s / -%s)",
+                                    FileUtils.getSizeString(saveResult.bytes - bytesRemoved),
+                                    FileUtils.getSizeString(saveResult.bytes),
+                                    FileUtils.getSizeString(bytesRemoved))));
+
+            sender.addChatMessage(
+                    new ChatComponentText(
+                            String.format(
+                                    "%d new chunks, %d regions, %d chunks and %d files unchanged",
+                                    saveResult.newFiles,
+                                    saveResult.unmodifiedRegions,
+                                    saveResult.unmodifiedChunks,
+                                    saveResult.unmodifiedFiles)));
         }
     }
 
@@ -282,11 +318,11 @@ public class CmdBackup extends CmdTreeBase {
             replyAsync(sender, CmdBackupList::listBackupsAsync, (archives, error) -> sendList(sender, archives, error));
         }
 
-        private static CompletableFuture<List<BackupRetention.Archive>> listBackupsAsync() {
+        private static CompletableFuture<List<? extends BackupEntry>> listBackupsAsync() {
             return BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::list);
         }
 
-        private static void sendList(ICommandSender sender, List<BackupRetention.Archive> archives, Throwable error) {
+        private static void sendList(ICommandSender sender, List<? extends BackupEntry> archives, Throwable error) {
             if (error != null) {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_list_error", error.getMessage()));
                 return;
@@ -301,20 +337,18 @@ public class CmdBackup extends CmdTreeBase {
                             sender,
                             "cmd.backup_list_header",
                             archives.size(),
-                            FileUtils.getSizeString(archives.stream().mapToLong(archive -> archive.size).sum())));
+                            FileUtils.getSizeString(archives.stream().mapToLong(BackupEntry::size).sum())));
 
             long now = System.currentTimeMillis();
             archives.stream()
-                    .sorted(
-                            Comparator.comparingLong((BackupRetention.Archive archive) -> archive.created)
-                                    .thenComparing(archive -> archive.file.getName()))
+                    .sorted(Comparator.comparingLong(BackupEntry::createdAt).thenComparing(BackupEntry::id))
                     .forEach(
                             archive -> sender.addChatMessage(
                                     ServerUtilities.lang(
                                             sender,
                                             "cmd.backup_list_file",
-                                            archive.file.getName(),
-                                            FileUtils.getSizeString(archive.size),
+                                            archive.id(),
+                                            FileUtils.getSizeString(archive.size()),
                                             when(archive, now))));
         }
     }

@@ -1,5 +1,9 @@
 package serverutils.task.backup;
 
+import static serverutils.ServerUtilities.LOGGER;
+import static serverutils.ServerUtilitiesConfig.backups;
+import static serverutils.ServerUtilitiesNotifications.BACKUP;
+
 import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
@@ -12,7 +16,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
+import net.minecraft.util.EnumChatFormatting;
+
 import serverutils.ServerUtilities;
+import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.StringUtils;
 
 public final class BackupCoordinator {
 
@@ -30,7 +38,7 @@ public final class BackupCoordinator {
     private static CompletableFuture<?> retentionDone;
 
     private static final ExecutorService PRUNER = executor("ServerUtilities backup retention", Thread.NORM_PRIORITY);
-    private static final ExecutorService BACKUP = executor("ServerUtilities backup", 7);
+    private static final ExecutorService BACKUP_EXECUTOR = executor("ServerUtilities backup", 7);
 
     public static boolean isRunning() {
         synchronized (LOCK) {
@@ -38,15 +46,15 @@ public final class BackupCoordinator {
         }
     }
 
-    public static boolean startBackup(BackupRoutine routine, Consumer<Throwable> callback) {
+    public static boolean startBackup(BackupRoutine routine, Consumer<BackupResult> callback) {
         synchronized (LOCK) {
             if (isBackupBlocked()) return false;
             backupActive = true;
             activeBackup = routine;
         }
-        CompletableFuture<Void> result;
+        CompletableFuture<BackupResult.Save> result;
         try {
-            result = routine.save(BACKUP);
+            result = routine.save(BACKUP_EXECUTOR);
         } catch (RuntimeException e) {
             completeBackup(false);
             throw e;
@@ -54,10 +62,24 @@ public final class BackupCoordinator {
         synchronized (LOCK) {
             backupDone = result;
         }
-        result.whenComplete((_v, error) -> {
-            completeBackup(error == null);
-            callback.accept(error);
+
+        // The save future records failures on its result rather than completing exceptionally.
+        result.thenCompose(save -> completeBackup(save.isSuccess()).handle((retention, error) -> {
+            if (error != null) {
+                LOGGER.error("Backup retention failed", error);
+                retention = new BackupResult.Retention();
+                retention.error = error;
+                retention.finished();
+            }
+            return new BackupResult(save, retention);
+        })).thenAccept(backup -> {
+            notifyFinished(backup);
+            if (callback != null) callback.accept(backup);
+        }).exceptionally(t -> {
+            LOGGER.error("Failed to report backup result", t);
+            return null;
         });
+
         return true;
     }
 
@@ -101,14 +123,11 @@ public final class BackupCoordinator {
         }
     }
 
-    private static void runPendingPrune() {
+    private static CompletableFuture<BackupResult.Retention> runPendingPrune() {
         RetentionRoutine routine = pendingRoutine;
-        if (routine == null || isRetentionBlocked()) return;
+        if (routine == null || isRetentionBlocked()) return CompletableFuture.completedFuture(null);
         pendingRoutine = null;
-        startRetention(routine, () -> {
-            routine.prune();
-            return null;
-        });
+        return startRetention(routine, routine::prune);
     }
 
     private static <T> CompletableFuture<T> startRetention(RetentionRoutine routine, Callable<T> work) {
@@ -145,6 +164,27 @@ public final class BackupCoordinator {
         return future == null ? CompletableFuture.completedFuture(null) : future;
     }
 
+    private static void notifyFinished(BackupResult result) {
+        BackupResult.Save save = result.save;
+        if (!save.isSuccess()) return;
+        String size = FileUtils.getSizeString(save.bytes);
+
+        LOGGER.info("Backup done in {} ({})!", save.getDoneTime(), size);
+        LOGGER.info("Created {} from {}", save.destination.getAbsolutePath(), save.world.getAbsolutePath());
+
+        if (backups.display_file_size) {
+            String sizeT = FileUtils.getSizeString(BackupRoutine.BACKUP_FOLDER);
+            BACKUP.sendAll(
+                    StringUtils.color(
+                            "cmd.backup_end_2",
+                            EnumChatFormatting.LIGHT_PURPLE,
+                            save.getDoneTime(),
+                            (size.equals(sizeT) ? size : (size + " | " + sizeT))));
+        } else {
+            BACKUP.sendAll(StringUtils.color("cmd.backup_end_1", EnumChatFormatting.LIGHT_PURPLE, save.getDoneTime()));
+        }
+    }
+
     private static boolean isBackupBlocked() {
         return backupActive || stopping;
     }
@@ -153,13 +193,13 @@ public final class BackupCoordinator {
         return backupActive || retentionActive || stopping;
     }
 
-    private static void completeBackup(boolean success) {
+    private static CompletableFuture<BackupResult.Retention> completeBackup(boolean success) {
         synchronized (LOCK) {
             backupActive = false;
             activeBackup = null;
             backupDone = null;
             if (success && pendingRoutine == null) pendingRoutine = RetentionRoutine.fromConfig();
-            runPendingPrune();
+            return runPendingPrune();
         }
     }
 

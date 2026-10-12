@@ -102,6 +102,13 @@ public class FileUtils {
         }
     }
 
+    public static File getFileWithoutCollision(File directory, String name, Function<Integer, String> appender) {
+        int i = 1;
+        File file = new File(directory, name);
+        while (file.exists()) file = new File(directory, appender.apply(i++));
+        return file;
+    }
+
     public static Path createSaveTemporary(Path target) throws IOException {
         // Keep replacement contents private until their final permissions are applied after writing.
         // New files retain ordinary creation permissions, filtered by umask.
