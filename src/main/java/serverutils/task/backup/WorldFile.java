@@ -3,6 +3,7 @@ package serverutils.task.backup;
 import java.io.File;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import serverutils.lib.util.backup.SnapshotEntry;
 
 public final class WorldFile {
 
@@ -53,6 +54,12 @@ public final class WorldFile {
 
     public Kind kind() {
         return kind;
+    }
+
+    public boolean isUnmodified(SnapshotEntry entry) {
+        if (entry == null) return false;
+        if (entry.kind() != kind) return false;
+        return entry.mtime() == mtime() && entry.size() == size();
     }
 
     @Override

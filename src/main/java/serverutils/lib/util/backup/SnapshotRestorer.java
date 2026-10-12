@@ -91,8 +91,7 @@ public class SnapshotRestorer {
         Path destinationPath = destination.toPath();
 
         Path oldPath = Paths.get(destinationPath + "_old");
-        int i = 1;
-        while (oldPath.toFile().exists()) oldPath = Paths.get(oldPath.toString() + i++);
+        while (oldPath.toFile().exists()) oldPath = Paths.get(oldPath + "_old");
 
         if (!destination.exists()) {
             Files.move(sourcePath, destinationPath, StandardCopyOption.ATOMIC_MOVE);

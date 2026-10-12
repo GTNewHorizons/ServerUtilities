@@ -28,6 +28,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import net.minecraft.world.storage.ThreadedFileIOBase;

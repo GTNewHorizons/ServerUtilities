@@ -5,8 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NavigableMap;
+import serverutils.task.backup.WorldFile;
 
-public final class SnapshotRegion implements Hashable {
+public final class SnapshotRegion implements SnapshotEntry {
 
     public final String name;
     public final long mtime;
@@ -64,6 +65,21 @@ public final class SnapshotRegion implements Hashable {
             }
         }
         return bytes;
+    }
+
+    @Override
+    public long mtime() {
+        return mtime;
+    }
+
+    @Override
+    public long size() {
+        return size;
+    }
+
+    @Override
+    public WorldFile.Kind kind() {
+        return WorldFile.Kind.REGION;
     }
 
     private NavigableMap<Integer, ChunkBlob.Metadata> chunks() {

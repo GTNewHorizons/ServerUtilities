@@ -326,6 +326,9 @@ public class ServerUtilitiesConfig {
         @Config.DefaultBoolean(true)
         public boolean enable_backups;
 
+        @Config.DefaultBoolean(true)
+        public boolean incremental_backups;
+
         @Config.Comment("""
                 Time between backups. Examples: 30m, 1h, 6h, 1d.
                 Units: s=seconds, m=minutes, h=hours, d=24 hours, w=7 days. Positive integers only; minimum 1s.

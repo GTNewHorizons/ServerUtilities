@@ -11,9 +11,16 @@ public class SnapshotStats {
     public long dedupedBytes;
 
     public int unmodifiedChunks;
-    public int unmodifiedFiles;
+    public int unmodifiedRegions;
 
     /** Counts for the non-region files of the world. */
     public int newMiscFiles;
     public int unmodifiedMiscFiles;
+
+    public void unmodified(SnapshotEntry entry) {
+        switch (entry.kind()) {
+            case REGION -> unmodifiedRegions++;
+            case MISC -> unmodifiedMiscFiles++;
+        }
+    }
 }

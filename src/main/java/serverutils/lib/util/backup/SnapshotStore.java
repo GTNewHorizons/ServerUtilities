@@ -7,10 +7,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import net.minecraftforge.common.DimensionManager;
 import serverutils.ServerUtilities;
 import serverutils.lib.util.FileUtils;
+import serverutils.task.backup.BackupRoutine;
 
 public class SnapshotStore {
 
@@ -42,6 +45,11 @@ public class SnapshotStore {
         return new SnapshotStore(root);
     }
 
+    public static SnapshotStore loadFromSession() throws IOException {
+        File currentSave = Objects.requireNonNull(DimensionManager.getCurrentSaveRootDirectory());
+        return load(new File(BackupRoutine.BACKUP_FOLDER, currentSave.getName()));
+    }
+
     /** Region manifests */
     public PackStore manifests() {
         return manifestStore;
@@ -67,15 +75,23 @@ public class SnapshotStore {
         return new File(backupsRoot, worldDirectory.getName());
     }
 
+    public Snapshot find(String name) {
+        String fileName = name.endsWith(".json") ? name : name + ".json";
+        return listManifest()
+            .stream()
+            .filter(m -> m.getName().equals(fileName))
+            .findFirst()
+            .map(manifest -> Snapshot.fromJson(this, manifest))
+            .orElse(null);
+    }
+
     public Snapshot findLatest() {
-        reloadManifests();
         List<SnapshotManifest> files = listManifest();
         if (files.isEmpty()) return null;
         return Snapshot.fromJson(this, files.get(files.size() - 1));
     }
 
     public Snapshot findOldest() {
-        reloadManifests();
         List<SnapshotManifest> files = listManifest();
         if (files.isEmpty()) return null;
         return Snapshot.fromJson(this, files.get(0));
@@ -86,11 +102,11 @@ public class SnapshotStore {
     }
 
     public List<Snapshot> listAll() {
-        reloadManifests();
         return listManifest().stream().map(json -> Snapshot.fromJson(this, json, true)).collect(Collectors.toList());
     }
 
     public List<SnapshotManifest> listManifest() {
+        reloadManifests();
         File[] files = root.listFiles(f -> f.isFile() && Snapshot.FILE_PATTERN.matcher(f.getName()).matches());
         if (files == null || files.length == 0) return Collections.emptyList();
 

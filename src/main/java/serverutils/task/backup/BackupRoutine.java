@@ -45,6 +45,11 @@ import serverutils.lib.util.CancellationToken;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.lib.util.backup.ChunkReader;
+import serverutils.lib.util.backup.SimpleChunkReader;
+import serverutils.lib.util.backup.Snapshot;
+import serverutils.lib.util.backup.SnapshotStore;
+import serverutils.lib.util.backup.SnapshotWriter;
 import serverutils.lib.util.compression.ICompress;
 
 // my pending code:
@@ -204,7 +209,7 @@ public class BackupRoutine {
         try {
             if (candidates == null) candidates = getCandidates();
             if (isIncremental) {
-                throw new UnsupportedOperationException("Incremental backups are not supported yet");
+                doSnapshotSave(candidates);
             } else {
                 doArchiveSave(universe, candidates);
             }
@@ -218,8 +223,11 @@ public class BackupRoutine {
         }
     }
 
-    private void doSnapshotSave(Universe universe) {
-        // implement in future PR
+    private void doSnapshotSave(BackupCandidates candidates) throws IOException {
+        SnapshotStore store = SnapshotStore.load(new File(options.backupsDirectory, options.world.getName()));
+        ChunkReader reader = new SimpleChunkReader();
+        SnapshotWriter writer = new SnapshotWriter(store, reader);
+        writer.write(candidates);
     }
 
     private void doArchiveSave(Universe universe, BackupCandidates candidates) throws IOException {
@@ -560,7 +568,7 @@ public class BackupRoutine {
                     BACKUP_FOLDER,
                     DimensionManager.getCurrentSaveRootDirectory(),
                     ServerUtilitiesConfig.backups.only_backup_claimed_chunks,
-                    false,
+                    backups.incremental_backups,
                     !backups.prefer_speed_over_backup_consistency,
                     backups.use_separate_thread,
                     Arrays.asList(backups.additional_backup_files),

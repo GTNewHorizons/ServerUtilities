@@ -1,6 +1,8 @@
 package serverutils.command;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -14,9 +16,11 @@ import java.util.function.Supplier;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.network.rcon.RConConsoleSource;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
+import net.minecraftforge.common.DimensionManager;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
@@ -24,6 +28,9 @@ import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.backup.Snapshot;
+import serverutils.lib.util.backup.SnapshotRestorer;
+import serverutils.lib.util.backup.SnapshotStore;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.task.backup.BackupCoordinator;
 import serverutils.task.backup.BackupRetention;
@@ -39,6 +46,7 @@ public class CmdBackup extends CmdTreeBase {
         addSubcommand(new CmdBackupGetSize("getsize"));
         addSubcommand(new CmdBackupPrune());
         addSubcommand(new CmdBackupList());
+        addSubcommand(new CmdBackupRestore());
     }
 
     private static String date(long millis) {
@@ -161,6 +169,34 @@ public class CmdBackup extends CmdTreeBase {
                 IChatComponent warning = ServerUtilities.lang("cmd.backup_prune_limit");
                 warning.getChatStyle().setColor(EnumChatFormatting.YELLOW);
                 sender.addChatMessage(warning);
+            }
+        }
+    }
+
+    public static class CmdBackupRestore extends CmdBase {
+        public CmdBackupRestore() {
+            // this command creates entire new worlds and thus should only be allowed by the server
+            super("restore", Level.SERVER);
+        }
+
+        @Override
+        public void processCommand(ICommandSender sender, String[] args) {
+            String backupName = args[0];
+
+            try {
+                SnapshotStore snapshotStore = SnapshotStore.loadFromSession();
+                Snapshot snapshot = snapshotStore.find(backupName);
+                if (snapshot == null) {
+                    sender.addChatMessage(new ChatComponentText("Backup not found"));
+                    return;
+                }
+
+                File currentSave = DimensionManager.getCurrentSaveRootDirectory();
+                File savesFolder = FMLCommonHandler.instance().getSavesDirectory();
+                File backupSave = FileUtils.getFileWithoutCollision(savesFolder, currentSave.getName() + "-command-restored", Object::toString);
+                SnapshotRestorer.restore(snapshotStore, snapshot, backupSave);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
     }

@@ -6,19 +6,16 @@ import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.github.bsideup.jabel.Desugar;
-
 import cpw.mods.fml.common.Loader;
 import serverutils.ServerUtilities;
+import serverutils.task.backup.BackupCandidates;
+import serverutils.task.backup.WorldFile;
 
 public class SnapshotWriter {
 
@@ -40,14 +37,10 @@ public class SnapshotWriter {
         return stats;
     }
 
-    public Snapshot write(File source) {
-        if (!source.isDirectory()) throw new IllegalArgumentException("Not a directory");
-
+    public Snapshot write(BackupCandidates candidates) {
         long started = System.nanoTime();
         stats = new SnapshotStats();
         ZonedDateTime createdAt = ZonedDateTime.now(ZoneOffset.UTC);
-
-        List<SourceDimension> sources = discoverDimensions(source);
 
         File packs = store.packsDirectory;
         File filePacks = store.filesDirectory;
@@ -66,17 +59,19 @@ public class SnapshotWriter {
 
         Snapshot previous = store.findLatest();
 
+        Map<String, List<WorldFile>> filesByDimension = candidates.getFilesByDimension();
         Map<String, SnapshotDimension> dimensions = new HashMap<>();
         try (PackWriter packWriter = new PackWriter(packs, known);
                 PackWriter fileWriter = new PackWriter(filePacks, knownFiles);
                 PackWriter manifestWriter = new PackWriter(manifestPacks, knownManifests)) {
-            for (SourceDimension sourceDimension : sources) {
-                SnapshotDimension previousDimension = previous == null ? null
-                        : previous.getDimension(sourceDimension.id);
-                dimensions.put(
-                        sourceDimension.id,
-                        writeDimension(sourceDimension, previousDimension, packWriter, fileWriter, manifestWriter));
+
+            for (String dimensionId : candidates.dimensions()) {
+                List<WorldFile> files = filesByDimension.get(dimensionId);
+                SnapshotDimension previousDim = previous == null ? null : previous.getDimension(dimensionId);
+                SnapshotDimension newDim = writeDimension(dimensionId, files, previousDim, packWriter, fileWriter, manifestWriter);
+                dimensions.put(dimensionId, newDim);
             }
+
             stats.newChunks = packWriter.getBlobsWritten();
             stats.newMiscFiles = fileWriter.getBlobsWritten();
             stats.newBytes = packWriter.getBytesWritten() + fileWriter.getBytesWritten();
@@ -106,59 +101,47 @@ public class SnapshotWriter {
                 stats.dedupedChunks,
                 stats.dedupedBytes,
                 stats.unmodifiedChunks,
-                stats.unmodifiedFiles,
+                stats.unmodifiedRegions,
                 stats.unmodifiedMiscFiles);
         return snapshot;
     }
 
-    private SnapshotDimension writeDimension(SourceDimension source, SnapshotDimension previous, PackWriter packWriter,
+    private SnapshotDimension writeDimension(String id, List<WorldFile> files, SnapshotDimension previous, PackWriter packWriter,
             PackWriter fileWriter, PackWriter manifestWriter) throws IOException {
-        SnapshotDimension dimension = new SnapshotDimension(source.id);
+        SnapshotDimension dimension = new SnapshotDimension(id);
 
-        for (File regionFile : source.regionFiles) {
+        for (WorldFile file : files) {
             if (Thread.currentThread().isInterrupted()) throw new SnapshotException("Snapshot was interrupted");
+            if (file.name().equals(SESSION_LOCK)) continue;
 
-            String name = SnapshotRegion.nameOf(regionFile);
-            SnapshotRegion previousRegion = previous == null ? null : previous.getRegion(name);
+            SnapshotEntry previousEntry = previous == null ? null : previous.getEntry(file);
 
-            if (previousRegion != null && previousRegion.mtime == regionFile.lastModified()
-                    && previousRegion.size == regionFile.length()) {
-                dimension.addRegion(previousRegion);
-                stats.unmodifiedFiles++;
+            if (file.isUnmodified(previousEntry)) {
+                dimension.addEntry(previousEntry);
+                stats.unmodified(previousEntry);
                 continue;
             }
 
-            dimension.addRegion(writeRegion(regionFile, name, previousRegion, packWriter, manifestWriter));
-        }
-
-        for (SourceFile file : source.files) {
-            if (Thread.currentThread().isInterrupted()) throw new SnapshotException("Snapshot was interrupted");
-
-            SnapshotFile previousFile = previous == null ? null : previous.getFile(file.path);
-
-            // I don't believe any file should hit this size, if it is hitting this size it (likely) shouldn't be backed
-            // up anyway
-            // if in the future there is a valid use case here, file can be chunked, but that involves changing up the
-            // blob format
-            if (file.file.length() > MAX_FILE_SIZE) {
-                ServerUtilities.LOGGER.warn(
-                        "File {} is too large to be saved in a snapshot. This file will be skipped in this version of ServerUtilities.",
-                        file);
-                continue;
+            File backing = file.backing();
+            switch (file.kind()) {
+                case REGION -> dimension.addRegion(writeRegion(backing, SnapshotRegion.nameOf(backing), (SnapshotRegion)previousEntry, packWriter, manifestWriter));
+                case MISC -> {
+                    if (file.size() > MAX_FILE_SIZE) {
+                        ServerUtilities.LOGGER.warn(
+                            "File {} is too large to be saved in a snapshot. This file will be skipped in this version of ServerUtilities.",
+                            file);
+                        continue;
+                    }
+                    dimension.addFile(writeFile(file, fileWriter));
+                }
             }
-
-            dimension.addFile(writeFile(file, previousFile, fileWriter));
         }
 
         return dimension;
     }
 
-    private SnapshotFile writeFile(SourceFile source, SnapshotFile previous, PackWriter fileWriter) throws IOException {
-        File file = source.file;
-        if (previous != null && previous.mtime() == file.lastModified() && previous.size() == file.length()) {
-            stats.unmodifiedMiscFiles++;
-            return previous;
-        }
+    private SnapshotFile writeFile(WorldFile source, PackWriter fileWriter) throws IOException {
+        File file = source.backing();
 
         if (file.length() > MAX_FILE_SIZE) {
             throw new SnapshotException("File " + file + " is too large to be saved in a snapshot");
@@ -191,7 +174,7 @@ public class SnapshotWriter {
 
         SHAHash hash = SHAHash.compute(compression, stored);
         fileWriter.add(hash, compression, ByteBuffer.wrap(stored));
-        return new SnapshotFile(source.path, hash, data.length, mtime);
+        return new SnapshotFile(source.relativePath(), hash, data.length, mtime);
     }
 
     private SnapshotRegion writeRegion(File regionFile, String name, SnapshotRegion previousRegion,
@@ -238,60 +221,4 @@ public class SnapshotWriter {
         manifestWriter.add(region);
         return region;
     }
-
-    private static List<SourceDimension> discoverDimensions(File worldDirectory) {
-        File[] directories = worldDirectory.listFiles(File::isDirectory);
-        if (directories == null) throw new SnapshotException(
-                "No regions or dimensions were found in world folder, likely the specified world folder is incorrect");
-
-        // the overworld always exists, its folder is the world folder itself (level.dat is saved even without regions)
-        List<SourceDimension> discovered = new ArrayList<>();
-        discovered.add(sourceDimension(SnapshotDimension.OVERWORLD, worldDirectory, true));
-
-        for (File directory : directories) {
-            if (isDimensionFolder(directory)) discovered.add(sourceDimension(directory.getName(), directory, false));
-        }
-        return discovered;
-    }
-
-    private static boolean isDimensionFolder(File directory) {
-        return directory.getName().startsWith("DIM") || new File(directory, "region").isDirectory();
-    }
-
-    private static SourceDimension sourceDimension(String id, File directory, boolean isWorldFolder) {
-        File[] regionFiles = new File(directory, "region").listFiles(f -> f.getName().endsWith(".mca"));
-
-        List<SourceFile> files = new ArrayList<>();
-        collectFiles(directory, directory, files, isWorldFolder);
-        return new SourceDimension(
-                id,
-                regionFiles != null ? Arrays.asList(regionFiles) : Collections.emptyList(),
-                files);
-    }
-
-    private static void collectFiles(File root, File directory, List<SourceFile> out, boolean isWorldFolder) {
-        File[] children = directory.listFiles();
-        if (children == null) return;
-
-        boolean isTopLevel = root == directory;
-
-        for (File child : children) {
-            String name = child.getName();
-            if (child.isDirectory()) {
-                if (isTopLevel && (name.equals("region") || (isWorldFolder && isDimensionFolder(child)))) {
-                    continue;
-                }
-                collectFiles(root, child, out, isWorldFolder);
-            } else if (!name.equals(SESSION_LOCK) && child.isFile()) {
-                String path = root.toPath().relativize(child.toPath()).toString().replace(File.separatorChar, '/');
-                out.add(new SourceFile(path, child));
-            }
-        }
-    }
-
-    @Desugar
-    private record SourceFile(String path, File file) {}
-
-    @Desugar
-    private record SourceDimension(String id, List<File> regionFiles, List<SourceFile> files) {}
 }

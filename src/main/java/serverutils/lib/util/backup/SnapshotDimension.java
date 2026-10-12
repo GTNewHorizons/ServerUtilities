@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import serverutils.task.backup.WorldFile;
 
 /** The regions and other files of one dimension as recorded by a snapshot. */
 public class SnapshotDimension {
@@ -32,12 +33,27 @@ public class SnapshotDimension {
         regions.put(region.name, region);
     }
 
+    public void addEntry(SnapshotEntry entry) {
+        if (entry instanceof SnapshotRegion region) {
+            regions.put(region.name, region);
+        } else if (entry instanceof SnapshotFile file) {
+            files.put(file.path(), file);
+        }
+    }
+
     public List<SnapshotFile> getFiles() {
         return new ArrayList<>(files.values());
     }
 
     public SnapshotFile getFile(String path) {
         return files.get(path);
+    }
+
+    public SnapshotEntry getEntry(WorldFile file) {
+        return switch (file.kind()) {
+            case REGION -> regions.get(SnapshotRegion.nameOf(file.backing()));
+            case MISC -> files.get(file.relativePath());
+        };
     }
 
     public void addFile(SnapshotFile file) {
