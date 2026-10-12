@@ -47,7 +47,7 @@ import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.backup.ChunkReader;
 import serverutils.lib.util.backup.SimpleChunkReader;
-import serverutils.lib.util.backup.Snapshot;
+import serverutils.lib.util.backup.SnapshotStats;
 import serverutils.lib.util.backup.SnapshotStore;
 import serverutils.lib.util.backup.SnapshotWriter;
 import serverutils.lib.util.compression.ICompress;
@@ -223,7 +223,7 @@ public class BackupRoutine {
         try {
             if (candidates == null) candidates = getCandidates();
             if (isIncremental) {
-                doSnapshotSave(candidates);
+                doSnapshotSave(candidates, result);
             } else {
                 doArchiveSave(universe, candidates, result);
             }
@@ -235,11 +235,24 @@ public class BackupRoutine {
         }
     }
 
-    private void doSnapshotSave(BackupCandidates candidates) throws IOException {
-        SnapshotStore store = SnapshotStore.load(new File(options.backupsDirectory, options.world.getName()));
+    private void doSnapshotSave(BackupCandidates candidates, BackupResult.Save result) throws IOException {
+        File snapshotDirectory = new File(options.backupsDirectory, options.world.getName());
+        SnapshotStore store = SnapshotStore.load(snapshotDirectory);
         ChunkReader reader = new SimpleChunkReader();
         SnapshotWriter writer = new SnapshotWriter(store, reader);
+
         writer.write(candidates);
+
+        SnapshotStats snapshotStats = writer.getStats();
+        result.bytes = snapshotStats.newBytes;
+        result.newFiles = snapshotStats.newFiles;
+        result.chunks = snapshotStats.newChunks;
+
+        result.unmodifiedChunks = snapshotStats.unmodifiedChunks;
+        result.unmodifiedFiles = snapshotStats.unmodifiedMiscFiles;
+        result.unmodifiedRegions = snapshotStats.unmodifiedRegions;
+
+        result.destination = snapshotDirectory;
     }
 
     private void doArchiveSave(Universe universe, BackupCandidates candidates, BackupResult.Save result)

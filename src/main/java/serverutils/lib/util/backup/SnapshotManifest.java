@@ -6,6 +6,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -14,17 +16,51 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.gson.Gson;
+import org.jetbrains.annotations.Nullable;
+import serverutils.task.backup.BackupEntry;
 
-public class SnapshotManifest {
+public class SnapshotManifest implements BackupEntry {
 
     private static final Gson GSON = new Gson();
-    private String name;
+    private transient String name;
+    private transient ZonedDateTime createdAtTime;
 
+    public String world;
     public String createdAt;
     public String completedAt;
     public String minecraftVersion;
     public String modVersion;
     public List<Dimension> dimensions = new ArrayList<>();
+
+    @Override
+    public String id() {
+        return name;
+    }
+
+    @Override
+    public @Nullable String world() {
+        return world;
+    }
+
+    @Override
+    public long createdAt() {
+        return getCreatedAt().toInstant().toEpochMilli();
+    }
+
+    @Override
+    public long size() {
+        return 0;
+    }
+
+    @Override
+    public boolean isCustom() {
+        return false;
+    }
+
+    @Override
+    public @Nullable String problem() {
+        return null;
+    }
 
     public static class Dimension {
 
@@ -60,7 +96,9 @@ public class SnapshotManifest {
     }
 
     public ZonedDateTime getCreatedAt() {
-        return ZonedDateTime.parse(createdAt, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        if (createdAtTime != null) return createdAtTime;
+        createdAtTime = ZonedDateTime.parse(createdAt, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+        return createdAtTime;
     }
 
     public ZonedDateTime getCompletedAt() {

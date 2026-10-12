@@ -14,6 +14,7 @@ import java.util.function.Function;
 
 import serverutils.ServerUtilities;
 import serverutils.lib.util.FileUtils;
+import serverutils.task.backup.BackupResult;
 
 public class SnapshotRemover {
 
@@ -32,15 +33,16 @@ public class SnapshotRemover {
         this(store, DEFAULT_REWRITE_FRACTION);
     }
 
-    public static long remove(SnapshotStore store, Snapshot... snapshots) throws IOException {
+    public static BackupResult.Retention remove(SnapshotStore store, Snapshot... snapshots) throws IOException {
         SnapshotRemover remover = new SnapshotRemover(store);
         return remover.remove((_present) -> Arrays.asList(snapshots));
     }
 
-    public long remove(Function<List<Snapshot>, List<Snapshot>> picker) throws IOException {
+    public BackupResult.Retention remove(Function<List<Snapshot>, List<Snapshot>> picker) throws IOException {
+        BackupResult.Retention result = new BackupResult.Retention();
         List<Snapshot> all = store.listAll();
         List<Snapshot> toDelete = picker.apply(all);
-        if (toDelete.isEmpty()) return 0;
+        if (toDelete.isEmpty()) return result;
 
         Set<String> deleted = new HashSet<>();
         for (Snapshot snapshot : toDelete) {
@@ -80,10 +82,13 @@ public class SnapshotRemover {
         freed += sweep(store.filesDirectory, liveFiles);
         freed += sweep(store.manifestsDirectory, liveRegions);
 
+        result.bytesRemoved += freed;
+        result.filesRemoved = toDelete.size();
+
         store.reloadManifests();
         ServerUtilities.LOGGER
                 .info("Removed {} snapshots, freed {} bytes", toDelete.size(), FileUtils.getSizeString(freed));
-        return freed;
+        return result.finished();
     }
 
     /**

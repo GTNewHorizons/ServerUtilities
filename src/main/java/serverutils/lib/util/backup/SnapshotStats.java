@@ -14,7 +14,7 @@ public class SnapshotStats {
     public int unmodifiedRegions;
 
     /** Counts for the non-region files of the world. */
-    public int newMiscFiles;
+    public int newFiles;
     public int unmodifiedMiscFiles;
 
     public void unmodified(SnapshotEntry entry) {

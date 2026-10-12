@@ -269,7 +269,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
     private void addSnapshotButtons(Panel panel) {
         if (snapshotStore == null) return;
-        for (SnapshotManifest manifest : this.snapshotStore.listManifest()) {
+        for (SnapshotManifest manifest : this.snapshotStore.list()) {
             String text = String.format(
                     "%s (%s)",
                     TimeUtil.format(manifest.getCreatedAt()),

@@ -73,7 +73,7 @@ public class SnapshotWriter {
             }
 
             stats.newChunks = packWriter.getBlobsWritten();
-            stats.newMiscFiles = fileWriter.getBlobsWritten();
+            stats.newFiles = fileWriter.getBlobsWritten();
             stats.newBytes = packWriter.getBytesWritten() + fileWriter.getBytesWritten();
             stats.dedupedChunks = packWriter.getBlobsDeduplicated();
             stats.dedupedBytes = packWriter.getBytesDeduplicated();
@@ -82,6 +82,7 @@ public class SnapshotWriter {
         }
 
         Snapshot snapshot = new Snapshot(
+                store.worldName(),
                 createdAt,
                 ZonedDateTime.now(ZoneOffset.UTC),
                 Loader.instance().getMCVersionString(),
@@ -96,7 +97,7 @@ public class SnapshotWriter {
                 snapshot.getName(),
                 stats.durationMillis,
                 stats.newChunks,
-                stats.newMiscFiles,
+                stats.newFiles,
                 stats.newBytes,
                 stats.dedupedChunks,
                 stats.dedupedBytes,

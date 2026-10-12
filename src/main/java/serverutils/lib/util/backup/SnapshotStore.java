@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -13,9 +14,11 @@ import java.util.stream.Collectors;
 import net.minecraftforge.common.DimensionManager;
 import serverutils.ServerUtilities;
 import serverutils.lib.util.FileUtils;
+import serverutils.task.backup.BackupResult;
 import serverutils.task.backup.BackupRoutine;
+import serverutils.task.backup.BackupStore;
 
-public class SnapshotStore {
+public class SnapshotStore implements BackupStore<SnapshotManifest> {
 
     private final File root;
 
@@ -50,6 +53,10 @@ public class SnapshotStore {
         return load(new File(BackupRoutine.BACKUP_FOLDER, currentSave.getName()));
     }
 
+    public String worldName() {
+        return root.getName();
+    }
+
     /** Region manifests */
     public PackStore manifests() {
         return manifestStore;
@@ -77,7 +84,7 @@ public class SnapshotStore {
 
     public Snapshot find(String name) {
         String fileName = name.endsWith(".json") ? name : name + ".json";
-        return listManifest()
+        return list()
             .stream()
             .filter(m -> m.getName().equals(fileName))
             .findFirst()
@@ -86,13 +93,13 @@ public class SnapshotStore {
     }
 
     public Snapshot findLatest() {
-        List<SnapshotManifest> files = listManifest();
+        List<SnapshotManifest> files = list();
         if (files.isEmpty()) return null;
         return Snapshot.fromJson(this, files.get(files.size() - 1));
     }
 
     public Snapshot findOldest() {
-        List<SnapshotManifest> files = listManifest();
+        List<SnapshotManifest> files = list();
         if (files.isEmpty()) return null;
         return Snapshot.fromJson(this, files.get(0));
     }
@@ -102,10 +109,11 @@ public class SnapshotStore {
     }
 
     public List<Snapshot> listAll() {
-        return listManifest().stream().map(json -> Snapshot.fromJson(this, json, true)).collect(Collectors.toList());
+        return list().stream().map(json -> Snapshot.fromJson(this, json, true)).collect(Collectors.toList());
     }
 
-    public List<SnapshotManifest> listManifest() {
+    @Override
+    public List<SnapshotManifest> list() {
         reloadManifests();
         File[] files = root.listFiles(f -> f.isFile() && Snapshot.FILE_PATTERN.matcher(f.getName()).matches());
         if (files == null || files.length == 0) return Collections.emptyList();
@@ -122,6 +130,14 @@ public class SnapshotStore {
         }
 
         return manifest;
+    }
+
+    @Override
+    public void delete(Collection<SnapshotManifest> entries, BackupResult.Retention result) throws IOException {
+        Snapshot[] snapshots = entries.stream().map(e -> Snapshot.fromJson(this, e)).toArray(Snapshot[]::new);
+        BackupResult.Retention snapshotRetention = SnapshotRemover.remove(this, snapshots);
+        result.bytesRemoved += snapshotRetention.bytesRemoved;
+        result.filesRemoved += snapshotRetention.filesRemoved;
     }
 
     public synchronized void reloadManifests() {
@@ -145,7 +161,7 @@ public class SnapshotStore {
     }
 
     public int count() {
-        return listManifest().size();
+        return list().size();
     }
 
     public void write(Snapshot snapshot) {

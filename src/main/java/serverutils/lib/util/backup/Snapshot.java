@@ -14,6 +14,7 @@ public class Snapshot {
     private static final DateTimeFormatter NAME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss'Z'");
     public static final Pattern FILE_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}Z\\.json");
 
+    public final String world;
     public final ZonedDateTime createdAt;
     public final ZonedDateTime completedAt;
     public final String minecraftVersion;
@@ -21,8 +22,9 @@ public class Snapshot {
 
     private final Map<String, SnapshotDimension> dimensions;
 
-    public Snapshot(ZonedDateTime createdAt, ZonedDateTime completedAt, String minecraftVersion, String modVersion,
+    public Snapshot(String world, ZonedDateTime createdAt, ZonedDateTime completedAt, String minecraftVersion, String modVersion,
             Map<String, SnapshotDimension> dimensions) {
+        this.world = world;
         this.createdAt = createdAt;
         this.completedAt = completedAt;
         this.minecraftVersion = minecraftVersion;
@@ -44,6 +46,7 @@ public class Snapshot {
 
     public SnapshotManifest toJson() {
         SnapshotManifest json = new SnapshotManifest();
+        json.world = world;
         json.createdAt = createdAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         json.completedAt = completedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         json.minecraftVersion = minecraftVersion;
@@ -126,6 +129,7 @@ public class Snapshot {
         }
 
         return new Snapshot(
+                json.world,
                 json.getCreatedAt(),
                 json.getCompletedAt(),
                 json.minecraftVersion,

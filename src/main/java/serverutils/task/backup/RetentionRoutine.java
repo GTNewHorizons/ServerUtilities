@@ -17,6 +17,7 @@ import java.util.Set;
 import serverutils.ServerUtilities;
 import serverutils.lib.util.CancellationToken;
 import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.backup.SnapshotStore;
 
 public class RetentionRoutine {
 
@@ -30,7 +31,20 @@ public class RetentionRoutine {
     }
 
     public static RetentionRoutine fromConfig() {
-        return new RetentionRoutine(new ArchiveStore(BackupRoutine.BACKUP_FOLDER), Options.fromConfig());
+        Options options = Options.fromConfig();
+        BackupStore store;
+
+        if (options.incremental) {
+            try {
+                store = SnapshotStore.loadFromSession();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            store = new ArchiveStore(BackupRoutine.BACKUP_FOLDER);
+        }
+
+        return new RetentionRoutine(store, options);
     }
 
     public BackupResult.Retention prune() {
@@ -210,12 +224,14 @@ public class RetentionRoutine {
         public boolean deleteCustom;
         public long maxSize;
         public int keepCount;
+        public boolean incremental;
 
-        public Options(List<String> policy, boolean deleteCustom, long maxSize, int keepCount) {
+        public Options(List<String> policy, boolean deleteCustom, long maxSize, int keepCount, boolean incremental) {
             this.policy = policy;
             this.deleteCustom = deleteCustom;
             this.maxSize = maxSize * FileUtils.SizeUnit.GB.getSize();
             this.keepCount = keepCount;
+            this.incremental = incremental;
         }
 
         public static Options fromConfig() {
@@ -223,7 +239,8 @@ public class RetentionRoutine {
                     Collections.unmodifiableList(Arrays.asList(backups.retention_policy)),
                     backups.delete_custom_name_backups,
                     backups.max_folder_size,
-                    backups.backups_to_keep);
+                    backups.backups_to_keep,
+                    backups.incremental_backups);
         }
 
         public boolean hasPolicy() {
