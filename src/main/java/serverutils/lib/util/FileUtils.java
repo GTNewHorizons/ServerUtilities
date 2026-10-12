@@ -28,6 +28,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import net.minecraft.world.storage.ThreadedFileIOBase;
@@ -99,6 +100,13 @@ public class FileUtils {
         } finally {
             Files.deleteIfExists(temporary);
         }
+    }
+
+    public static File getFileWithoutCollision(File directory, String name, Function<Integer, String> appender) {
+        int i = 1;
+        File file = new File(directory, name);
+        while (file.exists()) file = new File(directory, appender.apply(i++));
+        return file;
     }
 
     public static Path createSaveTemporary(Path target) throws IOException {

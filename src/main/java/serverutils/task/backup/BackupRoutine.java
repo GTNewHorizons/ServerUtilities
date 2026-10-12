@@ -97,7 +97,7 @@ public class BackupRoutine {
 
     private BackupCandidates candidates;
 
-    public static final Pattern BACKUP_NAME_PATTERN = BackupRetention.LEGACY_NAME;
+    public static final Pattern BACKUP_NAME_PATTERN = ArchiveStore.LEGACY_NAME;
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
     public static final File BACKUP_FOLDER;
 
@@ -124,24 +124,37 @@ public class BackupRoutine {
         }
     }
 
-    public CompletableFuture<Void> save(Executor executor) {
+    public CompletableFuture<BackupResult.Save> save(Executor executor) {
+        BackupResult.Save result = new BackupResult.Save(options.world, options.incremental);
+
         verifyBackupName();
         startedAt = System.nanoTime();
         timing = System.nanoTime();
-        preroutine();
+
+        if (!preroutine(result)) {
+            return CompletableFuture.completedFuture(result.finished());
+        }
 
         if (!options.useSeparateThread) {
             executor = Runnable::run;
         }
 
-        return CompletableFuture.runAsync(this::doSave, executor);
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                doSave(result);
+            } catch (Throwable t) {
+                LOGGER.error("An error occurred while saving backup", t);
+                result.error = t;
+            }
+            return result.finished();
+        }, executor);
     }
 
     public void cancel() {
         cancellation.cancel();
     }
 
-    private void preroutine() {
+    private boolean preroutine(BackupResult.Save result) {
         boolean prepared = false;
         try {
             // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
@@ -183,7 +196,7 @@ public class BackupRoutine {
             prepared = true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
+            result.error = e;
         } catch (Exception e) {
             ServerUtils.notifyChat(
                     universe.server,
@@ -191,13 +204,14 @@ public class BackupRoutine {
                     new ChatComponentText(
                             EnumChatFormatting.RED + "An error occurred while preparing backup. " + e.getMessage()));
             ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", e);
-            throw new RuntimeException(e);
+            result.error = e;
         } finally {
             if (!prepared) cleanup();
         }
+        return prepared;
     }
 
-    private void doSave() {
+    private void doSave(BackupResult.Save result) throws IOException {
         cancellation.enable();
         boolean isIncremental = options.incremental;
 
@@ -206,12 +220,10 @@ public class BackupRoutine {
             if (isIncremental) {
                 throw new UnsupportedOperationException("Incremental backups are not supported yet");
             } else {
-                doArchiveSave(universe, candidates);
+                doArchiveSave(universe, candidates, result);
             }
             recordTiming("save");
             lastSuccessfulBackup = Instant.now();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } finally {
             cleanup();
             logTiming();
@@ -222,12 +234,13 @@ public class BackupRoutine {
         // implement in future PR
     }
 
-    private void doArchiveSave(Universe universe, BackupCandidates candidates) throws IOException {
+    private void doArchiveSave(Universe universe, BackupCandidates candidates, BackupResult.Save result)
+            throws IOException {
         File destination = prepareDestination(backupName, options.incremental ? ".json" : ".zip");
         temporary = FileUtils.createSaveTemporary(destination.toPath().toAbsolutePath()).toFile();
 
         compressor.createOutputStream(temporary);
-        BackupRetention.writeMetadata(
+        ArchiveStore.writeMetadata(
                 compressor,
                 universe.getUUID().toString(),
                 options.createdAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
@@ -239,6 +252,7 @@ public class BackupRoutine {
             // not world-relative ones, so the world name prefix must be kept.
             String entry = FileUtils.getRelativePath(file.backing());
             compressor.addFileToArchive(snapshot.getOrDefault(entry, file.backing()), entry);
+            result.newFiles++;
         }
 
         try {
@@ -268,22 +282,8 @@ public class BackupRoutine {
             Files.move(temporaryPath, destinationPath);
         }
 
-        String backupSize = FileUtils.getSizeString(destination);
-        LOGGER.info("Backup done in {} seconds ({})!", getDoneTime(startedAt), backupSize);
-        LOGGER.info("Created {} from {}", destination.getAbsolutePath(), options.world.getAbsolutePath());
-
-        if (backups.display_file_size) {
-            String sizeT = FileUtils.getSizeString(options.backupsDirectory);
-            BACKUP.sendAll(
-                    StringUtils.color(
-                            "cmd.backup_end_2",
-                            EnumChatFormatting.LIGHT_PURPLE,
-                            getDoneTime(startedAt),
-                            (backupSize.equals(sizeT) ? backupSize : (backupSize + " | " + sizeT))));
-        } else {
-            BACKUP.sendAll(
-                    StringUtils.color("cmd.backup_end_1", EnumChatFormatting.LIGHT_PURPLE, getDoneTime(startedAt)));
-        }
+        result.bytes = FileUtils.getSize(destination);
+        result.destination = destination;
     }
 
     private void cleanup() {
@@ -518,10 +518,6 @@ public class BackupRoutine {
             throw new IllegalArgumentException(
                     "Backup name must be a filename without path separators or reserved characters");
         }
-    }
-
-    private static String getDoneTime(long l) {
-        return StringUtils.getTimeString(System.nanoTime() - l);
     }
 
     public static final class Options {
