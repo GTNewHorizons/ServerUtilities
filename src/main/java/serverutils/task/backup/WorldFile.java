@@ -5,27 +5,43 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 import serverutils.lib.util.backup.SnapshotEntry;
 
+import javax.annotation.Nullable;
+
 public final class WorldFile {
 
     private static final Pattern REGION_PATH = Pattern.compile("region/r\\.-?\\d+\\.-?\\d+\\.mca");
     private final String relativePath;
     private final File backing;
     private final Kind kind;
+    @Nullable
+    public final String dimension;
 
-    public WorldFile(String relativePath, File backing, Kind kind) {
+    public WorldFile(@Nullable String dimension, String relativePath, File backing, Kind kind) {
+        this.dimension = dimension;
         this.relativePath = relativePath;
         this.backing = backing;
         this.kind = kind;
+    }
+
+    public WorldFile(String relativePath, File backing, Kind kind) {
+        this(null, relativePath, backing, kind);
     }
 
     /**
      * Classifies a file by its path relative to its dimension root. Only {@code region/r.<x>.<z>.mca} directly under
      * the dimension root is region data; anything else (including stray or nested .mca files) is misc.
      */
-    public static WorldFile from(File root, File location) {
-        String relative = root.toPath().relativize(location.toPath()).toString().replace('\\', '/');
-        Kind kind = REGION_PATH.matcher(relative).matches() ? Kind.REGION : Kind.MISC;
-        return new WorldFile(relative, location, kind);
+    public static WorldFile from(String dimension, File dimensionRoot, File location) {
+        return from(dimension, dimensionRoot, dimensionRoot, location);
+    }
+
+    public static WorldFile from(String dimension, File dimensionRoot, File nameRoot, File location) {
+        Kind kind = REGION_PATH.matcher(relativize(dimensionRoot, location)).matches() ? Kind.REGION : Kind.MISC;
+        return new WorldFile(dimension, relativize(nameRoot, location), location, kind);
+    }
+
+    private static String relativize(File root, File location) {
+        return root.toPath().relativize(location.toPath()).toString().replace('\\', '/');
     }
 
     public String name() {

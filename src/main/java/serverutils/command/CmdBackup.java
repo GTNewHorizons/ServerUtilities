@@ -13,6 +13,8 @@ import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.network.rcon.RConConsoleSource;
@@ -114,12 +116,18 @@ public class CmdBackup extends CmdTreeBase {
             return BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::preview);
         }
 
-        private static <T extends BackupEntry> void sendPreview(ICommandSender sender, BackupRetention.Plan<T> plan,
-                Throwable error) {
+        private static <T extends BackupEntry> void sendPreview(ICommandSender sender,
+                @Nullable BackupRetention.Plan<T> plan, @Nullable Throwable error) {
             if (error != null) {
                 sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_error", error.getMessage()));
                 return;
             }
+
+            if (plan == null) {
+                sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_legacy_active"));
+                return;
+            }
+
             long now = System.currentTimeMillis();
             long deletedSize = 0;
             sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_header"));
@@ -220,6 +228,7 @@ public class CmdBackup extends CmdTreeBase {
             BackupRoutine.Options options = BackupRoutine.Options.fromConfig();
             options.overwrite = overwrite;
             options.customName = target.isEmpty() ? null : target;
+            options.onlyClaimed |= oc;
 
             ICompress compressor = ICompress.createCompressor();
             BackupRoutine routine = new BackupRoutine(Universe.get(), compressor, options);
@@ -230,9 +239,9 @@ public class CmdBackup extends CmdTreeBase {
                 throw new WrongUsageException(e.getMessage());
             }
 
-            if (!BackupCoordinator.startBackup(routine, result -> outputResult(sender, result))) {
+            if (!BackupCoordinator.startBackup(routine, result -> outputResult(sender, routine, result))) {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
-            } else {
+            } else if (routine.isPrepared()) {
                 sender.addChatMessage(
                         ServerUtilities.lang(
                                 sender,
@@ -241,9 +250,13 @@ public class CmdBackup extends CmdTreeBase {
             }
         }
 
-        private void outputResult(ICommandSender sender, BackupResult result) {
+        private void outputResult(ICommandSender sender, BackupRoutine routine, BackupResult result) {
             if (!result.isSuccess()) {
-                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
+                // Archive failures are broadcast as cmd.backup_fail and cancellations are quiet, so only a backup
+                // that never started gets this.
+                if (!routine.isPrepared()) {
+                    sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
+                }
                 return;
             }
 
@@ -340,8 +353,7 @@ public class CmdBackup extends CmdTreeBase {
                             FileUtils.getSizeString(archives.stream().mapToLong(BackupEntry::size).sum())));
 
             long now = System.currentTimeMillis();
-            archives.stream()
-                    .sorted(Comparator.comparingLong(BackupEntry::createdAt).thenComparing(BackupEntry::id))
+            archives.stream().sorted(Comparator.comparingLong(BackupEntry::createdAt).thenComparing(BackupEntry::id))
                     .forEach(
                             archive -> sender.addChatMessage(
                                     ServerUtilities.lang(

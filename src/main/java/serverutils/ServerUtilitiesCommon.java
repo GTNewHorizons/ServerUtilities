@@ -120,7 +120,7 @@ public class ServerUtilitiesCommon {
         ServerUtilitiesServerEventHandler.clearServerTasks();
         BackupCoordinator.stop();
         // Start cleanup with the server, so background scans cannot race the title-screen restore GUI.
-        RetentionRoutine.fromConfig().prune();
+        BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::prune);
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());

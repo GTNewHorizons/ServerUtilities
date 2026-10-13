@@ -59,8 +59,8 @@ public class BackupTask extends Task {
         BackupRoutine routine = new BackupRoutine(universe, compressor, options);
         boolean isStarted = BackupCoordinator.startBackup(routine);
 
-        // Busy with another backup or a retention scan; try once more shortly instead of waiting a whole interval.
-        if (!isStarted && !retryPending) {
+        // Busy with another a retention scan; try once more shortly instead of waiting a whole interval.
+        if (!isStarted && !retryPending && !BackupCoordinator.isRunning()) {
             retryPending = true;
             universe.scheduleTask(new BackupTask(Ticks.SECOND));
         }
