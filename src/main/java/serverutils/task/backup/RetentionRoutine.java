@@ -94,7 +94,7 @@ public class RetentionRoutine {
 
         // Rule deletions go in one batch, so stores with shared data reclaim it once.
         for (Map.Entry<T, String> decision : plan.delete.entrySet()) {
-            ServerUtilities.LOGGER.info("Removing old backup {} ({})", decision.getKey().id(), decision.getValue());
+            ServerUtilities.LOGGER.info("Removing old backup {} ({})", decision.getKey(), decision.getValue());
         }
         BackupRetention.checkInterrupted();
         remaining -= delete(store, plan.delete.keySet(), result);
@@ -103,7 +103,7 @@ public class RetentionRoutine {
             BackupRetention.checkInterrupted();
             if (maxSize <= 0 || remaining <= maxSize) break;
             if (plan.delete.containsKey(entry)) continue;
-            ServerUtilities.LOGGER.info("Removing old backup {} (Folder size limit)", entry.id());
+            ServerUtilities.LOGGER.info("Removing old backup {} (Folder size limit)", entry);
             remaining -= delete(store, Collections.singleton(entry), result);
         }
 
@@ -114,7 +114,7 @@ public class RetentionRoutine {
         }
         for (T entry : plan.keep.keySet()) {
             if (entry.problem() != null) {
-                ServerUtilities.LOGGER.warn("Preserving backup {}: {}", entry.id(), entry.problem());
+                ServerUtilities.LOGGER.warn("Preserving backup {}: {}", entry.toString(), entry.problem());
             }
         }
     }
@@ -137,7 +137,7 @@ public class RetentionRoutine {
             BackupRetention.checkInterrupted();
             if (maxSize > 0 ? currentSize <= maxSize : remainingCount <= keepCount) break;
             if (newest.contains(entry)) continue;
-            ServerUtilities.LOGGER.info("Removing old backup {} (legacy rotation)", entry.id());
+            ServerUtilities.LOGGER.info("Removing old backup {} (legacy rotation)", entry.toString());
             int removedBefore = result.filesRemoved;
             long freed = delete(store, Collections.singleton(entry), result);
             if (result.filesRemoved > removedBefore) {
@@ -180,7 +180,7 @@ public class RetentionRoutine {
         List<T> entries = new ArrayList<>(store.list());
         entries.removeIf(entry -> {
             if (entry.createdAt() > System.currentTimeMillis()) {
-                ServerUtilities.LOGGER.warn("Preserving future-dated backup {}", entry.id());
+                ServerUtilities.LOGGER.warn("Preserving future-dated backup {}", entry.toString());
                 return true;
             }
 
