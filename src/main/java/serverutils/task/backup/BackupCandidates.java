@@ -38,9 +38,12 @@ public class BackupCandidates {
         this.relativeToWorld = relativeToWorld;
     }
 
-    public static BackupCandidates scanWorld(File dir, boolean relativeToWorld) {
+    public static BackupCandidates scanWorld(File dir, boolean relativeToWorld) throws IOException {
         if (!new File(dir, "level.dat").exists()) {
             throw new IllegalArgumentException("Not a world folder");
+        }
+        if (isBackupStorage(dir.toPath().toRealPath())) {
+            throw new IOException("Backup and temporary storage must not contain the world directory: " + dir);
         }
         BackupCandidates candidates = new BackupCandidates(relativeToWorld);
         candidates.scanRoot = dir;
@@ -129,18 +132,19 @@ public class BackupCandidates {
     }
 
     /**
-     * Removes every candidate matched by any of {@code patterns}, following the same rules as
-     * {@link FileUtils#findMatching}. Each pattern is tried against the file's path relative to the run folder and
-     * against its absolute path. Empty patterns are ignored.
+     * Removes every non-region candidate matched by any of {@code patterns}. {@code $WORLDNAME} is replaced with
+     * {@code worldName}; a pattern without wildcards matches only that exact path, otherwise it is a glob. Each pattern
+     * is tried against the file's path relative to the run folder and against its absolute path. Empty patterns are
+     * ignored. Region files (.mca) are never removed: which regions are backed up is decided by the chunk selection.
      */
-    public void removeMatching(Collection<String> patterns) {
+    public void removeMatching(Collection<String> patterns, String worldName) {
         List<Predicate<Path>> matchers = new ArrayList<>();
         for (String pattern : patterns) {
-            String normalized = FileUtils.normalizeBackupPattern(pattern);
+            String normalized = FileUtils.normalizeBackupPattern(pattern.replace("$WORLDNAME", worldName));
             if (normalized.isEmpty()) continue;
             if (FileUtils.indexOfWildcard(normalized) < 0) {
                 Path literal = Paths.get(normalized).normalize();
-                matchers.add(path -> path.startsWith(literal));
+                matchers.add(literal::equals);
             } else {
                 matchers.add(FileSystems.getDefault().getPathMatcher("glob:" + normalized)::matches);
             }
@@ -149,6 +153,7 @@ public class BackupCandidates {
 
         Path runFolder = Paths.get("").toAbsolutePath();
         remove(file -> {
+            if (FileUtils.isRegionFile(file.backing())) return false;
             Path absolute = file.backing().toPath().toAbsolutePath().normalize();
             Path relative = runFolder.relativize(absolute);
             for (Predicate<Path> matcher : matchers) {
@@ -158,23 +163,22 @@ public class BackupCandidates {
         });
     }
 
-    private void scan(File directory, File dimensionRoot, String dimension) {
-        if (BackupRoutine.BACKUP_FOLDER.equals(directory)) return;
-        if (BackupRoutine.BACKUP_TEMP_FOLDER.equals(directory)) return;
+    /** Compares real paths, so backup output is recognized however it is reached (other spelling, link, etc.). */
+    private static boolean isBackupStorage(Path real) throws IOException {
+        return real.startsWith(FileUtils.resolveRealPath(BackupRoutine.BACKUP_FOLDER.toPath()))
+                || real.startsWith(FileUtils.resolveRealPath(BackupRoutine.BACKUP_TEMP_FOLDER.toPath()));
+    }
 
-        Path real;
-        try {
-            real = directory.toPath().toRealPath();
-        } catch (IOException e) {
-            return;
-        }
+    private void scan(File directory, File dimensionRoot, String dimension) throws IOException {
+        Path real = directory.toPath().toRealPath();
+        if (isBackupStorage(real)) return;
 
         if (!ancestors.add(real)) return;
 
         try {
             List<WorldFile> files = filesByDimension.computeIfAbsent(dimension, k -> new ArrayList<>());
             File[] children = directory.listFiles();
-            if (children == null) return;
+            if (children == null) throw new IOException("Cannot list backup directory: " + directory);
 
             boolean isSaveRoot = directory.equals(dimensionRoot) && dimension.equals(OVERWORLD);
 

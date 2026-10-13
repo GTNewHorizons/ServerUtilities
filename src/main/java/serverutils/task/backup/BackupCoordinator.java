@@ -172,6 +172,8 @@ public final class BackupCoordinator {
         LOGGER.info("Backup done in {} ({})!", save.getDoneTime(), size);
         LOGGER.info("Created {} from {}", save.destination.getAbsolutePath(), save.world.getAbsolutePath());
 
+        if (backups.silent_backup) return;
+
         if (backups.display_file_size) {
             String sizeT = FileUtils.getSizeString(BackupRoutine.BACKUP_FOLDER);
             BACKUP.sendAll(

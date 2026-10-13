@@ -315,6 +315,10 @@ public class Universe {
         taskQueue.add(task);
     }
 
+    public void scheduleAction(Runnable runnable) {
+        runQueue.add(runnable);
+    }
+
     private void load() {
         dataFolder = new File(getWorldDirectory(), "serverutilities/");
         latModFolder = new File(getWorldDirectory(), "LatMod");

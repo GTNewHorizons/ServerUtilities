@@ -6,8 +6,10 @@ import static serverutils.ServerUtilitiesNotifications.BACKUP;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -41,6 +43,7 @@ import net.minecraftforge.common.DimensionManager;
 import org.jetbrains.annotations.NotNull;
 
 import lombok.Builder;
+import lombok.Getter;
 import serverutils.ServerUtilities;
 import serverutils.data.ClaimedChunks;
 import serverutils.lib.OtherMods;
@@ -78,6 +81,9 @@ public class BackupRoutine {
 
     /** Archive entry name -> copy taken while world saving was suspended. */
     private final Map<String, File> snapshot = new HashMap<>();
+    @Getter
+    private boolean prepared;
+    private Instant startedAtInstant;
     private long startedAt;
     private File temporary;
 
@@ -114,10 +120,12 @@ public class BackupRoutine {
         BackupResult.Save result = new BackupResult.Save(options.world, options.incremental);
 
         verifyBackupName();
+        startedAtInstant = Instant.now();
         startedAt = System.nanoTime();
         timing = System.nanoTime();
 
-        if (!preroutine(result)) {
+        prepared = preroutine(result);
+        if (!prepared) {
             return CompletableFuture.completedFuture(result.finished());
         }
 
@@ -129,8 +137,16 @@ public class BackupRoutine {
             try {
                 doSave(result);
             } catch (Throwable t) {
-                LOGGER.error("An error occurred while saving backup", t);
                 result.error = t;
+                if (isCancellation(t)) {
+                    LOGGER.info("Backup cancelled, deleting partial archive");
+                } else {
+                    LOGGER.error("An error occurred while saving backup", t);
+                    ServerUtils.notifyChat(
+                            universe.server,
+                            null,
+                            StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, t.getMessage()));
+                }
             }
             return result.finished();
         }, executor);
@@ -138,6 +154,11 @@ public class BackupRoutine {
 
     public void cancel() {
         cancellation.cancel();
+    }
+
+    private boolean isCancellation(Throwable t) {
+        return cancellation.isCancelled() || t instanceof InterruptedIOException
+                || t instanceof ClosedByInterruptException;
     }
 
     private boolean preroutine(BackupResult.Save result) {
@@ -168,6 +189,9 @@ public class BackupRoutine {
                     String region = "r." + (pos.posX >> 5) + "." + (pos.posZ >> 5);
                     positions.computeIfAbsent(region, r -> new ArrayList<>()).add(pos);
                 });
+                if (dimToRegionToChunkPos.isEmpty()) {
+                    LOGGER.warn("Claim-only backup has no claimed chunks; known dimension regions will be omitted");
+                }
             }
 
             universe.saveForBackup();
@@ -176,7 +200,7 @@ public class BackupRoutine {
             recordTiming("queued data flush");
             recordTiming("setup");
 
-            if (options.snapshotMetaFiles) {
+            if (options.snapshotMetaFiles && options.useSeparateThread) {
                 candidates = getCandidates();
                 snapshotFiles(candidates);
                 recordTiming("file snapshot");
@@ -216,7 +240,7 @@ public class BackupRoutine {
                 doArchiveSave(universe, candidates, result);
             }
             recordTiming("save");
-            lastSuccessfulBackup = Instant.now();
+            lastSuccessfulBackup = startedAtInstant;
         } finally {
             cleanup();
             logTiming();
@@ -262,26 +286,25 @@ public class BackupRoutine {
                         file.backing().getAbsolutePath());
             }
 
-            if (options.onlyClaimed && options.writeOnlyClaimedChunks && file.kind() == WorldFile.Kind.REGION) {
+            List<ChunkDimPos> claims = options.onlyClaimed && options.writeOnlyClaimedChunks ? getClaims(file) : null;
+            if (claims != null && canTrimRegion(file)) {
                 File tempRegionFile = Files.createTempFile(BACKUP_TEMP_FOLDER.toPath(), "claimed-", ".mca").toFile();
-
-                int chunks;
-
-                try (WorldRegion region = new WorldRegion(file)) {
-                    try (WorldRegion tempRegion = new WorldRegion(tempRegionFile, region.dimension)) {
-                        List<ChunkDimPos> positions = dimToRegionToChunkPos.get(file.dimension).get(region.name());
-                        chunks = region.copyTo(tempRegion, positions);
+                try {
+                    int chunks;
+                    try (WorldRegion region = new WorldRegion(file);
+                            WorldRegion tempRegion = new WorldRegion(tempRegionFile, region.dimension)) {
+                        chunks = region.copyTo(tempRegion, claims);
                     }
-                }
 
-                if (chunks > 0) {
-                    compressor.addFileToArchive(tempRegionFile, entry);
-                    result.newFiles++;
-                    regionCount++;
-                    chunkCount += chunks;
+                    if (chunks > 0) {
+                        compressor.addFileToArchive(tempRegionFile, entry);
+                        result.newFiles++;
+                        regionCount++;
+                        chunkCount += chunks;
+                    }
+                } finally {
+                    Files.deleteIfExists(tempRegionFile.toPath());
                 }
-
-                FileUtils.delete(tempRegionFile);
                 continue;
             }
 
@@ -290,7 +313,7 @@ public class BackupRoutine {
         }
 
         if (options.onlyClaimed) {
-            LOGGER.info("Backued up {} regions containing {} claimed chunks", regionCount, chunkCount);
+            LOGGER.info("Backed up {} regions containing {} claimed chunks", regionCount, chunkCount);
         }
 
         try {
@@ -349,11 +372,13 @@ public class BackupRoutine {
             LOGGER.warn("Could not delete temporary backup folder", e);
         }
 
-        try {
-            universe.restoreWorldSaving();
-        } catch (RuntimeException e) {
-            LOGGER.warn("Could not restore world saving", e);
-        }
+        universe.scheduleAction(() -> {
+            try {
+                universe.restoreWorldSaving();
+            } catch (RuntimeException e) {
+                LOGGER.warn("Could not restore world saving", e);
+            }
+        });
     }
 
     private void recordTiming(String phase) {
@@ -407,17 +432,26 @@ public class BackupRoutine {
 
         // keep only misc files + region files with claims in them
         if (options.onlyClaimed) {
+            Set<String> unknownDimensions = new HashSet<>();
             candidates.keep(f -> {
                 // don't remove misc files
                 if (f.kind() == WorldFile.Kind.MISC) return true;
-                Map<String, List<ChunkDimPos>> regions = dimToRegionToChunkPos.get(f.dimension);
-                if (regions == null) return false;
-                return regions.containsKey(f.name().replace(".mca", ""));
+                // Claims are keyed as overworld/DIM<id>, so a dimension folder with any other name can't be matched
+                // to its claims. Keep its regions whole rather than dropping claimed chunks.
+                if (!isNumberedDimension(f.dimension)) {
+                    unknownDimensions.add(f.dimension);
+                    return true;
+                }
+                return getClaims(f) != null;
             });
+
+            for (String dimension : unknownDimensions) {
+                LOGGER.warn("Cannot identify dimension for region files in {}; copying them unchanged", dimension);
+            }
         }
 
         addAdditionalFiles(candidates, options.world);
-        candidates.removeMatching(options.excludedBackupFiles);
+        candidates.removeMatching(options.excludedBackupFiles, options.world.getName());
         return candidates;
     }
 
@@ -474,6 +508,25 @@ public class BackupRoutine {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    /** The claimed chunks inside this region file, or null if it is not a region file or holds no claims. */
+    private List<ChunkDimPos> getClaims(WorldFile file) {
+        if (file.kind() != WorldFile.Kind.REGION) return null;
+        Map<String, List<ChunkDimPos>> regions = dimToRegionToChunkPos.get(file.dimension);
+        return regions == null ? null : regions.get(file.name().replace(".mca", ""));
+    }
+
+    private static boolean isNumberedDimension(String dimension) {
+        return BackupCandidates.OVERWORLD.equals(dimension) || (dimension != null && dimension.matches("DIM-?\\d+"));
+    }
+
+    /** RegionFile opens read-write and pads malformed files in its constructor, so those are never opened. */
+    private static boolean canTrimRegion(WorldFile file) {
+        long size = file.size();
+        if (size >= 8192 && size % 4096 == 0) return true;
+        LOGGER.warn("Cannot trim malformed region {}; copying it unchanged", file.backing());
+        return false;
     }
 
     private static void flushChunkSaves(WorldServer[] worlds) throws InterruptedException {

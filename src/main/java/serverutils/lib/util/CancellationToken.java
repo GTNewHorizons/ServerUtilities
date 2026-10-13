@@ -22,6 +22,10 @@ public class CancellationToken {
         if (t != null && t != Thread.currentThread()) t.interrupt();
     }
 
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
     public void check() throws InterruptedIOException {
         if (cancelled || Thread.currentThread().isInterrupted()) throw new InterruptedIOException();
     }
