@@ -81,9 +81,7 @@ public class CmdBackup extends CmdTreeBase {
 
     /** Timestamp names already show the date, so only custom names get it spelled out. */
     private static IChatComponent when(BackupEntry entry, long now) {
-        if (BackupRoutine.BACKUP_NAME_PATTERN.matcher(entry.id()).matches()) {
-            return age(entry.createdAt(), now);
-        }
+        if (!entry.isCustom()) return age(entry.createdAt(), now);
         return ServerUtilities.lang("cmd.backup_when", date(entry.createdAt()), age(entry.createdAt(), now));
     }
 
@@ -140,7 +138,7 @@ public class CmdBackup extends CmdTreeBase {
                         ServerUtilities.lang(
                                 "cmd.backup_prune_entry",
                                 status,
-                                entry.id(),
+                                entry.toString(),
                                 FileUtils.getSizeString(entry.size()),
                                 when(entry, now),
                                 reason));
@@ -317,13 +315,13 @@ public class CmdBackup extends CmdTreeBase {
                             FileUtils.getSizeString(archives.stream().mapToLong(BackupEntry::size).sum())));
 
             long now = System.currentTimeMillis();
-            archives.stream().sorted(Comparator.comparingLong(BackupEntry::createdAt).thenComparing(BackupEntry::id))
+            archives.stream().sorted(Comparator.comparingLong(BackupEntry::createdAt).thenComparing(BackupEntry::label))
                     .forEach(
                             archive -> sender.addChatMessage(
                                     ServerUtilities.lang(
                                             sender,
                                             "cmd.backup_list_file",
-                                            archive.id(),
+                                            archive.toString(),
                                             FileUtils.getSizeString(archive.size()),
                                             when(archive, now))));
         }

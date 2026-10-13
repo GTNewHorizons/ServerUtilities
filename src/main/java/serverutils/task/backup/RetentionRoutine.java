@@ -185,14 +185,14 @@ public class RetentionRoutine {
             }
 
             if (entry.problem() != null) {
-                ServerUtilities.LOGGER.warn("Preserving backup with problem {}: {}", entry.id(), entry.problem());
+                ServerUtilities.LOGGER.warn("Preserving backup with problem {}: {}", entry.toString(), entry.problem());
                 return true;
             }
 
             return entry.isCustom() && !options.deleteCustom;
         });
 
-        entries.sort(Comparator.comparingLong((T entry) -> entry.createdAt()).thenComparing(BackupEntry::id));
+        entries.sort(Comparator.comparingLong((T entry) -> entry.createdAt()).thenComparing(BackupEntry::label));
 
         BackupRetention.checkInterrupted();
         return entries;
