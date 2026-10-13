@@ -304,8 +304,7 @@ public class CmdBackup extends CmdTreeBase {
                             FileUtils.getSizeString(archives.stream().mapToLong(BackupEntry::size).sum())));
 
             long now = System.currentTimeMillis();
-            archives.stream()
-                    .sorted(Comparator.comparingLong(BackupEntry::createdAt).thenComparing(BackupEntry::id))
+            archives.stream().sorted(Comparator.comparingLong(BackupEntry::createdAt).thenComparing(BackupEntry::id))
                     .forEach(
                             archive -> sender.addChatMessage(
                                     ServerUtilities.lang(

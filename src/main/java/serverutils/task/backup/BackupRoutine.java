@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,39 +38,20 @@ import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.DimensionManager;
 
+import org.jetbrains.annotations.NotNull;
+
+import lombok.Builder;
 import serverutils.ServerUtilities;
-import serverutils.ServerUtilitiesConfig;
+import serverutils.data.ClaimedChunks;
 import serverutils.lib.OtherMods;
 import serverutils.lib.data.Universe;
+import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.CancellationToken;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
+import serverutils.lib.util.WorldRegion;
 import serverutils.lib.util.compression.ICompress;
-
-// my pending code:
-// -- write backup
-// if (onlyClaimed && chunks.isEmpty()) {
-// ServerUtilities.LOGGER
-// .warn("Claim-only backup has no claimed chunks; known dimension regions will be omitted");
-// }
-// if (onlyClaimed && dimensionFolders == null) {
-// dimensionFolders = resolveDimensionFolders(src);
-// }
-// instead compress file loop
-// private static void logProgress(int i, int allFiles, String name) {
-// long millis = System.currentTimeMillis();
-// boolean first = i == 0;
-// if (first) {
-// ServerUtilities.LOGGER.info("Backing up {} files...", allFiles);
-// }
-//
-// if (first || millis > logMillis || i == allFiles - 1) {
-// logMillis = millis + Ticks.SECOND.x(5).millis();
-// ServerUtilities.LOGGER
-// .info("[{} | {}%]: {}", i, StringUtils.formatDouble00((i / (double) allFiles) * 100D), name);
-// }
-// }
 
 // clear separation of concern - routine is the routine (all the logic) for actually saving the world
 // do not conflate logic
@@ -77,11 +59,15 @@ public class BackupRoutine {
 
     private static final String DATE_PATTERN = "yyyy-MM-dd-HH-mm-ss";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN, Locale.ROOT);
+    private static final Set<String> BQ_DATABASES = new HashSet<>(
+            Arrays.asList("QuestDatabase", "QuestProgress", "QuestingParties", "NameCache", "LifeDatabase"));
 
     private static volatile Instant lastSuccessfulBackup = Instant.MIN;
 
     private final Map<String, Duration> timings = new LinkedHashMap<>();
     private final CancellationToken cancellation = new CancellationToken();
+    private final Map<String, Map<String, List<ChunkDimPos>>> dimToRegionToChunkPos = new HashMap<>();
+
     private long timing;
 
     private final Universe universe;
@@ -170,16 +156,19 @@ public class BackupRoutine {
                 BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
             }
 
-            //
-            // Set<ChunkDimPos> backupChunks = new HashSet<>();
-            // boolean onlyClaimed = this.forceOnlyClaimed || backups.only_backup_claimed_chunks;
-            // if (onlyClaimed) {
-            // if (!ClaimedChunks.isActive()) throw new IllegalStateException("Chunk claiming is not active");
-            // ClaimedChunks.instance.processQueue();
-            // backupChunks.addAll(ClaimedChunks.instance.getAllClaimedPositions());
-            // // noinspection ResultOfMethodCallIgnored
-            // BACKUP_TEMP_FOLDER.mkdirs();
-            // }
+            if (options.onlyClaimed) {
+                if (!ClaimedChunks.isActive()) throw new IllegalStateException("Chunk claiming is not active");
+                FileUtils.ensureExists(BACKUP_TEMP_FOLDER);
+                ClaimedChunks.instance.processQueue();
+                ClaimedChunks.instance.getAllClaimedPositions().forEach(pos -> {
+                    String dimName = pos.dim == 0 ? BackupCandidates.OVERWORLD : "DIM" + pos.dim;
+                    // pre-compute and map chunk positions to their specific regions
+                    Map<String, List<ChunkDimPos>> positions = dimToRegionToChunkPos
+                            .computeIfAbsent(dimName, dim -> new HashMap<>());
+                    String region = "r." + (pos.posX >> 5) + "." + (pos.posZ >> 5);
+                    positions.computeIfAbsent(region, r -> new ArrayList<>()).add(pos);
+                });
+            }
 
             universe.saveForBackup();
             recordTiming("SU data save");
@@ -217,6 +206,10 @@ public class BackupRoutine {
 
         try {
             if (candidates == null) candidates = getCandidates();
+            LOGGER.info(
+                    "Performing {} backup of {} files...",
+                    isIncremental ? "incremental" : "full",
+                    candidates.count());
             if (isIncremental) {
                 throw new UnsupportedOperationException("Incremental backups are not supported yet");
             } else {
@@ -246,13 +239,58 @@ public class BackupRoutine {
                 options.createdAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
                 options.customName != null);
 
-        for (WorldFile file : candidates.getFiles()) {
+        List<WorldFile> files = candidates.getFiles();
+        int fileSize = files.size();
+        long logTimer = System.currentTimeMillis();
+
+        int regionCount = 0;
+        int chunkCount = 0;
+
+        for (int i = 0; i < fileSize; i++) {
+            WorldFile file = files.get(i);
             cancellation.check();
             // Restore expects run-folder-relative entries i.e. saves/<world>/level.dat
             // not world-relative ones, so the world name prefix must be kept.
             String entry = FileUtils.getRelativePath(file.backing());
+
+            if (i == fileSize - 1 || System.currentTimeMillis() >= logTimer) {
+                logTimer = System.currentTimeMillis() + 5000;
+                LOGGER.info(
+                        "[{} | {}%]: {}",
+                        i,
+                        StringUtils.formatDouble00((i / (double) fileSize) * 100D),
+                        file.backing().getAbsolutePath());
+            }
+
+            if (options.onlyClaimed && options.writeOnlyClaimedChunks && file.kind() == WorldFile.Kind.REGION) {
+                File tempRegionFile = Files.createTempFile(BACKUP_TEMP_FOLDER.toPath(), "claimed-", ".mca").toFile();
+
+                int chunks;
+
+                try (WorldRegion region = new WorldRegion(file)) {
+                    try (WorldRegion tempRegion = new WorldRegion(tempRegionFile, region.dimension)) {
+                        List<ChunkDimPos> positions = dimToRegionToChunkPos.get(file.dimension).get(region.name());
+                        chunks = region.copyTo(tempRegion, positions);
+                    }
+                }
+
+                if (chunks > 0) {
+                    compressor.addFileToArchive(tempRegionFile, entry);
+                    result.newFiles++;
+                    regionCount++;
+                    chunkCount += chunks;
+                }
+
+                FileUtils.delete(tempRegionFile);
+                continue;
+            }
+
             compressor.addFileToArchive(snapshot.getOrDefault(entry, file.backing()), entry);
             result.newFiles++;
+        }
+
+        if (options.onlyClaimed) {
+            LOGGER.info("Backued up {} regions containing {} claimed chunks", regionCount, chunkCount);
         }
 
         try {
@@ -366,13 +404,22 @@ public class BackupRoutine {
 
     private BackupCandidates getCandidates() throws IOException {
         BackupCandidates candidates = BackupCandidates.scanWorld(options.world, !options.incremental);
+
+        // keep only misc files + region files with claims in them
+        if (options.onlyClaimed) {
+            candidates.keep(f -> {
+                // don't remove misc files
+                if (f.kind() == WorldFile.Kind.MISC) return true;
+                Map<String, List<ChunkDimPos>> regions = dimToRegionToChunkPos.get(f.dimension);
+                if (regions == null) return false;
+                return regions.containsKey(f.name().replace(".mca", ""));
+            });
+        }
+
         addAdditionalFiles(candidates, options.world);
         candidates.removeMatching(options.excludedBackupFiles);
         return candidates;
     }
-
-    private static final Set<String> BQ_DATABASES = new HashSet<>(
-            Arrays.asList("QuestDatabase", "QuestProgress", "QuestingParties", "NameCache", "LifeDatabase"));
 
     /**
      * Copies the files mods may rewrite while the archive is being written, so the backup sees them as they were while
@@ -382,7 +429,7 @@ public class BackupRoutine {
         Path world = options.world.toPath().toAbsolutePath().normalize();
         File folder = new File(BACKUP_TEMP_FOLDER, "snapshot");
         FileUtils.delete(folder);
-        Files.createDirectories(folder.toPath());
+        FileUtils.ensureExists(folder);
         for (WorldFile file : candidates.getFiles(f -> f.kind() == WorldFile.Kind.MISC && !isStableModData(f, world))) {
             // Numbered copies: entry names can contain anything, including paths outside the run folder.
             File copy = new File(folder, Integer.toString(snapshot.size()));
@@ -495,15 +542,7 @@ public class BackupRoutine {
         } else {
             validateBackupName(backupName);
             backupName += (options.incremental ? ".json" : ".zip");
-            File destination = new File(options.backupsDirectory, backupName);
-            if (!overwrite && destination.exists()) {
-                throw new IllegalArgumentException(
-                        "Backup already exists: " + backupName + ". Use =overwrite to replace it explicitly");
-            }
-            if (!destination.getParentFile().equals(options.backupsDirectory)) {
-                throw new IllegalArgumentException("Backup destination must be in the backups directory");
-            }
-            Path destinationPath = destination.toPath();
+            Path destinationPath = getDestinationPath(options, backupName, overwrite);
             if (Files.exists(destinationPath, LinkOption.NOFOLLOW_LINKS)
                     && !Files.isRegularFile(destinationPath, LinkOption.NOFOLLOW_LINKS)) {
                 throw new IllegalArgumentException("Backup destination must be a regular file");
@@ -513,6 +552,18 @@ public class BackupRoutine {
         return backupName;
     }
 
+    private static @NotNull Path getDestinationPath(Options options, String backupName, boolean overwrite) {
+        File destination = new File(options.backupsDirectory, backupName);
+        if (!overwrite && destination.exists()) {
+            throw new IllegalArgumentException(
+                    "Backup already exists: " + backupName + ". Use =overwrite to replace it explicitly");
+        }
+        if (!destination.getParentFile().equals(options.backupsDirectory)) {
+            throw new IllegalArgumentException("Backup destination must be in the backups directory");
+        }
+        return destination.toPath();
+    }
+
     private static void validateBackupName(String name) {
         if (name == null || name.chars().anyMatch(c -> c < 32 || c == 127 || "\\/:*?\"<>|".indexOf(c) >= 0)) {
             throw new IllegalArgumentException(
@@ -520,11 +571,13 @@ public class BackupRoutine {
         }
     }
 
+    @Builder
     public static final class Options {
 
         public File backupsDirectory;
         public File world;
         public boolean onlyClaimed;
+        public boolean writeOnlyClaimedChunks;
         public boolean incremental;
         public boolean snapshotMetaFiles;
         public boolean useSeparateThread;
@@ -534,36 +587,16 @@ public class BackupRoutine {
         public List<String> additionalBackupFiles;
         public List<String> excludedBackupFiles;
 
-        public Options(File backupsDirectory, File world, boolean onlyClaimed, boolean incremental,
-                boolean snapshotMetaFiles, boolean useSeparateThread, List<String> additionalBackupFiles,
-                List<String> excludedBackupFiles, String customName, boolean overwrite, LocalDateTime createdAt) {
-            this.backupsDirectory = backupsDirectory;
-            this.world = world;
-            this.onlyClaimed = onlyClaimed;
-            this.incremental = incremental;
-            this.snapshotMetaFiles = snapshotMetaFiles;
-            this.useSeparateThread = useSeparateThread;
-            this.additionalBackupFiles = additionalBackupFiles;
-            this.excludedBackupFiles = excludedBackupFiles;
-            this.customName = customName;
-            this.overwrite = overwrite;
-            this.createdAt = createdAt;
-
-        }
-
         public static Options fromConfig() {
-            return new Options(
-                    BACKUP_FOLDER,
-                    DimensionManager.getCurrentSaveRootDirectory(),
-                    ServerUtilitiesConfig.backups.only_backup_claimed_chunks,
-                    false,
-                    !backups.prefer_speed_over_backup_consistency,
-                    backups.use_separate_thread,
-                    Arrays.asList(backups.additional_backup_files),
-                    Arrays.asList(backups.excluded_backup_files),
-                    null,
-                    false,
-                    LocalDateTime.now());
+            return Options.builder().backupsDirectory(BACKUP_FOLDER)
+                    .world(DimensionManager.getCurrentSaveRootDirectory())
+                    .onlyClaimed(backups.only_backup_claimed_chunks)
+                    .writeOnlyClaimedChunks(!backups.backup_entire_regions_with_claims)
+                    .snapshotMetaFiles(!backups.prefer_speed_over_backup_consistency)
+                    .useSeparateThread(backups.use_separate_thread)
+                    .additionalBackupFiles(Arrays.asList(backups.additional_backup_files))
+                    .excludedBackupFiles(Arrays.asList(backups.excluded_backup_files)).overwrite(false)
+                    .createdAt(LocalDateTime.now()).build();
         }
     }
 }

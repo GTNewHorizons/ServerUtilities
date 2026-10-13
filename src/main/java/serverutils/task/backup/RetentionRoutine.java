@@ -73,8 +73,7 @@ public class RetentionRoutine {
         cancellation.cancel();
     }
 
-    private <T extends BackupEntry> void prune(BackupStore<T> store, BackupResult.Retention result)
-            throws IOException {
+    private <T extends BackupEntry> void prune(BackupStore<T> store, BackupResult.Retention result) throws IOException {
         if (options.hasPolicy()) {
             pruneByPolicy(store, result);
         } else {
@@ -199,8 +198,7 @@ public class RetentionRoutine {
         return entries;
     }
 
-    private <T extends BackupEntry> BackupRetention.Plan<T> getRetentionPlan(BackupStore<T> store)
-            throws IOException {
+    private <T extends BackupEntry> BackupRetention.Plan<T> getRetentionPlan(BackupStore<T> store) throws IOException {
         return BackupRetention.plan(store.list(), options.policy, options.deleteCustom, options.maxSize);
     }
 

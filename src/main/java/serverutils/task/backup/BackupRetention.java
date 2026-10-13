@@ -97,13 +97,11 @@ public final class BackupRetention {
         if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup retention cancelled");
     }
 
-    static <T extends BackupEntry> Plan<T> select(List<T> input, List<Rule> rules, boolean deleteCustom,
-            long maxSize) {
+    static <T extends BackupEntry> Plan<T> select(List<T> input, List<Rule> rules, boolean deleteCustom, long maxSize) {
         long now = System.currentTimeMillis();
         List<T> entries = new ArrayList<>(input);
         entries.sort(
-                Comparator.comparingLong((T entry) -> entry.createdAt()).reversed()
-                        .thenComparing(BackupEntry::id));
+                Comparator.comparingLong((T entry) -> entry.createdAt()).reversed().thenComparing(BackupEntry::id));
         Plan<T> plan = new Plan<>();
         Set<T> protectedEntries = new HashSet<>();
         Set<String> worlds = new HashSet<>();
@@ -120,9 +118,7 @@ public final class BackupRetention {
                                 : entry.createdAt() > now ? "Timestamp is in the future" : "Protected custom backup");
                 plan.labels.put(
                         entry,
-                        reason(
-                                entry.problem() != null ? "unreadable"
-                                        : entry.createdAt() > now ? "future" : "custom"));
+                        reason(entry.problem() != null ? "unreadable" : entry.createdAt() > now ? "future" : "custom"));
                 plan.preserved.add(entry);
                 protectedEntries.add(entry);
                 continue;

@@ -73,6 +73,10 @@ public class BackupCandidates {
         return Collections.unmodifiableList(filesByDimension.getOrDefault("DIM" + dimension, Collections.emptyList()));
     }
 
+    public int count() {
+        return filesByDimension.values().stream().mapToInt(List::size).sum() + additionalFiles.size();
+    }
+
     public List<WorldFile> getFiles() {
         return getFiles(worldFile -> true);
     }
@@ -110,10 +114,17 @@ public class BackupCandidates {
         return result;
     }
 
-    public void remove(Predicate<File> predicate) {
-        additionalFiles.removeIf(file -> predicate.test(file.backing()));
+    public void remove(Predicate<WorldFile> predicate) {
+        additionalFiles.removeIf(predicate);
         for (List<WorldFile> files : filesByDimension.values()) {
-            files.removeIf(file -> predicate.test(file.backing()));
+            files.removeIf(predicate);
+        }
+    }
+
+    public void keep(Predicate<WorldFile> predicate) {
+        additionalFiles.removeIf(f -> !predicate.test(f));
+        for (List<WorldFile> files : filesByDimension.values()) {
+            files.removeIf(f -> !predicate.test(f));
         }
     }
 
@@ -138,7 +149,7 @@ public class BackupCandidates {
 
         Path runFolder = Paths.get("").toAbsolutePath();
         remove(file -> {
-            Path absolute = file.toPath().toAbsolutePath().normalize();
+            Path absolute = file.backing().toPath().toAbsolutePath().normalize();
             Path relative = runFolder.relativize(absolute);
             for (Predicate<Path> matcher : matchers) {
                 if (matcher.test(relative) || matcher.test(absolute)) return true;
@@ -171,8 +182,8 @@ public class BackupCandidates {
                 // exists() follows links, so this ignores broken ones.
                 if (!child.exists()) continue;
                 if (!child.isDirectory()) {
-                    WorldFile file = relativeToWorld ? WorldFile.from(scanRoot, child)
-                            : WorldFile.from(dimensionRoot, child);
+                    WorldFile file = WorldFile
+                            .from(dimension, dimensionRoot, relativeToWorld ? scanRoot : dimensionRoot, child);
                     if (known.add(child.toPath().toAbsolutePath().normalize())) files.add(file);
                 } else if (isSaveRoot && FileUtils.isDimensionFolder(child)) {
                     scan(child, child, child.getName());
