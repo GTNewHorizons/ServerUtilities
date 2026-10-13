@@ -68,7 +68,13 @@ public class SnapshotWriter {
             for (String dimensionId : candidates.dimensions()) {
                 List<WorldFile> files = filesByDimension.get(dimensionId);
                 SnapshotDimension previousDim = previous == null ? null : previous.getDimension(dimensionId);
-                SnapshotDimension newDim = writeDimension(dimensionId, files, previousDim, packWriter, fileWriter, manifestWriter);
+                SnapshotDimension newDim = writeDimension(
+                        dimensionId,
+                        files,
+                        previousDim,
+                        packWriter,
+                        fileWriter,
+                        manifestWriter);
                 dimensions.put(dimensionId, newDim);
             }
 
@@ -107,8 +113,8 @@ public class SnapshotWriter {
         return snapshot;
     }
 
-    private SnapshotDimension writeDimension(String id, List<WorldFile> files, SnapshotDimension previous, PackWriter packWriter,
-            PackWriter fileWriter, PackWriter manifestWriter) throws IOException {
+    private SnapshotDimension writeDimension(String id, List<WorldFile> files, SnapshotDimension previous,
+            PackWriter packWriter, PackWriter fileWriter, PackWriter manifestWriter) throws IOException {
         SnapshotDimension dimension = new SnapshotDimension(id);
 
         for (WorldFile file : files) {
@@ -125,12 +131,18 @@ public class SnapshotWriter {
 
             File backing = file.backing();
             switch (file.kind()) {
-                case REGION -> dimension.addRegion(writeRegion(backing, SnapshotRegion.nameOf(backing), (SnapshotRegion)previousEntry, packWriter, manifestWriter));
+                case REGION -> dimension.addRegion(
+                        writeRegion(
+                                backing,
+                                SnapshotRegion.nameOf(backing),
+                                (SnapshotRegion) previousEntry,
+                                packWriter,
+                                manifestWriter));
                 case MISC -> {
                     if (file.size() > MAX_FILE_SIZE) {
                         ServerUtilities.LOGGER.warn(
-                            "File {} is too large to be saved in a snapshot. This file will be skipped in this version of ServerUtilities.",
-                            file);
+                                "File {} is too large to be saved in a snapshot. This file will be skipped in this version of ServerUtilities.",
+                                file);
                         continue;
                     }
                     dimension.addFile(writeFile(file, fileWriter));

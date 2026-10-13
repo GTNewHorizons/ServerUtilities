@@ -670,8 +670,7 @@ public class BackupRoutine {
                     .useSeparateThread(backups.use_separate_thread)
                     .additionalBackupFiles(Arrays.asList(backups.additional_backup_files))
                     .excludedBackupFiles(Arrays.asList(backups.excluded_backup_files)).overwrite(false)
-                    .incremental(backups.incremental_backups)
-                    .createdAt(LocalDateTime.now()).build();
+                    .incremental(backups.incremental_backups).createdAt(LocalDateTime.now()).build();
         }
     }
 }

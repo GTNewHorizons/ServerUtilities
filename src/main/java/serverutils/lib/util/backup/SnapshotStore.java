@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import net.minecraftforge.common.DimensionManager;
+
 import serverutils.ServerUtilities;
 import serverutils.lib.util.FileUtils;
 import serverutils.task.backup.BackupResult;
@@ -84,12 +85,8 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
 
     public Snapshot find(String name) {
         String fileName = name.endsWith(".json") ? name : name + ".json";
-        return list()
-            .stream()
-            .filter(m -> m.getName().equals(fileName))
-            .findFirst()
-            .map(manifest -> Snapshot.fromJson(this, manifest))
-            .orElse(null);
+        return list().stream().filter(m -> m.getName().equals(fileName)).findFirst()
+                .map(manifest -> Snapshot.fromJson(this, manifest)).orElse(null);
     }
 
     public Snapshot findLatest() {

@@ -3,9 +3,10 @@ package serverutils.task.backup;
 import java.io.File;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import serverutils.lib.util.backup.SnapshotEntry;
 
 import javax.annotation.Nullable;
+
+import serverutils.lib.util.backup.SnapshotEntry;
 
 public final class WorldFile {
 

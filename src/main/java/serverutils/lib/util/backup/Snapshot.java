@@ -22,8 +22,8 @@ public class Snapshot {
 
     private final Map<String, SnapshotDimension> dimensions;
 
-    public Snapshot(String world, ZonedDateTime createdAt, ZonedDateTime completedAt, String minecraftVersion, String modVersion,
-            Map<String, SnapshotDimension> dimensions) {
+    public Snapshot(String world, ZonedDateTime createdAt, ZonedDateTime completedAt, String minecraftVersion,
+            String modVersion, Map<String, SnapshotDimension> dimensions) {
         this.world = world;
         this.createdAt = createdAt;
         this.completedAt = completedAt;

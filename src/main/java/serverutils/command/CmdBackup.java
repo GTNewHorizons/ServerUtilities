@@ -1,6 +1,5 @@
 package serverutils.command;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -21,8 +20,9 @@ import net.minecraft.network.rcon.RConConsoleSource;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
-
 import net.minecraftforge.common.DimensionManager;
+
+import cpw.mods.fml.common.FMLCommonHandler;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
@@ -184,6 +184,7 @@ public class CmdBackup extends CmdTreeBase {
     }
 
     public static class CmdBackupRestore extends CmdBase {
+
         public CmdBackupRestore() {
             // this command creates entire new worlds and thus should only be allowed by the server
             super("restore", Level.SERVER);
@@ -203,7 +204,10 @@ public class CmdBackup extends CmdTreeBase {
 
                 File currentSave = DimensionManager.getCurrentSaveRootDirectory();
                 File savesFolder = FMLCommonHandler.instance().getSavesDirectory();
-                File backupSave = FileUtils.getFileWithoutCollision(savesFolder, currentSave.getName() + "-command-restored", Object::toString);
+                File backupSave = FileUtils.getFileWithoutCollision(
+                        savesFolder,
+                        currentSave.getName() + "-command-restored",
+                        Object::toString);
                 SnapshotRestorer.restore(snapshotStore, snapshot, backupSave);
             } catch (IOException e) {
                 throw new RuntimeException(e);
