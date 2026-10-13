@@ -101,7 +101,7 @@ public final class BackupRetention {
         long now = System.currentTimeMillis();
         List<T> entries = new ArrayList<>(input);
         entries.sort(
-                Comparator.comparingLong((T entry) -> entry.createdAt()).reversed().thenComparing(BackupEntry::id));
+                Comparator.comparingLong((T entry) -> entry.createdAt()).reversed().thenComparing(BackupEntry::label));
         Plan<T> plan = new Plan<>();
         Set<T> protectedEntries = new HashSet<>();
         Set<String> worlds = new HashSet<>();

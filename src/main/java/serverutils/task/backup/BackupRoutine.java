@@ -274,7 +274,7 @@ public class BackupRoutine {
 
     private void doArchiveSave(Universe universe, BackupCandidates candidates, BackupResult.Save result)
             throws IOException {
-        File destination = prepareDestination(backupName, options.incremental ? ".json" : ".zip");
+        File destination = prepareDestination(backupName, ".zip");
         temporary = FileUtils.createSaveTemporary(destination.toPath().toAbsolutePath()).toFile();
 
         compressor.createOutputStream(temporary);
@@ -344,7 +344,7 @@ public class BackupRoutine {
         }
 
         Path temporaryPath = temporary.toPath();
-        destination = prepareDestination(backupName, options.incremental ? ".json" : ".zip");
+        destination = prepareDestination(backupName, ".zip");
         Path destinationPath = destination.toPath();
 
         cancellation.check();
@@ -442,10 +442,11 @@ public class BackupRoutine {
         // it's already been verified (custom names) and therefore we can just return a new file at the destination
         if (filename.endsWith(extension)) return new File(options.backupsDirectory, filename);
 
-        for (int i = 0; true; i++) {
-            File destination = new File(options.backupsDirectory, filename + (i == 0 ? "" : "-" + i) + extension);
-            if (!destination.exists()) return destination;
-        }
+        return FileUtils.getFileWithoutCollision(
+                options.getWorldBackupDirectory(),
+                filename,
+                extension,
+                FileUtils.INCREMENTAL_APPEND);
     }
 
     private BackupCandidates getCandidates() throws IOException {
@@ -606,6 +607,7 @@ public class BackupRoutine {
 
     private static String determineBackupName(Options options) {
         String backupName = options.customName;
+        if (options.incremental) return backupName;
         if (backupName == null) backupName = "";
         boolean overwrite = options.overwrite;
         LocalDateTime createdAt = options.createdAt;
@@ -615,7 +617,7 @@ public class BackupRoutine {
             backupName = createdAt.format(FORMATTER);
         } else {
             validateBackupName(backupName);
-            backupName += (options.incremental ? ".json" : ".zip");
+            backupName += ".json";
             Path destinationPath = getDestinationPath(options, backupName, overwrite);
             if (Files.exists(destinationPath, LinkOption.NOFOLLOW_LINKS)
                     && !Files.isRegularFile(destinationPath, LinkOption.NOFOLLOW_LINKS)) {
@@ -627,7 +629,7 @@ public class BackupRoutine {
     }
 
     private static @NotNull Path getDestinationPath(Options options, String backupName, boolean overwrite) {
-        File destination = new File(options.backupsDirectory, backupName);
+        File destination = new File(options.getWorldBackupDirectory(), backupName);
         if (!overwrite && destination.exists()) {
             throw new IllegalArgumentException(
                     "Backup already exists: " + backupName + ". Use =overwrite to replace it explicitly");
@@ -671,6 +673,11 @@ public class BackupRoutine {
                     .additionalBackupFiles(Arrays.asList(backups.additional_backup_files))
                     .excludedBackupFiles(Arrays.asList(backups.excluded_backup_files)).overwrite(false)
                     .incremental(backups.incremental_backups).createdAt(LocalDateTime.now()).build();
+        }
+
+        public File getWorldBackupDirectory() {
+            if (incremental) return new File(backupsDirectory, world.getName());
+            return backupsDirectory;
         }
     }
 }

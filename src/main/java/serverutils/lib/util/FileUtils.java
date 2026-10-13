@@ -102,11 +102,18 @@ public class FileUtils {
         }
     }
 
-    public static File getFileWithoutCollision(File directory, String name, Function<Integer, String> appender) {
+    public static final Function<Integer, String> INCREMENTAL_APPEND = i -> "-" + 1;
+
+    public static File getFileWithoutCollision(File directory, String name, String extension,
+            Function<Integer, String> appender) {
         int i = 1;
-        File file = new File(directory, name);
-        while (file.exists()) file = new File(directory, appender.apply(i++));
+        File file = new File(directory, name + extension);
+        while (file.exists()) file = new File(directory, appender.apply(i++) + extension);
         return file;
+    }
+
+    public static File getFileWithoutCollision(File directory, String name, Function<Integer, String> appender) {
+        return getFileWithoutCollision(directory, name, "", appender);
     }
 
     public static Path createSaveTemporary(Path target) throws IOException {
