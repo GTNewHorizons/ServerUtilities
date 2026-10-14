@@ -56,6 +56,7 @@ public final class BackupFixtures {
         ServerUtilitiesConfig.backups.excluded_backup_files = new String[0];
         ServerUtilitiesConfig.backups.backups_to_keep = 12;
         ServerUtilitiesConfig.backups.retention_policy = new String[0];
+        ServerUtilitiesConfig.backups.max_folder_size = 0;
         ServerUtilitiesConfig.backups.backup_timer = "30m";
         ServerUtilitiesConfig.backups.compression_level = 1;
         ServerUtilitiesConfig.backups.enable_backups = true;
@@ -87,22 +88,33 @@ public final class BackupFixtures {
     /** A custom-named archive of saves/world carrying backup metadata. */
     public static void writeArchive(File file, String worldId, long created) throws IOException {
         try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(file.toPath()))) {
-            Properties metadata = new Properties();
-            metadata.setProperty("version", "1");
-            metadata.setProperty("worldId", worldId);
-            metadata.setProperty("createdAt", Long.toString(created));
-            metadata.setProperty("customName", "true");
             zip.putNextEntry(new ZipEntry(ICompress.BACKUP_METADATA_ENTRY));
-            metadata.store(zip, null);
+            zip.write(metadata(worldId, created, "true"));
             zip.putNextEntry(new ZipEntry("saves/world/level.dat"));
             zip.write(1);
         }
     }
 
+    /** Backup metadata properties; a null customName is left out. */
+    public static byte[] metadata(String worldId, long created, String customName) throws IOException {
+        Properties metadata = new Properties();
+        metadata.setProperty("version", "1");
+        metadata.setProperty("worldId", worldId);
+        metadata.setProperty("createdAt", Long.toString(created));
+        if (customName != null) metadata.setProperty("customName", customName);
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        metadata.store(bytes, null);
+        return bytes.toByteArray();
+    }
+
     public static void writeLegacyArchive(File file, String worldFolder, UUID universeId) throws IOException {
-        NBTTagCompound universe = new NBTTagCompound();
         // Universe saves UUIDs without hyphens.
-        universe.setString("UUID", universeId.toString().replace("-", ""));
+        writeLegacyArchive(file, worldFolder, universeId.toString().replace("-", ""));
+    }
+
+    public static void writeLegacyArchive(File file, String worldFolder, String universeId) throws IOException {
+        NBTTagCompound universe = new NBTTagCompound();
+        universe.setString("UUID", universeId);
         ByteArrayOutputStream universeBytes = new ByteArrayOutputStream();
         // writeCompressed closes its stream, so it can't write into the zip directly.
         CompressedStreamTools.writeCompressed(universe, universeBytes);
