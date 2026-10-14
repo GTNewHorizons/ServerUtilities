@@ -32,6 +32,8 @@ public class ArchiveStoreTest extends BackupFixtures.Tests {
         BackupFixtures.writeArchive(archive, UUID.randomUUID().toString(), 1_000);
         Files.createDirectory(new File(backups, "directory.zip").toPath());
         Files.write(new File(backups, "noise.txt").toPath(), new byte[1_000]);
+        // an archive still being written is not one retention may delete
+        Files.write(new File(backups, ".su-save-123.tmp").toPath(), new byte[1_000]);
 
         List<ArchiveEntry> entries = new ArchiveStore(backups).list();
 

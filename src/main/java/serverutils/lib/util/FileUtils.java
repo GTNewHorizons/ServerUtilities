@@ -333,20 +333,50 @@ public class FileUtils {
     /**
      * Finds every regular file matched by {@code pattern}, resolved against the run folder. A pattern without wildcards
      * selects that file or everything below that directory; otherwise it is a glob. Links are followed, directories
-     * whose real path lies under one of {@code excluded} are not entered, and missing paths are ignored.
+     * whose real path lies under one of {@code excluded} are not entered, and missing paths are ignored. Directories
+     * the glob cannot match anything under are not entered either, so they may be unreadable.
      */
     public static List<File> findMatching(String pattern, Path... excluded) throws IOException {
         pattern = normalizeBackupPattern(pattern);
         int wildcard = indexOfWildcard(pattern);
-        if (wildcard < 0) return findFiles(Paths.get(pattern), path -> true, excluded);
+        if (wildcard < 0) return findFiles(Paths.get(pattern), path -> true, path -> true, excluded);
 
         // Walk from the last directory the pattern names before its first wildcard.
         String root = pattern.substring(0, pattern.lastIndexOf('/', wildcard) + 1);
         PathMatcher glob = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
-        return findFiles(Paths.get(root.isEmpty() ? "." : root), path -> glob.matches(path.normalize()), excluded);
+        return findFiles(
+                Paths.get(root.isEmpty() ? "." : root),
+                path -> glob.matches(path.normalize()),
+                canContainMatch(pattern),
+                excluded);
     }
 
-    private static List<File> findFiles(Path start, Predicate<Path> filter, Path... excluded) throws IOException {
+    /**
+     * Whether files below a directory could match pattern
+     */
+    private static Predicate<Path> canContainMatch(String pattern) {
+        String[] segments = pattern.split("/", -1);
+        List<PathMatcher> matchers = new ArrayList<>();
+        for (String segment : segments) {
+            if (segment.indexOf('{') >= 0 != segment.indexOf('}') >= 0) return dir -> true;
+            matchers.add(FileSystems.getDefault().getPathMatcher("glob:" + segment));
+        }
+        return dir -> {
+            String[] names = dir.normalize().toString().replace('\\', '/').split("/", -1);
+            for (int i = 0; i < names.length; i++) {
+                if (segments[i].contains("**")) return true;
+                // Only the last segment names files, so nothing below a directory at that depth can match.
+                if (i >= segments.length - 1) return false;
+                boolean matches = indexOfWildcard(segments[i]) < 0 ? names[i].equals(segments[i])
+                        : matchers.get(i).matches(Paths.get(names[i]));
+                if (!matches) return false;
+            }
+            return true;
+        };
+    }
+
+    private static List<File> findFiles(Path start, Predicate<Path> filter, Predicate<Path> descend, Path... excluded)
+            throws IOException {
         List<File> found = new ArrayList<>();
         if (Files.notExists(start)) return found;
         List<Path> skipped = new ArrayList<>();
@@ -361,6 +391,7 @@ public class FileUtils {
                     @Override
                     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes)
                             throws IOException {
+                        if (!dir.equals(start) && !descend.test(dir)) return FileVisitResult.SKIP_SUBTREE;
                         Path real = resolveRealPath(dir);
                         for (Path skip : skipped) {
                             if (real.startsWith(skip)) return FileVisitResult.SKIP_SUBTREE;
@@ -378,6 +409,11 @@ public class FileUtils {
                     public FileVisitResult visitFileFailed(Path path, IOException failure) throws IOException {
                         // Link cycles and files removed mid-walk are not worth failing over.
                         if (failure instanceof FileSystemLoopException || failure instanceof NoSuchFileException) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                        // Paths that could never be selected (e.g. an unreadable unrelated directory) don't matter.
+                        if (!path.equals(start)
+                                && !(Files.isDirectory(path) ? descend.test(path) : filter.test(path))) {
                             return FileVisitResult.CONTINUE;
                         }
                         throw failure;

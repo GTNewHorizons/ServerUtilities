@@ -1,5 +1,7 @@
 package serverutils.task.backup;
 
+import static serverutils.ServerUtilities.LOGGER;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
@@ -139,7 +141,7 @@ public class BackupCandidates {
      * Removes every non-region candidate matched by any of {@code patterns}. {@code $WORLDNAME} is replaced with
      * {@code worldName}; a pattern without wildcards matches only that exact path, otherwise it is a glob. Each pattern
      * is tried against the file's path relative to the run folder and against its absolute path. Empty patterns are
-     * ignored. Region files (.mca) are never removed: which regions are backed up is decided by the chunk selection.
+     * ignored. Region files are never removed: which regions are backed up is decided by the chunk selection.
      */
     public void removeMatching(Collection<String> patterns, String worldName) {
         List<Predicate<Path>> matchers = new ArrayList<>();
@@ -156,12 +158,18 @@ public class BackupCandidates {
         if (matchers.isEmpty()) return;
 
         Path runFolder = Paths.get("").toAbsolutePath();
+        Path levelDat = scanRoot == null ? null : scanRoot.toPath().resolve("level.dat").toAbsolutePath().normalize();
         remove(file -> {
-            if (FileUtils.isRegionFile(file.backing())) return false;
+            if (file.isRegionFile()) return false;
             Path absolute = file.backing().toPath().toAbsolutePath().normalize();
             Path relative = runFolder.relativize(absolute);
             for (Predicate<Path> matcher : matchers) {
-                if (matcher.test(relative) || matcher.test(absolute)) return true;
+                if (matcher.test(relative) || matcher.test(absolute)) {
+                    // A backup without level.dat cannot be restored
+                    if (!absolute.equals(levelDat)) return true;
+                    LOGGER.warn("Ignoring backup exclusion for {}, it is required to restore the world", relative);
+                    return false;
+                }
             }
             return false;
         });

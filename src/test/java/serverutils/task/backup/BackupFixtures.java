@@ -1,10 +1,12 @@
 package serverutils.task.backup;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
@@ -20,6 +22,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -32,6 +36,8 @@ import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.ISaveFormat;
 import net.minecraft.world.storage.SaveHandler;
+
+import org.mockito.MockedStatic;
 
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunks;
@@ -114,6 +120,7 @@ public final class BackupFixtures {
         private MinecraftServer previousServer; // I don't know why we need this but I don't want to break existing
                                                 // assumptions
         private List<EntityPlayerMP> players;
+        private MockedStatic<BackupCandidates> candidatesMock;
 
         protected Universe universe;
         protected MinecraftServer server;
@@ -155,6 +162,21 @@ public final class BackupFixtures {
             when(ClaimedChunks.instance.getAllClaimedPositions()).thenReturn(new HashSet<>(Arrays.asList(positions)));
         }
 
+        protected BackupCandidates mockCandidates(File... files) {
+            BackupCandidates candidates = mock(BackupCandidates.class);
+
+            candidatesMock = mockStatic(BackupCandidates.class);
+            candidatesMock.when(() -> BackupCandidates.scanWorld(eq(world), eq(backups), anyBoolean()))
+                    .thenReturn(candidates);
+
+            List<WorldFile> worldFiles = Arrays.stream(files)
+                    .map(f -> WorldFile.from(BackupCandidates.OVERWORLD, world, f)).collect(Collectors.toList());
+            when(candidates.getFiles()).thenReturn(worldFiles);
+            when(candidates.getFiles(any(Predicate.class))).thenReturn(worldFiles);
+
+            return candidates;
+        }
+
         private void setupFolders() throws IOException {
             Path root = Files.createTempDirectory(new File("build").toPath(), "nested-world-");
             build = root.toFile();
@@ -189,6 +211,10 @@ public final class BackupFixtures {
         private void doClearTests() throws ReflectiveOperationException {
             BackupFixtures.setCurrentServer(previousServer);
             FileUtils.delete(build);
+            if (candidatesMock != null) {
+                candidatesMock.close();
+                candidatesMock = null;
+            }
         }
 
         private void setupServerMocks(MinecraftServer server) throws NoSuchFieldException, IllegalAccessException {

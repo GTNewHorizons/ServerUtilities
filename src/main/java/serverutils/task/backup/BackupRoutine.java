@@ -10,6 +10,7 @@ import java.io.InterruptedIOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.channels.ClosedByInterruptException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -23,6 +24,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -62,7 +64,6 @@ import serverutils.lib.util.compression.ICompress;
 public class BackupRoutine {
 
     private static final String DATE_PATTERN = "yyyy-MM-dd-HH-mm-ss";
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN, Locale.ROOT);
     private static final Set<String> BQ_DATABASES = new HashSet<>(
             Arrays.asList("QuestDatabase", "QuestProgress", "QuestingParties", "NameCache", "LifeDatabase"));
 
@@ -74,6 +75,8 @@ public class BackupRoutine {
 
     /** Archive entry name -> copy taken while world saving was suspended. */
     private final Map<String, File> snapshot = new HashMap<>();
+
+    static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN, Locale.ROOT);
 
     private long timing;
 
@@ -169,6 +172,9 @@ public class BackupRoutine {
                             null,
                             StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, t.getMessage()));
                 }
+            } finally {
+                cleanup();
+                logTiming();
             }
             return result.finished();
         }, executor);
@@ -192,12 +198,14 @@ public class BackupRoutine {
             recordTiming("player save");
             universe.disableWorldSaving();
             recordTiming("world save");
-            flushChunkSaves(universe.server.worldServers);
-            recordTiming("chunk flush");
 
-            if (!backups.silent_backup) {
+            // reordered because flushing chunks takes time and world saving has already been disabled
+            if (!options.silent) {
                 BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
             }
+
+            flushChunkSaves(universe.server.worldServers);
+            recordTiming("chunk flush");
 
             if (options.onlyClaimed) {
                 if (!ClaimedChunks.isActive()) throw new IllegalStateException("Chunk claiming is not active");
@@ -250,23 +258,15 @@ public class BackupRoutine {
         cancellation.enable();
         boolean isIncremental = options.incremental;
 
-        try {
-            if (candidates == null) candidates = getCandidates();
-            LOGGER.info(
-                    "Performing {} backup of {} files...",
-                    isIncremental ? "incremental" : "full",
-                    candidates.count());
-            if (isIncremental) {
-                throw new UnsupportedOperationException("Incremental backups are not supported yet");
-            } else {
-                doArchiveSave(universe, candidates, result);
-            }
-            recordTiming("save");
-            lastSuccessfulBackup = startedAtInstant;
-        } finally {
-            cleanup();
-            logTiming();
+        if (candidates == null) candidates = getCandidates();
+        LOGGER.info("Performing {} backup of {} files...", isIncremental ? "incremental" : "full", candidates.count());
+        if (isIncremental) {
+            throw new UnsupportedOperationException("Incremental backups are not supported yet");
+        } else {
+            doArchiveSave(universe, candidates, result);
         }
+        recordTiming("save");
+        lastSuccessfulBackup = startedAtInstant;
     }
 
     private void doSnapshotSave(Universe universe) {
@@ -493,13 +493,16 @@ public class BackupRoutine {
      * world saving was suspended. Region files and stable mod data are read live instead.
      */
     private void snapshotFiles(BackupCandidates candidates) throws IOException {
+        Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         Path world = options.world.toPath().toAbsolutePath().normalize();
         File folder = new File(BACKUP_TEMP_FOLDER, "snapshot");
         FileUtils.delete(folder);
         FileUtils.ensureExists(folder);
         for (WorldFile file : candidates.getFiles(f -> f.kind() == WorldFile.Kind.MISC && !isStableModData(f, world))) {
-            // Numbered copies: entry names can contain anything, including paths outside the run folder.
-            File copy = new File(folder, Integer.toString(snapshot.size()));
+            // Base64 name so that at least the new file is consistent
+            File copy = new File(
+                    folder,
+                    encoder.encodeToString(file.backing().getAbsolutePath().getBytes(StandardCharsets.UTF_8)));
             File source = file.backing();
             long size = source.length();
             long modified = source.lastModified();
@@ -507,6 +510,7 @@ public class BackupRoutine {
             if (source.length() != size || source.lastModified() != modified || copy.length() != size) {
                 throw new IOException("File changed during backup snapshot: " + source);
             }
+            // store a reference to the new file based on its candidate path
             snapshot.put(FileUtils.getRelativePath(file.backing()), copy);
         }
     }
@@ -625,7 +629,8 @@ public class BackupRoutine {
 
         if (backupName.isEmpty()) {
             if (overwrite) throw new IllegalArgumentException("Overwrite requires a custom backup name");
-            backupName = createdAt.format(FORMATTER);
+            // set the backup name without extension so that prepareDestination can find a non-conflicting destination
+            backupName = createdAt.format(DATE_FORMATTER);
         } else {
             validateBackupName(backupName);
             backupName += ".zip";
@@ -668,6 +673,7 @@ public class BackupRoutine {
         public boolean incremental;
         public boolean snapshotMetaFiles;
         public boolean useSeparateThread;
+        public boolean silent;
         public String customName;
         public boolean overwrite;
         public LocalDateTime createdAt;
@@ -683,7 +689,7 @@ public class BackupRoutine {
                     .useSeparateThread(backups.use_separate_thread)
                     .additionalBackupFiles(Arrays.asList(backups.additional_backup_files))
                     .excludedBackupFiles(Arrays.asList(backups.excluded_backup_files)).overwrite(false)
-                    .createdAt(LocalDateTime.now()).build();
+                    .silent(backups.silent_backup).createdAt(LocalDateTime.now()).build();
         }
 
         public File getWorldBackupDirectory() {
