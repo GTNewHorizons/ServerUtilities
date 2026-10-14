@@ -31,7 +31,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import net.minecraft.util.ChatComponentText;
@@ -71,22 +73,24 @@ public class BackupRoutine {
     private final CancellationToken cancellation = new CancellationToken();
     private final Map<String, Map<String, List<ChunkDimPos>>> dimToRegionToChunkPos = new HashMap<>();
 
+    /** Archive entry name -> copy taken while world saving was suspended. */
+    private final Map<String, File> snapshot = new HashMap<>();
+
     private long timing;
 
     private final Universe universe;
-    private final ICompress compressor;
     private final Options options;
 
     private String backupName;
 
-    /** Archive entry name -> copy taken while world saving was suspended. */
-    private final Map<String, File> snapshot = new HashMap<>();
     @Getter
     private boolean prepared;
     private Instant startedAtInstant;
     private long startedAt;
     private File temporary;
+    private ICompress compressor;
 
+    private Supplier<ICompress> compressorSupplier = ICompress::createCompressor;
     private BackupCandidates candidates;
 
     public static final Pattern BACKUP_NAME_PATTERN = ArchiveStore.LEGACY_NAME;
@@ -100,9 +104,14 @@ public class BackupRoutine {
         ServerUtilities.LOGGER.info("Backups folder - {}", BACKUP_FOLDER.getAbsolutePath());
     }
 
-    public BackupRoutine(Universe universe, ICompress compressor, Options options) {
+    public BackupRoutine(Universe universe, Options options, Supplier<ICompress> compressorSupplier) {
         this.universe = universe;
-        this.compressor = compressor;
+        this.compressorSupplier = compressorSupplier;
+        this.options = options;
+    }
+
+    public BackupRoutine(Universe universe, Options options) {
+        this.universe = universe;
         this.options = options;
     }
 
@@ -116,13 +125,27 @@ public class BackupRoutine {
         }
     }
 
+    public BackupResult.Save save() {
+        try {
+            return save(Runnable::run).get();
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException rte) throw rte;
+            throw new RuntimeException(e.getCause());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public CompletableFuture<BackupResult.Save> save(Executor executor) {
         BackupResult.Save result = new BackupResult.Save(options.world, options.incremental);
 
         verifyBackupName();
+
         startedAtInstant = Instant.now();
         startedAt = System.nanoTime();
         timing = System.nanoTime();
+        compressor = compressorSupplier.get();
 
         prepared = preroutine(result);
         if (!prepared) {
@@ -164,6 +187,7 @@ public class BackupRoutine {
     private boolean preroutine(BackupResult.Save result) {
         boolean prepared = false;
         try {
+            compressor = ICompress.createCompressor();
             // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
             // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
             universe.server.getConfigurationManager().saveAllPlayerData();
@@ -380,6 +404,14 @@ public class BackupRoutine {
                 LOGGER.warn("Could not restore world saving", e);
             }
         });
+
+        cancellation.clear();
+        snapshot.clear();
+        dimToRegionToChunkPos.clear();
+        timings.clear();
+        candidates = null;
+        prepared = false;
+        backupName = null;
     }
 
     private void recordTiming(String phase) {
@@ -430,7 +462,8 @@ public class BackupRoutine {
     }
 
     private BackupCandidates getCandidates() throws IOException {
-        BackupCandidates candidates = BackupCandidates.scanWorld(options.world, !options.incremental);
+        BackupCandidates candidates = BackupCandidates
+                .scanWorld(options.world, options.backupsDirectory, !options.incremental);
 
         // keep only misc files + region files with claims in them
         if (options.onlyClaimed) {
@@ -566,7 +599,7 @@ public class BackupRoutine {
         flushWorldDataSaver(Class.forName("com.mitchej123.hodgepodge.util.WorldDataSaver"));
     }
 
-    private static void flushWorldDataSaver(Class<?> saver) throws Exception {
+    static void flushWorldDataSaver(Class<?> saver) throws Exception {
         Method flush;
         try {
             flush = saver.getMethod("flush");

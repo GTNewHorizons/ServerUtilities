@@ -2,8 +2,11 @@ package serverutils.lib.util;
 
 import java.io.InterruptedIOException;
 
+import lombok.Getter;
+
 public class CancellationToken {
 
+    @Getter
     private volatile boolean cancelled;
     private volatile Thread runner;
 
@@ -22,11 +25,12 @@ public class CancellationToken {
         if (t != null && t != Thread.currentThread()) t.interrupt();
     }
 
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
     public void check() throws InterruptedIOException {
         if (cancelled || Thread.currentThread().isInterrupted()) throw new InterruptedIOException();
+    }
+
+    public void clear() {
+        cancelled = false;
+        runner = null;
     }
 }

@@ -13,14 +13,11 @@ import net.minecraft.server.MinecraftServer;
 import serverutils.ServerUtilities;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.Ticks;
-import serverutils.lib.util.compression.ICompress;
 import serverutils.task.Task;
 
 public class BackupTask extends Task {
 
-    public static Instant lastPlayerActivity = Instant.MIN;
-    /** Only touched from the server thread's task loop. */
-    private static boolean retryPending;
+    private static Instant lastPlayerActivity = Instant.MIN;
 
     static {
         // Class initialization runs before any backup worker can own an archive staging file.
@@ -28,22 +25,12 @@ public class BackupTask extends Task {
     }
 
     public BackupTask() {
-        this(null);
-    }
-
-    /** A null interval is the configured repeating timer; any other interval is a single delayed retry. */
-    public BackupTask(Ticks interval) {
-        super(
-                interval == null
-                        ? Ticks.getFromMillis(BackupDuration.parse(BackupDuration.normalizeTimer(backups.backup_timer)))
-                        : interval);
+        super(Ticks.getFromMillis(BackupDuration.parse(BackupDuration.normalizeTimer(backups.backup_timer))));
         if (getNextTime() < 0) throw new IllegalArgumentException("backup_timer exceeds scheduling range");
-        repeatable = interval == null;
     }
 
     @Override
     public void execute(Universe universe) {
-        if (!repeatable) retryPending = false;
         if (!backups.enable_backups) return;
 
         MinecraftServer server = universe.server;
@@ -55,14 +42,10 @@ public class BackupTask extends Task {
 
         BackupRoutine.Options options = BackupRoutine.Options.fromConfig();
 
-        ICompress compressor = ICompress.createCompressor();
-        BackupRoutine routine = new BackupRoutine(universe, compressor, options);
-        boolean isStarted = BackupCoordinator.startBackup(routine);
+        BackupRoutine routine = new BackupRoutine(universe, options);
 
-        // Busy with another a retention scan; try once more shortly instead of waiting a whole interval.
-        if (!isStarted && !retryPending && !BackupCoordinator.isRunning()) {
-            retryPending = true;
-            universe.scheduleTask(new BackupTask(Ticks.SECOND));
+        if (!BackupCoordinator.startBackup(routine)) {
+            ServerUtilities.LOGGER.info("Did not execute scheduled backup, another backup was in progress.");
         }
     }
 

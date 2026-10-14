@@ -26,7 +26,6 @@ import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
-import serverutils.lib.util.compression.ICompress;
 import serverutils.task.backup.BackupCoordinator;
 import serverutils.task.backup.BackupEntry;
 import serverutils.task.backup.BackupResult;
@@ -192,8 +191,7 @@ public class CmdBackup extends CmdTreeBase {
             options.customName = target.isEmpty() ? null : target;
             options.onlyClaimed |= oc;
 
-            ICompress compressor = ICompress.createCompressor();
-            BackupRoutine routine = new BackupRoutine(Universe.get(), compressor, options);
+            BackupRoutine routine = new BackupRoutine(Universe.get(), options);
 
             try {
                 routine.verifyBackupName();

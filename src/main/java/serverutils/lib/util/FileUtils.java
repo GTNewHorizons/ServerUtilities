@@ -279,11 +279,12 @@ public class FileUtils {
         });
     }
 
-    public static void ensureExists(File directory) {
-        if (directory.exists()) return;
+    public static File ensureExists(File directory) {
+        if (directory.exists()) return directory;
         if (!directory.isDirectory() && !directory.mkdirs()) {
             throw new RuntimeException("Failed to create directory " + directory);
         }
+        return directory;
     }
 
     public static String getBaseName(File file) {
