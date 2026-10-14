@@ -8,6 +8,8 @@ import java.io.InterruptedIOException;
 import java.util.List;
 import java.util.Objects;
 
+import java.util.concurrent.atomic.AtomicInteger;
+import lombok.Getter;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.storage.RegionFile;
@@ -17,6 +19,7 @@ import serverutils.task.backup.WorldFile;
 
 public class WorldRegion implements AutoCloseable {
 
+    @Getter
     private final File source;
     public final RegionFile regionFile;
     public final String dimension;
@@ -43,26 +46,47 @@ public class WorldRegion implements AutoCloseable {
             throw new IllegalArgumentException("Dimension mismatch");
         }
 
-        int saved = 0;
+        AtomicInteger saved = new AtomicInteger();
         for (ChunkDimPos pos : positions) {
             if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException();
             int chunkX = pos.posX & 31;
             int chunkZ = pos.posZ & 31;
-            try (DataInputStream in = regionFile.getChunkDataInputStream(chunkX, chunkZ)) {
-                if (in == null) continue;
-                NBTTagCompound tag = CompressedStreamTools.read(in);
-                try (DataOutputStream out = other.regionFile.getChunkDataOutputStream(chunkX, chunkZ)) {
-                    CompressedStreamTools.write(tag, out);
-                }
-                saved++;
-            }
+
+            read(chunkX, chunkZ, nbt -> {
+                other.write(chunkX, chunkZ, () -> nbt);
+                saved.getAndIncrement();
+            });
         }
 
-        return saved;
+        return saved.get();
+    }
+
+    public void read(int chunkX, int chunkZ, Reader consumer) throws IOException {
+        try (DataInputStream in = regionFile.getChunkDataInputStream(chunkX, chunkZ)) {
+            if (in == null) return;
+            NBTTagCompound tag = CompressedStreamTools.read(in);
+            consumer.accept(tag);
+        }
+    }
+
+    public void write(int chunkX, int chunkZ, Modifier mod) throws IOException {
+        try (DataOutputStream out = regionFile.getChunkDataOutputStream(chunkX, chunkZ)) {
+            CompressedStreamTools.write(mod.get(), out);
+        }
     }
 
     @Override
     public void close() throws IOException {
         regionFile.close();
+    }
+
+    @FunctionalInterface
+    public interface Modifier {
+        NBTTagCompound get() throws IOException;
+    }
+
+    @FunctionalInterface
+    public interface Reader {
+        void accept(NBTTagCompound tag) throws IOException;
     }
 }

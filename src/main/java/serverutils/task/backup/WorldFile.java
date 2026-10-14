@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
+import serverutils.lib.util.FileUtils;
 
 public final class WorldFile {
 
@@ -39,6 +40,10 @@ public final class WorldFile {
         return new WorldFile(dimension, relativize(nameRoot, location), location, kind);
     }
 
+    public static WorldFile from(String dimension, File root, String path) {
+        return from(dimension, root, root, new File(root, path));
+    }
+
     private static String relativize(File root, File location) {
         return root.toPath().relativize(location.toPath()).toString().replace('\\', '/');
     }
@@ -69,6 +74,10 @@ public final class WorldFile {
 
     public Kind kind() {
         return kind;
+    }
+
+    public String runtimeRelativePath() {
+        return FileUtils.getRelativePath(backing);
     }
 
     @Override

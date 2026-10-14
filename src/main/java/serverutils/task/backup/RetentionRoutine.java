@@ -30,7 +30,7 @@ public class RetentionRoutine {
     }
 
     public static RetentionRoutine fromConfig() {
-        return new RetentionRoutine(new ArchiveStore(BackupRoutine.BACKUP_FOLDER), Options.fromConfig());
+        return new RetentionRoutine(new ArchiveStore(BackupRoutine.getDefaultBackupFolder()), Options.fromConfig());
     }
 
     public BackupResult.Retention prune() {

@@ -34,7 +34,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -93,15 +92,15 @@ public class BackupRoutine {
     private Supplier<ICompress> compressorSupplier = ICompress::createCompressor;
     private BackupCandidates candidates;
 
-    public static final Pattern BACKUP_NAME_PATTERN = ArchiveStore.LEGACY_NAME;
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
-    public static final File BACKUP_FOLDER;
 
     static {
-        BACKUP_FOLDER = backups.backup_folder_path.isEmpty() ? new File("/backups/")
-                : new File(backups.backup_folder_path);
-        FileUtils.ensureExists(BACKUP_FOLDER);
-        ServerUtilities.LOGGER.info("Backups folder - {}", BACKUP_FOLDER.getAbsolutePath());
+        ServerUtilities.LOGGER.info("Backups folder - {}", getDefaultBackupFolder().getAbsolutePath());
+    }
+
+    public static File getDefaultBackupFolder() {
+        return FileUtils.ensureExists(backups.backup_folder_path.isEmpty() ? new File("/backups/")
+            : new File(backups.backup_folder_path));
     }
 
     public BackupRoutine(Universe universe, Options options, Supplier<ICompress> compressorSupplier) {
@@ -187,7 +186,6 @@ public class BackupRoutine {
     private boolean preroutine(BackupResult.Save result) {
         boolean prepared = false;
         try {
-            compressor = ICompress.createCompressor();
             // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
             // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
             universe.server.getConfigurationManager().saveAllPlayerData();
@@ -564,7 +562,7 @@ public class BackupRoutine {
         return false;
     }
 
-    private static void flushChunkSaves(WorldServer[] worlds) throws InterruptedException {
+    static void flushChunkSaves(WorldServer[] worlds) throws InterruptedException {
         // Let the worker finish first: concurrent writers can commit older chunk data last.
         ThreadedFileIOBase.threadedIOInstance.waitForFinish();
         for (WorldServer world : worlds) {
@@ -677,7 +675,7 @@ public class BackupRoutine {
         public List<String> excludedBackupFiles;
 
         public static Options fromConfig() {
-            return Options.builder().backupsDirectory(BACKUP_FOLDER)
+            return Options.builder().backupsDirectory(getDefaultBackupFolder())
                     .world(DimensionManager.getCurrentSaveRootDirectory())
                     .onlyClaimed(backups.only_backup_claimed_chunks)
                     .writeOnlyClaimedChunks(!backups.backup_entire_regions_with_claims)

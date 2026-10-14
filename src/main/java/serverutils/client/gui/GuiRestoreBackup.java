@@ -143,7 +143,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     }
 
     private static boolean needsRefresh() {
-        File[] files = BackupRoutine.BACKUP_FOLDER.listFiles();
+        File[] files = BackupRoutine.getDefaultBackupFolder().listFiles();
         // A missing folder must still clear backups cached from before it disappeared.
         if (files == null) return !allBackupFiles.isEmpty();
         if (files.length != allBackupFiles.size()) return true;
@@ -164,7 +164,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     }
 
     private static void preProcess() {
-        File[] files = BackupRoutine.BACKUP_FOLDER.listFiles();
+        File[] files = BackupRoutine.getDefaultBackupFolder().listFiles();
         if (files == null) return;
 
         ICompress compressor = ICompress.createCompressor();
@@ -251,7 +251,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         Path preservedWorldPath = FileUtils.resolveRealPath(preservedWorld.toPath());
         Path recoveryStorage = FileUtils.resolveRealPath(Paths.get("backups_before_restore"));
         Path tempStorage = FileUtils.resolveRealPath(BackupRoutine.BACKUP_TEMP_FOLDER.toPath());
-        Path backupStorage = FileUtils.resolveRealPath(BackupRoutine.BACKUP_FOLDER.toPath());
+        Path backupStorage = FileUtils.resolveRealPath(BackupRoutine.getDefaultBackupFolder().toPath());
         for (String pattern : backups.additional_backup_files) {
             if (!pattern.contains("$WORLDNAME") && !includeGlobal) {
                 continue;

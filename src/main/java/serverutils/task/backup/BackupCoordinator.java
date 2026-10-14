@@ -29,7 +29,7 @@ import serverutils.lib.util.StringUtils;
 public final class BackupCoordinator {
 
     private static final Object LOCK = BackupCoordinator.class;
-    private static final long STOP_TIMEOUT_SECONDS = 30;
+    static long STOP_TIMEOUT_SECONDS = 30;
 
     private static final Deque<CompletableFuture<Void>> pendingJobs = new ArrayDeque<>();
     private static boolean backupActive;
@@ -189,7 +189,7 @@ public final class BackupCoordinator {
         if (backups.silent_backup) return;
 
         if (backups.display_file_size) {
-            String sizeT = FileUtils.getSizeString(BackupRoutine.BACKUP_FOLDER);
+            String sizeT = FileUtils.getSizeString(BackupRoutine.getDefaultBackupFolder());
             BACKUP.sendAll(
                     StringUtils.color(
                             "cmd.backup_end_2",
@@ -216,8 +216,14 @@ public final class BackupCoordinator {
             backupDone = null;
             // stop() has already canceled the queue, so a prune queued now would never run
             if (!success || stopping) return CompletableFuture.completedFuture(null);
-            RetentionRoutine routine = RetentionRoutine.fromConfig();
-            return startOrQueueRetention(routine, routine::prune);
+            try {
+                RetentionRoutine routine = RetentionRoutine.fromConfig();
+                return startOrQueueRetention(routine, routine::prune);
+            } catch (RuntimeException e) {
+                CompletableFuture<BackupResult.Retention> failed = new CompletableFuture<>();
+                failed.completeExceptionally(e);
+                return failed;
+            }
         }
     }
 

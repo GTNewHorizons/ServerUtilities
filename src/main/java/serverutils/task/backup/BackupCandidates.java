@@ -3,6 +3,7 @@ package serverutils.task.backup;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -189,6 +190,9 @@ public class BackupCandidates {
                 // exists() follows links, so this ignores broken ones.
                 if (!child.exists()) continue;
                 if (!child.isDirectory()) {
+                    // The directory is outside backup storage, skip
+                    if (Files.isSymbolicLink(child.toPath()) && isBackupStorage(backups, child.toPath().toRealPath()))
+                        continue;
                     WorldFile file = WorldFile
                             .from(dimension, dimensionRoot, relativeToWorld ? scanRoot : dimensionRoot, child);
                     if (known.add(child.toPath().toAbsolutePath().normalize())) files.add(file);

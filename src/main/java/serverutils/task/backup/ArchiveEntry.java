@@ -26,4 +26,9 @@ public final class ArchiveEntry implements BackupEntry {
     public String id() {
         return file.getName();
     }
+
+    @Override
+    public String toString() {
+        return BackupEntry.toString(this);
+    }
 }

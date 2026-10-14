@@ -21,7 +21,7 @@ public class BackupTask extends Task {
 
     static {
         // Class initialization runs before any backup worker can own an archive staging file.
-        deleteAbandonedArchives(BackupRoutine.BACKUP_FOLDER);
+        deleteAbandonedArchives(BackupRoutine.getDefaultBackupFolder());
     }
 
     public BackupTask() {

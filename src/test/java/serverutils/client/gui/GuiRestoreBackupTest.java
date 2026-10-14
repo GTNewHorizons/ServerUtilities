@@ -41,9 +41,9 @@ public class GuiRestoreBackupTest {
 
     @Test
     public void preparationProtectsArchivesAndRecoveryFiles() throws Exception {
-        Files.createDirectories(BackupRoutine.BACKUP_FOLDER.toPath());
+        Files.createDirectories(BackupRoutine.getDefaultBackupFolder().toPath());
         Files.createDirectories(BackupRoutine.BACKUP_TEMP_FOLDER.toPath());
-        File otherBackup = Files.createTempFile(BackupRoutine.BACKUP_FOLDER.toPath(), "restore-test-", ".zip").toFile();
+        File otherBackup = Files.createTempFile(BackupRoutine.getDefaultBackupFolder().toPath(), "restore-test-", ".zip").toFile();
         File staged = Files.createTempFile(BackupRoutine.BACKUP_TEMP_FOLDER.toPath(), "restore-test-", ".tmp").toFile();
         String[] previousPatterns = ServerUtilitiesConfig.backups.additional_backup_files;
         try {
@@ -63,7 +63,7 @@ public class GuiRestoreBackupTest {
                 String suffix = wildcard ? "/**" : "";
                 ServerUtilitiesConfig.backups.additional_backup_files = new String[] {
                         FileUtils.getRelativePath(root) + suffix,
-                        FileUtils.getRelativePath(BackupRoutine.BACKUP_FOLDER) + suffix,
+                        FileUtils.getRelativePath(BackupRoutine.getDefaultBackupFolder()) + suffix,
                         FileUtils.getRelativePath(BackupRoutine.BACKUP_TEMP_FOLDER) + suffix };
                 Map<File, File> moved = new LinkedHashMap<>();
                 Method prepare = GuiRestoreBackup.class.getDeclaredMethod(
@@ -137,8 +137,8 @@ public class GuiRestoreBackupTest {
 
     @Test
     public void backupCacheRefreshesWorldGroupingAfterArchiveReplacement() throws Exception {
-        Files.createDirectories(BackupRoutine.BACKUP_FOLDER.toPath());
-        Path path = Files.createTempFile(BackupRoutine.BACKUP_FOLDER.toPath(), "cache-replaced-", ".zip");
+        Files.createDirectories(BackupRoutine.getDefaultBackupFolder().toPath());
+        Path path = Files.createTempFile(BackupRoutine.getDefaultBackupFolder().toPath(), "cache-replaced-", ".zip");
         Field cacheField = GuiRestoreBackup.class.getDeclaredField("allBackupFiles");
         cacheField.setAccessible(true);
         @SuppressWarnings("unchecked")
@@ -185,8 +185,8 @@ public class GuiRestoreBackupTest {
 
     @Test
     public void backupCacheRefreshesOnAdditionsAndDeletions() throws Exception {
-        Files.createDirectories(BackupRoutine.BACKUP_FOLDER.toPath());
-        Path first = Files.createTempFile(BackupRoutine.BACKUP_FOLDER.toPath(), "cache-first-", ".zip");
+        Files.createDirectories(BackupRoutine.getDefaultBackupFolder().toPath());
+        Path first = Files.createTempFile(BackupRoutine.getDefaultBackupFolder().toPath(), "cache-first-", ".zip");
         Field cacheField = GuiRestoreBackup.class.getDeclaredField("allBackupFiles");
         cacheField.setAccessible(true);
         @SuppressWarnings("unchecked")
@@ -198,7 +198,7 @@ public class GuiRestoreBackupTest {
         Path added = null;
         try {
             cache.clear();
-            for (File file : BackupRoutine.BACKUP_FOLDER.listFiles())
+            for (File file : BackupRoutine.getDefaultBackupFolder().listFiles())
                 cache.put(file, Files.readAttributes(file.toPath(), java.nio.file.attribute.BasicFileAttributes.class));
             assertEquals(false, refresh.invoke(null));
             Files.setLastModifiedTime(first, java.nio.file.attribute.FileTime.fromMillis(1));
@@ -213,10 +213,10 @@ public class GuiRestoreBackupTest {
                     refresh.invoke(null));
             Files.delete(first);
             assertEquals("Deleting a cached backup must trigger refresh", true, refresh.invoke(null));
-            added = Files.createTempFile(BackupRoutine.BACKUP_FOLDER.toPath(), "cache-added-", ".zip");
+            added = Files.createTempFile(BackupRoutine.getDefaultBackupFolder().toPath(), "cache-added-", ".zip");
             assertEquals("Replacing a filename at the same count must trigger refresh", true, refresh.invoke(null));
             cache.clear();
-            for (File file : BackupRoutine.BACKUP_FOLDER.listFiles())
+            for (File file : BackupRoutine.getDefaultBackupFolder().listFiles())
                 cache.put(file, Files.readAttributes(file.toPath(), java.nio.file.attribute.BasicFileAttributes.class));
             assertEquals(false, refresh.invoke(null));
             Files.write(first, new byte[] { 1 });
