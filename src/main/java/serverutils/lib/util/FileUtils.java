@@ -102,13 +102,13 @@ public class FileUtils {
         }
     }
 
-    public static final Function<Integer, String> INCREMENTAL_APPEND = i -> "-" + 1;
+    public static final Function<Integer, String> INCREMENTAL_APPEND = i -> "-" + i;
 
     public static File getFileWithoutCollision(File directory, String name, String extension,
             Function<Integer, String> appender) {
         int i = 1;
         File file = new File(directory, name + extension);
-        while (file.exists()) file = new File(directory, appender.apply(i++) + extension);
+        while (file.exists()) file = new File(directory, name + appender.apply(i++) + extension);
         return file;
     }
 
