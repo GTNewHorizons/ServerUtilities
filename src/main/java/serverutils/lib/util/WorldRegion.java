@@ -7,13 +7,13 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.List;
 import java.util.Objects;
-
 import java.util.concurrent.atomic.AtomicInteger;
-import lombok.Getter;
+
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.chunk.storage.RegionFile;
 
+import lombok.Getter;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.task.backup.WorldFile;
 
@@ -82,11 +82,13 @@ public class WorldRegion implements AutoCloseable {
 
     @FunctionalInterface
     public interface Modifier {
+
         NBTTagCompound get() throws IOException;
     }
 
     @FunctionalInterface
     public interface Reader {
+
         void accept(NBTTagCompound tag) throws IOException;
     }
 }

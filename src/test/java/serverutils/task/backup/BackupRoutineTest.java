@@ -11,7 +11,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -21,9 +20,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.ChunkCoordIntPair;
@@ -171,7 +170,9 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         worldServer.levelSaving = true;
         doThrow(new IllegalStateException("flush failed")).when(worldServer).saveChunkData();
 
-        assertThrows(IllegalStateException.class, () -> BackupRoutine.flushChunkSaves(new WorldServer[] { worldServer }));
+        assertThrows(
+                IllegalStateException.class,
+                () -> BackupRoutine.flushChunkSaves(new WorldServer[] { worldServer }));
         assertTrue(worldServer.levelSaving);
     }
 
@@ -274,7 +275,7 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
 
         WorldFile claimed = worldFile("DIM7", "region/r.-1.-1.mca");
         WorldFile unclaimed = worldFile("DIM7", "region/r.0.0.mca");
-        
+
         writeToRegion(claimed, 31, 31, "claimed");
         writeToRegion(claimed, 30, 31, "unclaimed");
         writeToRegion(unclaimed, 0, 0, "unclaimed");
@@ -364,7 +365,10 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             Files.write(malformed.backing().toPath(), original);
 
             BackupResult.Save result = routine.save();
-            assertArrayEquals("source modified at size " + size, original, Files.readAllBytes(malformed.backing().toPath()));
+            assertArrayEquals(
+                    "source modified at size " + size,
+                    original,
+                    Files.readAllBytes(malformed.backing().toPath()));
             try (ZipFile zip = new ZipFile(result.destination)) {
                 assertArchivedUnchanged(zip, malformed);
             }
@@ -454,7 +458,7 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         File root = BackupCandidates.OVERWORLD.equals(dimension) ? world : new File(world, dimension);
         return WorldFile.from(dimension, root, path);
     }
-    
+
     private String readValue(ZipFile zip, WorldFile file, int chunkX, int chunkZ) throws IOException {
         ZipEntry entry = zip.getEntry(file.runtimeRelativePath());
         assertNotNull(entry);

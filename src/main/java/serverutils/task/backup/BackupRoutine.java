@@ -99,8 +99,8 @@ public class BackupRoutine {
     }
 
     public static File getDefaultBackupFolder() {
-        return FileUtils.ensureExists(backups.backup_folder_path.isEmpty() ? new File("/backups/")
-            : new File(backups.backup_folder_path));
+        return FileUtils.ensureExists(
+                backups.backup_folder_path.isEmpty() ? new File("/backups/") : new File(backups.backup_folder_path));
     }
 
     public BackupRoutine(Universe universe, Options options, Supplier<ICompress> compressorSupplier) {

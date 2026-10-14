@@ -10,7 +10,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
@@ -23,9 +22,11 @@ import java.util.concurrent.TimeoutException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import serverutils.ServerUtilitiesConfig;
 
 public class BackupCoordinatorTest extends BackupFixtures.Tests {
+
     @Before
     public void beforeEach() {
         testSetup();
@@ -94,7 +95,8 @@ public class BackupCoordinatorTest extends BackupFixtures.Tests {
     }
 
     @Test
-    public void startBackup_WhenRetentionConfigFailsDuringBackup_ErrorIsPassedGracefully() throws ExecutionException, InterruptedException, TimeoutException {
+    public void startBackup_WhenRetentionConfigFailsDuringBackup_ErrorIsPassedGracefully()
+            throws ExecutionException, InterruptedException, TimeoutException {
         ServerUtilitiesConfig.backups.retention_policy = null;
 
         BackupResult.Save saveResult = new BackupResult.Save(world, false);

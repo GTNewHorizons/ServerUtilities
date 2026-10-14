@@ -93,7 +93,11 @@ public class RetentionRoutineTest extends BackupFixtures.Tests {
         FakeStore store = new FakeStore(latest, fallback, blocked, otherWorld, custom, future, unreadable);
         store.failing.add(blocked);
 
-        RetentionRoutine.Options options = new RetentionRoutine.Options(Collections.singletonList("1d:all"), false, 0, 1);
+        RetentionRoutine.Options options = new RetentionRoutine.Options(
+                Collections.singletonList("1d:all"),
+                false,
+                0,
+                1);
         options.maxSize = 30;
 
         BackupResult.Retention result = new RetentionRoutine(store, options).prune();

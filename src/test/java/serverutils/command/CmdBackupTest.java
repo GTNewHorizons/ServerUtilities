@@ -145,8 +145,7 @@ public class CmdBackupTest extends BackupFixtures.Tests {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
         while (!condition.getAsBoolean()) {
             assertTrue("Timed out waiting for server task", System.nanoTime() < deadline);
-            ServerUtilitiesServerEventHandler
-                    .onServerTick(new TickEvent.ServerTickEvent(TickEvent.Phase.START));
+            ServerUtilitiesServerEventHandler.onServerTick(new TickEvent.ServerTickEvent(TickEvent.Phase.START));
             Thread.sleep(10);
         }
     }

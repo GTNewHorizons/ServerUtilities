@@ -20,10 +20,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
-
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -34,7 +34,6 @@ import net.minecraft.world.storage.ISaveFormat;
 import net.minecraft.world.storage.SaveHandler;
 
 import serverutils.ServerUtilitiesConfig;
-import serverutils.data.ClaimedChunk;
 import serverutils.data.ClaimedChunks;
 import serverutils.lib.data.Universe;
 import serverutils.lib.math.ChunkDimPos;
@@ -153,8 +152,7 @@ public final class BackupFixtures {
 
         protected void claim(ChunkDimPos... positions) {
             ClaimedChunks.instance = mock(ClaimedChunks.class);
-            when(ClaimedChunks.instance.getAllClaimedPositions())
-                .thenReturn(new HashSet<>(Arrays.asList(positions)));
+            when(ClaimedChunks.instance.getAllClaimedPositions()).thenReturn(new HashSet<>(Arrays.asList(positions)));
         }
 
         private void setupFolders() throws IOException {

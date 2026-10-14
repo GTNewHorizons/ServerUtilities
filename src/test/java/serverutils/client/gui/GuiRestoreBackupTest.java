@@ -43,7 +43,8 @@ public class GuiRestoreBackupTest {
     public void preparationProtectsArchivesAndRecoveryFiles() throws Exception {
         Files.createDirectories(BackupRoutine.getDefaultBackupFolder().toPath());
         Files.createDirectories(BackupRoutine.BACKUP_TEMP_FOLDER.toPath());
-        File otherBackup = Files.createTempFile(BackupRoutine.getDefaultBackupFolder().toPath(), "restore-test-", ".zip").toFile();
+        File otherBackup = Files
+                .createTempFile(BackupRoutine.getDefaultBackupFolder().toPath(), "restore-test-", ".zip").toFile();
         File staged = Files.createTempFile(BackupRoutine.BACKUP_TEMP_FOLDER.toPath(), "restore-test-", ".tmp").toFile();
         String[] previousPatterns = ServerUtilitiesConfig.backups.additional_backup_files;
         try {
