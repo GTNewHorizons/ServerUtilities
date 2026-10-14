@@ -174,8 +174,8 @@ public class BackupRoutine {
                             StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, t.getMessage()));
                 }
             } finally {
-                cleanup();
                 logTiming();
+                cleanup();
             }
             return result.finished();
         }, executor);
@@ -250,7 +250,10 @@ public class BackupRoutine {
             ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", e);
             result.error = e;
         } finally {
-            if (!prepared) cleanup();
+            if (!prepared) {
+                logTiming();
+                cleanup();
+            }
         }
         return prepared;
     }
@@ -427,7 +430,7 @@ public class BackupRoutine {
         }
         LOGGER.info(
                 "Backup server-thread timing: started={}; total={} ms; {}",
-                startedAt,
+                startedAtInstant,
                 (System.nanoTime() - startedAt) / 1_000_000L,
                 timings);
     }
