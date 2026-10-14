@@ -41,7 +41,7 @@ public class RetentionRoutine {
                 throw new RuntimeException(e);
             }
         } else {
-            store = new ArchiveStore(BackupRoutine.BACKUP_FOLDER);
+            store = new ArchiveStore(BackupRoutine.getDefaultBackupFolder());
         }
 
         return new RetentionRoutine(store, options);

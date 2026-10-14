@@ -8,6 +8,8 @@ import javax.annotation.Nullable;
 
 import serverutils.lib.util.backup.SnapshotEntry;
 
+import serverutils.lib.util.FileUtils;
+
 public final class WorldFile {
 
     private static final Pattern REGION_PATH = Pattern.compile("region/r\\.-?\\d+\\.-?\\d+\\.mca");
@@ -39,6 +41,10 @@ public final class WorldFile {
     public static WorldFile from(String dimension, File dimensionRoot, File nameRoot, File location) {
         Kind kind = REGION_PATH.matcher(relativize(dimensionRoot, location)).matches() ? Kind.REGION : Kind.MISC;
         return new WorldFile(dimension, relativize(nameRoot, location), location, kind);
+    }
+
+    public static WorldFile from(String dimension, File root, String path) {
+        return from(dimension, root, root, new File(root, path));
     }
 
     private static String relativize(File root, File location) {
@@ -77,6 +83,10 @@ public final class WorldFile {
         if (entry == null) return false;
         if (entry.kind() != kind) return false;
         return entry.mtime() == mtime() && entry.size() == size();
+    }
+
+    public String runtimeRelativePath() {
+        return FileUtils.getRelativePath(backing);
     }
 
     @Override

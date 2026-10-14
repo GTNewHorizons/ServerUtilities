@@ -232,8 +232,7 @@ public class CmdBackup extends CmdTreeBase {
             options.customName = target.isEmpty() ? null : target;
             options.onlyClaimed |= oc;
 
-            ICompress compressor = ICompress.createCompressor();
-            BackupRoutine routine = new BackupRoutine(Universe.get(), compressor, options);
+            BackupRoutine routine = new BackupRoutine(Universe.get(), options);
 
             try {
                 routine.verifyBackupName();
@@ -317,7 +316,7 @@ public class CmdBackup extends CmdTreeBase {
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
             String sizeW = FileUtils.getSizeString(sender.getEntityWorld().getSaveHandler().getWorldDirectory());
-            String sizeT = FileUtils.getSizeString(BackupRoutine.BACKUP_FOLDER);
+            String sizeT = FileUtils.getSizeString(BackupRoutine.getDefaultBackupFolder());
             sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_size", sizeW, sizeT));
         }
     }

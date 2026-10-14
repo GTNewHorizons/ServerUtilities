@@ -3,6 +3,7 @@ package serverutils.task.backup;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -17,8 +18,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
 import serverutils.lib.util.FileUtils;
 
+@RequiredArgsConstructor
 public class BackupCandidates {
 
     public static final String OVERWORLD = "overworld";
@@ -28,24 +31,25 @@ public class BackupCandidates {
 
     /** Real paths of the directories currently being scanned, from the world root down to the current one. */
     private final Set<Path> ancestors = new HashSet<>();
-    private final boolean relativeToWorld;
     /** Absolute paths of every candidate, so the same file is never introduced twice. */
     private final Set<Path> known = new HashSet<>();
 
+    private final File backups;
+    private final boolean relativeToWorld;
+
     private File scanRoot;
 
-    private BackupCandidates(boolean relativeToWorld) {
-        this.relativeToWorld = relativeToWorld;
-    }
-
-    public static BackupCandidates scanWorld(File dir, boolean relativeToWorld) throws IOException {
-        if (!new File(dir, "level.dat").exists()) {
-            throw new IllegalArgumentException("Not a world folder");
+    public static BackupCandidates scanWorld(File dir, File backups, boolean relativeToWorld) throws IOException {
+        if (!dir.exists()) {
+            throw new IllegalArgumentException("World does not exist: " + dir);
         }
-        if (isBackupStorage(dir.toPath().toRealPath())) {
+        if (!new File(dir, "level.dat").exists()) {
+            throw new IllegalArgumentException("World is invalid: " + dir);
+        }
+        if (isBackupStorage(backups, dir.toPath().toRealPath())) {
             throw new IOException("Backup and temporary storage must not contain the world directory: " + dir);
         }
-        BackupCandidates candidates = new BackupCandidates(relativeToWorld);
+        BackupCandidates candidates = new BackupCandidates(backups, relativeToWorld);
         candidates.scanRoot = dir;
         candidates.scan(dir, dir, OVERWORLD);
         return candidates;
@@ -164,14 +168,14 @@ public class BackupCandidates {
     }
 
     /** Compares real paths, so backup output is recognized however it is reached (other spelling, link, etc.). */
-    private static boolean isBackupStorage(Path real) throws IOException {
-        return real.startsWith(FileUtils.resolveRealPath(BackupRoutine.BACKUP_FOLDER.toPath()))
+    private static boolean isBackupStorage(File backups, Path real) throws IOException {
+        return real.startsWith(FileUtils.resolveRealPath(backups.toPath()))
                 || real.startsWith(FileUtils.resolveRealPath(BackupRoutine.BACKUP_TEMP_FOLDER.toPath()));
     }
 
     private void scan(File directory, File dimensionRoot, String dimension) throws IOException {
         Path real = directory.toPath().toRealPath();
-        if (isBackupStorage(real)) return;
+        if (isBackupStorage(backups, real)) return;
 
         if (!ancestors.add(real)) return;
 
@@ -186,6 +190,9 @@ public class BackupCandidates {
                 // exists() follows links, so this ignores broken ones.
                 if (!child.exists()) continue;
                 if (!child.isDirectory()) {
+                    // The directory is outside backup storage, skip
+                    if (Files.isSymbolicLink(child.toPath()) && isBackupStorage(backups, child.toPath().toRealPath()))
+                        continue;
                     WorldFile file = WorldFile
                             .from(dimension, dimensionRoot, relativeToWorld ? scanRoot : dimensionRoot, child);
                     if (known.add(child.toPath().toAbsolutePath().normalize())) files.add(file);

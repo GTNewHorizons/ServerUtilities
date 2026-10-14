@@ -5,6 +5,10 @@ import static serverutils.ServerUtilitiesConfig.backups;
 import static serverutils.ServerUtilitiesNotifications.BACKUP;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -25,9 +29,9 @@ import serverutils.lib.util.StringUtils;
 public final class BackupCoordinator {
 
     private static final Object LOCK = BackupCoordinator.class;
-    private static final long STOP_TIMEOUT_SECONDS = 30;
+    static long STOP_TIMEOUT_SECONDS = 30;
 
-    private static RetentionRoutine pendingRoutine;
+    private static final Deque<CompletableFuture<Void>> pendingJobs = new ArrayDeque<>();
     private static boolean backupActive;
     private static boolean retentionActive;
     private static boolean stopping;
@@ -87,26 +91,37 @@ public final class BackupCoordinator {
         return startBackup(routine, null);
     }
 
-    /** Runs a one-shot retention job now, or fails the future if a backup or retention job is running. */
+    /** Runs a one-shot retention job now, or queues it until running backup and retention work finishes. */
     public static <T> CompletableFuture<T> execute(RetentionRoutine routine, Job<T> function) {
         synchronized (LOCK) {
-            if (isRetentionBlocked()) return rejected();
-            return startRetention(routine, () -> function.run(routine));
+            if (stopping || backupActive) return rejected();
+            return startOrQueueRetention(routine, () -> function.run(routine));
         }
+    }
+
+    private static <T> CompletableFuture<T> startOrQueueRetention(RetentionRoutine routine, Callable<T> work) {
+        if (!isRetentionBlocked()) return startRetention(routine, work);
+        CompletableFuture<Void> turn = new CompletableFuture<>();
+        pendingJobs.add(turn);
+        return turn.thenCompose(v -> startRetention(routine, work));
     }
 
     /** Cancels running backup and retention work and waits for it to finish its cleanup. */
     public static void stop() {
         CompletableFuture<?> backup;
         CompletableFuture<?> retention;
+        List<CompletableFuture<Void>> queued;
         synchronized (LOCK) {
             stopping = true;
-            pendingRoutine = null;
+            queued = new ArrayList<>(pendingJobs);
+            pendingJobs.clear();
             if (activeBackup != null) activeBackup.cancel();
             if (activeRetention != null) activeRetention.cancel();
             backup = backupDone;
             retention = retentionDone;
         }
+        // Outside the lock, since this runs the callers' callbacks.
+        queued.forEach(turn -> turn.cancel(false));
 
         try {
             CompletableFuture.allOf(orDone(backup), orDone(retention)).get(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -123,11 +138,10 @@ public final class BackupCoordinator {
         }
     }
 
-    private static CompletableFuture<BackupResult.Retention> runPendingPrune() {
-        RetentionRoutine routine = pendingRoutine;
-        if (routine == null || isRetentionBlocked()) return CompletableFuture.completedFuture(null);
-        pendingRoutine = null;
-        return startRetention(routine, routine::prune);
+    private static void runNextRetention() {
+        if (isRetentionBlocked()) return;
+        CompletableFuture<Void> turn = pendingJobs.poll();
+        if (turn != null) turn.complete(null);
     }
 
     private static <T> CompletableFuture<T> startRetention(RetentionRoutine routine, Callable<T> work) {
@@ -156,7 +170,7 @@ public final class BackupCoordinator {
 
     private static <T> CompletableFuture<T> rejected() {
         CompletableFuture<T> result = new CompletableFuture<>();
-        result.completeExceptionally(new RejectedExecutionException("Backup or retention scan is already running"));
+        result.completeExceptionally(new RejectedExecutionException("Backup is already running"));
         return result;
     }
 
@@ -175,7 +189,7 @@ public final class BackupCoordinator {
         if (backups.silent_backup) return;
 
         if (backups.display_file_size) {
-            String sizeT = FileUtils.getSizeString(BackupRoutine.BACKUP_FOLDER);
+            String sizeT = FileUtils.getSizeString(BackupRoutine.getDefaultBackupFolder());
             BACKUP.sendAll(
                     StringUtils.color(
                             "cmd.backup_end_2",
@@ -200,8 +214,16 @@ public final class BackupCoordinator {
             backupActive = false;
             activeBackup = null;
             backupDone = null;
-            if (success && pendingRoutine == null) pendingRoutine = RetentionRoutine.fromConfig();
-            return runPendingPrune();
+            // stop() has already canceled the queue, so a prune queued now would never run
+            if (!success || stopping) return CompletableFuture.completedFuture(null);
+            try {
+                RetentionRoutine routine = RetentionRoutine.fromConfig();
+                return startOrQueueRetention(routine, routine::prune);
+            } catch (RuntimeException e) {
+                CompletableFuture<BackupResult.Retention> failed = new CompletableFuture<>();
+                failed.completeExceptionally(e);
+                return failed;
+            }
         }
     }
 
@@ -210,7 +232,7 @@ public final class BackupCoordinator {
             retentionActive = false;
             activeRetention = null;
             retentionDone = null;
-            runPendingPrune(); // rerun in case another prune was requested while running
+            runNextRetention();
         }
     }
 

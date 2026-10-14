@@ -31,8 +31,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.regex.Pattern;
+import java.util.function.Supplier;
 
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -76,38 +77,45 @@ public class BackupRoutine {
     private final CancellationToken cancellation = new CancellationToken();
     private final Map<String, Map<String, List<ChunkDimPos>>> dimToRegionToChunkPos = new HashMap<>();
 
+    /** Archive entry name -> copy taken while world saving was suspended. */
+    private final Map<String, File> snapshot = new HashMap<>();
+
     private long timing;
 
     private final Universe universe;
-    private final ICompress compressor;
     private final Options options;
 
     private String backupName;
 
-    /** Archive entry name -> copy taken while world saving was suspended. */
-    private final Map<String, File> snapshot = new HashMap<>();
     @Getter
     private boolean prepared;
     private Instant startedAtInstant;
     private long startedAt;
     private File temporary;
+    private ICompress compressor;
 
+    private Supplier<ICompress> compressorSupplier = ICompress::createCompressor;
     private BackupCandidates candidates;
 
-    public static final Pattern BACKUP_NAME_PATTERN = ArchiveStore.LEGACY_NAME;
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
-    public static final File BACKUP_FOLDER;
 
     static {
-        BACKUP_FOLDER = backups.backup_folder_path.isEmpty() ? new File("/backups/")
-                : new File(backups.backup_folder_path);
-        FileUtils.ensureExists(BACKUP_FOLDER);
-        ServerUtilities.LOGGER.info("Backups folder - {}", BACKUP_FOLDER.getAbsolutePath());
+        ServerUtilities.LOGGER.info("Backups folder - {}", getDefaultBackupFolder().getAbsolutePath());
     }
 
-    public BackupRoutine(Universe universe, ICompress compressor, Options options) {
+    public static File getDefaultBackupFolder() {
+        return FileUtils.ensureExists(
+                backups.backup_folder_path.isEmpty() ? new File("/backups/") : new File(backups.backup_folder_path));
+    }
+
+    public BackupRoutine(Universe universe, Options options, Supplier<ICompress> compressorSupplier) {
         this.universe = universe;
-        this.compressor = compressor;
+        this.compressorSupplier = compressorSupplier;
+        this.options = options;
+    }
+
+    public BackupRoutine(Universe universe, Options options) {
+        this.universe = universe;
         this.options = options;
     }
 
@@ -121,13 +129,27 @@ public class BackupRoutine {
         }
     }
 
+    public BackupResult.Save save() {
+        try {
+            return save(Runnable::run).get();
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException rte) throw rte;
+            throw new RuntimeException(e.getCause());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public CompletableFuture<BackupResult.Save> save(Executor executor) {
         BackupResult.Save result = new BackupResult.Save(options.world, options.incremental);
 
         verifyBackupName();
+
         startedAtInstant = Instant.now();
         startedAt = System.nanoTime();
         timing = System.nanoTime();
+        compressor = compressorSupplier.get();
 
         prepared = preroutine(result);
         if (!prepared) {
@@ -344,16 +366,17 @@ public class BackupRoutine {
         }
 
         Path temporaryPath = temporary.toPath();
-        destination = prepareDestination(backupName, ".zip");
         Path destinationPath = destination.toPath();
 
         cancellation.check();
         if (options.overwrite) {
             if (destination.exists()
                     && Files.getFileAttributeView(destinationPath, PosixFileAttributeView.class) != null) {
+                if (!Files.isRegularFile(destinationPath))
+                    throw new IllegalStateException("Destination is not a regular file");
                 Files.setPosixFilePermissions(temporaryPath, Files.getPosixFilePermissions(destinationPath));
             }
-            // TODO: backup
+
             Files.move(
                     temporaryPath,
                     destinationPath,
@@ -400,6 +423,14 @@ public class BackupRoutine {
                 LOGGER.warn("Could not restore world saving", e);
             }
         });
+
+        cancellation.clear();
+        snapshot.clear();
+        dimToRegionToChunkPos.clear();
+        timings.clear();
+        candidates = null;
+        prepared = false;
+        backupName = null;
     }
 
     private void recordTiming(String phase) {
@@ -440,7 +471,7 @@ public class BackupRoutine {
     private File prepareDestination(String filename, String extension) {
         // when the filename ends with an extension
         // it's already been verified (custom names) and therefore we can just return a new file at the destination
-        if (filename.endsWith(extension)) return new File(options.backupsDirectory, filename);
+        if (filename.endsWith(extension)) return new File(options.getWorldBackupDirectory(), filename);
 
         return FileUtils.getFileWithoutCollision(
                 options.getWorldBackupDirectory(),
@@ -450,7 +481,8 @@ public class BackupRoutine {
     }
 
     private BackupCandidates getCandidates() throws IOException {
-        BackupCandidates candidates = BackupCandidates.scanWorld(options.world, !options.incremental);
+        BackupCandidates candidates = BackupCandidates
+                .scanWorld(options.world, options.backupsDirectory, !options.incremental);
 
         // keep only misc files + region files with claims in them
         if (options.onlyClaimed) {
@@ -551,7 +583,7 @@ public class BackupRoutine {
         return false;
     }
 
-    private static void flushChunkSaves(WorldServer[] worlds) throws InterruptedException {
+    static void flushChunkSaves(WorldServer[] worlds) throws InterruptedException {
         // Let the worker finish first: concurrent writers can commit older chunk data last.
         ThreadedFileIOBase.threadedIOInstance.waitForFinish();
         for (WorldServer world : worlds) {
@@ -586,7 +618,7 @@ public class BackupRoutine {
         flushWorldDataSaver(Class.forName("com.mitchej123.hodgepodge.util.WorldDataSaver"));
     }
 
-    private static void flushWorldDataSaver(Class<?> saver) throws Exception {
+    static void flushWorldDataSaver(Class<?> saver) throws Exception {
         Method flush;
         try {
             flush = saver.getMethod("flush");
@@ -617,7 +649,7 @@ public class BackupRoutine {
             backupName = createdAt.format(FORMATTER);
         } else {
             validateBackupName(backupName);
-            backupName += ".json";
+            backupName += ".zip";
             Path destinationPath = getDestinationPath(options, backupName, overwrite);
             if (Files.exists(destinationPath, LinkOption.NOFOLLOW_LINKS)
                     && !Files.isRegularFile(destinationPath, LinkOption.NOFOLLOW_LINKS)) {
@@ -664,7 +696,7 @@ public class BackupRoutine {
         public List<String> excludedBackupFiles;
 
         public static Options fromConfig() {
-            return Options.builder().backupsDirectory(BACKUP_FOLDER)
+            return Options.builder().backupsDirectory(getDefaultBackupFolder())
                     .world(DimensionManager.getCurrentSaveRootDirectory())
                     .onlyClaimed(backups.only_backup_claimed_chunks)
                     .writeOnlyClaimedChunks(!backups.backup_entire_regions_with_claims)
