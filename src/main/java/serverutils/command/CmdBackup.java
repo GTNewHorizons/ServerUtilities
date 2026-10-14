@@ -204,7 +204,7 @@ public class CmdBackup extends CmdTreeBase {
                 File savesFolder = FMLCommonHandler.instance().getSavesDirectory();
                 File backupSave = FileUtils.getFileWithoutCollision(
                         savesFolder,
-                        currentSave.getName() + "-command-restored",
+                        currentSave.getName() + "_restored",
                         Object::toString);
                 SnapshotRestorer.restore(snapshotStore, snapshot, backupSave);
             } catch (IOException e) {

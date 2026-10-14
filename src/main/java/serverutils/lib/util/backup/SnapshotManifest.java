@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.gson.Gson;
@@ -22,10 +23,12 @@ import serverutils.task.backup.BackupEntry;
 public class SnapshotManifest implements BackupEntry {
 
     private static final Gson GSON = new Gson();
+    @Getter
     private transient String name;
     private transient ZonedDateTime createdAtTime;
 
     public String world;
+    public String label;
     public String createdAt;
     public String completedAt;
     public String minecraftVersion;
@@ -40,6 +43,11 @@ public class SnapshotManifest implements BackupEntry {
     @Override
     public @Nullable String world() {
         return world;
+    }
+
+    @Override
+    public String label() {
+        return label;
     }
 
     @Override
@@ -91,10 +99,6 @@ public class SnapshotManifest implements BackupEntry {
         }
     }
 
-    public String getName() {
-        return name;
-    }
-
     public ZonedDateTime getCreatedAt() {
         if (createdAtTime != null) return createdAtTime;
         createdAtTime = ZonedDateTime.parse(createdAt, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
@@ -103,5 +107,10 @@ public class SnapshotManifest implements BackupEntry {
 
     public ZonedDateTime getCompletedAt() {
         return ZonedDateTime.parse(completedAt, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }
+
+    @Override
+    public String toString() {
+        return BackupEntry.toString(this);
     }
 }

@@ -253,12 +253,12 @@ public class BackupRoutine {
     }
 
     private void doSnapshotSave(BackupCandidates candidates, BackupResult.Save result) throws IOException {
-        File snapshotDirectory = new File(options.backupsDirectory, options.world.getName());
+        File snapshotDirectory = options.getWorldBackupDirectory();
         SnapshotStore store = SnapshotStore.load(snapshotDirectory);
         ChunkReader reader = new SimpleChunkReader();
         SnapshotWriter writer = new SnapshotWriter(store, reader);
 
-        writer.write(candidates);
+        writer.write(candidates, options.customName);
 
         SnapshotStats snapshotStats = writer.getStats();
         result.bytes = snapshotStats.newBytes;

@@ -669,6 +669,7 @@ cmd.backup_list_none=No backups were found
 cmd.backup_list_error=Unable to list backups: %s
 cmd.backup_list_header=Backups: %s files, %s
 cmd.backup_list_file=  %s | %s | %s
+cmd.backup_list_snapshot=  %s | %s
 cmd.backup_when=%s (%s)
 cmd.backup_age_seconds=%ss ago
 cmd.backup_age_minutes=%sm ago

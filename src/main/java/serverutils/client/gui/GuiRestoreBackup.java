@@ -271,7 +271,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         if (snapshotStore == null) return;
         for (SnapshotManifest manifest : this.snapshotStore.list()) {
             String text = String.format(
-                    "%s (%s)",
+                    manifest.label == null ? "%s (%s)" : manifest.label + " : %s (%s)",
                     TimeUtil.format(manifest.getCreatedAt()),
                     TimeUtil.timeAgo(manifest.getCreatedAt().toInstant()));
             BackupEntryRow row = new BackupEntryRow(panel, text, action -> {

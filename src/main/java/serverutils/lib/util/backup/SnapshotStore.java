@@ -3,7 +3,6 @@ package serverutils.lib.util.backup;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -85,7 +84,10 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
 
     public Snapshot find(String name) {
         String fileName = name.endsWith(".json") ? name : name + ".json";
-        return list().stream().filter(m -> m.getName().equals(fileName)).findFirst()
+        return list().stream().filter(m -> {
+                if (m.getName().equals(fileName)) return true;
+                return name.equals(m.label);
+            }).findFirst()
                 .map(manifest -> Snapshot.fromJson(this, manifest)).orElse(null);
     }
 
@@ -115,7 +117,6 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
         File[] files = root.listFiles(f -> f.isFile() && Snapshot.FILE_PATTERN.matcher(f.getName()).matches());
         if (files == null || files.length == 0) return Collections.emptyList();
 
-        Arrays.sort(files, Comparator.comparing(File::getName));
         List<SnapshotManifest> manifest = new ArrayList<>(files.length);
 
         for (File file : files) {
@@ -125,7 +126,8 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
                 ServerUtilities.LOGGER.error("Failed to read snapshot file {}", file, e);
             }
         }
-
+        
+        manifest.sort(Comparator.comparing(SnapshotManifest::getCreatedAt));
         return manifest;
     }
 
@@ -162,11 +164,13 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
     }
 
     public void write(Snapshot snapshot) {
-        File file = new File(root, snapshot.getName() + ".json");
+        File destination = FileUtils.getFileWithoutCollision(root, snapshot.getName(), ".json", FileUtils.INCREMENTAL_APPEND);
+        // overwrite name with whatever name got picked
+        snapshot.name = destination.getName().replace(".json", "");
         try {
-            SnapshotManifest.write(file, snapshot.toJson());
+            SnapshotManifest.write(destination, snapshot.toJson());
         } catch (IOException e) {
-            throw new SnapshotException("Failed to write snapshot file " + file, e);
+            throw new SnapshotException("Failed to write snapshot file " + destination, e);
         }
     }
 

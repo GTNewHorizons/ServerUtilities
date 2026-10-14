@@ -7,14 +7,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import serverutils.ServerUtilities;
 
+@AllArgsConstructor
+@RequiredArgsConstructor
 public class Snapshot {
 
-    private static final DateTimeFormatter NAME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH-mm-ss'Z'");
-    public static final Pattern FILE_PATTERN = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}Z\\.json");
+    private static final DateTimeFormatter NAME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final Pattern FILE_PATTERN = Pattern
+            .compile("\\d{4}-\\d{2}-\\d{2}(T\\d{2}-\\d{2}-\\d{2}Z|-\\d+)?\\.json");
+
+    String name;
 
     public final String world;
+    public final String label;
     public final ZonedDateTime createdAt;
     public final ZonedDateTime completedAt;
     public final String minecraftVersion;
@@ -22,18 +30,15 @@ public class Snapshot {
 
     private final Map<String, SnapshotDimension> dimensions;
 
-    public Snapshot(String world, ZonedDateTime createdAt, ZonedDateTime completedAt, String minecraftVersion,
-            String modVersion, Map<String, SnapshotDimension> dimensions) {
-        this.world = world;
-        this.createdAt = createdAt;
-        this.completedAt = completedAt;
-        this.minecraftVersion = minecraftVersion;
-        this.modVersion = modVersion;
-        this.dimensions = dimensions;
+    public String getName() {
+        if (name != null) return name;
+        name = NAME_FORMAT.format(createdAt);
+        return name;
     }
 
-    public String getName() {
-        return NAME_FORMAT.format(createdAt);
+    public String getLabel() {
+        if (label != null) return label;
+        return getName();
     }
 
     public SnapshotDimension getDimension(String id) {
@@ -47,6 +52,7 @@ public class Snapshot {
     public SnapshotManifest toJson() {
         SnapshotManifest json = new SnapshotManifest();
         json.world = world;
+        json.label = label;
         json.createdAt = createdAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         json.completedAt = completedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
         json.minecraftVersion = minecraftVersion;
@@ -128,8 +134,13 @@ public class Snapshot {
             dimensions.put(dimension.id, dimension);
         }
 
+        String name = json.getName();
+        if (name != null && name.endsWith(".json")) name = name.replace(".json", "");
+
         return new Snapshot(
+                name,
                 json.world,
+                json.label,
                 json.getCreatedAt(),
                 json.getCompletedAt(),
                 json.minecraftVersion,

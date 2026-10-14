@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import cpw.mods.fml.common.Loader;
+import javax.annotation.Nullable;
+import lombok.Getter;
 import serverutils.ServerUtilities;
 import serverutils.task.backup.BackupCandidates;
 import serverutils.task.backup.WorldFile;
@@ -26,6 +28,8 @@ public class SnapshotWriter {
 
     private final SnapshotStore store;
     private final ChunkReader reader;
+
+    @Getter
     private SnapshotStats stats = new SnapshotStats();
 
     public SnapshotWriter(SnapshotStore store, ChunkReader reader) {
@@ -33,11 +37,7 @@ public class SnapshotWriter {
         this.reader = reader;
     }
 
-    public SnapshotStats getStats() {
-        return stats;
-    }
-
-    public Snapshot write(BackupCandidates candidates) {
+    public Snapshot write(BackupCandidates candidates, @Nullable String label) {
         long started = System.nanoTime();
         stats = new SnapshotStats();
         ZonedDateTime createdAt = ZonedDateTime.now(ZoneOffset.UTC);
@@ -89,6 +89,7 @@ public class SnapshotWriter {
 
         Snapshot snapshot = new Snapshot(
                 store.worldName(),
+                label,
                 createdAt,
                 ZonedDateTime.now(ZoneOffset.UTC),
                 Loader.instance().getMCVersionString(),
@@ -100,7 +101,7 @@ public class SnapshotWriter {
         stats.durationMillis = (System.nanoTime() - started) / 1_000_000L;
         ServerUtilities.LOGGER.info(
                 "Snapshot {} completed in {} ms: {} new chunks and {} new files ({} bytes), {} deduplicated chunks ({} bytes), {} unmodified chunks, {} unmodified regions, {} unmodified files",
-                snapshot.getName(),
+                snapshot.getLabel(),
                 stats.durationMillis,
                 stats.newChunks,
                 stats.newFiles,
