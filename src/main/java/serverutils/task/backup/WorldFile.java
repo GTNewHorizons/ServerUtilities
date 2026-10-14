@@ -6,9 +6,8 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
-import serverutils.lib.util.backup.SnapshotEntry;
-
 import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.backup.SnapshotEntry;
 
 public final class WorldFile {
 

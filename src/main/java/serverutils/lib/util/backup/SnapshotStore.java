@@ -85,10 +85,9 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
     public Snapshot find(String name) {
         String fileName = name.endsWith(".json") ? name : name + ".json";
         return list().stream().filter(m -> {
-                if (m.getName().equals(fileName)) return true;
-                return name.equals(m.label);
-            }).findFirst()
-                .map(manifest -> Snapshot.fromJson(this, manifest)).orElse(null);
+            if (m.getName().equals(fileName)) return true;
+            return name.equals(m.label);
+        }).findFirst().map(manifest -> Snapshot.fromJson(this, manifest)).orElse(null);
     }
 
     public Snapshot findLatest() {
@@ -126,7 +125,7 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
                 ServerUtilities.LOGGER.error("Failed to read snapshot file {}", file, e);
             }
         }
-        
+
         manifest.sort(Comparator.comparing(SnapshotManifest::getCreatedAt));
         return manifest;
     }
@@ -164,7 +163,8 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
     }
 
     public void write(Snapshot snapshot) {
-        File destination = FileUtils.getFileWithoutCollision(root, snapshot.getName(), ".json", FileUtils.INCREMENTAL_APPEND);
+        File destination = FileUtils
+                .getFileWithoutCollision(root, snapshot.getName(), ".json", FileUtils.INCREMENTAL_APPEND);
         // overwrite name with whatever name got picked
         snapshot.name = destination.getName().replace(".json", "");
         try {

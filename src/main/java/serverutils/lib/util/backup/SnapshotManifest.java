@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import com.google.gson.Gson;
 
+import lombok.Getter;
 import serverutils.task.backup.BackupEntry;
 
 public class SnapshotManifest implements BackupEntry {

@@ -265,10 +265,7 @@ public class BackupRoutine {
         boolean isIncremental = options.incremental;
 
         if (candidates == null) candidates = getCandidates();
-        LOGGER.info(
-            "Performing {} backup of {} files...",
-            isIncremental ? "incremental" : "full",
-            candidates.count());
+        LOGGER.info("Performing {} backup of {} files...", isIncremental ? "incremental" : "full", candidates.count());
         if (isIncremental) {
             doSnapshotSave(candidates, result);
         } else {
@@ -719,8 +716,8 @@ public class BackupRoutine {
                     .useSeparateThread(backups.use_separate_thread)
                     .additionalBackupFiles(Arrays.asList(backups.additional_backup_files))
                     .excludedBackupFiles(Arrays.asList(backups.excluded_backup_files)).overwrite(false)
-                    .incremental(backups.incremental_backups).silent(backups.silent_backup)
-                    .createdAt(Instant.now()).build();
+                    .incremental(backups.incremental_backups).silent(backups.silent_backup).createdAt(Instant.now())
+                    .build();
         }
 
         public File getWorldBackupDirectory() {

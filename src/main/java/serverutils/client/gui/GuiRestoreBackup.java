@@ -82,7 +82,8 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     private static final Set<String> worldsWithSnapshots = new ObjectOpenHashSet<>();
 
     public GuiRestoreBackup(String worldName, GuiSelectWorld selectWorld) {
-        File snapshotDir = SnapshotStore.backupDirectoryFor(BackupRoutine.getDefaultBackupFolder(), new File(worldName));
+        File snapshotDir = SnapshotStore
+                .backupDirectoryFor(BackupRoutine.getDefaultBackupFolder(), new File(worldName));
 
         try {
             snapshotStore = SnapshotStore.load(snapshotDir);

@@ -12,10 +12,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import cpw.mods.fml.common.Loader;
 import javax.annotation.Nullable;
+
+import cpw.mods.fml.common.Loader;
 import lombok.Getter;
 import serverutils.ServerUtilities;
+import serverutils.lib.util.StringUtils;
 import serverutils.task.backup.BackupCandidates;
 import serverutils.task.backup.WorldFile;
 
@@ -61,6 +63,7 @@ public class SnapshotWriter {
 
         Map<String, List<WorldFile>> filesByDimension = candidates.getFilesByDimension();
         Map<String, SnapshotDimension> dimensions = new HashMap<>();
+        Progress progress = new Progress(filesByDimension.values().stream().mapToInt(List::size).sum());
         try (PackWriter packWriter = new PackWriter(packs, known);
                 PackWriter fileWriter = new PackWriter(filePacks, knownFiles);
                 PackWriter manifestWriter = new PackWriter(manifestPacks, knownManifests)) {
@@ -72,6 +75,7 @@ public class SnapshotWriter {
                         dimensionId,
                         files,
                         previousDim,
+                        progress,
                         packWriter,
                         fileWriter,
                         manifestWriter);
@@ -115,11 +119,13 @@ public class SnapshotWriter {
     }
 
     private SnapshotDimension writeDimension(String id, List<WorldFile> files, SnapshotDimension previous,
-            PackWriter packWriter, PackWriter fileWriter, PackWriter manifestWriter) throws IOException {
+            Progress progress, PackWriter packWriter, PackWriter fileWriter, PackWriter manifestWriter)
+            throws IOException {
         SnapshotDimension dimension = new SnapshotDimension(id);
 
         for (WorldFile file : files) {
             if (Thread.currentThread().isInterrupted()) throw new SnapshotException("Snapshot was interrupted");
+            progress.next(file);
             if (file.name().equals(SESSION_LOCK)) continue;
 
             SnapshotEntry previousEntry = previous == null ? null : previous.getEntry(file);
@@ -234,5 +240,29 @@ public class SnapshotWriter {
         SnapshotRegion region = SnapshotRegion.create(name, mtime, size, chunks);
         manifestWriter.add(region);
         return region;
+    }
+
+    /** Logs progress at most every 5 seconds, and always for the last file. */
+    private static final class Progress {
+
+        private final int total;
+        private int index;
+        private long logTimer = System.currentTimeMillis();
+
+        private Progress(int total) {
+            this.total = total;
+        }
+
+        private void next(WorldFile file) {
+            if (index == total - 1 || System.currentTimeMillis() >= logTimer) {
+                logTimer = System.currentTimeMillis() + 5000;
+                ServerUtilities.LOGGER.info(
+                        "[{} | {}%]: {}",
+                        index,
+                        StringUtils.formatDouble00((index / (double) total) * 100D),
+                        file.backing().getAbsolutePath());
+            }
+            index++;
+        }
     }
 }
