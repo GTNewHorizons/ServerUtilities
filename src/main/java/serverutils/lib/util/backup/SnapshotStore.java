@@ -50,7 +50,7 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
 
     public static SnapshotStore loadFromSession() throws IOException {
         File currentSave = Objects.requireNonNull(DimensionManager.getCurrentSaveRootDirectory());
-        return load(new File(BackupRoutine.BACKUP_FOLDER, currentSave.getName()));
+        return load(new File(BackupRoutine.getDefaultBackupFolder(), currentSave.getName()));
     }
 
     public String worldName() {
