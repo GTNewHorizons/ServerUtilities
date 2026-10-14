@@ -4,22 +4,48 @@ import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -33,13 +59,18 @@ import net.minecraft.world.chunk.storage.RegionFileCache;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
 
+import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.WorldRegion;
+import serverutils.lib.util.compression.CommonsCompressor;
 import serverutils.lib.util.compression.ICompress;
+import serverutils.lib.util.compression.LegacyCompressor;
 
 public class BackupRoutineTest extends BackupFixtures.Tests {
 
@@ -86,6 +117,30 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         options.overwrite = true;
 
         assertThrows(IllegalArgumentException.class, routine::verifyBackupName);
+    }
+
+    @Test
+    public void save_AutomaticBackupName_NeverConflicts() {
+        Set<String> usedNames = new HashSet<>();
+
+        for (int i = 0; i < 50; i++) {
+            BackupResult.Save result = routine.save();
+            String name = result.destination.getName();
+            assertTrue(ArchiveStore.LEGACY_NAME.matcher(name).matches());
+            assertTrue(usedNames.add(name));
+        }
+    }
+
+    @Test
+    public void save_AutomaticBackupName_MatchesMetadataCreationTime() throws IOException {
+        routine = new BackupRoutine(universe, options);
+        BackupResult.Save result = routine.save();
+        File destination = result.destination;
+        ArchiveEntry entry = ArchiveStore.read(destination, FileUtils.getSize(destination));
+        LocalDateTime time = LocalDateTime
+                .parse(destination.getName().replace(".zip", ""), BackupRoutine.DATE_FORMATTER);
+        // files were never saved in millis, metadata is- so divide by 1,000 to match precision (to second)
+        assertEquals(entry.createdAt() / 1000, time.atZone(ZoneId.systemDefault()).toEpochSecond());
     }
 
     @Test
@@ -395,6 +450,385 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             assertNull(zip.getEntry(overworld.runtimeRelativePath()));
             assertNull(zip.getEntry(dim7.runtimeRelativePath()));
             assertArchivedUnchanged(zip, custom);
+        }
+    }
+
+    @Test
+    public void snapshotFiles_ShouldCopyFileOnMainThreadBeforeSave() throws Exception {
+        options.snapshotMetaFiles = true;
+        options.useSeparateThread = true;
+        File metadataFile = new File(world, "level.dat");
+
+        long currentThreadId = Thread.currentThread().getId();
+
+        BackupCandidates candidateMock = mock(BackupCandidates.class);
+        when(candidateMock.getFiles(any(Predicate.class))).thenAnswer(invocation -> {
+            // assert that the thread reading the files is on the calling thread (main thread)
+            long threadId = Thread.currentThread().getId();
+            assertEquals(currentThreadId, threadId);
+            return Collections.singletonList(WorldFile.from(BackupCandidates.OVERWORLD, world, metadataFile));
+        });
+
+        ExecutorService otherThread = Executors.newSingleThreadExecutor();
+
+        verifyInSnapshot(() -> {
+            // this code runs in the main routine of BackupRoutine and thus should have a different thread id
+            assertNotEquals(currentThreadId, Thread.currentThread().getId());
+            return Collections.singletonList(metadataFile);
+        });
+
+        BackupResult.Save result;
+        try (MockedStatic<BackupCandidates> candidates = mockStatic(BackupCandidates.class)) {
+            candidates.when(() -> BackupCandidates.scanWorld(eq(world), eq(backups), anyBoolean()))
+                    .thenReturn(candidateMock);
+            result = routine.save(otherThread).get(5, TimeUnit.SECONDS);
+        } finally {
+            otherThread.shutdown();
+        }
+
+        assertNull(result.error);
+    }
+
+    @Test
+    public void snapshotFiles_WhenFileChangesDuringCopy_FailsBackup() throws Exception {
+        options.snapshotMetaFiles = true;
+
+        File changing = new File(world, "level.dat") {
+
+            private boolean read;
+
+            @Override
+            public long lastModified() {
+                long modified = super.lastModified();
+                if (!read) {
+                    read = true;
+                    return modified;
+                }
+                return modified + 1000;
+            }
+        };
+
+        mockCandidates(changing);
+        BackupResult.Save result = routine.save();
+
+        assertTrue(result.error instanceof IOException);
+        assertTrue(result.error.getMessage().startsWith("File changed during backup snapshot"));
+        assertNull(result.destination);
+        assertFalse(new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot").exists());
+        verify(universe, times(1)).restoreWorldSaving();
+        verify(compressor, times(0)).addFileToArchive(any(), any());
+    }
+
+    @Test
+    public void snapshotFiles_WhenFileIsMissing_FailsBackup() throws IOException {
+        File deleted = new File(world, "level.dat") {
+
+            @Override
+            public long lastModified() {
+                long lastModified = super.lastModified();
+                FileUtils.delete(this);
+                return lastModified;
+            }
+        };
+
+        mockCandidates(deleted);
+        BackupResult.Save result = routine.save();
+
+        assertTrue(result.error instanceof NoSuchFileException);
+        assertEquals(deleted.getPath(), result.error.getMessage());
+        assertNull(result.destination);
+        assertFalse(new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot").exists());
+        verify(universe, times(1)).restoreWorldSaving();
+        verify(compressor, times(0)).addFileToArchive(any(), any());
+    }
+
+    @Test
+    public void snapshotFiles_WhenStableModDataIsLinked_SnapshotsIt() throws Exception {
+        options.snapshotMetaFiles = true;
+        options.world = world;
+
+        // AE2/spawndata is normally read live, but only when it is the world's own folder
+        File outside = FileUtils.ensureExists(new File(build, "outside"));
+        Files.write(new File(outside, "keep.dat").toPath(), new byte[] { 42 });
+        File spawndata = new File(FileUtils.ensureExists(new File(world, "AE2")), "spawndata");
+        try {
+            Files.createSymbolicLink(spawndata.toPath(), outside.toPath().toAbsolutePath());
+        } catch (IOException | UnsupportedOperationException | SecurityException unsupported) {
+            Assume.assumeNoException(unsupported);
+        }
+
+        verifyInSnapshot(() -> Collections.singletonList(new File(spawndata, "keep.dat")));
+        BackupResult.Save result = routine.save();
+
+        assertNull(result.error);
+        verify(compressor, times(2)).close();
+    }
+
+    @Test
+    public void snapshotFiles_WhenStableModDataIsFileLinkInsideWorld_SnapshotsIt() throws Exception {
+        options.snapshotMetaFiles = true;
+        options.world = world;
+
+        // The target is the world's own file, but the stable name belongs to the link, not the target
+        File target = new File(world, "changing.dat");
+        Files.write(target.toPath(), new byte[] { 1, 2, 3 });
+        File link = new File(FileUtils.ensureExists(new File(world, "AE2/spawndata")), "0_0_0.dat");
+        try {
+            Files.createSymbolicLink(link.toPath(), target.toPath().toAbsolutePath());
+        } catch (IOException | UnsupportedOperationException | SecurityException unsupported) {
+            Assume.assumeNoException(unsupported);
+        }
+
+        verifyInSnapshot(() -> Arrays.asList(target, link));
+        BackupResult.Save result = routine.save();
+
+        assertNull(result.error);
+        verify(compressor, times(2)).close();
+    }
+
+    @Test
+    public void verifyBackupName_WhenNameEscapesStorage_Throws() {
+        for (String name : new String[] { "../escape", "..\\escape", new File(build, "escape").getAbsolutePath(),
+                "C:escape", "invalid\u0000name" }) {
+            options.customName = name;
+            BackupRoutine routine = new BackupRoutine(universe, options, () -> compressor);
+
+            assertThrows(name, IllegalArgumentException.class, routine::save);
+        }
+
+        assertFalse(new File(build, "escape.zip").exists());
+        verify(universe.server.getConfigurationManager(), never()).saveAllPlayerData();
+        verifyNoInteractions(compressor);
+    }
+
+    @Test
+    public void verifyBackupName_WhenDestinationIsDirectory_Throws() throws IOException {
+        File directory = FileUtils.ensureExists(new File(backups, "taken.zip"));
+        File contents = new File(directory, "keep");
+        Files.write(contents.toPath(), new byte[] { 1 });
+        options.customName = "taken";
+
+        for (boolean overwrite : new boolean[] { false, true }) {
+            options.overwrite = overwrite;
+            assertThrows(IllegalArgumentException.class, new BackupRoutine(universe, options)::verifyBackupName);
+        }
+
+        assertTrue(contents.isFile());
+    }
+
+    @Test
+    public void save_WhenNameTakenDuringCompression_KeepsOtherFile() throws Exception {
+        options.customName = "checkpoint";
+        File checkpoint = new File(backups, "checkpoint.zip");
+        byte[] other = { 1, 2, 3 };
+
+        ICompress race = new LegacyCompressor() {
+
+            @Override
+            public void close() throws Exception {
+                super.close();
+                Files.write(checkpoint.toPath(), other);
+            }
+        };
+        BackupResult.Save result = new BackupRoutine(universe, options, () -> race).save();
+
+        assertTrue(result.error instanceof FileAlreadyExistsException);
+        assertNull(result.destination);
+        assertArrayEquals(other, Files.readAllBytes(checkpoint.toPath()));
+        String[] temporaries = backups.list((dir, name) -> name.startsWith(".su-save-"));
+        assertEquals(0, temporaries == null ? 0 : temporaries.length);
+    }
+
+    @Test
+    public void save_ArchivePermissions_OrdinaryWhenNewAndKeptWhenOverwritten() throws IOException {
+        Assume.assumeNotNull(Files.getFileAttributeView(backups.toPath(), PosixFileAttributeView.class));
+        options.customName = "posix";
+        File archive = new File(backups, "posix.zip");
+
+        // a new archive gets the mode of any newly created file, not the private staging mode
+        File reference = new File(build, "reference");
+        Files.write(reference.toPath(), new byte[] { 1 });
+        assertNull(new BackupRoutine(universe, options).save().error);
+        assertEquals(
+                Files.getPosixFilePermissions(reference.toPath()),
+                Files.getPosixFilePermissions(archive.toPath()));
+
+        Set<PosixFilePermission> permissions = PosixFilePermissions.fromString("rw-r-----");
+        Files.setPosixFilePermissions(archive.toPath(), permissions);
+        options.overwrite = true;
+        assertNull(new BackupRoutine(universe, options).save().error);
+        assertEquals(permissions, Files.getPosixFilePermissions(archive.toPath()));
+    }
+
+    @Test
+    public void save_WhenArchiveFails_PreservesPreviousBackupAndCleansUp() throws Exception {
+        options.snapshotMetaFiles = true;
+        options.world = world;
+        options.customName = "failure";
+        options.overwrite = true;
+
+        File archive = new File(backups, "failure.zip");
+        byte[] previous = { 7, 8, 9 };
+
+        for (boolean legacy : new boolean[] { false, true }) {
+            for (String failure : new String[] { "missing-live", "cancel", "close" }) {
+                String label = (legacy ? "legacy " : "commons ") + failure;
+
+                // Stable mod data is read live while archiving, after the snapshot was taken
+                File live = new File(world, "AE2/spawndata/0_0_0.dat");
+                FileUtils.ensureExists(live.getParentFile());
+                Files.write(live.toPath(), new byte[] { 42 });
+                Files.write(archive.toPath(), previous);
+
+                ICompress spy = spy(legacy ? new LegacyCompressor() : new CommonsCompressor());
+                if (failure.equals("missing-live")) {
+                    doAnswer(call -> {
+                        Files.deleteIfExists(live.toPath());
+                        return call.callRealMethod();
+                    }).when(spy).addFileToArchive(any(), any());
+                }
+                if (failure.equals("cancel")) {
+                    doAnswer(call -> {
+                        call.callRealMethod();
+                        Thread.currentThread().interrupt();
+                        return null;
+                    }).when(spy).addFileToArchive(any(), any());
+                }
+                if (failure.equals("close")) {
+                    doAnswer(call -> {
+                        call.callRealMethod();
+                        throw new IOException("injected close failure");
+                    }).when(spy).close();
+                }
+
+                BackupResult.Save result;
+                try {
+                    result = new BackupRoutine(universe, options, () -> spy).save();
+                } finally {
+                    Thread.interrupted();
+                }
+
+                assertNotNull(label, result.error);
+                assertNull(label, result.destination);
+                assertArrayEquals(label, previous, Files.readAllBytes(archive.toPath()));
+                assertFalse(label, new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot").exists());
+                String[] temporaries = backups.list((dir, name) -> name.startsWith(".su-save-"));
+                assertEquals(label, 0, temporaries == null ? 0 : temporaries.length);
+            }
+        }
+    }
+
+    @Test
+    public void snapshotFiles_StableModDataReadLiveAndOtherModDataFromSnapshot() throws Exception {
+        options.snapshotMetaFiles = true;
+        options.world = world;
+
+        String[] stable = { "AE2/spawndata/0_0_0.dat",
+                "betterquesting/backup/3.8.75-GTNH/QuestDatabase_backup_3.8.75-GTNH.json" };
+        // Includes near misses of the stable patterns, which must still be snapshotted
+        String[] live = { "AE2/compass/0_0_0.dat", "AE2/settings.cfg", "buildcraft/zonemap/world/r0,0.nbt",
+                "betterquesting/QuestDatabase.json", "QuestLoot.json", "AE2/spawndata/nested/unrecognized.dat",
+                "AE2/spawndata-extra/0_0_0.dat", "betterquesting/backup/3.8.75-GTNH/other.json" };
+
+        int previousLevel = ServerUtilitiesConfig.backups.compression_level;
+        try {
+            for (boolean legacy : new boolean[] { false, true }) {
+                for (boolean claimed : new boolean[] { false, true }) {
+                    for (int level : new int[] { 0, 1 }) {
+                        String label = (legacy ? "legacy" : "commons") + (claimed ? " claimed" : " whole")
+                                + " level "
+                                + level;
+                        ServerUtilitiesConfig.backups.compression_level = level;
+                        options.onlyClaimed = claimed;
+                        if (claimed) claim();
+
+                        for (String name : stable) writeNamed(name);
+                        for (String name : live) writeNamed(name);
+
+                        // Archiving starts after the snapshot: stable files are read live and pick up this write,
+                        // everything else must come from the snapshot and keep its original contents
+                        ICompress spy = spy(legacy ? new LegacyCompressor() : new CommonsCompressor());
+                        doAnswer(call -> {
+                            for (String name : stable) Files.write(new File(world, name).toPath(), new byte[] { 99 });
+                            for (String name : live) Files.write(new File(world, name).toPath(), new byte[] { 99 });
+                            return call.callRealMethod();
+                        }).when(spy).createOutputStream(any());
+
+                        BackupResult.Save result = new BackupRoutine(universe, options, () -> spy).save();
+                        assertNull(label, result.error);
+
+                        try (ZipFile zip = new ZipFile(result.destination)) {
+                            for (String name : stable) assertArchived(zip, label, name, new byte[] { 99 });
+                            for (String name : live)
+                                assertArchived(zip, label, name, name.getBytes(StandardCharsets.UTF_8));
+                        }
+                    }
+                }
+            }
+        } finally {
+            ServerUtilitiesConfig.backups.compression_level = previousLevel;
+        }
+    }
+
+    private void assertArchived(ZipFile zip, String label, String name, byte[] expected) throws IOException {
+        ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(new File(world, name)));
+        assertNotNull(label + ": " + name, entry);
+        try (InputStream in = zip.getInputStream(entry)) {
+            assertArrayEquals(label + ": " + name, expected, IOUtils.toByteArray(in));
+        }
+    }
+
+    private void writeNamed(String name) throws IOException {
+        File file = new File(world, name);
+        FileUtils.ensureExists(file.getParentFile());
+        Files.write(file.toPath(), name.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test // to be honest, I don't fully understand this test
+    public void snapshotFiles_WhenAppendWriterOpen_CapturesCurrentContents() throws IOException {
+        options.snapshotMetaFiles = true;
+        routine = new BackupRoutine(universe, options);
+
+        File payload = new File(world, "mod-data.dat");
+        byte[] expected = new byte[4097];
+        new Random(23).nextBytes(expected);
+        Files.write(payload.toPath(), new byte[] { expected[0] });
+        mockCandidates(payload);
+
+        // NTFS can still report the original one-byte size until this writer closes
+        BackupResult.Save result;
+        try (FileOutputStream writer = new FileOutputStream(payload, true)) {
+            writer.write(expected, 1, expected.length - 1);
+            writer.flush();
+            result = routine.save();
+        }
+
+        assertNull(result.error);
+        try (ZipFile zip = new ZipFile(result.destination)) {
+            ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(payload));
+            assertNotNull(entry);
+            try (InputStream in = zip.getInputStream(entry)) {
+                assertArrayEquals(expected, IOUtils.toByteArray(in));
+            }
+        }
+    }
+
+    // compressor is our hook for testing the routine before it closes and clears, it's a bit gross but oh well
+    private void verifyInSnapshot(Supplier<List<File>> files) {
+        try {
+            doAnswer(i -> {
+                File snapshotFolder = new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot");
+                assertTrue(snapshotFolder.exists());
+
+                Path worldPath = world.toPath().toAbsolutePath().normalize();
+                for (File f : files.get()) {
+                    Path relative = worldPath.relativize(f.toPath().toAbsolutePath().normalize());
+                    assertTrue(new File(snapshotFolder, relative.toString()).exists());
+                }
+                return null;
+            }).when(compressor).close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

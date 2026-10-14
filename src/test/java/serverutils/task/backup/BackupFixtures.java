@@ -1,10 +1,12 @@
 package serverutils.task.backup;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayOutputStream;
@@ -20,6 +22,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -32,6 +36,8 @@ import net.minecraft.server.management.ServerConfigurationManager;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.ISaveFormat;
 import net.minecraft.world.storage.SaveHandler;
+
+import org.mockito.MockedStatic;
 
 import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ClaimedChunks;
@@ -50,6 +56,7 @@ public final class BackupFixtures {
         ServerUtilitiesConfig.backups.excluded_backup_files = new String[0];
         ServerUtilitiesConfig.backups.backups_to_keep = 12;
         ServerUtilitiesConfig.backups.retention_policy = new String[0];
+        ServerUtilitiesConfig.backups.max_folder_size = 0;
         ServerUtilitiesConfig.backups.backup_timer = "30m";
         ServerUtilitiesConfig.backups.compression_level = 1;
         ServerUtilitiesConfig.backups.enable_backups = true;
@@ -81,22 +88,33 @@ public final class BackupFixtures {
     /** A custom-named archive of saves/world carrying backup metadata. */
     public static void writeArchive(File file, String worldId, long created) throws IOException {
         try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(file.toPath()))) {
-            Properties metadata = new Properties();
-            metadata.setProperty("version", "1");
-            metadata.setProperty("worldId", worldId);
-            metadata.setProperty("createdAt", Long.toString(created));
-            metadata.setProperty("customName", "true");
             zip.putNextEntry(new ZipEntry(ICompress.BACKUP_METADATA_ENTRY));
-            metadata.store(zip, null);
+            zip.write(metadata(worldId, created, "true"));
             zip.putNextEntry(new ZipEntry("saves/world/level.dat"));
             zip.write(1);
         }
     }
 
+    /** Backup metadata properties; a null customName is left out. */
+    public static byte[] metadata(String worldId, long created, String customName) throws IOException {
+        Properties metadata = new Properties();
+        metadata.setProperty("version", "1");
+        metadata.setProperty("worldId", worldId);
+        metadata.setProperty("createdAt", Long.toString(created));
+        if (customName != null) metadata.setProperty("customName", customName);
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        metadata.store(bytes, null);
+        return bytes.toByteArray();
+    }
+
     public static void writeLegacyArchive(File file, String worldFolder, UUID universeId) throws IOException {
-        NBTTagCompound universe = new NBTTagCompound();
         // Universe saves UUIDs without hyphens.
-        universe.setString("UUID", universeId.toString().replace("-", ""));
+        writeLegacyArchive(file, worldFolder, universeId.toString().replace("-", ""));
+    }
+
+    public static void writeLegacyArchive(File file, String worldFolder, String universeId) throws IOException {
+        NBTTagCompound universe = new NBTTagCompound();
+        universe.setString("UUID", universeId);
         ByteArrayOutputStream universeBytes = new ByteArrayOutputStream();
         // writeCompressed closes its stream, so it can't write into the zip directly.
         CompressedStreamTools.writeCompressed(universe, universeBytes);
@@ -114,6 +132,7 @@ public final class BackupFixtures {
         private MinecraftServer previousServer; // I don't know why we need this but I don't want to break existing
                                                 // assumptions
         private List<EntityPlayerMP> players;
+        private MockedStatic<BackupCandidates> candidatesMock;
 
         protected Universe universe;
         protected MinecraftServer server;
@@ -155,6 +174,21 @@ public final class BackupFixtures {
             when(ClaimedChunks.instance.getAllClaimedPositions()).thenReturn(new HashSet<>(Arrays.asList(positions)));
         }
 
+        protected BackupCandidates mockCandidates(File... files) {
+            BackupCandidates candidates = mock(BackupCandidates.class);
+
+            candidatesMock = mockStatic(BackupCandidates.class);
+            candidatesMock.when(() -> BackupCandidates.scanWorld(eq(world), eq(backups), anyBoolean()))
+                    .thenReturn(candidates);
+
+            List<WorldFile> worldFiles = Arrays.stream(files)
+                    .map(f -> WorldFile.from(BackupCandidates.OVERWORLD, world, f)).collect(Collectors.toList());
+            when(candidates.getFiles()).thenReturn(worldFiles);
+            when(candidates.getFiles(any(Predicate.class))).thenReturn(worldFiles);
+
+            return candidates;
+        }
+
         private void setupFolders() throws IOException {
             Path root = Files.createTempDirectory(new File("build").toPath(), "nested-world-");
             build = root.toFile();
@@ -189,6 +223,10 @@ public final class BackupFixtures {
         private void doClearTests() throws ReflectiveOperationException {
             BackupFixtures.setCurrentServer(previousServer);
             FileUtils.delete(build);
+            if (candidatesMock != null) {
+                candidatesMock.close();
+                candidatesMock = null;
+            }
         }
 
         private void setupServerMocks(MinecraftServer server) throws NoSuchFieldException, IllegalAccessException {

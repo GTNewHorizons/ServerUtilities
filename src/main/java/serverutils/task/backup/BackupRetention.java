@@ -98,7 +98,11 @@ public final class BackupRetention {
     }
 
     static <T extends BackupEntry> Plan<T> select(List<T> input, List<Rule> rules, boolean deleteCustom, long maxSize) {
-        long now = System.currentTimeMillis();
+        return select(input, rules, deleteCustom, maxSize, System.currentTimeMillis());
+    }
+
+    static <T extends BackupEntry> Plan<T> select(List<T> input, List<Rule> rules, boolean deleteCustom, long maxSize,
+            long now) {
         List<T> entries = new ArrayList<>(input);
         entries.sort(
                 Comparator.comparingLong((T entry) -> entry.createdAt()).reversed().thenComparing(BackupEntry::label));

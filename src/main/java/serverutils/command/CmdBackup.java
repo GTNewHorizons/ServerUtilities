@@ -17,7 +17,6 @@ import javax.annotation.Nullable;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.network.rcon.RConConsoleSource;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.DimensionManager;
@@ -263,30 +262,6 @@ public class CmdBackup extends CmdTreeBase {
 
             // only incremental reports the output in chat
             if (!result.save.isIncremental) return;
-
-            BackupResult.Save saveResult = result.save;
-            long bytesRemoved = result.retention == null ? 0 : result.retention.bytesRemoved;
-
-            sender.addChatMessage(
-                    new ChatComponentText(
-                            String.format("Finished snapshot in %.1fs", saveResult.duration.toMillis() / 1000.0)));
-
-            sender.addChatMessage(
-                    new ChatComponentText(
-                            String.format(
-                                    "Total bytes: %s (+%s / -%s)",
-                                    FileUtils.getSizeString(saveResult.bytes - bytesRemoved),
-                                    FileUtils.getSizeString(saveResult.bytes),
-                                    FileUtils.getSizeString(bytesRemoved))));
-
-            sender.addChatMessage(
-                    new ChatComponentText(
-                            String.format(
-                                    "%d new chunks, %d regions, %d chunks and %d files unchanged",
-                                    saveResult.newFiles,
-                                    saveResult.unmodifiedRegions,
-                                    saveResult.unmodifiedChunks,
-                                    saveResult.unmodifiedFiles)));
         }
     }
 

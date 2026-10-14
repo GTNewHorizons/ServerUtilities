@@ -70,7 +70,6 @@ import serverutils.task.backup.BackupRoutine;
 @EventBusSubscriber(side = Side.CLIENT)
 public class GuiRestoreBackup extends GuiButtonListBase {
 
-    // Root locale, BackupTask.BACKUP_NAME_PATTERN only matches ASCII digits.
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.ROOT);
     private static final Map<File, BasicFileAttributes> allBackupFiles = new Object2ObjectOpenHashMap<>();
     private static Object2ObjectMap<String, List<File>> worldBackups;
