@@ -323,16 +323,17 @@ public class BackupRoutine {
         }
 
         Path temporaryPath = temporary.toPath();
-        destination = prepareDestination(backupName, ".zip");
         Path destinationPath = destination.toPath();
 
         cancellation.check();
         if (options.overwrite) {
             if (destination.exists()
                     && Files.getFileAttributeView(destinationPath, PosixFileAttributeView.class) != null) {
+                if (!Files.isRegularFile(destinationPath))
+                    throw new IllegalStateException("Destination is not a regular file");
                 Files.setPosixFilePermissions(temporaryPath, Files.getPosixFilePermissions(destinationPath));
             }
-            // TODO: backup
+
             Files.move(
                     temporaryPath,
                     destinationPath,
@@ -419,7 +420,7 @@ public class BackupRoutine {
     private File prepareDestination(String filename, String extension) {
         // when the filename ends with an extension
         // it's already been verified (custom names) and therefore we can just return a new file at the destination
-        if (filename.endsWith(extension)) return new File(options.backupsDirectory, filename);
+        if (filename.endsWith(extension)) return new File(options.getWorldBackupDirectory(), filename);
 
         return FileUtils.getFileWithoutCollision(
                 options.getWorldBackupDirectory(),
@@ -596,7 +597,7 @@ public class BackupRoutine {
             backupName = createdAt.format(FORMATTER);
         } else {
             validateBackupName(backupName);
-            backupName += ".json";
+            backupName += ".zip";
             Path destinationPath = getDestinationPath(options, backupName, overwrite);
             if (Files.exists(destinationPath, LinkOption.NOFOLLOW_LINKS)
                     && !Files.isRegularFile(destinationPath, LinkOption.NOFOLLOW_LINKS)) {
