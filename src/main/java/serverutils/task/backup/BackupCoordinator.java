@@ -23,6 +23,7 @@ import java.util.function.Consumer;
 import net.minecraft.util.EnumChatFormatting;
 
 import serverutils.ServerUtilities;
+import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.StringUtils;
 
@@ -133,6 +134,14 @@ public final class BackupCoordinator {
             Thread.currentThread().interrupt();
         } finally {
             synchronized (LOCK) {
+                try {
+                    // We must guarantee that world saving is turned back on, even if the backup worker thread is
+                    // completely
+                    // blocked and dead, this way during shutdown we ensure that the world is properly saved.
+                    if (Universe.loaded()) Universe.get().restoreWorldSaving();
+                } catch (Exception e) {
+                    LOGGER.error("Error restoring world saving during shutdown", e);
+                }
                 stopping = false;
             }
         }

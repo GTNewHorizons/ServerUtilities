@@ -2,10 +2,6 @@ package serverutils.task.backup;
 
 import static serverutils.ServerUtilitiesConfig.backups;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.time.Instant;
 
 import net.minecraft.server.MinecraftServer;
@@ -18,11 +14,6 @@ import serverutils.task.Task;
 public class BackupTask extends Task {
 
     private static Instant lastPlayerActivity = Instant.MIN;
-
-    static {
-        // Class initialization runs before any backup worker can own an archive staging file.
-        deleteAbandonedArchives(BackupRoutine.getDefaultBackupFolder());
-    }
 
     public BackupTask() {
         super(Ticks.getFromMillis(BackupDuration.parse(BackupDuration.normalizeTimer(backups.backup_timer))));
@@ -47,23 +38,6 @@ public class BackupTask extends Task {
         if (!BackupCoordinator.startBackup(routine)) {
             ServerUtilities.LOGGER.info("Did not execute scheduled backup, another backup was in progress.");
         }
-    }
-
-    static void deleteAbandonedArchives(File folder) {
-        File[] files = folder.listFiles();
-        if (files == null) return;
-        for (File file : files) {
-            if (!isArchiveStagingFile(file) || !Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS)) continue;
-            try {
-                Files.delete(file.toPath());
-            } catch (IOException ex) {
-                ServerUtilities.LOGGER.warn("Could not delete abandoned backup staging file {}", file, ex);
-            }
-        }
-    }
-
-    private static boolean isArchiveStagingFile(File file) {
-        return file.getName().startsWith(".su-save-") && file.getName().endsWith(".tmp");
     }
 
     public static void newPlayerActivity() {

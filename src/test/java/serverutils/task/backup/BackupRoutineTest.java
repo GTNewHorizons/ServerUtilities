@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
@@ -34,7 +35,6 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -815,15 +815,15 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
 
     // compressor is our hook for testing the routine before it closes and clears, it's a bit gross but oh well
     private void verifyInSnapshot(Supplier<List<File>> files) {
-        Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         try {
             doAnswer(i -> {
                 File snapshotFolder = new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot");
                 assertTrue(snapshotFolder.exists());
 
+                Path worldPath = world.toPath().toAbsolutePath().normalize();
                 for (File f : files.get()) {
-                    String name = encoder.encodeToString(f.getAbsolutePath().getBytes(StandardCharsets.UTF_8));
-                    assertTrue(new File(snapshotFolder, name).exists());
+                    Path relative = worldPath.relativize(f.toPath().toAbsolutePath().normalize());
+                    assertTrue(new File(snapshotFolder, relative.toString()).exists());
                 }
                 return null;
             }).when(compressor).close();

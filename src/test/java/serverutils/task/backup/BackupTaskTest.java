@@ -1,15 +1,10 @@
 package serverutils.task.backup;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.time.Instant;
 
 import org.junit.After;
@@ -18,7 +13,6 @@ import org.junit.Test;
 import org.mockito.MockedStatic;
 
 import serverutils.ServerUtilitiesConfig;
-import serverutils.lib.util.FileUtils;
 
 public class BackupTaskTest extends BackupFixtures.Tests {
 
@@ -41,32 +35,6 @@ public class BackupTaskTest extends BackupFixtures.Tests {
     @After
     public void afterEach() {
         coordinator.close();
-    }
-
-    @Test
-    public void deleteAbandonedArchives_DeletesOnlyStagingFiles() throws IOException {
-        File folder = FileUtils.ensureExists(new File(build, "staging"));
-        File orphan = write(new File(folder, ".su-save-123.tmp"));
-        File archive = write(new File(folder, "completed.zip"));
-        File unrelated = write(new File(folder, "other.tmp"));
-        File contents = write(new File(folder, ".su-save-directory.tmp/keep"));
-
-        BackupTask.deleteAbandonedArchives(folder);
-
-        assertFalse(orphan.exists());
-        assertTrue(archive.exists());
-        assertTrue(unrelated.exists());
-        assertTrue(contents.exists());
-
-        // nothing left to reclaim, so a second run changes nothing
-        BackupTask.deleteAbandonedArchives(folder);
-        assertTrue(archive.exists());
-    }
-
-    private static File write(File file) throws IOException {
-        FileUtils.ensureExists(file.getParentFile());
-        Files.write(file.toPath(), new byte[] { 1 });
-        return file;
     }
 
     @Test

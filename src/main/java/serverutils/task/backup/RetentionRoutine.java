@@ -2,8 +2,11 @@ package serverutils.task.backup;
 
 import static serverutils.ServerUtilitiesConfig.backups;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,6 +34,24 @@ public class RetentionRoutine {
 
     public static RetentionRoutine fromConfig() {
         return new RetentionRoutine(new ArchiveStore(BackupRoutine.getDefaultBackupFolder()), Options.fromConfig());
+    }
+
+    /** Deletes archive staging files left by an interrupted backup. Only call while no backup can be running. */
+    public static void deleteAbandonedArchives(File folder) {
+        File[] files = folder.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (!isArchiveStagingFile(file) || !Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS)) continue;
+            try {
+                Files.delete(file.toPath());
+            } catch (IOException ex) {
+                ServerUtilities.LOGGER.warn("Could not delete abandoned backup staging file {}", file, ex);
+            }
+        }
+    }
+
+    private static boolean isArchiveStagingFile(File file) {
+        return file.getName().startsWith(".su-save-") && file.getName().endsWith(".tmp");
     }
 
     public BackupResult.Retention prune() {

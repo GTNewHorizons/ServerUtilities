@@ -27,6 +27,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import serverutils.lib.util.FileUtils;
+
 public class RetentionRoutineTest extends BackupFixtures.Tests {
 
     private static final List<List<String>> POLICY_AND_LEGACY = Arrays
@@ -45,6 +47,32 @@ public class RetentionRoutineTest extends BackupFixtures.Tests {
     @After
     public void afterEach() {
         testReset();
+    }
+
+    @Test
+    public void deleteAbandonedArchives_DeletesOnlyStagingFiles() throws IOException {
+        File folder = FileUtils.ensureExists(new File(build, "staging"));
+        File orphan = write(new File(folder, ".su-save-123.tmp"));
+        File archive = write(new File(folder, "completed.zip"));
+        File unrelated = write(new File(folder, "other.tmp"));
+        File contents = write(new File(folder, ".su-save-directory.tmp/keep"));
+
+        RetentionRoutine.deleteAbandonedArchives(folder);
+
+        assertFalse(orphan.exists());
+        assertTrue(archive.exists());
+        assertTrue(unrelated.exists());
+        assertTrue(contents.exists());
+
+        // nothing left to reclaim, so a second run changes nothing
+        RetentionRoutine.deleteAbandonedArchives(folder);
+        assertTrue(archive.exists());
+    }
+
+    private static File write(File file) throws IOException {
+        FileUtils.ensureExists(file.getParentFile());
+        Files.write(file.toPath(), new byte[] { 1 });
+        return file;
     }
 
     private RetentionRoutine routine(String... policy) {

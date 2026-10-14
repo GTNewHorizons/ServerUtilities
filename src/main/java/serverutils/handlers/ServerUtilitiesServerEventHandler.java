@@ -79,7 +79,7 @@ public class ServerUtilitiesServerEventHandler {
 
     @SubscribeEvent
     public static void loadWorldEvent(WorldEvent.Load event) {
-        if (event.world instanceof WorldServer world) Universe.get().disableWorldSaving(world);
+        if (event.world instanceof WorldServer world && Universe.loaded()) Universe.get().disableWorldSaving(world);
         if (ServerUtilitiesConfig.world.enable_player_sleeping_percentage) {
             if (!event.world.isRemote && !event.world.getGameRules().hasRule("playersSleepingPercentage")) {
                 event.world.getGameRules().addGameRule(
@@ -91,7 +91,7 @@ public class ServerUtilitiesServerEventHandler {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onBackupSaveCommand(CommandEvent event) {
-        if (Universe.get().isWorldSavingSuspended()
+        if (Universe.loaded() && Universe.get().isWorldSavingSuspended()
                 && (event.command instanceof CommandSaveAll || event.command instanceof CommandSaveOn
                         || event.command instanceof CommandSaveOff)) {
             event.setCanceled(true);
