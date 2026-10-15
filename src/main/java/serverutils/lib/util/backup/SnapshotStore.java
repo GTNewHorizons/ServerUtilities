@@ -181,7 +181,7 @@ public class SnapshotStore implements BackupStore<SnapshotManifest>, AutoCloseab
 
     @Override
     public void close() throws IOException {
-        chunkStore.close();
+        if (chunkStore != null) chunkStore.close();
         manifestStore.close();
         fileStore.close();
     }

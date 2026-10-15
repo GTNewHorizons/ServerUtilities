@@ -65,7 +65,8 @@ public final class SHAHash {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(Arrays.copyOfRange(bytes, 0, 128));
+        // bytes is null for hashes read from json, getBytes() decodes them
+        return Arrays.hashCode(getBytes());
     }
 
     @Override
