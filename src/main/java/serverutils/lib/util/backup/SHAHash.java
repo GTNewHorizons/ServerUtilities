@@ -65,7 +65,7 @@ public final class SHAHash {
 
     @Override
     public int hashCode() {
-        return toString().hashCode();
+        return Arrays.hashCode(Arrays.copyOfRange(bytes, 0, 128));
     }
 
     @Override

@@ -271,7 +271,7 @@ public class CmdBackup extends CmdTreeBase {
             sender.addChatMessage(
                     new ChatComponentText(
                             String.format(
-                                    "Total bytes: %s (+%s / -%s)",
+                                    "Bytes: %s (+%s / -%s)",
                                     FileUtils.getSizeString(saveResult.bytes - bytesRemoved),
                                     FileUtils.getSizeString(saveResult.bytes),
                                     FileUtils.getSizeString(bytesRemoved))));

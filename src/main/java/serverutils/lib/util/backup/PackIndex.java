@@ -9,6 +9,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,7 +33,9 @@ public final class PackIndex {
     private PackIndex() {}
 
     public static void write(File file, List<Entry> entries) throws IOException {
-        try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
+        File temp = new File(file.getParentFile(), file.getName() + ".tmp");
+        FileOutputStream fos = new FileOutputStream(temp);
+        try (DataOutputStream out = new DataOutputStream(new BufferedOutputStream(fos))) {
             out.writeBytes(MAGIC);
             out.writeInt(entries.size());
             for (Entry entry : entries) {
@@ -40,7 +44,15 @@ public final class PackIndex {
                 out.writeInt(entry.length());
                 out.writeByte(entry.compressionType());
             }
+            out.flush();
+            fos.getFD().sync();
         }
+        Files.move(temp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+    }
+
+    public static File packFileFor(File index) {
+        String name = index.getName();
+        return new File(index.getParentFile(), name.substring(0, name.length() - EXTENSION.length()) + ".pack");
     }
 
     public static List<Entry> read(File file) throws IOException {
@@ -68,6 +80,8 @@ public final class PackIndex {
         Map<File, List<Entry>> result = new HashMap<>(indexes.length);
 
         for (File index : indexes) {
+            // left by an older version interrupted before the pack was moved into place, its hashes are not stored
+            if (!packFileFor(index).isFile()) continue;
             result.put(index, read(index));
         }
 

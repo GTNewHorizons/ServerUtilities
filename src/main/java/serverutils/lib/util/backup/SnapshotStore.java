@@ -18,7 +18,7 @@ import serverutils.task.backup.BackupResult;
 import serverutils.task.backup.BackupRoutine;
 import serverutils.task.backup.BackupStore;
 
-public class SnapshotStore implements BackupStore<SnapshotManifest> {
+public class SnapshotStore implements BackupStore<SnapshotManifest>, AutoCloseable {
 
     private final File root;
 
@@ -67,14 +67,8 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
         return fileStore;
     }
 
-    public synchronized PackStore chunks() {
-        if (chunkStore == null) {
-            try {
-                chunkStore = new PackStore(packsDirectory);
-            } catch (IOException e) {
-                throw new SnapshotException("Failed to read chunk packs", e);
-            }
-        }
+    public synchronized PackStore chunks() throws IOException {
+        chunkStore = new PackStore(packsDirectory);
         return chunkStore;
     }
 
@@ -112,7 +106,12 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
 
     @Override
     public List<SnapshotManifest> list() {
-        reloadManifests();
+        try {
+            reloadManifests();
+        } catch (IOException e) {
+            ServerUtilities.LOGGER.error("Failed to reload manifests", e);
+        }
+
         File[] files = root.listFiles(f -> f.isFile() && Snapshot.FILE_PATTERN.matcher(f.getName()).matches());
         if (files == null || files.length == 0) return Collections.emptyList();
 
@@ -138,13 +137,9 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
         result.filesRemoved += snapshotRetention.filesRemoved;
     }
 
-    public synchronized void reloadManifests() {
-        try {
-            manifestStore.reload();
-            fileStore.reload();
-        } catch (IOException e) {
-            throw new SnapshotException("Failed to read manifest packs", e);
-        }
+    public synchronized void reloadManifests() throws IOException {
+        manifestStore.reload();
+        fileStore.reload();
 
         if (chunkStore != null) {
             chunkStore.close();
@@ -162,7 +157,7 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
         return list().size();
     }
 
-    public void write(Snapshot snapshot) {
+    public void write(Snapshot snapshot) throws IOException {
         File destination = FileUtils
                 .getFileWithoutCollision(root, snapshot.getName(), ".json", FileUtils.INCREMENTAL_APPEND);
         // overwrite name with whatever name got picked
@@ -170,17 +165,24 @@ public class SnapshotStore implements BackupStore<SnapshotManifest> {
         try {
             SnapshotManifest.write(destination, snapshot.toJson());
         } catch (IOException e) {
-            throw new SnapshotException("Failed to write snapshot file " + destination, e);
+            throw new IOException("Failed to write snapshot file " + destination, e);
         }
     }
 
     /**
      * Removes the snapshot **json** file from the snapshot store. This does NOT clean up old chunks
      */
-    public void removeEntry(Snapshot snapshot) {
+    public void removeEntry(Snapshot snapshot) throws IOException {
         File file = new File(root, snapshot.getName() + ".json");
         if (file.exists() && !file.delete()) {
-            throw new SnapshotException("Failed to delete snapshot file " + file);
+            throw new IOException("Failed to delete snapshot file " + file);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        chunkStore.close();
+        manifestStore.close();
+        fileStore.close();
     }
 }

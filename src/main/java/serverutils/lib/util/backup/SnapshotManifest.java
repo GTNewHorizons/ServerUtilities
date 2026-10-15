@@ -28,6 +28,7 @@ public class SnapshotManifest implements BackupEntry {
     private transient ZonedDateTime createdAtTime;
 
     public String world;
+    @Nullable
     public String label;
     public String createdAt;
     public String completedAt;
@@ -62,7 +63,7 @@ public class SnapshotManifest implements BackupEntry {
 
     @Override
     public boolean isCustom() {
-        return false;
+        return label != null;
     }
 
     @Override

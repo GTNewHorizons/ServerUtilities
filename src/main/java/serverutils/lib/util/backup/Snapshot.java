@@ -102,7 +102,7 @@ public class Snapshot {
                 SHAHash hash = new SHAHash(descriptor.manifest);
                 if (!manifests.contains(hash)) {
                     if (strict) {
-                        throw new SnapshotException(
+                        throw new IllegalStateException(
                                 "Region manifest " + descriptor.manifest + " for " + entry.getKey() + " is missing");
                     }
                     ServerUtilities.LOGGER.warn(
@@ -119,7 +119,7 @@ public class Snapshot {
                 SHAHash hash = new SHAHash(descriptor.manifest);
                 if (!files.contains(hash)) {
                     if (strict) {
-                        throw new SnapshotException(
+                        throw new IllegalStateException(
                                 "File " + descriptor.manifest + " for " + entry.getKey() + " is missing");
                     }
                     ServerUtilities.LOGGER.warn(

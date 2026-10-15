@@ -2,6 +2,7 @@ package serverutils.lib.util.backup;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.time.ZoneOffset;
@@ -39,7 +40,7 @@ public class SnapshotWriter {
         this.reader = reader;
     }
 
-    public Snapshot write(BackupCandidates candidates, @Nullable String label) {
+    public Snapshot write(BackupCandidates candidates, @Nullable String label) throws IOException {
         long started = System.nanoTime();
         stats = new SnapshotStats();
         ZonedDateTime createdAt = ZonedDateTime.now(ZoneOffset.UTC);
@@ -56,7 +57,7 @@ public class SnapshotWriter {
             knownFiles = PackIndex.loadKnownHashes(filePacks);
             knownManifests = PackIndex.loadKnownHashes(manifestPacks);
         } catch (IOException e) {
-            throw new SnapshotException("Failed to read existing pack indexes", e);
+            throw new IOException("Failed to read existing pack indexes", e);
         }
 
         Snapshot previous = store.findLatest();
@@ -88,7 +89,7 @@ public class SnapshotWriter {
             stats.dedupedChunks = packWriter.getBlobsDeduplicated();
             stats.dedupedBytes = packWriter.getBytesDeduplicated();
         } catch (IOException e) {
-            throw new SnapshotException("Failed to write snapshot data", e);
+            throw new IOException("Failed to write snapshot data", e);
         }
 
         Snapshot snapshot = new Snapshot(
@@ -124,7 +125,7 @@ public class SnapshotWriter {
         SnapshotDimension dimension = new SnapshotDimension(id);
 
         for (WorldFile file : files) {
-            if (Thread.currentThread().isInterrupted()) throw new SnapshotException("Snapshot was interrupted");
+            if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Snapshot was interrupted");
             progress.next(file);
             if (file.name().equals(SESSION_LOCK)) continue;
 
@@ -164,7 +165,7 @@ public class SnapshotWriter {
         File file = source.backing();
 
         if (file.length() > MAX_FILE_SIZE) {
-            throw new SnapshotException("File " + file + " is too large to be saved in a snapshot");
+            throw new IOException("File " + file + " is too large to be saved in a snapshot");
         }
 
         long mtime;
@@ -175,7 +176,7 @@ public class SnapshotWriter {
             try {
                 data = Files.readAllBytes(file.toPath());
             } catch (IOException e) {
-                throw new SnapshotException("Failed to read file " + file, e);
+                throw new IOException("Failed to read file " + file, e);
             }
             if (file.lastModified() == mtime && file.length() == data.length) break;
             if (++attempt == READ_ATTEMPTS) {
@@ -205,16 +206,16 @@ public class SnapshotWriter {
         List<ChunkBlob> blobs;
         try {
             blobs = reader.readChunks(new RegionChunkFile(regionFile.toPath()));
-        } catch (Exception e) {
+        } catch (IOException e) {
             // by no means should we recover!! since snapshots are incremental, falsely saving a chunk like this poisons
             // the saved data!!! (DO NOT RECOVER!)
-            throw new SnapshotException("Failed to read chunks from region file " + regionFile, e);
+            throw new IOException("Failed to read chunks from region file " + regionFile, e);
         }
 
         if (previousRegion != null) {
             try {
                 previousRegion.getChunks(); // force the manifest to load now
-            } catch (SnapshotException e) {
+            } catch (IOException e) {
                 // unlike the above error, this just means that we save the region again so no harm recovering
                 ServerUtilities.LOGGER.warn("Ignoring previous snapshot of region {}", name, e);
                 previousRegion = null;
@@ -227,7 +228,8 @@ public class SnapshotWriter {
             ChunkBlob.Metadata previousMeta = previousRegion == null ? null : previousRegion.getChunk(meta.index());
 
             if (previousMeta != null) {
-                if (previousMeta.timestamp() == meta.timestamp() || previousMeta.hash().equals(meta.hash())) {
+                // only drop the data when it is really stored, otherwise the chunk is written again below
+                if (previousMeta.hash().equals(meta.hash()) && packWriter.contains(meta.hash())) {
                     blob = new ChunkBlob.Empty(previousMeta);
                     stats.unmodifiedChunks++;
                 }

@@ -76,7 +76,7 @@ public class SnapshotRestorer {
                 // recompute hash to verify blob actually matches expected hash
                 SHAHash blobHash = SHAHash.compute(blob.compression(), blob.data());
                 if (!blobHash.equals(metadata.hash())) {
-                    throw new SnapshotException(
+                    throw new IOException(
                             "Chunk blob hash mismatch for region " + region.name + " chunk " + metadata.index());
                 }
                 blobs.add(new SimpleChunkBlob(metadata, ByteBuffer.wrap(blob.data())));

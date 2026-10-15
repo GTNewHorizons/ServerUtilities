@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import lombok.Getter;
 import serverutils.lib.util.FileUtils;
 
 /**
@@ -28,14 +29,19 @@ public class PackWriter implements Closeable {
     private final String namePrefix = "pack-" + System.currentTimeMillis();
     private final List<PackIndex.Entry> entries = new ArrayList<>();
 
+    @Getter
     private int packCount;
     private String name;
     private File tempPack;
     private FileChannel channel;
     private long position; // bytes written to the current pack
+    @Getter
     private int blobsWritten;
+    @Getter
     private long bytesWritten;
+    @Getter
     private int blobsDeduplicated;
+    @Getter
     private long bytesDeduplicated;
 
     public PackWriter(File directory, Set<SHAHash> known) {
@@ -48,8 +54,12 @@ public class PackWriter implements Closeable {
         this.maxPackSize = maxPackSize;
     }
 
+    public boolean contains(SHAHash hash) {
+        return known.contains(hash);
+    }
+
     public boolean add(ChunkBlob blob) throws IOException {
-        if (!known.add(blob.hash())) {
+        if (known.contains(blob.hash())) {
             int skipped = blob.data().remaining(); // 0 for references to earlier snapshots
             if (skipped > 0) {
                 blobsDeduplicated++;
@@ -58,6 +68,12 @@ public class PackWriter implements Closeable {
             return false;
         }
 
+        // a reference to an earlier snapshot whose data is gone, storing it would record the hash with no data
+        if (!blob.data().hasRemaining()) {
+            throw new IOException("Chunk " + blob.hash() + " is referenced but is not stored in any pack");
+        }
+
+        known.add(blob.hash());
         write(blob.hash(), blob.metadata().compressionType(), blob.data());
         return true;
     }
@@ -72,32 +88,15 @@ public class PackWriter implements Closeable {
         return true;
     }
 
-    public int getBlobsWritten() {
-        return blobsWritten;
-    }
-
-    public long getBytesWritten() {
-        return bytesWritten;
-    }
-
-    public int getPackCount() {
-        return packCount;
-    }
-
-    public int getBlobsDeduplicated() {
-        return blobsDeduplicated;
-    }
-
-    public long getBytesDeduplicated() {
-        return bytesDeduplicated;
-    }
-
     @Override
     public void close() throws IOException {
         finishPack();
     }
 
-    /** Seals the current pack, if any. The index is written before the pack is moved into place. */
+    /**
+     * Seals the current pack, if any. The pack is moved into place before its index is written, so an index never
+     * exists without its pack (a pack without an index is ignored by every loader).
+     */
     private void finishPack() throws IOException {
         if (channel == null) return; // nothing new to store
 
@@ -106,8 +105,8 @@ public class PackWriter implements Closeable {
         channel = null;
 
         File pack = new File(directory, name + ".pack");
-        PackIndex.write(new File(directory, name + PackIndex.EXTENSION), entries);
         Files.move(tempPack.toPath(), pack.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        PackIndex.write(new File(directory, name + PackIndex.EXTENSION), entries);
 
         entries.clear();
         position = 0;

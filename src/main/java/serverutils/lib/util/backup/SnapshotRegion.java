@@ -49,20 +49,20 @@ public final class SnapshotRegion implements SnapshotEntry {
         return hash;
     }
 
-    public List<ChunkBlob.Metadata> getChunks() {
+    public List<ChunkBlob.Metadata> getChunks() throws IOException {
         return new ArrayList<>(chunks().values());
     }
 
-    public ChunkBlob.Metadata getChunk(int index) {
+    public ChunkBlob.Metadata getChunk(int index) throws IOException {
         return chunks().get(index);
     }
 
-    public byte[] toBytes() {
+    public byte[] toBytes() throws IOException {
         if (bytes == null) {
             try {
                 bytes = store.readBlob(hash).data();
             } catch (IOException e) {
-                throw new SnapshotException("Failed to read region manifest " + hash, e);
+                throw new IOException("Failed to read region manifest " + hash, e);
             }
         }
         return bytes;
@@ -83,12 +83,12 @@ public final class SnapshotRegion implements SnapshotEntry {
         return WorldFile.Kind.REGION;
     }
 
-    private NavigableMap<Integer, ChunkBlob.Metadata> chunks() {
+    private NavigableMap<Integer, ChunkBlob.Metadata> chunks() throws IOException {
         if (chunks == null) {
             try {
                 chunks = RegionManifest.decode(toBytes());
             } catch (IOException e) {
-                throw new SnapshotException("Corrupt region manifest " + hash, e);
+                throw new IOException("Corrupt region manifest " + hash, e);
             }
         }
         return chunks;
