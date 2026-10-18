@@ -48,12 +48,18 @@ import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.task.Task;
+import serverutils.task.backup.repository.Repository;
 
 public class BackupTask extends Task {
 
     public static final Pattern BACKUP_NAME_PATTERN = BackupRetention.LEGACY_NAME;
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
     public static final File BACKUP_FOLDER;
+    /** The incremental backup repository, see {@link Repository}. */
+    public static final File REPOSITORY_FOLDER;
+    public static final File REPOSITORY_ARCHIVES;
+    /** Commands and pruning give up quickly if the repository tool is holding the repository. */
+    private static final long REPOSITORY_LOCK_TIMEOUT_MILLIS = 5_000;
     private static final Map<WorldServer, Boolean> worldSaveStates = new IdentityHashMap<>();
     private static boolean backupSucceeded;
     private static boolean backupHadPlayer;
@@ -76,8 +82,11 @@ public class BackupTask extends Task {
         BACKUP_FOLDER = backups.backup_folder_path.isEmpty() ? new File("/backups/")
                 : new File(backups.backup_folder_path);
         if (!BACKUP_FOLDER.exists()) BACKUP_FOLDER.mkdirs();
+        REPOSITORY_FOLDER = new File(BACKUP_FOLDER, "incremental");
+        REPOSITORY_ARCHIVES = new File(REPOSITORY_FOLDER, "archives");
         // Class initialization runs before any backup worker can own an archive staging file.
         deleteAbandonedArchives(BACKUP_FOLDER);
+        deleteAbandonedArchives(REPOSITORY_ARCHIVES);
         ServerUtilities.LOGGER.info("Backups folder - {}", BACKUP_FOLDER.getAbsolutePath());
     }
 
@@ -190,7 +199,7 @@ public class BackupTask extends Task {
             drainQueuedWrites();
             phase = recordBackupPhase(timings, "queued data flush", phase);
             File worldDir = DimensionManager.getCurrentSaveRootDirectory();
-            ICompress compressor = ICompress.createCompressor();
+            ICompress compressor = isIncremental() ? new IncrementalBackupWriter() : ICompress.createCompressor();
             universe.scheduleTask(new BackupTask(true));
             if (backups.use_separate_thread) {
                 phase = recordBackupPhase(timings, "setup", phase);
@@ -389,19 +398,51 @@ public class BackupTask extends Task {
         return file.getName().startsWith(".su-save-") && file.getName().endsWith(".tmp");
     }
 
+    public static boolean isIncremental() {
+        return backups.backup_format == BackupFormat.INCREMENTAL;
+    }
+
     public static synchronized void clearOldBackups() {
         prunePending = true;
         if (hasRetentionPolicy()) {
             String[] policy = backups.retention_policy.clone();
             boolean deleteCustom = backups.delete_custom_name_backups;
             long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
-            if (startRetentionTask(() -> pruneRetention(policy, deleteCustom, maxSize))) prunePending = false;
+            if (startRetentionTask(() -> {
+                pruneRetention(policy, deleteCustom, maxSize);
+                pruneRepository(policy, 0, deleteCustom, maxSize);
+            })) prunePending = false;
             return;
         }
         int keepCount = backups.backups_to_keep;
         long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
         boolean deleteCustom = backups.delete_custom_name_backups;
-        if (startRetentionTask(() -> pruneLegacy(keepCount, maxSize, deleteCustom))) prunePending = false;
+        if (startRetentionTask(() -> {
+            pruneLegacy(keepCount, maxSize, deleteCustom);
+            pruneRepository(new String[0], keepCount, deleteCustom, maxSize);
+        })) prunePending = false;
+    }
+
+    /** Prunes the incremental repository, which keeps its own history apart from the ZIP backups. */
+    private static void pruneRepository(String[] policy, int keepCount, boolean deleteCustom, long maxSize) {
+        if (!Repository.exists(REPOSITORY_FOLDER) || Thread.currentThread().isInterrupted()) return;
+        try (Repository repository = Repository.open(REPOSITORY_FOLDER, true, REPOSITORY_LOCK_TIMEOUT_MILLIS)) {
+            for (String warning : repository.warnings()) ServerUtilities.LOGGER.warn("Backup repository: {}", warning);
+            BackupRetention.Plan plan = RepositoryRetention
+                    .plan(repository, policy, keepCount, System.currentTimeMillis(), deleteCustom, maxSize);
+            String[] current = hasRetentionPolicy() ? backups.retention_policy : new String[0];
+            if (!Arrays.equals(policy, current) || (policy.length == 0 && keepCount != backups.backups_to_keep)
+                    || deleteCustom != backups.delete_custom_name_backups
+                    || maxSize != backups.max_folder_size * SizeUnit.GB.getSize()) {
+                ServerUtilities.LOGGER.info("Retention settings changed; skipping stale incremental pruning plan");
+                return;
+            }
+            RepositoryRetention.apply(repository, plan, maxSize);
+        } catch (InterruptedIOException ex) {
+            ServerUtilities.LOGGER.info("Incremental backup retention cancelled");
+        } catch (IOException | IllegalArgumentException | ArithmeticException ex) {
+            ServerUtilities.LOGGER.warn("Skipping incremental backup pruning: {}", ex.getMessage());
+        }
     }
 
     private static void pruneLegacy(int keepCount, long maxSize, boolean deleteCustom) {
@@ -566,10 +607,24 @@ public class BackupTask extends Task {
         return BackupRetention.plan(BACKUP_FOLDER, policy, System.currentTimeMillis(), deleteCustom, maxSize);
     }
 
+    /** The ZIP plan, followed by the incremental repository's. */
+    private static BackupRetention.Plan previewPlan(String[] policy, boolean deleteCustom, long maxSize)
+            throws IOException {
+        BackupRetention.Plan plan = retentionPlan(policy, deleteCustom, maxSize);
+        if (Repository.exists(REPOSITORY_FOLDER)) {
+            try (Repository repository = Repository.open(REPOSITORY_FOLDER, false, REPOSITORY_LOCK_TIMEOUT_MILLIS)) {
+                plan.merge(
+                        RepositoryRetention
+                                .plan(repository, policy, 0, System.currentTimeMillis(), deleteCustom, maxSize));
+            }
+        }
+        return plan;
+    }
+
     public static BackupRetention.Plan previewRetention() throws IOException {
         if (!hasRetentionPolicy())
             throw new IllegalArgumentException("retention_policy is empty; legacy retention is active");
-        return retentionPlan(
+        return previewPlan(
                 backups.retention_policy.clone(),
                 backups.delete_custom_name_backups,
                 backups.max_folder_size * SizeUnit.GB.getSize());
@@ -583,7 +638,7 @@ public class BackupTask extends Task {
         long maxSize = backups.max_folder_size * SizeUnit.GB.getSize();
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return retentionPlan(policy, deleteCustom, maxSize);
+                return previewPlan(policy, deleteCustom, maxSize);
             } catch (IOException ex) {
                 throw new CompletionException(ex);
             }
@@ -593,7 +648,14 @@ public class BackupTask extends Task {
     public static CompletableFuture<List<BackupRetention.Archive>> listBackupsAsync() {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return BackupRetention.readArchives(BACKUP_FOLDER);
+                List<BackupRetention.Archive> archives = BackupRetention.readArchives(BACKUP_FOLDER);
+                if (Repository.exists(REPOSITORY_FOLDER)) {
+                    try (Repository repository = Repository
+                            .open(REPOSITORY_FOLDER, false, REPOSITORY_LOCK_TIMEOUT_MILLIS)) {
+                        archives.addAll(RepositoryRetention.readArchives(repository, null));
+                    }
+                }
+                return archives;
             } catch (IOException ex) {
                 throw new CompletionException(ex);
             }

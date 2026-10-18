@@ -11,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -102,12 +103,10 @@ public class CmdBackup extends CmdTreeBase {
                 return;
             }
             long now = System.currentTimeMillis();
-            long deletedSize = 0;
             sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_header"));
             for (BackupRetention.Archive archive : plan.archives()) {
                 File file = archive.file;
                 boolean delete = plan.delete.containsKey(file);
-                if (delete) deletedSize += archive.size;
                 IChatComponent status = ServerUtilities
                         .lang(delete ? "cmd.backup_prune_delete" : "cmd.backup_prune_keep");
                 status.getChatStyle().setColor(
@@ -138,7 +137,7 @@ public class CmdBackup extends CmdTreeBase {
                                     plan.keep.size(),
                                     FileUtils.getSizeString(plan.remainingSize),
                                     plan.delete.size(),
-                                    FileUtils.getSizeString(deletedSize)));
+                                    FileUtils.getSizeString(plan.deletedSize)));
             long allowance = ServerUtilitiesConfig.backups.max_folder_size * FileUtils.SizeUnit.GB.getSize();
             if (allowance <= 0) {
                 sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_no_allowance"));
@@ -245,12 +244,23 @@ public class CmdBackup extends CmdTreeBase {
                 return;
             }
 
-            sender.addChatMessage(
+            List<BackupRetention.Archive> zips = archives.stream().filter(archive -> !archive.incremental)
+                    .collect(Collectors.toList());
+            if (!zips.isEmpty()) sender.addChatMessage(
                     ServerUtilities.lang(
                             sender,
                             "cmd.backup_list_header",
-                            archives.size(),
-                            FileUtils.getSizeString(archives.stream().mapToLong(archive -> archive.size).sum())));
+                            zips.size(),
+                            FileUtils.getSizeString(zips.stream().mapToLong(archive -> archive.size).sum())));
+            if (zips.size() < archives.size()) {
+                // Incremental archives share their data, so only the repository as a whole has a meaningful size.
+                sender.addChatMessage(
+                        ServerUtilities.lang(
+                                sender,
+                                "cmd.backup_list_repository",
+                                archives.size() - zips.size(),
+                                FileUtils.getSizeString(BackupTask.REPOSITORY_FOLDER)));
+            }
 
             long now = System.currentTimeMillis();
             archives.stream()

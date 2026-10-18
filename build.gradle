@@ -3,3 +3,10 @@
 plugins {
     id 'com.gtnewhorizons.gtnhconvention'
 }
+
+// Lets server operators run the incremental backup tool with java -jar, without Minecraft.
+tasks.named('jar', Jar) {
+    manifest {
+        attributes('Main-Class': 'serverutils.task.backup.repository.RepositoryTool')
+    }
+}

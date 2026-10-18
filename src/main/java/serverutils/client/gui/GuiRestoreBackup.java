@@ -15,6 +15,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -59,11 +60,15 @@ import serverutils.lib.util.compression.ICompress;
 import serverutils.lib.util.misc.MouseButton;
 import serverutils.task.backup.BackupTask;
 import serverutils.task.backup.ThreadBackup;
+import serverutils.task.backup.repository.ArchiveInfo;
+import serverutils.task.backup.repository.Repository;
+import serverutils.task.backup.repository.RepositoryRestore;
 
 @EventBusSubscriber(side = Side.CLIENT)
 public class GuiRestoreBackup extends GuiButtonListBase {
 
     // Root locale, BackupTask.BACKUP_NAME_PATTERN only matches ASCII digits.
+    private static final long REPOSITORY_LOCK_TIMEOUT_MILLIS = 5_000;
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.ROOT);
     private static final Map<File, BasicFileAttributes> allBackupFiles = new Object2ObjectOpenHashMap<>();
     private static Object2ObjectMap<String, List<File>> worldBackups;
@@ -143,8 +148,24 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         }
     }
 
+    /** ZIP backups and incremental archives, or null if the backup folder cannot be listed. */
+    private static File[] listBackupFiles() {
+        File[] zips = BackupTask.BACKUP_FOLDER.listFiles();
+        if (zips == null) return null;
+        File[] archives = BackupTask.REPOSITORY_ARCHIVES
+                .listFiles((folder, name) -> name.endsWith(Repository.ARCHIVE_EXTENSION));
+        if (archives == null || archives.length == 0) return zips;
+        File[] all = Arrays.copyOf(zips, zips.length + archives.length);
+        System.arraycopy(archives, 0, all, zips.length, archives.length);
+        return all;
+    }
+
+    private static boolean isIncremental(File file) {
+        return file.getName().endsWith(Repository.ARCHIVE_EXTENSION);
+    }
+
     private static boolean needsRefresh() {
-        File[] files = BackupTask.BACKUP_FOLDER.listFiles();
+        File[] files = listBackupFiles();
         // A missing folder must still clear backups cached from before it disappeared.
         if (files == null) return !allBackupFiles.isEmpty();
         if (files.length != allBackupFiles.size()) return true;
@@ -165,7 +186,7 @@ public class GuiRestoreBackup extends GuiButtonListBase {
     }
 
     private static void preProcess() {
-        File[] files = BackupTask.BACKUP_FOLDER.listFiles();
+        File[] files = listBackupFiles();
         if (files == null) return;
 
         ICompress compressor = ICompress.createCompressor();
@@ -174,7 +195,8 @@ public class GuiRestoreBackup extends GuiButtonListBase {
                 allBackupFiles.put(
                         file,
                         Files.readAttributes(file.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS));
-                String worldName = compressor.getWorldName(file);
+                String worldName = isIncremental(file) ? Repository.readArchive(file).worldName()
+                        : compressor.getWorldName(file);
                 if (worldName == null) continue;
                 worldBackups.computeIfAbsent(worldName, k -> new ObjectArrayList<>()).add(file);
             } catch (IOException ignored) {}
@@ -314,6 +336,10 @@ public class GuiRestoreBackup extends GuiButtonListBase {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void loadBackup(File file, boolean includeGlobal) {
+        if (isIncremental(file)) {
+            loadIncrementalBackup(file, includeGlobal);
+            return;
+        }
         File savesDir = new File("saves/");
         File worldDir = new File(savesDir, worldName);
         File saveCopy = new File(savesDir, worldName + "_old");
@@ -384,9 +410,53 @@ public class GuiRestoreBackup extends GuiButtonListBase {
         }
     }
 
+    /** Restores like {@code restore --replace-world --overwrite} of the repository tool, which uses the same code. */
+    private void loadIncrementalBackup(File file, boolean includeGlobal) {
+        try (Repository repository = Repository
+                .open(BackupTask.REPOSITORY_FOLDER, false, REPOSITORY_LOCK_TIMEOUT_MILLIS)) {
+            ArchiveInfo archive = repository.readInfo(file);
+            if (!("saves/" + worldName + "/").equals(archive.worldPath())) {
+                throw new IOException(
+                        "This backup's world folder is " + archive.worldPath()
+                                + "; restore it with the repository tool instead");
+            }
+            RepositoryRestore restore = new RepositoryRestore();
+            restore.worldOnly = !includeGlobal;
+            restore.overwrite = true;
+            restore.replaceWorld = true;
+            restore.progress = message -> ServerUtilities.LOGGER.info("Restore: {}", message.trim());
+            RepositoryRestore.Result result = restore.restore(repository, archive, Paths.get("").toAbsolutePath());
+            ServerUtilities.LOGGER.info(
+                    "Restored {} files from {}; previous world moved to {}, replaced files moved to {}",
+                    result.files,
+                    file,
+                    result.previousWorld,
+                    result.replacedFiles);
+            closeGui();
+        } catch (Exception e) {
+            ServerUtilities.LOGGER.error("Failed to restore incremental backup; original files were put back", e);
+            Minecraft.getMinecraft().displayGuiScreen(
+                    new GuiErrorScreen(
+                            StatCollector.translateToLocal("serverutilities.gui.backup.error"),
+                            EnumChatFormatting.RED + e.getMessage()));
+        }
+    }
+
     private void deleteBackup(File file) {
         openYesNo(StatCollector.translateToLocal("serverutilities.gui.backup.delete_confirm"), "", () -> {
-            FileUtils.delete(file);
+            if (isIncremental(file)) {
+                // Like the repository tool's delete: the archive, then the data no other backup uses.
+                try (Repository repository = Repository
+                        .open(BackupTask.REPOSITORY_FOLDER, true, REPOSITORY_LOCK_TIMEOUT_MILLIS)) {
+                    repository.deleteArchive(repository.readInfo(file).name);
+                    repository.compact(0.1);
+                } catch (IOException e) {
+                    ServerUtilities.LOGGER.error("Failed to delete incremental backup {}", file, e);
+                    if (file.exists()) return;
+                }
+            } else {
+                FileUtils.delete(file);
+            }
             backupFiles.remove(file);
         });
     }
