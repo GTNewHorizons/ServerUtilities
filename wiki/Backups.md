@@ -1,7 +1,7 @@
 # Backups
 
 ServerUtilities creates ZIP backups of the world on a timer and deletes older ones according to your retention
-settings. These are two separate things: `backup_timer` decides **how often** a backup is created, retention decides
+settings. Optionally, backups can be stored [incrementally](#incremental-backups-experimental) instead. These are two separate things: `backup_timer` decides **how often** a backup is created, retention decides
 **which** existing backups are kept.
 
 ## Settings
@@ -29,6 +29,7 @@ All options are in the `backups` section of `serverutilities/serverutilities.cfg
 
 | Option | Default | Description |
 | --- | --- | --- |
+| `backup_format` | `ZIP` | `ZIP`, or `INCREMENTAL` for [incremental backups](#incremental-backups-experimental) (experimental). |
 | `backup_folder_path` | `./backups/` | Where backups are stored. |
 | `compression_level` | `1` | `0` uncompressed, `1` fastest, `9` smallest. |
 | `additional_backup_files` | NEI data | Extra paths to include. Use `/`, `*` wildcards and `$WORLDNAME`; end folders with `/**`. |
@@ -127,6 +128,55 @@ In both modes, cleanup never deletes:
 In policy mode, age rules run first. If the counted backups still exceed the allowance, the oldest backups kept only
 by finite rules are deleted, so **a small size limit can shorten your configured history**. A warning is logged if
 the allowance cannot be met. Backups are never stopped because of the allowance, so keep an eye on free disk space.
+
+## Incremental backups (experimental)
+
+With `backup_format=INCREMENTAL`, backups go into a deduplicating repository in `<backup_folder_path>/incremental/`
+instead of separate ZIP files. It works like [Borg](https://www.borgbackup.org/):
+
+- Files are split into chunks and each chunk is stored once, identified by its SHA-256 hash. A backup only adds the
+  chunks that changed since earlier backups; everything else is shared. Region files are split where Minecraft's own
+  chunks start, so a region with a few changed chunks only adds those.
+- Files whose size and modification time have not changed since the last backup are not read again, so backing up a
+  large, mostly unvisited world takes a fraction of the time.
+- Chunks are compressed with `compression_level` and kept in pack files in `data/`. Each backup is a small file in
+  `archives/`, named like the ZIP backups.
+- Every chunk is verified against its hash when it is read back.
+
+Every incremental backup is a complete snapshot: restoring one never needs the others, and deleting one only frees the
+data no other backup uses.
+
+**Restoring.** In singleplayer, incremental backups appear on the Backups screen next to ZIP backups. There, and on
+servers, they are restored with the tool built into the ServerUtilities jar, which runs without Minecraft; the
+Backups screen uses the same restore code. Stop the server first, then from the server folder:
+
+```sh
+java -jar mods/ServerUtilities-<version>.jar list
+java -jar mods/ServerUtilities-<version>.jar restore latest restored/
+```
+
+| Command | Description |
+| --- | --- |
+| `list` | List backups, oldest first, and the repository's size on disk. |
+| `info <archive>` | Details of one backup, including how much space deleting it would free. |
+| `files <archive> [glob]` | List the files in a backup. |
+| `restore <archive> <target>` | Restore into a folder. Refuses to replace existing files unless told how: `--replace-world` moves an existing world folder to `<world>_old` first, and `--overwrite` replaces other files, moving them to `<target>/backups_before_restore/`. `--world-only` skips global files, `--include <glob>` restores only matching paths (e.g. `'World/region/*'`), `--dry-run` only lists. If anything fails, the files written so far are removed and everything moved aside is put back. |
+| `export <archive> <file.zip>` | Convert a backup to a regular ZIP backup. |
+| `check [--verify-data]` | Check that every backup is complete; `--verify-data` also reads and verifies all stored data. |
+| `delete <archive>...` | Delete backups and free the space only they used. |
+
+`<archive>` is a name from `list` or `latest`. Paths in a backup are relative to the server folder, so
+`restore latest . --replace-world --overwrite` puts the world back where it was, the same way the Backups screen's
+"Restore (with global data)" does; "Restore" corresponds to adding `--world-only`. Use `--repo <folder>` if the repository is elsewhere. The reading commands also work while the server runs,
+and wait up to `--wait` seconds (default 60) for a backup in progress to finish.
+
+**Retention.** The same retention settings apply, but separately from ZIP backups. Since backups share data,
+`max_folder_size` counts the deduplicated space backups actually use, and deleting a backup frees only what no other
+backup needs. Freed space is reclaimed right after pruning by rewriting pack files that became mostly unused.
+
+**Limitations of this first version.** Backups are not encrypted. The chunk index is held in memory during a backup,
+roughly 100 MB per 50 GB of world. Never edit or delete files in the repository by hand: removing one pack file damages
+every backup that uses it. Use `check` if in doubt.
 
 ## When cleanup runs
 

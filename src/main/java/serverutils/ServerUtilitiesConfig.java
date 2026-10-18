@@ -22,6 +22,7 @@ import serverutils.lib.item.ItemStackSerializer;
 import serverutils.lib.math.Ticks;
 import serverutils.lib.util.ServerUtils;
 import serverutils.task.backup.BackupDuration;
+import serverutils.task.backup.BackupFormat;
 
 @Config(modid = ServerUtilities.MOD_ID, category = "", configSubDirectory = "../serverutilities/")
 @Config.RequiresWorldRestart
@@ -355,7 +356,16 @@ public class ServerUtilitiesConfig {
         @Config.DefaultStringList({})
         public String[] retention_policy;
 
-        @Config.Comment("How much the backup file will be compressed. 0 - uncompressed, 1 - best speed, 9 - smallest file size.")
+        @Config.Comment("""
+                How backups are stored.
+                ZIP = a complete, independent ZIP file per backup.
+                INCREMENTAL = experimental. iUses a deduplicating repository for backups with pack files in <backup_folder_path>/incremental 
+                instead of full zip backups (see README.txt in the repository). The tool can also export a backup as a regular ZIP.
+                Retention settings apply to ZIP backups and incremental backups separately.""")
+        @Config.DefaultEnum("ZIP")
+        public BackupFormat backup_format;
+
+        @Config.Comment("How much the backup file will be compressed. 0 - uncompressed, 1 - best speed, 9 - smallest file size. Incremental backups compress each new chunk at this level.")
         @Config.DefaultInt(1)
         @Config.RangeInt(min = 0, max = 9)
         public int compression_level;
