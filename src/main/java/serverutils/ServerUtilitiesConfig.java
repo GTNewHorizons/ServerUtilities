@@ -359,7 +359,7 @@ public class ServerUtilitiesConfig {
         @Config.Comment("""
                 How backups are stored.
                 ZIP = a complete, independent ZIP file per backup.
-                INCREMENTAL = experimental. iUses a deduplicating repository for backups with pack files in <backup_folder_path>/incremental 
+                INCREMENTAL = experimental. iUses a deduplicating repository for backups with pack files in <backup_folder_path>/incremental
                 instead of full zip backups (see README.txt in the repository). The tool can also export a backup as a regular ZIP.
                 Retention settings apply to ZIP backups and incremental backups separately.""")
         @Config.DefaultEnum("ZIP")
