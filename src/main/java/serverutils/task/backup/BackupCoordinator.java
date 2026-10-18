@@ -255,7 +255,8 @@ public final class BackupCoordinator {
 
     private static void notifyFinished(BackupResult.Save result) {
         if (!result.isSuccess()) return;
-        String size = FileUtils.getSizeString(result.bytes);
+        // An incremental backup's size is the data it added to the repository.
+        String size = (result.isIncremental ? "+" : "") + FileUtils.getSizeString(result.bytes);
 
         LOGGER.info("Backup done in {} ({})!", result.getDoneTime(), size);
         LOGGER.info("Created {} from {}", result.destination.getAbsolutePath(), result.world.getAbsolutePath());

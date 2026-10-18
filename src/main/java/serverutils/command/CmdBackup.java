@@ -9,6 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -30,6 +31,7 @@ import serverutils.task.backup.BackupEntry;
 import serverutils.task.backup.BackupResult;
 import serverutils.task.backup.BackupRetention;
 import serverutils.task.backup.BackupRoutine;
+import serverutils.task.backup.RepositoryStore;
 import serverutils.task.backup.RetentionRoutine;
 
 public class CmdBackup extends CmdTreeBase {
@@ -100,28 +102,31 @@ public class CmdBackup extends CmdTreeBase {
                     (plan, error) -> sendPreview(sender, plan, error));
         }
 
-        private static CompletableFuture<BackupRetention.Plan<? extends BackupEntry>> previewRetentionAsync() {
+        private static CompletableFuture<List<BackupRetention.Plan<? extends BackupEntry>>> previewRetentionAsync() {
             return BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::preview);
         }
 
-        private static <T extends BackupEntry> void sendPreview(ICommandSender sender,
-                @Nullable BackupRetention.Plan<T> plan, @Nullable Throwable error) {
+        private static void sendPreview(ICommandSender sender,
+                @Nullable List<BackupRetention.Plan<? extends BackupEntry>> plans, @Nullable Throwable error) {
             if (error != null) {
                 sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_error", error.getMessage()));
                 return;
             }
 
-            if (plan == null) {
+            if (plans == null) {
                 sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_legacy_active"));
                 return;
             }
 
-            long now = System.currentTimeMillis();
-            long deletedSize = 0;
             sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_header"));
+            // ZIP backups and the incremental repository are pruned apart, each with its own allowance.
+            for (BackupRetention.Plan<? extends BackupEntry> plan : plans) sendPlan(sender, plan);
+        }
+
+        private static <T extends BackupEntry> void sendPlan(ICommandSender sender, BackupRetention.Plan<T> plan) {
+            long now = System.currentTimeMillis();
             for (T entry : plan.entries()) {
                 boolean delete = plan.delete.containsKey(entry);
-                if (delete) deletedSize += entry.size();
                 IChatComponent status = ServerUtilities
                         .lang(delete ? "cmd.backup_prune_delete" : "cmd.backup_prune_keep");
                 status.getChatStyle().setColor(
@@ -152,7 +157,7 @@ public class CmdBackup extends CmdTreeBase {
                                     plan.keep.size(),
                                     FileUtils.getSizeString(plan.remainingSize),
                                     plan.delete.size(),
-                                    FileUtils.getSizeString(deletedSize)));
+                                    FileUtils.getSizeString(plan.deletedSize)));
             long allowance = ServerUtilitiesConfig.backups.max_folder_size * FileUtils.SizeUnit.GB.getSize();
             if (allowance <= 0) {
                 sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_no_allowance"));
@@ -275,12 +280,23 @@ public class CmdBackup extends CmdTreeBase {
                 return;
             }
 
-            sender.addChatMessage(
+            List<BackupEntry> zips = archives.stream().filter(archive -> !(archive instanceof RepositoryStore.Entry))
+                    .collect(Collectors.toList());
+            if (!zips.isEmpty()) sender.addChatMessage(
                     ServerUtilities.lang(
                             sender,
                             "cmd.backup_list_header",
-                            archives.size(),
-                            FileUtils.getSizeString(archives.stream().mapToLong(BackupEntry::size).sum())));
+                            zips.size(),
+                            FileUtils.getSizeString(zips.stream().mapToLong(BackupEntry::size).sum())));
+            if (zips.size() < archives.size()) {
+                // Incremental archives share their data, so only the repository as a whole has a meaningful size.
+                sender.addChatMessage(
+                        ServerUtilities.lang(
+                                sender,
+                                "cmd.backup_list_repository",
+                                archives.size() - zips.size(),
+                                FileUtils.getSizeString(BackupRoutine.getRepositoryFolder())));
+            }
 
             long now = System.currentTimeMillis();
             archives.stream().sorted(Comparator.comparingLong(BackupEntry::createdAt).thenComparing(BackupEntry::label))

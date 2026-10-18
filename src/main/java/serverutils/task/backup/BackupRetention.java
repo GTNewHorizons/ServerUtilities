@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.ToLongFunction;
+import java.util.function.ToLongBiFunction;
 
 /** Selects which backups to keep. Entries must be independent: deleting one never affects another. */
 public final class BackupRetention {
@@ -62,6 +63,8 @@ public final class BackupRetention {
         final Map<T, Long> keptUntil = new HashMap<>();
         final Set<T> preserved = new HashSet<>();
         public long remainingSize;
+        /** Bytes the deletions free. */
+        public long deletedSize;
         public long remainingRotationSize;
 
         private void keep(T entry, String reason) {
@@ -107,7 +110,7 @@ public final class BackupRetention {
     }
 
     static <T extends BackupEntry> Plan<T> select(List<T> input, List<Rule> rules, boolean deleteCustom, long maxSize,
-            long now, ToLongFunction<Collection<T>> countedSize) {
+            long now, ToLongBiFunction<Collection<T>, Collection<T>> countedSize) {
         List<T> entries = new ArrayList<>(input);
         entries.sort(
                 Comparator.comparingLong((T entry) -> entry.createdAt()).reversed().thenComparing(BackupEntry::label));
@@ -158,16 +161,17 @@ public final class BackupRetention {
                 }
             }
         }
-        // The entries the size limit counts. Their combined size is asked of the store each time.
+        // The entries the size limit counts, on top of the exempt ones. Their size is asked of the store each time.
         List<T> rotating = new ArrayList<>();
+        List<T> exempt = new ArrayList<>();
         for (T entry : entries) {
             if (!plan.keep.containsKey(entry)) {
                 plan.delete.put(entry, "Outside retention policy or superseded in time bucket");
-            } else if (!plan.sizeExempt.contains(entry)) {
-                rotating.add(entry);
+            } else {
+                (plan.sizeExempt.contains(entry) ? exempt : rotating).add(entry);
             }
         }
-        plan.remainingRotationSize = countedSize.applyAsLong(rotating);
+        plan.remainingRotationSize = countedSize.applyAsLong(rotating, exempt);
         // Only finite-retention entries may be sacrificed to the size limit, oldest first.
         for (int i = entries.size() - 1; i >= 0; i--) {
             T entry = entries.get(i);
@@ -177,9 +181,11 @@ public final class BackupRetention {
             plan.keep.remove(entry);
             plan.delete.put(entry, "Folder size limit");
             rotating.remove(entry);
-            plan.remainingRotationSize = countedSize.applyAsLong(rotating);
+            plan.remainingRotationSize = countedSize.applyAsLong(rotating, exempt);
         }
-        plan.remainingSize = countedSize.applyAsLong(plan.keep.keySet());
+        List<T> kept = new ArrayList<>(plan.keep.keySet());
+        plan.remainingSize = countedSize.applyAsLong(kept, Collections.emptyList());
+        plan.deletedSize = countedSize.applyAsLong(new ArrayList<>(plan.delete.keySet()), kept);
         for (int i = entries.size() - 1; i >= 0; i--) {
             T entry = entries.get(i);
             plan.entries.add(entry);

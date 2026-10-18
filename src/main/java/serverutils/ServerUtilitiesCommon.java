@@ -6,6 +6,7 @@ import static serverutils.ServerUtilitiesConfig.ranks;
 import static serverutils.ServerUtilitiesConfig.tasks;
 import static serverutils.ServerUtilitiesConfig.world;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -123,6 +124,7 @@ public class ServerUtilitiesCommon {
         // successfully including previous runs from other worlds
         if (BackupCoordinator.stop()) {
             RetentionRoutine.deleteAbandonedArchives(BackupRoutine.getDefaultBackupFolder());
+            RetentionRoutine.deleteAbandonedArchives(new File(BackupRoutine.getRepositoryFolder(), "archives"));
             BackupRoutine.deleteAbandonedTempFolders();
         }
         // Start cleanup with the server, so background scans cannot race the title-screen restore GUI.

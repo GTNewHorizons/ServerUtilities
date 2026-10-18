@@ -28,6 +28,8 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.task.backup.BackupRoutine;
+import serverutils.task.backup.repository.Repository;
+import serverutils.task.backup.repository.RepositoryWriter;
 
 public class GuiRestoreBackupTest {
 
@@ -133,6 +135,83 @@ public class GuiRestoreBackupTest {
             for (File file : recoveryRoot.listFiles()) {
                 if (!previousRecovery.contains(file)) FileUtils.delete(file);
             }
+        }
+    }
+
+    @Test
+    public void incrementalBackupsAreListedAndRestoredLikeTheRepositoryTool() throws Exception {
+        File saves = new File("saves");
+        Files.createDirectories(saves.toPath());
+        File world = Files.createTempDirectory(saves.toPath(), "incremental-restore-").toFile();
+        File preserved = new File(saves, world.getName() + "_old");
+        Field worldsField = GuiRestoreBackup.class.getDeclaredField("worldBackups");
+        worldsField.setAccessible(true);
+        Object previousWorlds = worldsField.get(null);
+        String[] previousPatterns = ServerUtilitiesConfig.backups.additional_backup_files;
+        ServerUtilitiesConfig.backups.additional_backup_files = new String[] { "saves/NEI/global/**",
+                "saves/NEI/local/$WORLDNAME/**" };
+        File local = new File(saves, "NEI/local/" + world.getName() + "/data.txt");
+        File global = new File(saves, "NEI/global/" + world.getName() + ".txt");
+        try {
+            write(new File(world, "level.dat"), "original");
+            write(new File(world, "stale.dat"), "stale");
+            File archive;
+            try (Repository repository = Repository.openOrCreate(BackupRoutine.getRepositoryFolder(), 0);
+                    RepositoryWriter writer = repository.newWriter(1)) {
+                byte[] level = "restored".getBytes(StandardCharsets.UTF_8);
+                java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+                crc.update(level);
+                writer.addStream(
+                        "saves/" + world.getName() + "/level.dat",
+                        1,
+                        new java.io.ByteArrayInputStream(level),
+                        level.length,
+                        (int) crc.getValue());
+                // A world restore brings this world's additional files back like a ZIP one, but no global files.
+                for (File extra : new File[] { local, global }) {
+                    writer.addStream(
+                            FileUtils.getRelativePath(extra),
+                            1,
+                            new java.io.ByteArrayInputStream(level),
+                            level.length,
+                            (int) crc.getValue());
+                }
+                java.util.Properties header = new java.util.Properties();
+                header.setProperty("createdAt", "1");
+                header.setProperty("customName", "false");
+                header.setProperty("worldName", world.getName());
+                archive = repository.archiveFile("gui-" + world.getName());
+                writer.commit(header, archive);
+            }
+            it.unimi.dsi.fastutil.objects.Object2ObjectMap<String, List<File>> worlds = new it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<>();
+            worldsField.set(null, worlds);
+            Method process = GuiRestoreBackup.class.getDeclaredMethod("preProcess");
+            process.setAccessible(true);
+            process.invoke(null);
+            assertTrue(worlds.get(world.getName()).contains(archive));
+
+            GuiRestoreBackup gui = gui(world.getName());
+            Method restore = GuiRestoreBackup.class.getDeclaredMethod("loadBackup", File.class, boolean.class);
+            restore.setAccessible(true);
+            restore.invoke(gui, archive, false);
+            verify(gui).closeGui();
+            assertEquals(
+                    "restored",
+                    new String(Files.readAllBytes(new File(world, "level.dat").toPath()), StandardCharsets.UTF_8));
+            assertFalse(new File(world, "stale.dat").exists());
+            assertTrue(local.isFile());
+            assertFalse(global.exists());
+            assertEquals(
+                    "original",
+                    new String(Files.readAllBytes(new File(preserved, "level.dat").toPath()), StandardCharsets.UTF_8));
+        } finally {
+            worldsField.set(null, previousWorlds);
+            ServerUtilitiesConfig.backups.additional_backup_files = previousPatterns;
+            FileUtils.delete(local.getParentFile());
+            FileUtils.delete(global);
+            FileUtils.delete(world);
+            FileUtils.delete(preserved);
+            FileUtils.delete(BackupRoutine.getRepositoryFolder());
         }
     }
 
