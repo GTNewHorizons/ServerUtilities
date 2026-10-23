@@ -53,9 +53,11 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.MinecraftException;
+import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.storage.AnvilChunkLoader;
 import net.minecraft.world.chunk.storage.RegionFileCache;
+import net.minecraftforge.common.DimensionManager;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -384,6 +386,54 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         try (ZipFile zip = new ZipFile(result.destination)) {
             assertArchivedUnchanged(zip, custom);
             assertArchivedUnchanged(zip, removed);
+        }
+    }
+
+    @Test
+    public void claimOnly_RegisteredCustomSaveFolder_TrimmedToClaims() throws IOException {
+        options.writeOnlyClaimedChunks = true;
+        options.onlyClaimed = true;
+        routine = new BackupRoutine(universe, options);
+
+        WorldFile claimed = worldFile("custom-moon", "region/r.-1.-1.mca");
+        WorldFile unclaimed = worldFile("custom-moon", "region/r.0.0.mca");
+        writeToRegion(claimed, 31, 31, "claimed");
+        writeToRegion(claimed, 30, 31, "unclaimed");
+        writeToRegion(unclaimed, 0, 0, "unclaimed");
+
+        claim(new ChunkDimPos(-1, -1, 8));
+
+        BackupResult.Save result = saveWithDimensionFolder(8, "custom-moon");
+        try (ZipFile zip = new ZipFile(result.destination)) {
+            assertEquals("claimed", readValue(zip, claimed, 31, 31));
+            assertNull(readValue(zip, claimed, 30, 31));
+            assertNull(zip.getEntry(unclaimed.runtimeRelativePath()));
+        }
+    }
+
+    @Test
+    public void claimOnly_RegisteredCustomSaveFolderWithoutClaims_DropsRegions() throws IOException {
+        options.onlyClaimed = true;
+        routine = new BackupRoutine(universe, options);
+
+        WorldFile region = worldFile("custom-moon", "region/r.0.0.mca");
+        writeToRegion(region, 0, 0, "unclaimed");
+
+        claim(new ChunkDimPos(0, 0, 0));
+
+        BackupResult.Save result = saveWithDimensionFolder(8, "custom-moon");
+        try (ZipFile zip = new ZipFile(result.destination)) {
+            assertNull(zip.getEntry(region.runtimeRelativePath()));
+        }
+    }
+
+    private BackupResult.Save saveWithDimensionFolder(int dimension, String folder) {
+        WorldProvider provider = mock(WorldProvider.class);
+        when(provider.getSaveFolder()).thenReturn(folder);
+        try (MockedStatic<DimensionManager> dimensions = mockStatic(DimensionManager.class)) {
+            dimensions.when(DimensionManager::getStaticDimensionIDs).thenReturn(new Integer[] { dimension });
+            dimensions.when(() -> DimensionManager.createProviderFor(dimension)).thenReturn(provider);
+            return routine.save();
         }
     }
 

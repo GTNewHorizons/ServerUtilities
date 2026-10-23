@@ -319,15 +319,22 @@ public class BackupRoutine {
                 if (!ClaimedChunks.isActive()) throw new IllegalStateException("Chunk claiming is not active");
                 FileUtils.ensureExists(BACKUP_TEMP_FOLDER);
                 ClaimedChunks.instance.processQueue();
-                ClaimedChunks.instance.getAllClaimedPositions().forEach(pos -> {
-                    String dimName = pos.dim == 0 ? BackupCandidates.OVERWORLD : "DIM" + pos.dim;
+                Set<ChunkDimPos> claimed = ClaimedChunks.instance.getAllClaimedPositions();
+                Map<Integer, String> dimensionFolders = resolveDimensionFolders();
+                // Every registered dimension gets an entry even without claims, so its unclaimed regions are dropped.
+                for (String folder : dimensionFolders.values()) {
+                    dimToRegionToChunkPos.computeIfAbsent(folder, dim -> new HashMap<>());
+                }
+                claimed.forEach(pos -> {
+                    String dimName = dimensionFolders
+                            .getOrDefault(pos.dim, pos.dim == 0 ? BackupCandidates.OVERWORLD : "DIM" + pos.dim);
                     // pre-compute and map chunk positions to their specific regions
                     Map<String, List<ChunkDimPos>> positions = dimToRegionToChunkPos
                             .computeIfAbsent(dimName, dim -> new HashMap<>());
                     String region = "r." + (pos.posX >> 5) + "." + (pos.posZ >> 5);
                     positions.computeIfAbsent(region, r -> new ArrayList<>()).add(pos);
                 });
-                if (dimToRegionToChunkPos.isEmpty()) {
+                if (claimed.isEmpty()) {
                     LOGGER.warn("Claim-only backup has no claimed chunks; known dimension regions will be omitted");
                 }
             }
@@ -578,9 +585,9 @@ public class BackupRoutine {
             candidates.keep(f -> {
                 // don't remove misc files
                 if (f.kind() == WorldFile.Kind.MISC) return true;
-                // Claims are keyed as overworld/DIM<id>, so a dimension folder with any other name can't be matched
-                // to its claims. Keep its regions whole rather than dropping claimed chunks.
-                if (!isNumberedDimension(f.dimension)) {
+                // Claims are keyed by dimension folder, so a folder that no registered dimension resolves to can't be
+                // matched to its claims. Keep its regions whole rather than dropping claimed chunks.
+                if (!isKnownDimension(f.dimension)) {
                     unknownDimensions.add(f.dimension);
                     return true;
                 }
@@ -669,8 +676,26 @@ public class BackupRoutine {
         return regions == null ? null : regions.get(file.name().replace(".mca", ""));
     }
 
-    private static boolean isNumberedDimension(String dimension) {
-        return BackupCandidates.OVERWORLD.equals(dimension) || (dimension != null && dimension.matches("DIM-?\\d+"));
+    private boolean isKnownDimension(String dimension) {
+        return BackupCandidates.OVERWORLD.equals(dimension) || (dimension != null && dimension.matches("DIM-?\\d+"))
+                || dimToRegionToChunkPos.containsKey(dimension);
+    }
+
+    /**
+     * Maps every registered dimension to the folder its provider saves in
+     */
+    private static Map<Integer, String> resolveDimensionFolders() {
+        Map<Integer, String> folders = new HashMap<>();
+        for (int dimension : DimensionManager.getStaticDimensionIDs()) {
+            try {
+                String folder = DimensionManager.createProviderFor(dimension).getSaveFolder();
+                folders.put(dimension, folder == null ? BackupCandidates.OVERWORLD : folder);
+            } catch (RuntimeException e) {
+                // Leave it unresolved rather than failing every claim-only backup; its regions are kept whole.
+                LOGGER.warn("Cannot resolve save folder for dimension {}; keeping its regions unchanged", dimension, e);
+            }
+        }
+        return folders;
     }
 
     /** RegionFile opens read-write and pads malformed files in its constructor, so those are never opened. */
