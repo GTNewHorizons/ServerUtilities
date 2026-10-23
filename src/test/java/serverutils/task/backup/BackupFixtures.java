@@ -4,7 +4,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -13,8 +12,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -33,6 +36,7 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.ServerConfigurationManager;
+import net.minecraft.world.MinecraftException;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.ISaveFormat;
 import net.minecraft.world.storage.SaveHandler;
@@ -69,6 +73,14 @@ public final class BackupFixtures {
 
     static void setCurrentServer(MinecraftServer server) throws ReflectiveOperationException {
         setStatic(MinecraftServer.class, "mcServer", server);
+    }
+
+    public static void suspendWorldSaving(WorldServer... worlds) throws MinecraftException {
+        BackupRoutine.suspendWorldSaving(BackupFixtures.class, worlds);
+    }
+
+    public static void resumeWorldSaving() {
+        BackupRoutine.resumeWorldSaving();
     }
 
     public static void setStatic(Class<?> owner, String name, Object value) throws ReflectiveOperationException {
@@ -206,12 +218,6 @@ public final class BackupFixtures {
             universe = mock(Universe.class);
             server = mock(MinecraftServer.class);
 
-            doAnswer(invocation -> {
-                Runnable action = invocation.getArgument(0);
-                action.run();
-                return null;
-            }).when(universe).scheduleAction(any());
-
             setupServerMocks(server);
             BackupFixtures.setCurrentServer(server);
 
@@ -220,13 +226,33 @@ public final class BackupFixtures {
             serverField.set(universe, server);
         }
 
-        private void doClearTests() throws ReflectiveOperationException {
+        private void doClearTests() throws ReflectiveOperationException, IOException {
             BackupFixtures.setCurrentServer(previousServer);
-            FileUtils.delete(build);
+            BackupRoutine.resumeWorldSaving();
             if (candidatesMock != null) {
                 candidatesMock.close();
                 candidatesMock = null;
             }
+            deleteTree(build);
+        }
+
+        private static void deleteTree(File root) throws IOException {
+            if (root == null || !Files.exists(root.toPath(), LinkOption.NOFOLLOW_LINKS)) return;
+            Files.walkFileTree(root.toPath(), new SimpleFileVisitor<Path>() {
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    if (exc != null) throw exc;
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         }
 
         private void setupServerMocks(MinecraftServer server) throws NoSuchFieldException, IllegalAccessException {

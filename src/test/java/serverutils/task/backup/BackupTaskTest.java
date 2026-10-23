@@ -35,6 +35,7 @@ public class BackupTaskTest extends BackupFixtures.Tests {
     @After
     public void afterEach() {
         coordinator.close();
+        testReset();
     }
 
     @Test

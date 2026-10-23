@@ -14,7 +14,6 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.server.CommandSaveAll;
 import net.minecraft.command.server.CommandSaveOff;
 import net.minecraft.command.server.CommandSaveOn;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldProvider;
 import net.minecraft.world.WorldServer;
@@ -22,28 +21,15 @@ import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-import serverutils.lib.data.Universe;
 import serverutils.task.backup.BackupFixtures;
 
 public class ServerUtilitiesServerEventHandlerTest {
 
-    private Universe universe;
-
-    @Before
-    public void beforeEach() throws ReflectiveOperationException {
-        MinecraftServer server = mock(MinecraftServer.class);
-        server.worldServers = new WorldServer[] { mock(WorldServer.class) };
-        universe = new Universe(server);
-        BackupFixtures.setStatic(Universe.class, "INSTANCE", universe);
-    }
-
     @After
-    public void afterEach() throws ReflectiveOperationException {
-        universe.restoreWorldSaving();
-        BackupFixtures.setStatic(Universe.class, "INSTANCE", null);
+    public void afterEach() {
+        BackupFixtures.resumeWorldSaving();
     }
 
     @Test
@@ -53,11 +39,11 @@ public class ServerUtilitiesServerEventHandlerTest {
         provider.setAccessible(true);
         provider.set(loadedLater, mock(WorldProvider.class));
 
-        universe.disableWorldSaving();
+        BackupFixtures.suspendWorldSaving(mock(WorldServer.class));
         ServerUtilitiesServerEventHandler.loadWorldEvent(new WorldEvent.Load(loadedLater));
         assertTrue(loadedLater.levelSaving);
 
-        universe.restoreWorldSaving();
+        BackupFixtures.resumeWorldSaving();
         assertFalse(loadedLater.levelSaving);
     }
 
@@ -72,7 +58,7 @@ public class ServerUtilitiesServerEventHandlerTest {
 
     @Test
     public void onBackupSaveCommand_DuringBackup_RejectsSaveCommands() throws Exception {
-        universe.disableWorldSaving();
+        BackupFixtures.suspendWorldSaving(mock(WorldServer.class));
 
         for (ICommand command : new ICommand[] { new CommandSaveAll(), new CommandSaveOn(), new CommandSaveOff() }) {
             CommandEvent event = spy(new CommandEvent(command, mock(ICommandSender.class), new String[0]));

@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,7 +24,6 @@ import java.util.function.Consumer;
 import net.minecraft.util.EnumChatFormatting;
 
 import serverutils.ServerUtilities;
-import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.StringUtils;
 
@@ -60,7 +60,7 @@ public final class BackupCoordinator {
         CompletableFuture<BackupResult.Save> result;
         try {
             result = routine.save(BACKUP_EXECUTOR);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException | Error e) {
             completeBackup(false);
             throw e;
         }
@@ -68,8 +68,17 @@ public final class BackupCoordinator {
             backupDone = result;
         }
 
-        // The save future records failures on its result rather than completing exceptionally.
-        result.thenCompose(save -> completeBackup(save.isSuccess()).handle((retention, error) -> {
+        // The routine records failures on its result, but if the future still completes exceptionally the backup must
+        // be completed anyway, or the coordinator would refuse every later backup.
+        CompletableFuture<BackupResult.Save> saved = result.handle((save, error) -> {
+            if (save != null) return save;
+            Throwable cause = error instanceof CompletionException && error.getCause() != null ? error.getCause()
+                    : error;
+            LOGGER.error("Backup ended unexpectedly", cause);
+            return BackupResult.Save.failed(cause);
+        });
+
+        saved.thenCompose(save -> completeBackup(save.isSuccess()).handle((retention, error) -> {
             if (error != null) {
                 LOGGER.error("Backup retention failed", error);
                 retention = new BackupResult.Retention();
@@ -133,15 +142,15 @@ public final class BackupCoordinator {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
+            try {
+                // World saving must be back on even if the worker is blocked or gone, or the final save on shutdown
+                // writes nothing.
+                BackupRoutine.resumeWorldSaving();
+            } catch (RuntimeException e) {
+                LOGGER.error("Error restoring world saving during shutdown", e);
+            }
+            // do not call resumeWorldSaving() inside lock-- do not nest locks
             synchronized (LOCK) {
-                try {
-                    // We must guarantee that world saving is turned back on, even if the backup worker thread is
-                    // completely
-                    // blocked and dead, this way during shutdown we ensure that the world is properly saved.
-                    if (Universe.loaded()) Universe.get().restoreWorldSaving();
-                } catch (Exception e) {
-                    LOGGER.error("Error restoring world saving during shutdown", e);
-                }
                 stopping = false;
             }
         }
@@ -228,7 +237,7 @@ public final class BackupCoordinator {
             try {
                 RetentionRoutine routine = RetentionRoutine.fromConfig();
                 return startOrQueueRetention(routine, routine::prune);
-            } catch (RuntimeException e) {
+            } catch (RuntimeException | Error e) {
                 CompletableFuture<BackupResult.Retention> failed = new CompletableFuture<>();
                 failed.completeExceptionally(e);
                 return failed;

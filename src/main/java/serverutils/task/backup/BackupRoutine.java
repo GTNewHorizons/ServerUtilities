@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +39,7 @@ import java.util.function.Supplier;
 
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.world.MinecraftException;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraftforge.common.DimensionManager;
@@ -67,6 +69,11 @@ public class BackupRoutine {
             Arrays.asList("QuestDatabase", "QuestProgress", "QuestingParties", "NameCache", "LifeDatabase"));
 
     private static volatile Instant lastSuccessfulBackup = Instant.MIN;
+
+    // Use a lock + owner to perform thread-safe tracking of who can restore world saving once it's been suspended
+    private static final Object WORLD_SAVING_LOCK = new Object();
+    private static final IdentityHashMap<WorldServer, Boolean> worldSaveStates = new IdentityHashMap<>();
+    private static Object worldSavingOwner;
 
     private final Map<String, Duration> timings = new LinkedHashMap<>();
     private final CancellationToken cancellation = new CancellationToken();
@@ -105,6 +112,80 @@ public class BackupRoutine {
                 : new File(backups.backup_folder_path);
         if (!folder.exists()) folder.mkdirs();
         return folder;
+    }
+
+
+
+    public static boolean isWorldSavingSuspended() {
+        synchronized (WORLD_SAVING_LOCK) {
+            return !worldSaveStates.isEmpty();
+        }
+    }
+
+    /** Keeps a dimension that loads during a backup from saving until the backup finishes. */
+    public static void suspendLoadedWorld(WorldServer world) {
+        synchronized (WORLD_SAVING_LOCK) {
+            if (worldSaveStates.isEmpty()) return;
+            if (worldSaveStates.putIfAbsent(world, world.levelSaving) == null) {
+                LOGGER.info(
+                        "Dimension {} loaded during a backup; world saving suspended there until it finishes",
+                        world.provider.dimensionId);
+            }
+            world.levelSaving = true;
+        }
+    }
+
+    /**
+     * Flushes every world to disk and keeps it from saving until it is resumed. Only one routine can hold the
+     * suspension at a time, so this throws if another already does.
+     */
+    static void suspendWorldSaving(Object owner, WorldServer[] worlds) throws MinecraftException {
+        synchronized (WORLD_SAVING_LOCK) {
+            if (!worldSaveStates.isEmpty()) {
+                // Must not resume: the suspension belongs to the other backup.
+                throw new IllegalStateException(
+                        "World saving is already suspended, likely because another backup is running or has just completed");
+            }
+            worldSavingOwner = owner;
+            try {
+                for (WorldServer world : worlds) {
+                    if (world == null) continue;
+                    worldSaveStates.putIfAbsent(world, world.levelSaving);
+                    world.levelSaving = false;
+                    world.saveAllChunks(true, null);
+                    world.levelSaving = true;
+                }
+                LOGGER.info("Suspended world saving in {} dimensions for backup", worldSaveStates.size());
+            } catch (Exception e) {
+                resumeWorldSaving();
+                throw e;
+            }
+        }
+    }
+
+    /** Resumes saving, unless the suspension is held by someone else (for example after a rejected suspend). */
+    static void resumeWorldSaving(Object owner) {
+        synchronized (WORLD_SAVING_LOCK) {
+            if (owner == worldSavingOwner) resumeWorldSaving();
+        }
+    }
+
+    /** Resumes saving whoever suspended it, for shutdown and failure paths. */
+    static void resumeWorldSaving() {
+        synchronized (WORLD_SAVING_LOCK) {
+            if (!worldSaveStates.isEmpty()) {
+                LOGGER.info(
+                        "Restored previous world-saving states in {} dimensions after backup",
+                        worldSaveStates.size());
+            }
+            try {
+                worldSaveStates.forEach((world, levelSaving) -> world.levelSaving = levelSaving);
+            } finally {
+                // A failed restore must not leave the suspension held, or every later backup would be refused.
+                worldSaveStates.clear();
+                worldSavingOwner = null;
+            }
+        }
     }
 
     public BackupRoutine(Universe universe, Options options, Supplier<ICompress> compressorSupplier) {
@@ -159,30 +240,56 @@ public class BackupRoutine {
             executor = Runnable::run;
         }
 
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                doSave(result);
-            } catch (Throwable t) {
-                result.error = t;
-                if (isCancellation(t)) {
-                    LOGGER.info("Backup cancelled, deleting partial archive");
-                } else {
-                    LOGGER.error("An error occurred while saving backup", t);
-                    ServerUtils.notifyChat(
-                            universe.server,
-                            null,
-                            StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, t.getMessage()));
-                }
-            } finally {
-                logTiming();
-                cleanup();
-            }
-            return result.finished();
-        }, executor);
+        try {
+            return CompletableFuture.supplyAsync(() -> doSaveAndFinish(result), executor);
+        } catch (RuntimeException | Error e) {
+            cleanup();
+            throw e;
+        }
     }
 
     public void cancel() {
         cancellation.cancel();
+    }
+
+    /** The backup worker. Failures are recorded on the result rather than thrown, and cleanup always runs. */
+    private BackupResult.Save doSaveAndFinish(BackupResult.Save result) {
+        try {
+            doSave(result);
+        } catch (Throwable t) {
+            result.error = t;
+            reportFailure(t);
+        } finally {
+            finish();
+        }
+        return result.finished();
+    }
+
+    private void reportFailure(Throwable t) {
+        if (isCancellation(t)) {
+            LOGGER.info("Backup cancelled, deleting partial archive");
+            return;
+        }
+
+        LOGGER.error("An error occurred while saving backup", t);
+        try {
+            ServerUtils.notifyChat(
+                universe.server,
+                null,
+                StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, t.getMessage()));
+        } catch (RuntimeException e) {
+            LOGGER.warn("Could not report the backup failure", e);
+        }
+    }
+
+    /** Logs the timings, then cleans up even if logging fails. The timings are cleared by cleanup, so log first. */
+    private void finish() {
+        try {
+            logTiming();
+        } catch (RuntimeException e) {
+            LOGGER.warn("Could not log backup timing", e);
+        }
+        cleanup();
     }
 
     private boolean isCancellation(Throwable t) {
@@ -197,7 +304,9 @@ public class BackupRoutine {
             // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
             universe.server.getConfigurationManager().saveAllPlayerData();
             recordTiming("player save");
-            universe.disableWorldSaving();
+
+            suspendWorldSaving(this, universe.server.worldServers);
+
             recordTiming("world save");
 
             // reordered because flushing chunks takes time and world saving has already been disabled
@@ -399,13 +508,12 @@ public class BackupRoutine {
             LOGGER.warn("Could not delete temporary backup folder", e);
         }
 
-        universe.scheduleAction(() -> {
-            try {
-                universe.restoreWorldSaving();
-            } catch (RuntimeException e) {
-                LOGGER.warn("Could not restore world saving", e);
-            }
-        });
+        try {
+            // A no-op when a newer backup has suspended saving since, which restores the original states itself.
+            resumeWorldSaving(this);
+        } catch (RuntimeException e) {
+            LOGGER.warn("Could not restore world saving", e);
+        }
 
         cancellation.clear();
         snapshot.clear();

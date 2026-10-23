@@ -74,6 +74,26 @@ public class BackupCoordinatorTest extends BackupFixtures.Tests {
     }
 
     @Test
+    public void startBackup_WhenSaveFutureFails_StillCompletesBackup() throws Exception {
+        RuntimeException failure = new RuntimeException("worker blew up");
+        CompletableFuture<BackupResult.Save> saveFuture = new CompletableFuture<>();
+        saveFuture.completeExceptionally(failure);
+
+        BackupRoutine routine = mock(BackupRoutine.class);
+        when(routine.save(any())).thenReturn(saveFuture);
+
+        CompletableFuture<BackupResult> finished = new CompletableFuture<>();
+        assertTrue(BackupCoordinator.startBackup(routine, finished::complete));
+
+        BackupResult result = finished.get(5, TimeUnit.SECONDS);
+        assertFalse(result.isSuccess());
+        assertSame(failure, result.save.error);
+        assertNull(result.retention);
+        assertFalse("A failed future must not leave the coordinator refusing backups", BackupCoordinator.isRunning());
+        assertTrue(BackupCoordinator.startBackup(routine));
+    }
+
+    @Test
     public void startBackup_WhenBackupSucceeds_RetentionPruneIsExecuted()
             throws ExecutionException, InterruptedException, TimeoutException {
         BackupResult.Save saveResult = new BackupResult.Save(world, false);

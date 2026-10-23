@@ -50,6 +50,13 @@ public class BackupResult {
             this.isIncremental = incremental;
         }
 
+        /** A failed save for a backup that ended before it could report its own result. */
+        public static Save failed(Throwable error) {
+            Save save = new Save(null, false);
+            save.error = error;
+            return save.finished();
+        }
+
         public Save finished() {
             duration = Duration.between(startTime, Instant.now());
             return this;

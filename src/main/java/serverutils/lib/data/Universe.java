@@ -7,13 +7,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.annotation.Nullable;
 
@@ -21,7 +19,6 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.MinecraftException;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.world.WorldEvent;
 
@@ -188,12 +185,6 @@ public class Universe {
                 }
             }
 
-            while (true) {
-                Runnable task = universe.runQueue.poll();
-                if (task == null) break;
-                task.run();
-            }
-
             if (universe.server.isSinglePlayer()) {
                 boolean cheats = universe.server.getConfigurationManager().commandsAllowedForAll;
 
@@ -222,14 +213,12 @@ public class Universe {
     public FakeForgePlayer fakePlayer;
     private final List<Task> taskList;
     private final List<Task> taskQueue;
-    private final ConcurrentLinkedQueue<Runnable> runQueue;
     public Ticks ticks;
     private boolean prevCheats = false;
     public File dataFolder;
     public File latModFolder;
     public boolean gameRulesFlipped;
     public final Map<String, String> flippedRulesSaveState;
-    private IdentityHashMap<WorldServer, Boolean> worldSaveStates = new IdentityHashMap<>();
 
     public Universe(MinecraftServer s) {
         server = s;
@@ -244,50 +233,8 @@ public class Universe {
         checkSaving = true;
         taskList = new ArrayList<>();
         taskQueue = new ArrayList<>();
-        runQueue = new ConcurrentLinkedQueue<>();
         gameRulesFlipped = false;
         flippedRulesSaveState = new HashMap<>();
-    }
-
-    public boolean isWorldSavingSuspended() {
-        return !worldSaveStates.isEmpty();
-    }
-
-    public void disableWorldSaving(WorldServer world) {
-        if (isWorldSavingSuspended()) {
-            if (worldSaveStates.putIfAbsent(world, world.levelSaving) == null) {
-                ServerUtilities.LOGGER.info(
-                        "Dimension {} loaded during a backup; world saving suspended there until it finishes",
-                        world.provider.dimensionId);
-            }
-            world.levelSaving = true;
-        }
-    }
-
-    public void disableWorldSaving() throws MinecraftException {
-        try {
-            for (WorldServer world : server.worldServers) {
-                if (world == null) continue;
-                worldSaveStates.putIfAbsent(world, world.levelSaving);
-                world.levelSaving = false;
-                world.saveAllChunks(true, null);
-                world.levelSaving = true;
-            }
-            ServerUtilities.LOGGER.info("Suspended world saving in {} dimensions for backup", worldSaveStates.size());
-        } catch (Exception e) {
-            restoreWorldSaving();
-            throw e;
-        }
-    }
-
-    public void restoreWorldSaving() {
-        if (!worldSaveStates.isEmpty()) {
-            ServerUtilities.LOGGER.info(
-                    "Restored previous world-saving states in {} dimensions after backup",
-                    worldSaveStates.size());
-        }
-        worldSaveStates.forEach((world, levelSaving) -> world.levelSaving = levelSaving);
-        worldSaveStates.clear();
     }
 
     public void markDirty() {
@@ -313,10 +260,6 @@ public class Universe {
         if (task.getNextTime() <= -1) return;
         task.queueNotifications(this);
         taskQueue.add(task);
-    }
-
-    public void scheduleAction(Runnable runnable) {
-        runQueue.add(runnable);
     }
 
     private void load() {

@@ -145,13 +145,16 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
 
     @Test
     public void save_WhenPreroutineFails_RestoresWorldState() throws MinecraftException {
+        WorldServer worldServer = server.worldServers[0];
+        worldServer.levelSaving = true;
         Exception exception = new MinecraftException("An error occurred");
-        doThrow(exception).when(universe).disableWorldSaving();
+        doThrow(exception).when(worldServer).saveAllChunks(true, null);
 
         BackupResult.Save result = routine.save();
         assertEquals(exception, result.error);
 
-        verify(universe, times(1)).restoreWorldSaving();
+        assertFalse(BackupRoutine.isWorldSavingSuspended());
+        assertTrue(worldServer.levelSaving);
     }
 
     @Test
@@ -162,7 +165,7 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         BackupResult.Save result = routine.save();
         assertEquals(exception, result.error);
 
-        verify(universe, times(1)).restoreWorldSaving();
+        assertFalse(BackupRoutine.isWorldSavingSuspended());
     }
 
     @Test
@@ -515,7 +518,7 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         assertTrue(result.error.getMessage().startsWith("File changed during backup snapshot"));
         assertNull(result.destination);
         assertFalse(new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot").exists());
-        verify(universe, times(1)).restoreWorldSaving();
+        assertFalse(BackupRoutine.isWorldSavingSuspended());
         verify(compressor, times(0)).addFileToArchive(any(), any());
     }
 
@@ -538,7 +541,7 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         assertEquals(deleted.getPath(), result.error.getMessage());
         assertNull(result.destination);
         assertFalse(new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot").exists());
-        verify(universe, times(1)).restoreWorldSaving();
+        assertFalse(BackupRoutine.isWorldSavingSuspended());
         verify(compressor, times(0)).addFileToArchive(any(), any());
     }
 
