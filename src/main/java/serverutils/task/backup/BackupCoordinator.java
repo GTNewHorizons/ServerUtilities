@@ -68,7 +68,7 @@ public final class BackupCoordinator {
             backupDone = result;
         }
 
-        // The routine records failures on its result, but if the future still completes exceptionally the backup must
+        // The routine records failures on its result, but if the future still completes exceptionally, the backup must
         // be completed anyway, or the coordinator would refuse every later backup.
         CompletableFuture<BackupResult.Save> saved = result.handle((save, error) -> {
             if (save != null) return save;
@@ -78,17 +78,28 @@ public final class BackupCoordinator {
             return BackupResult.Save.failed(cause);
         });
 
-        saved.thenCompose(save -> completeBackup(save.isSuccess()).handle((retention, error) -> {
-            if (error != null) {
-                LOGGER.error("Backup retention failed", error);
-                retention = new BackupResult.Retention();
-                retention.error = error;
-                retention.finished();
+        saved.thenCompose(save -> {
+            try {
+                notifyFinished(save);
+            } catch (RuntimeException t) { // Just in case. We need to ensure completeBackup is run to clear the active
+                                           // flag
+                LOGGER.error("Failed to notify backup finished", t);
             }
-            return new BackupResult(save, retention);
-        })).thenAccept(backup -> {
-            notifyFinished(backup);
-            if (callback != null) callback.accept(backup);
+            return completeBackup(save.isSuccess()).handle((retention, error) -> {
+                if (error != null) {
+                    Throwable cause = error instanceof CompletionException && error.getCause() != null
+                            ? error.getCause()
+                            : error;
+                    if (cause instanceof CancellationException) LOGGER.info("Backup retention cancelled");
+                    else LOGGER.error("Backup retention failed", error);
+                    retention = new BackupResult.Retention();
+                    retention.error = cause;
+                    retention.finished();
+                }
+                return new BackupResult(save, retention);
+            });
+        }).thenAccept(backup -> {
+            if (callback != null) callback.accept(backup); // callback still runs after prune and save
         }).exceptionally(t -> {
             LOGGER.error("Failed to report backup result", t);
             return null;
@@ -196,13 +207,12 @@ public final class BackupCoordinator {
         return future == null ? CompletableFuture.completedFuture(null) : future;
     }
 
-    private static void notifyFinished(BackupResult result) {
-        BackupResult.Save save = result.save;
-        if (!save.isSuccess()) return;
-        String size = FileUtils.getSizeString(save.bytes);
+    private static void notifyFinished(BackupResult.Save result) {
+        if (!result.isSuccess()) return;
+        String size = FileUtils.getSizeString(result.bytes);
 
-        LOGGER.info("Backup done in {} ({})!", save.getDoneTime(), size);
-        LOGGER.info("Created {} from {}", save.destination.getAbsolutePath(), save.world.getAbsolutePath());
+        LOGGER.info("Backup done in {} ({})!", result.getDoneTime(), size);
+        LOGGER.info("Created {} from {}", result.destination.getAbsolutePath(), result.world.getAbsolutePath());
 
         if (backups.silent_backup) return;
 
@@ -212,10 +222,11 @@ public final class BackupCoordinator {
                     StringUtils.color(
                             "cmd.backup_end_2",
                             EnumChatFormatting.LIGHT_PURPLE,
-                            save.getDoneTime(),
+                            result.getDoneTime(),
                             (size.equals(sizeT) ? size : (size + " | " + sizeT))));
         } else {
-            BACKUP.sendAll(StringUtils.color("cmd.backup_end_1", EnumChatFormatting.LIGHT_PURPLE, save.getDoneTime()));
+            BACKUP.sendAll(
+                    StringUtils.color("cmd.backup_end_1", EnumChatFormatting.LIGHT_PURPLE, result.getDoneTime()));
         }
     }
 
@@ -232,8 +243,11 @@ public final class BackupCoordinator {
             backupActive = false;
             activeBackup = null;
             backupDone = null;
-            // stop() has already canceled the queue, so a prune queued now would never run
-            if (!success || stopping) return CompletableFuture.completedFuture(null);
+            if (!success || stopping) {
+                // run any potential pending jobs that may have been queued while the backup was running
+                runNextRetention();
+                return CompletableFuture.completedFuture(null);
+            }
             try {
                 RetentionRoutine routine = RetentionRoutine.fromConfig();
                 return startOrQueueRetention(routine, routine::prune);

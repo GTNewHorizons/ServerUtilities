@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.compression.ICompress;
 
 @RequiredArgsConstructor
 public class BackupCandidates {
@@ -160,6 +161,7 @@ public class BackupCandidates {
         Path runFolder = Paths.get("").toAbsolutePath();
         Path levelDat = scanRoot == null ? null : scanRoot.toPath().resolve("level.dat").toAbsolutePath().normalize();
         remove(file -> {
+            if (file.name().equals(ICompress.BACKUP_METADATA_ENTRY)) return true;
             if (file.isRegionFile()) return false;
             Path absolute = file.backing().toPath().toAbsolutePath().normalize();
             Path relative = runFolder.relativize(absolute);

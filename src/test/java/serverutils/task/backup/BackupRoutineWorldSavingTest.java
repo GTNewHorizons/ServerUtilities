@@ -88,13 +88,9 @@ public class BackupRoutineWorldSavingTest {
             assertTrue(inFlush.await(5, TimeUnit.SECONDS));
 
             // Anything that got in here would see (or undo) a half-finished suspension.
-            Future<?> resuming = pool.submit(() -> {
-                BackupRoutine.resumeWorldSaving();
-            });
+            Future<?> resuming = pool.submit(() -> { BackupRoutine.resumeWorldSaving(); });
             Future<?> querying = pool.submit(BackupRoutine::isWorldSavingSuspended);
-            Future<?> loading = pool.submit(() -> {
-                BackupRoutine.suspendLoadedWorld(world);
-            });
+            Future<?> loading = pool.submit(() -> { BackupRoutine.suspendLoadedWorld(world); });
             assertBlocked(resuming, querying, loading);
 
             release.countDown();

@@ -114,8 +114,6 @@ public class BackupRoutine {
         return folder;
     }
 
-
-
     public static boolean isWorldSavingSuspended() {
         synchronized (WORLD_SAVING_LOCK) {
             return !worldSaveStates.isEmpty();
@@ -274,9 +272,9 @@ public class BackupRoutine {
         LOGGER.error("An error occurred while saving backup", t);
         try {
             ServerUtils.notifyChat(
-                universe.server,
-                null,
-                StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, t.getMessage()));
+                    universe.server,
+                    null,
+                    StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, t.getMessage()));
         } catch (RuntimeException e) {
             LOGGER.warn("Could not report the backup failure", e);
         }

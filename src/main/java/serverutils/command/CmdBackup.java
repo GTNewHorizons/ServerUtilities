@@ -210,17 +210,12 @@ public class CmdBackup extends CmdTreeBase {
         }
 
         private void outputResult(ICommandSender sender, BackupRoutine routine, BackupResult result) {
-            if (!result.isSuccess()) {
-                // Archive failures are broadcast as cmd.backup_fail and cancellations are quiet, so only a backup
-                // that never started gets this.
-                if (!routine.isPrepared()) {
-                    sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
-                }
-                return;
+            if (result.isSuccess()) return;
+            // Archive failures are broadcast as cmd.backup_fail and cancellations are quiet, so only a backup
+            // that never started gets this.
+            if (!routine.isPrepared()) {
+                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
             }
-
-            // only incremental reports the output in chat
-            if (!result.save.isIncremental) return;
         }
     }
 
