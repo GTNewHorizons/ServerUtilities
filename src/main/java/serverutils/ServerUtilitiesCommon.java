@@ -123,7 +123,11 @@ public class ServerUtilitiesCommon {
         // No backup can own a staging file once the coordinator has stopped.
         RetentionRoutine.deleteAbandonedArchives(BackupRoutine.getDefaultBackupFolder());
         // Start cleanup with the server, so background scans cannot race the title-screen restore GUI.
-        BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::prune);
+        BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::prune).exceptionally(t -> {
+            ServerUtilities.LOGGER.error("Retention prune failed", t);
+            return null;
+        });
+
         Universe.onServerAboutToStart(event);
         MinecraftForge.EVENT_BUS.register(Universe.get());
         FMLCommonHandler.instance().bus().register(Universe.get());
