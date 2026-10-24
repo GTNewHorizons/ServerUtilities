@@ -677,7 +677,7 @@ public class BackupRoutine {
     }
 
     private boolean isKnownDimension(String dimension) {
-        return BackupCandidates.OVERWORLD.equals(dimension) || (dimension != null && dimension.matches("DIM-?\\d+"))
+        return BackupCandidates.OVERWORLD.equals(dimension) || FileUtils.isNumberedDimension(dimension)
                 || dimToRegionToChunkPos.containsKey(dimension);
     }
 

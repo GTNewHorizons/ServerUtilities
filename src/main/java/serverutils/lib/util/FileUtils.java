@@ -30,10 +30,15 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
 
 import net.minecraft.world.storage.ThreadedFileIOBase;
 
 public class FileUtils {
+
+    private static final Pattern NUMBERED_DIMENSION = Pattern.compile("DIM-?\\d+");
 
     public enum SizeUnit {
 
@@ -301,8 +306,12 @@ public class FileUtils {
         return file.getName().endsWith(".mca");
     }
 
+    public static boolean isNumberedDimension(@Nullable String name) {
+        return name != null && NUMBERED_DIMENSION.matcher(name).matches();
+    }
+
     public static boolean isDimensionFolder(File directory) {
-        return directory.getName().matches("DIM-?\\d+") || new File(directory, "region").isDirectory();
+        return isNumberedDimension(directory.getName()) || new File(directory, "region").isDirectory();
     }
 
     public static String getRelativePath(File file) {
@@ -343,7 +352,7 @@ public class FileUtils {
 
         // Walk from the last directory the pattern names before its first wildcard.
         String root = pattern.substring(0, pattern.lastIndexOf('/', wildcard) + 1);
-        PathMatcher glob = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+        PathMatcher glob = glob(pattern);
         return findFiles(
                 Paths.get(root.isEmpty() ? "." : root),
                 path -> glob.matches(path.normalize()),
@@ -359,7 +368,7 @@ public class FileUtils {
         List<PathMatcher> matchers = new ArrayList<>();
         for (String segment : segments) {
             if (segment.indexOf('{') >= 0 != segment.indexOf('}') >= 0) return dir -> true;
-            matchers.add(FileSystems.getDefault().getPathMatcher("glob:" + segment));
+            matchers.add(glob(segment));
         }
         return dir -> {
             String[] names = dir.normalize().toString().replace('\\', '/').split("/", -1);
@@ -433,7 +442,22 @@ public class FileUtils {
     public static boolean matchesBackupPath(Path path, String pattern) {
         pattern = normalizeBackupPattern(pattern);
         path = path.normalize();
-        return FileSystems.getDefault().getPathMatcher("glob:" + pattern).matches(path)
+        return glob(pattern).matches(path)
                 || (!pattern.contains("*") && path.startsWith(Paths.get(pattern).normalize()));
+    }
+
+    public static Predicate<Path> exactBackupMatcher(String pattern) {
+        pattern = normalizeBackupPattern(pattern);
+        if (pattern.isEmpty()) return path -> false;
+        if (indexOfWildcard(pattern) < 0) {
+            Path literal = Paths.get(pattern).normalize();
+            return path -> literal.equals(path.normalize());
+        }
+        PathMatcher glob = glob(pattern);
+        return path -> glob.matches(path.normalize());
+    }
+
+    private static PathMatcher glob(String pattern) {
+        return FileSystems.getDefault().getPathMatcher("glob:" + pattern);
     }
 }

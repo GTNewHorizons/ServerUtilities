@@ -36,6 +36,8 @@ public final class BackupCoordinator {
     private static boolean backupActive;
     private static boolean retentionActive;
     private static boolean stopping;
+    /** Bumped by stop(). Work started in an earlier generation was abandoned and must not touch coordinator state. */
+    private static int generation;
 
     private static BackupRoutine activeBackup;
     private static CompletableFuture<?> backupDone;
@@ -52,16 +54,18 @@ public final class BackupCoordinator {
     }
 
     public static boolean startBackup(BackupRoutine routine, Consumer<BackupResult> callback) {
+        int gen;
         synchronized (LOCK) {
             if (isBackupBlocked()) return false;
             backupActive = true;
             activeBackup = routine;
+            gen = generation;
         }
         CompletableFuture<BackupResult.Save> result;
         try {
             result = routine.save(BACKUP_EXECUTOR);
         } catch (RuntimeException | Error e) {
-            completeBackup(false);
+            completeBackup(gen, false);
             throw e;
         }
         synchronized (LOCK) {
@@ -85,7 +89,7 @@ public final class BackupCoordinator {
                                            // flag
                 LOGGER.error("Failed to notify backup finished", t);
             }
-            return completeBackup(save.isSuccess()).handle((retention, error) -> {
+            return completeBackup(gen, save.isSuccess()).handle((retention, error) -> {
                 if (error != null) {
                     Throwable cause = error instanceof CompletionException && error.getCause() != null
                             ? error.getCause()
@@ -162,6 +166,15 @@ public final class BackupCoordinator {
             }
             // do not call resumeWorldSaving() inside lock-- do not nest locks
             synchronized (LOCK) {
+                // Anything still running after the timeout is abandoned. Bumping the generation makes its late
+                // completion a no-op, so it can't start a prune or clear the state of work started after this stop.
+                generation++;
+                backupActive = false;
+                activeBackup = null;
+                backupDone = null;
+                retentionActive = false;
+                activeRetention = null;
+                retentionDone = null;
                 stopping = false;
             }
         }
@@ -175,6 +188,7 @@ public final class BackupCoordinator {
 
     private static <T> CompletableFuture<T> startRetention(RetentionRoutine routine, Callable<T> work) {
         CompletableFuture<T> result = new CompletableFuture<>();
+        int gen = generation;
         retentionActive = true;
         activeRetention = routine;
         retentionDone = result;
@@ -187,7 +201,7 @@ public final class BackupCoordinator {
                 error = t;
             }
             // Free the slot before completing the future, so a finished future means retention is idle again.
-            completePrune();
+            completePrune(gen);
             if (error == null) {
                 result.complete(value);
             } else {
@@ -238,8 +252,12 @@ public final class BackupCoordinator {
         return backupActive || retentionActive || stopping;
     }
 
-    private static CompletableFuture<BackupResult.Retention> completeBackup(boolean success) {
+    private static CompletableFuture<BackupResult.Retention> completeBackup(int gen, boolean success) {
         synchronized (LOCK) {
+            if (gen != generation) {
+                // abandoned by stop(); state was already reset there
+                return CompletableFuture.completedFuture(null);
+            }
             backupActive = false;
             activeBackup = null;
             backupDone = null;
@@ -259,8 +277,9 @@ public final class BackupCoordinator {
         }
     }
 
-    private static void completePrune() {
+    private static void completePrune(int gen) {
         synchronized (LOCK) {
+            if (gen != generation) return;
             retentionActive = false;
             activeRetention = null;
             retentionDone = null;

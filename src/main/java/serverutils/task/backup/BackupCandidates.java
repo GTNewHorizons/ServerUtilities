@@ -4,7 +4,6 @@ import static serverutils.ServerUtilities.LOGGER;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -145,18 +144,11 @@ public class BackupCandidates {
      * ignored. Region files are never removed: which regions are backed up is decided by the chunk selection.
      */
     public void removeMatching(Collection<String> patterns, String worldName) {
+        if (patterns.isEmpty()) return;
         List<Predicate<Path>> matchers = new ArrayList<>();
         for (String pattern : patterns) {
-            String normalized = FileUtils.normalizeBackupPattern(pattern.replace("$WORLDNAME", worldName));
-            if (normalized.isEmpty()) continue;
-            if (FileUtils.indexOfWildcard(normalized) < 0) {
-                Path literal = Paths.get(normalized).normalize();
-                matchers.add(literal::equals);
-            } else {
-                matchers.add(FileSystems.getDefault().getPathMatcher("glob:" + normalized)::matches);
-            }
+            matchers.add(FileUtils.exactBackupMatcher(pattern.replace("$WORLDNAME", worldName)));
         }
-        if (matchers.isEmpty()) return;
 
         Path runFolder = Paths.get("").toAbsolutePath();
         Path levelDat = scanRoot == null ? null : scanRoot.toPath().resolve("level.dat").toAbsolutePath().normalize();
