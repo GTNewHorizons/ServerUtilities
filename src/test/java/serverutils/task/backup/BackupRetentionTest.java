@@ -29,8 +29,13 @@ public class BackupRetentionTest {
 
     private static BackupRetention.Plan<ArchiveEntry> select(List<ArchiveEntry> entries, long now, long maxSize,
             boolean deleteCustom, String... policy) {
-        return BackupRetention
-                .select(entries, BackupRetention.parse(Arrays.asList(policy)), deleteCustom, maxSize, now);
+        return BackupRetention.select(
+                entries,
+                BackupRetention.parse(Arrays.asList(policy)),
+                deleteCustom,
+                maxSize,
+                now,
+                BackupStore::sumSizes);
     }
 
     private static void assertReason(BackupRetention.Plan<ArchiveEntry> plan, ArchiveEntry entry, String reason,

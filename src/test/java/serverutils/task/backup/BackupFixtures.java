@@ -20,6 +20,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
+
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -281,6 +284,103 @@ public final class BackupFixtures {
         public enum SetupFlags {
             FOLDERS,
             MINECRAFT,
+        }
+    }
+
+    public static final class FakeEntry implements BackupEntry {
+
+        private final String id;
+        private final String world;
+        private final long createdAt;
+        private final long size;
+        private final boolean custom;
+        private final String problem;
+
+        FakeEntry(String id, @Nullable String world, long createdAt, boolean custom, @Nullable String problem) {
+            this(id, world, createdAt, 10, custom, problem);
+        }
+
+        FakeEntry(String id, String world, long createdAt, long size) {
+            this(id, world, createdAt, size, false, null);
+        }
+
+        public FakeEntry(String id, @Nullable String world, long createdAt, long size, boolean custom,
+                @Nullable String problem) {
+            this.id = id;
+            this.world = world;
+            this.createdAt = createdAt;
+            this.size = size;
+            this.custom = custom;
+            this.problem = problem;
+        }
+
+        @Override
+        public String id() {
+            return id;
+        }
+
+        @Override
+        public String world() {
+            return world;
+        }
+
+        @Override
+        public long createdAt() {
+            return createdAt;
+        }
+
+        @Override
+        public long size() {
+            return size;
+        }
+
+        @Override
+        public boolean isCustom() {
+            return custom;
+        }
+
+        @Override
+        public String problem() {
+            return problem;
+        }
+
+        @Override
+        public String toString() {
+            return id;
+        }
+    }
+
+    public static final class FakeStore implements BackupStore<FakeEntry> {
+
+        final List<FakeEntry> entries;
+        final Set<FakeEntry> failing = new HashSet<>();
+        final List<FakeEntry> deleted = new ArrayList<>();
+        /** Every entry shares all its data with the others, so together they are only as big as the largest. */
+        boolean sharedData;
+
+        public FakeStore(FakeEntry... entries) {
+            this.entries = Arrays.asList(entries);
+        }
+
+        @Override
+        public long countedSize(Collection<FakeEntry> entries) {
+            if (!sharedData) return BackupStore.super.countedSize(entries);
+            return entries.stream().mapToLong(FakeEntry::size).max().orElse(0);
+        }
+
+        @Override
+        public List<FakeEntry> list() {
+            return entries;
+        }
+
+        @Override
+        public void delete(Collection<FakeEntry> entries, BackupResult.Retention result) {
+            for (FakeEntry entry : entries) {
+                if (failing.contains(entry)) continue;
+                deleted.add(entry);
+                result.filesRemoved++;
+                result.bytesRemoved += entry.size();
+            }
         }
     }
 }

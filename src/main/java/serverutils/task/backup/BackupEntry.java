@@ -19,7 +19,9 @@ public interface BackupEntry {
     /** Epoch millis. */
     long createdAt();
 
-    /** Bytes freed by deleting only this entry, or 0 when the store does not track size. */
+    /**
+     * Bytes this entry occupies on its own, or 0 when the store does not track size.
+     */
     long size();
 
     boolean isCustom();

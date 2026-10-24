@@ -107,11 +107,12 @@ public class RetentionRoutine {
         BackupRetention.Plan<T> plan = getRetentionPlan(store);
         long maxSize = options.maxSize;
 
-        long remaining = 0;
+        List<T> counted = new ArrayList<>();
         for (T entry : plan.keep.keySet()) {
-            if (!plan.sizeExempt.contains(entry)) remaining += entry.size();
+            if (!plan.sizeExempt.contains(entry)) counted.add(entry);
         }
-        for (T entry : plan.delete.keySet()) remaining += entry.size();
+        counted.addAll(plan.delete.keySet());
+        long remaining = store.countedSize(counted);
 
         // Rule deletions go in one batch, so stores with shared data reclaim it once.
         for (Map.Entry<T, String> decision : plan.delete.entrySet()) {
@@ -151,7 +152,7 @@ public class RetentionRoutine {
 
         List<T> entries = readLegacyBackups(store);
         Set<T> newest = newestPerWorld(entries);
-        long currentSize = entries.stream().mapToLong(BackupEntry::size).sum();
+        long currentSize = store.countedSize(entries);
         int remainingCount = entries.size();
 
         for (T entry : entries) {
@@ -220,7 +221,7 @@ public class RetentionRoutine {
     }
 
     private <T extends BackupEntry> BackupRetention.Plan<T> getRetentionPlan(BackupStore<T> store) throws IOException {
-        return BackupRetention.plan(store.list(), options.policy, options.deleteCustom, options.maxSize);
+        return BackupRetention.plan(store, options.policy, options.deleteCustom, options.maxSize);
     }
 
     public static class Options {

@@ -1,7 +1,9 @@
 package serverutils.task.backup;
 
+import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.ToLongFunction;
 
 /** Selects which backups to keep. Entries must be independent: deleting one never affects another. */
 public final class BackupRetention {
@@ -86,9 +89,15 @@ public final class BackupRetention {
         }
     }
 
-    public static <T extends BackupEntry> Plan<T> plan(List<T> entries, List<String> policy, boolean deleteCustom,
-            long maxSize) throws InterruptedIOException {
-        Plan<T> plan = select(entries, parse(policy), deleteCustom, maxSize);
+    public static <T extends BackupEntry> Plan<T> plan(BackupStore<T> store, List<String> policy, boolean deleteCustom,
+            long maxSize) throws IOException {
+        Plan<T> plan = select(
+                store.list(),
+                parse(policy),
+                deleteCustom,
+                maxSize,
+                System.currentTimeMillis(),
+                store::countedSize);
         checkInterrupted();
         return plan;
     }
@@ -97,12 +106,8 @@ public final class BackupRetention {
         if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup retention cancelled");
     }
 
-    static <T extends BackupEntry> Plan<T> select(List<T> input, List<Rule> rules, boolean deleteCustom, long maxSize) {
-        return select(input, rules, deleteCustom, maxSize, System.currentTimeMillis());
-    }
-
     static <T extends BackupEntry> Plan<T> select(List<T> input, List<Rule> rules, boolean deleteCustom, long maxSize,
-            long now) {
+            long now, ToLongFunction<Collection<T>> countedSize) {
         List<T> entries = new ArrayList<>(input);
         entries.sort(
                 Comparator.comparingLong((T entry) -> entry.createdAt()).reversed().thenComparing(BackupEntry::label));
@@ -113,7 +118,6 @@ public final class BackupRetention {
         Map<T, Rule> longestRule = new HashMap<>();
         Map<T, Rule> replacedIn = new HashMap<>();
         for (T entry : entries) {
-            plan.remainingSize = Math.addExact(plan.remainingSize, entry.size());
             if (entry.problem() != null || entry.createdAt() > now || (!deleteCustom && entry.isCustom())) {
                 plan.sizeExempt.add(entry);
                 plan.keep(
@@ -154,14 +158,16 @@ public final class BackupRetention {
                 }
             }
         }
+        // The entries the size limit counts. Their combined size is asked of the store each time.
+        List<T> rotating = new ArrayList<>();
         for (T entry : entries) {
             if (!plan.keep.containsKey(entry)) {
                 plan.delete.put(entry, "Outside retention policy or superseded in time bucket");
-                plan.remainingSize -= entry.size();
             } else if (!plan.sizeExempt.contains(entry)) {
-                plan.remainingRotationSize = Math.addExact(plan.remainingRotationSize, entry.size());
+                rotating.add(entry);
             }
         }
+        plan.remainingRotationSize = countedSize.applyAsLong(rotating);
         // Only finite-retention entries may be sacrificed to the size limit, oldest first.
         for (int i = entries.size() - 1; i >= 0; i--) {
             T entry = entries.get(i);
@@ -170,9 +176,10 @@ public final class BackupRetention {
             if (maxSize <= 0 || plan.remainingRotationSize <= maxSize) continue;
             plan.keep.remove(entry);
             plan.delete.put(entry, "Folder size limit");
-            plan.remainingSize -= entry.size();
-            plan.remainingRotationSize -= entry.size();
+            rotating.remove(entry);
+            plan.remainingRotationSize = countedSize.applyAsLong(rotating);
         }
+        plan.remainingSize = countedSize.applyAsLong(plan.keep.keySet());
         for (int i = entries.size() - 1; i >= 0; i--) {
             T entry = entries.get(i);
             plan.entries.add(entry);

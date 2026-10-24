@@ -10,24 +10,22 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import serverutils.lib.util.FileUtils;
+import serverutils.task.backup.BackupFixtures.FakeEntry;
+import serverutils.task.backup.BackupFixtures.FakeStore;
 
 public class RetentionRoutineTest extends BackupFixtures.Tests {
 
@@ -245,6 +243,45 @@ public class RetentionRoutineTest extends BackupFixtures.Tests {
         assertEquals(Collections.singletonList(old), store.deleted);
     }
 
+    @Test
+    public void prune_PolicyMode_SharedDataCountsUniqueBytesAgainstSizeAllowance() {
+        // Three backups of 10 bytes each that share all their data occupy 10 bytes together.
+        for (boolean shared : new boolean[] { true, false }) {
+            FakeStore store = new FakeStore(
+                    new FakeEntry("a", "w", now - 3000, 10),
+                    new FakeEntry("b", "w", now - 2000, 10),
+                    new FakeEntry("c", "w", now, 10));
+            store.sharedData = shared;
+            RetentionRoutine.Options options = new RetentionRoutine.Options(
+                    Collections.singletonList("1d:all"),
+                    true,
+                    0,
+                    1);
+            options.maxSize = 15;
+
+            assertNull(new RetentionRoutine(store, options).prune().error);
+
+            if (shared) {
+                assertTrue("Within the allowance once shared data is counted once", store.deleted.isEmpty());
+            } else {
+                assertEquals("Independent entries sum to 30 bytes, so the oldest two go", 2, store.deleted.size());
+            }
+        }
+    }
+
+    @Test
+    public void pruneBySize_SharedDataCountsUniqueBytesAgainstSizeAllowance() {
+        for (boolean shared : new boolean[] { true, false }) {
+            FakeEntry old = new FakeEntry("old", "a", now - 1000, 10);
+            FakeStore store = new FakeStore(old, new FakeEntry("latest", "a", now, 10));
+            store.sharedData = shared;
+
+            assertNull(legacy(store, 1, 15, true).error);
+
+            assertEquals(shared ? Collections.emptyList() : Collections.singletonList(old), store.deleted);
+        }
+    }
+
     /** Runs legacy count/size rotation; a maxSize of 0 means count mode. */
     private static BackupResult.Retention legacy(FakeStore store, int keepCount, long maxSize, boolean deleteCustom) {
         RetentionRoutine.Options options = new RetentionRoutine.Options(
@@ -287,94 +324,5 @@ public class RetentionRoutineTest extends BackupFixtures.Tests {
 
     private static Set<File> files(Collection<? extends BackupEntry> entries) {
         return entries.stream().map(entry -> ((ArchiveEntry) entry).file).collect(Collectors.toSet());
-    }
-
-    private static final class FakeEntry implements BackupEntry {
-
-        private final String id;
-        private final String world;
-        private final long createdAt;
-        private final long size;
-        private final boolean custom;
-        private final String problem;
-
-        FakeEntry(String id, @Nullable String world, long createdAt, boolean custom, @Nullable String problem) {
-            this(id, world, createdAt, 10, custom, problem);
-        }
-
-        FakeEntry(String id, String world, long createdAt, long size) {
-            this(id, world, createdAt, size, false, null);
-        }
-
-        private FakeEntry(String id, @Nullable String world, long createdAt, long size, boolean custom,
-                @Nullable String problem) {
-            this.id = id;
-            this.world = world;
-            this.createdAt = createdAt;
-            this.size = size;
-            this.custom = custom;
-            this.problem = problem;
-        }
-
-        @Override
-        public String id() {
-            return id;
-        }
-
-        @Override
-        public String world() {
-            return world;
-        }
-
-        @Override
-        public long createdAt() {
-            return createdAt;
-        }
-
-        @Override
-        public long size() {
-            return size;
-        }
-
-        @Override
-        public boolean isCustom() {
-            return custom;
-        }
-
-        @Override
-        public String problem() {
-            return problem;
-        }
-
-        @Override
-        public String toString() {
-            return id;
-        }
-    }
-
-    private static final class FakeStore implements BackupStore<FakeEntry> {
-
-        final List<FakeEntry> entries;
-        final Set<FakeEntry> failing = new HashSet<>();
-        final List<FakeEntry> deleted = new ArrayList<>();
-
-        FakeStore(FakeEntry... entries) {
-            this.entries = Arrays.asList(entries);
-        }
-
-        @Override
-        public List<FakeEntry> list() {
-            return entries;
-        }
-
-        @Override
-        public void delete(Collection<FakeEntry> entries, BackupResult.Retention result) {
-            for (FakeEntry entry : entries) {
-                if (failing.contains(entry)) continue;
-                deleted.add(entry);
-                result.filesRemoved++;
-                result.bytesRemoved += entry.size();
-            }
-        }
     }
 }

@@ -20,7 +20,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -45,9 +44,9 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
-import serverutils.task.backup.ArchiveEntry;
-import serverutils.task.backup.BackupEntry;
 import serverutils.task.backup.BackupFixtures;
+import serverutils.task.backup.BackupFixtures.FakeEntry;
+import serverutils.task.backup.BackupFixtures.FakeStore;
 import serverutils.task.backup.BackupRetention;
 import serverutils.task.backup.RetentionRoutine;
 
@@ -146,15 +145,17 @@ public class CmdBackupTest extends BackupFixtures.Tests {
         long gb = FileUtils.SizeUnit.GB.getSize();
         long now = System.currentTimeMillis();
         String worldId = UUID.randomUUID().toString();
-        List<BackupEntry> entries = Arrays.asList(
-                new ArchiveEntry(new File("named.zip"), worldId, now - 2 * 60_000, 3 * gb, true, null),
-                new ArchiveEntry(new File("recent.zip"), worldId, now - 60_000, gb, false, null),
-                new ArchiveEntry(new File("latest.zip"), worldId, now, 2 * gb, false, null));
+
+        FakeStore store = new FakeStore(
+                new FakeEntry("named.zip", worldId, now - 2 * 60_000, 3 * gb, true, null),
+                new FakeEntry("recent.zip", worldId, now - 60_000, gb, false, null),
+                new FakeEntry("latest.zip", worldId, now, 2 * gb, false, null));
+
         ServerUtilitiesConfig.backups.max_folder_size = 1;
 
         for (String policy : new String[] { "forever:all", "1d:all" }) {
-            BackupRetention.Plan<BackupEntry> plan = BackupRetention
-                    .plan(entries, Collections.singletonList(policy), false, gb);
+            BackupRetention.Plan<FakeEntry> plan = BackupRetention
+                    .plan(store, Collections.singletonList(policy), false, gb);
             RetentionRoutine routine = mock(RetentionRoutine.class);
             doReturn(plan).when(routine).preview();
             List<ChatComponentTranslation> replies = new ArrayList<>();
