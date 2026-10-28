@@ -28,12 +28,14 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -83,6 +85,8 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
     @Before
     public void beforeEach() {
         testSetup();
+        // Tests assert on what is left in the shared temp folder, so start from an empty one.
+        BackupRoutine.deleteAbandonedTempFolders();
         compressor = mock(ICompress.class);
 
         when(universe.getUUID()).thenReturn(BackupFixtures.UUID);
@@ -567,7 +571,7 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         assertTrue(result.error instanceof IOException);
         assertTrue(result.error.getMessage().startsWith("File changed during backup snapshot"));
         assertNull(result.destination);
-        assertFalse(new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot").exists());
+        assertNoTempFolders(null);
         assertFalse(BackupRoutine.isWorldSavingSuspended());
         verify(compressor, times(0)).addFileToArchive(any(), any());
     }
@@ -590,7 +594,7 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         assertTrue(result.error instanceof NoSuchFileException);
         assertEquals(deleted.getPath(), result.error.getMessage());
         assertNull(result.destination);
-        assertFalse(new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot").exists());
+        assertNoTempFolders(null);
         assertFalse(BackupRoutine.isWorldSavingSuspended());
         verify(compressor, times(0)).addFileToArchive(any(), any());
     }
@@ -764,10 +768,84 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
                 assertNotNull(label, result.error);
                 assertNull(label, result.destination);
                 assertArrayEquals(label, previous, Files.readAllBytes(archive.toPath()));
-                assertFalse(label, new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot").exists());
+                assertNoTempFolders(label);
                 String[] temporaries = backups.list((dir, name) -> name.startsWith(".su-save-"));
                 assertEquals(label, 0, temporaries == null ? 0 : temporaries.length);
             }
+        }
+    }
+
+    @Test
+    public void save_TempFiles_KeptInOwnFolderAndOtherRunsLeftAlone() throws Exception {
+        options.snapshotMetaFiles = true;
+        options.onlyClaimed = true;
+        options.writeOnlyClaimedChunks = true;
+
+        WorldFile region = worldFile(BackupCandidates.OVERWORLD, "region/r.0.0.mca");
+        writeToRegion(region, 0, 0, "claimed");
+        claim(new ChunkDimPos(0, 0, 0));
+
+        // Stands in for a backup abandoned by a timed out stop, which may still be reading its files
+        File abandoned = new File(BackupRoutine.BACKUP_TEMP_FOLDER, "backup-abandoned/snapshot/level.dat");
+        FileUtils.ensureExists(abandoned.getParentFile());
+        Files.write(abandoned.toPath(), new byte[] { 1 });
+
+        Path tempRoot = BackupRoutine.BACKUP_TEMP_FOLDER.toPath().toAbsolutePath().normalize();
+        List<Path> fromTemp = new ArrayList<>();
+        ICompress spy = spy(new CommonsCompressor());
+        doAnswer(call -> {
+            Path file = call.<File>getArgument(0).toPath().toAbsolutePath().normalize();
+            if (file.startsWith(tempRoot)) fromTemp.add(tempRoot.relativize(file));
+            return call.callRealMethod();
+        }).when(spy).addFileToArchive(any(), any());
+
+        try {
+            BackupResult.Save result = new BackupRoutine(universe, options, () -> spy).save();
+            assertNull(result.error);
+
+            // The level.dat snapshot and the trimmed region, both from one folder belonging to this run
+            assertEquals(fromTemp.toString(), 2, fromTemp.size());
+            Path run = fromTemp.get(0).getName(0);
+            assertEquals(run, fromTemp.get(1).getName(0));
+            assertNotEquals(Paths.get("backup-abandoned"), run);
+
+            assertFalse(tempRoot.resolve(run).toFile().exists());
+            assertTrue(abandoned.isFile());
+        } finally {
+            BackupRoutine.deleteAbandonedTempFolders();
+        }
+    }
+
+    @Test
+    public void deleteAbandonedTempFolders_RemovesLeftoverRuns() throws IOException {
+        File leftover = new File(BackupRoutine.BACKUP_TEMP_FOLDER, "backup-crashed/claimed-1.mca");
+        FileUtils.ensureExists(leftover.getParentFile());
+        Files.write(leftover.toPath(), new byte[] { 1 });
+
+        BackupRoutine.deleteAbandonedTempFolders();
+
+        assertNoTempFolders(null);
+    }
+
+    @Test
+    public void additionalFiles_SkipsBackupMetadataFile() throws IOException {
+        // With no exclusions configured, removeMatching returns early, so only addAdditionalFiles can drop it
+        assertTrue(options.excludedBackupFiles.isEmpty());
+
+        File extra = FileUtils.ensureExists(new File(build, "extra"));
+        File kept = new File(extra, "keep.txt");
+        File stray = new File(extra, ICompress.BACKUP_METADATA_ENTRY);
+        Files.write(kept.toPath(), new byte[] { 1 });
+        Files.write(stray.toPath(), BackupFixtures.metadata("other-world", 0, null));
+        options.additionalBackupFiles = Collections.singletonList(FileUtils.getRelativePath(extra));
+
+        BackupResult.Save result = new BackupRoutine(universe, options).save();
+        assertNull(result.error);
+
+        try (ZipFile zip = new ZipFile(result.destination)) {
+            assertNotNull(zip.getEntry(FileUtils.getRelativePath(kept)));
+            assertNull(zip.getEntry(FileUtils.getRelativePath(stray)));
+            assertNotNull(zip.getEntry(ICompress.BACKUP_METADATA_ENTRY));
         }
     }
 
@@ -831,6 +909,15 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         }
     }
 
+    private static File[] tempFolders() {
+        File[] folders = BackupRoutine.BACKUP_TEMP_FOLDER.listFiles();
+        return folders == null ? new File[0] : folders;
+    }
+
+    private static void assertNoTempFolders(String label) {
+        assertEquals(label, Collections.emptyList(), Arrays.asList(tempFolders()));
+    }
+
     private void writeNamed(String name) throws IOException {
         File file = new File(world, name);
         FileUtils.ensureExists(file.getParentFile());
@@ -870,7 +957,9 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
     private void verifyInSnapshot(Supplier<List<File>> files) {
         try {
             doAnswer(i -> {
-                File snapshotFolder = new File(BackupRoutine.BACKUP_TEMP_FOLDER, "snapshot");
+                File[] runs = tempFolders();
+                assertEquals(1, runs.length);
+                File snapshotFolder = new File(runs[0], "snapshot");
                 assertTrue(snapshotFolder.exists());
 
                 Path worldPath = world.toPath().toAbsolutePath().normalize();

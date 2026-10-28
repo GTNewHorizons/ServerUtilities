@@ -119,9 +119,12 @@ public class ServerUtilitiesCommon {
 
     public void onServerAboutToStart(FMLServerAboutToStartEvent event) {
         ServerUtilitiesServerEventHandler.clearServerTasks();
-        BackupCoordinator.stop();
-        // No backup can own a staging file once the coordinator has stopped.
-        RetentionRoutine.deleteAbandonedArchives(BackupRoutine.getDefaultBackupFolder());
+        // Request for any in-progress backups to stop, but only perform deletion IF we confirmed everything was stopped
+        // successfully including previous runs from other worlds
+        if (BackupCoordinator.stop()) {
+            RetentionRoutine.deleteAbandonedArchives(BackupRoutine.getDefaultBackupFolder());
+            BackupRoutine.deleteAbandonedTempFolders();
+        }
         // Start cleanup with the server, so background scans cannot race the title-screen restore GUI.
         BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::prune).exceptionally(t -> {
             ServerUtilities.LOGGER.error("Retention prune failed", t);

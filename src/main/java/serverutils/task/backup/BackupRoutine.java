@@ -96,6 +96,8 @@ public class BackupRoutine {
     private Instant startedAtInstant;
     private long startedAt;
     private File temporary;
+    /** This run's own folder under BACKUP_TEMP_FOLDER, so cleanup never deletes another backup's files. */
+    private File tempFolder;
     private ICompress compressor;
 
     private Supplier<ICompress> compressorSupplier = ICompress::createCompressor;
@@ -112,6 +114,15 @@ public class BackupRoutine {
                 : new File(backups.backup_folder_path);
         if (!folder.exists()) folder.mkdirs();
         return folder;
+    }
+
+    /** Deletes temp folders left by interrupted backups. Only call while no backup can be running. */
+    public static void deleteAbandonedTempFolders() {
+        try {
+            FileUtils.delete(BACKUP_TEMP_FOLDER);
+        } catch (RuntimeException e) {
+            LOGGER.warn("Could not delete abandoned temporary backup folders", e);
+        }
     }
 
     public static boolean isWorldSavingSuspended() {
@@ -315,9 +326,12 @@ public class BackupRoutine {
             flushChunkSaves(universe.server.worldServers);
             recordTiming("chunk flush");
 
+            // unique folder per backup to ensure that an abandoned backup cannot cleanup another run's files
+            tempFolder = Files.createTempDirectory(FileUtils.ensureExists(BACKUP_TEMP_FOLDER).toPath(), "backup-")
+                    .toFile();
+
             if (options.onlyClaimed) {
                 if (!ClaimedChunks.isActive()) throw new IllegalStateException("Chunk claiming is not active");
-                FileUtils.ensureExists(BACKUP_TEMP_FOLDER);
                 ClaimedChunks.instance.processQueue();
                 Set<ChunkDimPos> claimed = ClaimedChunks.instance.getAllClaimedPositions();
                 Map<Integer, String> dimensionFolders = resolveDimensionFolders();
@@ -428,7 +442,7 @@ public class BackupRoutine {
 
             List<ChunkDimPos> claims = options.onlyClaimed && options.writeOnlyClaimedChunks ? getClaims(file) : null;
             if (claims != null && canTrimRegion(file)) {
-                File tempRegionFile = Files.createTempFile(BACKUP_TEMP_FOLDER.toPath(), "claimed-", ".mca").toFile();
+                File tempRegionFile = Files.createTempFile(tempFolder.toPath(), "claimed-", ".mca").toFile();
                 try {
                     int chunks;
                     try (WorldRegion region = new WorldRegion(file);
@@ -508,9 +522,9 @@ public class BackupRoutine {
         }
 
         try {
-            FileUtils.delete(BACKUP_TEMP_FOLDER);
+            if (tempFolder != null) FileUtils.delete(tempFolder);
         } catch (RuntimeException e) {
-            LOGGER.warn("Could not delete temporary backup folder", e);
+            LOGGER.warn("Could not delete temporary backup folder {}", tempFolder, e);
         }
 
         try {
@@ -526,6 +540,7 @@ public class BackupRoutine {
         timings.clear();
         candidates = null;
         backupName = null;
+        tempFolder = null;
     }
 
     private void recordTiming(String phase) {
@@ -555,11 +570,15 @@ public class BackupRoutine {
             if (file.isFile()) candidates.addFile(file);
         }
         for (String pattern : options.additionalBackupFiles) {
-            candidates.addFiles(
-                    FileUtils.findMatching(
-                            pattern.replace("$WORLDNAME", world.getName()),
-                            options.backupsDirectory.toPath(),
-                            BACKUP_TEMP_FOLDER.toPath()));
+            List<File> matchedFiles = FileUtils.findMatching(
+                    pattern.replace("$WORLDNAME", world.getName()),
+                    options.backupsDirectory.toPath(),
+                    BACKUP_TEMP_FOLDER.toPath());
+
+            for (File match : matchedFiles) {
+                if (match.getName().equals(ICompress.BACKUP_METADATA_ENTRY)) continue;
+                candidates.addFile(match);
+            }
         }
     }
 
@@ -610,9 +629,7 @@ public class BackupRoutine {
      */
     private void snapshotFiles(BackupCandidates candidates) throws IOException {
         Path world = options.world.toPath().toAbsolutePath().normalize();
-        File folder = new File(BACKUP_TEMP_FOLDER, "snapshot");
-        FileUtils.delete(folder);
-        FileUtils.ensureExists(folder);
+        File folder = FileUtils.ensureExists(new File(tempFolder, "snapshot"));
 
         Predicate<WorldFile> isSnapshottable = f -> {
             if (f.kind() != WorldFile.Kind.MISC) return false;

@@ -6,10 +6,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.InterruptedIOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
@@ -169,5 +171,46 @@ public class BackupCoordinatorTest extends BackupFixtures.Tests {
         Thread.sleep(3000);
     }
 
-    // test 30 second timeout while worker exists
+    @Test
+    public void stop_WhenIdle_ReturnsTrue() {
+        assertTrue(BackupCoordinator.stop());
+    }
+
+    @Test
+    public void stop_WhenBackupFinishesCleanup_ReturnsTrue() {
+        CompletableFuture<BackupResult.Save> save = new CompletableFuture<>();
+        BackupRoutine routine = mock(BackupRoutine.class);
+        when(routine.save(any())).thenReturn(save);
+
+        doAnswer(i -> save.complete(BackupResult.Save.failed(new InterruptedIOException("cancelled")))).when(routine)
+                .cancel();
+
+        assertTrue(BackupCoordinator.startBackup(routine));
+        assertTrue(BackupCoordinator.stop());
+        assertFalse(BackupCoordinator.isRunning());
+    }
+
+    @Test
+    public void stop_AfterEarlierTimeout_ReturnsFalseUntilAbandonedBackupFinishes() {
+        long previousTimeout = BackupCoordinator.STOP_TIMEOUT_SECONDS;
+        BackupCoordinator.STOP_TIMEOUT_SECONDS = 1L;
+
+        CompletableFuture<BackupResult.Save> save = new CompletableFuture<>();
+        BackupRoutine routine = mock(BackupRoutine.class);
+        when(routine.save(any())).thenReturn(save);
+
+        try {
+            assertTrue(BackupCoordinator.startBackup(routine));
+            // First stop (leaving world 1)
+            assertFalse(BackupCoordinator.stop());
+            // Second stop (leaving world 2)
+            assertFalse(BackupCoordinator.stop());
+
+            save.complete(BackupResult.Save.failed(new InterruptedIOException("cancelled")));
+            assertTrue(BackupCoordinator.stop());
+        } finally {
+            BackupCoordinator.STOP_TIMEOUT_SECONDS = previousTimeout;
+            save.complete(BackupResult.Save.failed(new InterruptedIOException("cancelled")));
+        }
+    }
 }

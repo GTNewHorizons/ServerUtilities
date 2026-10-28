@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -38,6 +40,11 @@ public final class BackupCoordinator {
     private static boolean stopping;
     /** Bumped by stop(). Work started in an earlier generation was abandoned and must not touch coordinator state. */
     private static int generation;
+    /**
+     * Tracks any work that remained active during the stop() timeout. These futures are setup to remove themselves from
+     * this set once they complete.
+     */
+    private static final Set<CompletableFuture<?>> abandoned = new HashSet<>();
 
     private static BackupRoutine activeBackup;
     private static CompletableFuture<?> backupDone;
@@ -131,8 +138,14 @@ public final class BackupCoordinator {
         return turn.thenCompose(v -> startRetention(routine, work));
     }
 
-    /** Cancels running backup and retention work and waits for it to finish its cleanup. */
-    public static void stop() {
+    /**
+     * Cancels running backup and retention work and waits for it to finish its cleanup.
+     *
+     * @return false if any remaining work may be running in the background (either the worker didn't stop, or there is
+     *         some abandoned task that has not yet completed)
+     */
+    public static boolean stop() {
+        boolean stopped = false;
         CompletableFuture<?> backup;
         CompletableFuture<?> retention;
         List<CompletableFuture<Void>> queued;
@@ -150,10 +163,12 @@ public final class BackupCoordinator {
 
         try {
             CompletableFuture.allOf(orDone(backup), orDone(retention)).get(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            stopped = true;
         } catch (TimeoutException e) {
             ServerUtilities.LOGGER.warn("Timed out waiting for backup work to stop");
         } catch (ExecutionException | CancellationException e) {
             // The jobs report their own failures; all that matters here is that they are done.
+            stopped = true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
@@ -168,6 +183,11 @@ public final class BackupCoordinator {
             synchronized (LOCK) {
                 // Anything still running after the timeout is abandoned. Bumping the generation makes its late
                 // completion a no-op, so it can't start a prune or clear the state of work started after this stop.
+
+                abandonIfRunning(backup);
+                abandonIfRunning(retention);
+
+                stopped = stopped && abandoned.isEmpty();
                 generation++;
                 backupActive = false;
                 activeBackup = null;
@@ -178,6 +198,18 @@ public final class BackupCoordinator {
                 stopping = false;
             }
         }
+        return stopped;
+    }
+
+    private static void abandonIfRunning(CompletableFuture<?> work) {
+        if (work == null || work.isDone()) return;
+        abandoned.add(work);
+        // Runs straight away if the work finished since the check
+        work.whenComplete((value, error) -> {
+            synchronized (LOCK) {
+                abandoned.remove(work);
+            }
+        });
     }
 
     private static void runNextRetention() {
