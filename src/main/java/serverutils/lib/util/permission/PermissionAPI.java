@@ -25,7 +25,7 @@ public class PermissionAPI {
         Preconditions.checkState(
                 Loader.instance().getLoaderState().ordinal() <= LoaderState.PREINITIALIZATION.ordinal(),
                 "Can't register after IPermissionHandler PreInit!");
-        FMLLog.warning("Replacing {} with {}", permissionHandler.getClass().getName(), handler.getClass().getName());
+        FMLLog.warning("Replacing %s with %s", permissionHandler.getClass().getName(), handler.getClass().getName());
         permissionHandler = handler;
     }
 
