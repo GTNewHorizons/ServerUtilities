@@ -1,7 +1,5 @@
 package serverutils.invsee.inventories;
 
-import static micdoodle8.mods.galacticraft.core.entities.player.GCPlayerStats.GC_PLAYER_PROP;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
@@ -57,8 +55,7 @@ public class GalacticraftInventory implements IModdedInventory {
     @Override
     public @Nullable IInventory loadOfflineInventory(ForgePlayer player) {
         InventoryExtended inventory = new InventoryExtended();
-        NBTTagCompound gcStats = player.getPlayerNBT().getCompoundTag(GC_PLAYER_PROP);
-        inventory.readFromNBT(gcStats.getTagList(GC_EXTENDED_INV, Constants.NBT.TAG_COMPOUND));
+        inventory.readFromNBT(player.getPlayerNBT().getTagList(GC_EXTENDED_INV, Constants.NBT.TAG_COMPOUND));
         return inventory;
     }
 
@@ -109,11 +106,9 @@ public class GalacticraftInventory implements IModdedInventory {
     public void saveInventory(ForgePlayer player, IInventory inventory) {
         if (player.isOnline()) return;
         NBTTagCompound tag = player.getPlayerNBT();
-        NBTTagCompound gcStats = tag.getCompoundTag(GC_PLAYER_PROP);
         NBTTagList invList = new NBTTagList();
         ((InventoryExtended) inventory).writeToNBT(invList);
-        gcStats.setTag(GC_EXTENDED_INV, invList);
-        tag.setTag(GC_PLAYER_PROP, gcStats);
+        tag.setTag(GC_EXTENDED_INV, invList);
         player.setPlayerNBT(tag);
     }
 }
