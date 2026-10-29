@@ -1,0 +1,339 @@
+package serverutils.task.backup;
+
+import static serverutils.ServerUtilities.LOGGER;
+import static serverutils.ServerUtilitiesConfig.backups;
+import static serverutils.ServerUtilitiesNotifications.BACKUP;
+
+import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
+
+import net.minecraft.util.EnumChatFormatting;
+
+import serverutils.ServerUtilities;
+import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.StringUtils;
+
+public final class BackupCoordinator {
+
+    private static final Object LOCK = BackupCoordinator.class;
+    static long STOP_TIMEOUT_SECONDS = 30;
+
+    private static final Deque<CompletableFuture<Void>> pendingJobs = new ArrayDeque<>();
+    private static boolean backupActive;
+    private static boolean retentionActive;
+    private static boolean stopping;
+    /** Bumped by stop(). Work started in an earlier generation was abandoned and must not touch coordinator state. */
+    private static int generation;
+    /**
+     * Tracks any work that remained active during the stop() timeout. These futures are setup to remove themselves from
+     * this set once they complete.
+     */
+    private static final Set<CompletableFuture<?>> abandoned = new HashSet<>();
+
+    private static BackupRoutine activeBackup;
+    private static CompletableFuture<?> backupDone;
+    private static RetentionRoutine activeRetention;
+    private static CompletableFuture<?> retentionDone;
+
+    private static final ExecutorService PRUNER = executor("ServerUtilities backup retention", Thread.NORM_PRIORITY);
+    private static final ExecutorService BACKUP_EXECUTOR = executor("ServerUtilities backup", 7);
+
+    public static boolean isRunning() {
+        synchronized (LOCK) {
+            return backupActive || retentionActive;
+        }
+    }
+
+    public static boolean startBackup(BackupRoutine routine, Consumer<BackupResult> callback) {
+        int gen;
+        synchronized (LOCK) {
+            if (isBackupBlocked()) return false;
+            backupActive = true;
+            activeBackup = routine;
+            gen = generation;
+        }
+        CompletableFuture<BackupResult.Save> result;
+        try {
+            result = routine.save(BACKUP_EXECUTOR);
+        } catch (RuntimeException | Error e) {
+            completeBackup(gen, false);
+            throw e;
+        }
+        synchronized (LOCK) {
+            backupDone = result;
+        }
+
+        // The routine records failures on its result, but if the future still completes exceptionally, the backup must
+        // be completed anyway, or the coordinator would refuse every later backup.
+        CompletableFuture<BackupResult.Save> saved = result.handle((save, error) -> {
+            if (save != null) return save;
+            Throwable cause = error instanceof CompletionException && error.getCause() != null ? error.getCause()
+                    : error;
+            LOGGER.error("Backup ended unexpectedly", cause);
+            return BackupResult.Save.failed(cause);
+        });
+
+        saved.thenCompose(save -> {
+            try {
+                notifyFinished(save);
+            } catch (RuntimeException t) { // Just in case. We need to ensure completeBackup is run to clear the active
+                                           // flag
+                LOGGER.error("Failed to notify backup finished", t);
+            }
+            return completeBackup(gen, save.isSuccess()).handle((retention, error) -> {
+                if (error != null) {
+                    Throwable cause = error instanceof CompletionException && error.getCause() != null
+                            ? error.getCause()
+                            : error;
+                    if (cause instanceof CancellationException) LOGGER.info("Backup retention cancelled");
+                    else LOGGER.error("Backup retention failed", error);
+                    retention = new BackupResult.Retention();
+                    retention.error = cause;
+                    retention.finished();
+                }
+                return new BackupResult(save, retention);
+            });
+        }).thenAccept(backup -> {
+            if (callback != null) callback.accept(backup); // callback still runs after prune and save
+        }).exceptionally(t -> {
+            LOGGER.error("Failed to report backup result", t);
+            return null;
+        });
+
+        return true;
+    }
+
+    public static boolean startBackup(BackupRoutine routine) {
+        return startBackup(routine, null);
+    }
+
+    /** Runs a one-shot retention job now, or queues it until running backup and retention work finishes. */
+    public static <T> CompletableFuture<T> execute(RetentionRoutine routine, Job<T> function) {
+        synchronized (LOCK) {
+            if (stopping || backupActive) return rejected();
+            return startOrQueueRetention(routine, () -> function.run(routine));
+        }
+    }
+
+    private static <T> CompletableFuture<T> startOrQueueRetention(RetentionRoutine routine, Callable<T> work) {
+        if (!isRetentionBlocked()) return startRetention(routine, work);
+        CompletableFuture<Void> turn = new CompletableFuture<>();
+        pendingJobs.add(turn);
+        return turn.thenCompose(v -> startRetention(routine, work));
+    }
+
+    /**
+     * Cancels running backup and retention work and waits for it to finish its cleanup.
+     *
+     * @return false if any remaining work may be running in the background (either the worker didn't stop, or there is
+     *         some abandoned task that has not yet completed)
+     */
+    public static boolean stop() {
+        boolean stopped = false;
+        CompletableFuture<?> backup;
+        CompletableFuture<?> retention;
+        List<CompletableFuture<Void>> queued;
+        synchronized (LOCK) {
+            stopping = true;
+            queued = new ArrayList<>(pendingJobs);
+            pendingJobs.clear();
+            if (activeBackup != null) activeBackup.cancel();
+            if (activeRetention != null) activeRetention.cancel();
+            backup = backupDone;
+            retention = retentionDone;
+        }
+        // Outside the lock, since this runs the callers' callbacks.
+        queued.forEach(turn -> turn.cancel(false));
+
+        try {
+            CompletableFuture.allOf(orDone(backup), orDone(retention)).get(STOP_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            stopped = true;
+        } catch (TimeoutException e) {
+            ServerUtilities.LOGGER.warn("Timed out waiting for backup work to stop");
+        } catch (ExecutionException | CancellationException e) {
+            // The jobs report their own failures; all that matters here is that they are done.
+            stopped = true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            try {
+                // World saving must be back on even if the worker is blocked or gone, or the final save on shutdown
+                // writes nothing.
+                BackupRoutine.resumeWorldSaving();
+            } catch (RuntimeException e) {
+                LOGGER.error("Error restoring world saving during shutdown", e);
+            }
+            // do not call resumeWorldSaving() inside lock-- do not nest locks
+            synchronized (LOCK) {
+                // Anything still running after the timeout is abandoned. Bumping the generation makes its late
+                // completion a no-op, so it can't start a prune or clear the state of work started after this stop.
+
+                abandonIfRunning(backup);
+                abandonIfRunning(retention);
+
+                stopped = stopped && abandoned.isEmpty();
+                generation++;
+                backupActive = false;
+                activeBackup = null;
+                backupDone = null;
+                retentionActive = false;
+                activeRetention = null;
+                retentionDone = null;
+                stopping = false;
+            }
+        }
+        return stopped;
+    }
+
+    private static void abandonIfRunning(CompletableFuture<?> work) {
+        if (work == null || work.isDone()) return;
+        abandoned.add(work);
+        // Runs straight away if the work finished since the check
+        work.whenComplete((value, error) -> {
+            synchronized (LOCK) {
+                abandoned.remove(work);
+            }
+        });
+    }
+
+    private static void runNextRetention() {
+        if (isRetentionBlocked()) return;
+        CompletableFuture<Void> turn = pendingJobs.poll();
+        if (turn != null) turn.complete(null);
+    }
+
+    private static <T> CompletableFuture<T> startRetention(RetentionRoutine routine, Callable<T> work) {
+        CompletableFuture<T> result = new CompletableFuture<>();
+        int gen = generation;
+        retentionActive = true;
+        activeRetention = routine;
+        retentionDone = result;
+        PRUNER.execute(() -> {
+            T value = null;
+            Throwable error = null;
+            try {
+                value = work.call();
+            } catch (Throwable t) {
+                error = t;
+            }
+            // Free the slot before completing the future, so a finished future means retention is idle again.
+            completePrune(gen);
+            if (error == null) {
+                result.complete(value);
+            } else {
+                result.completeExceptionally(error);
+            }
+        });
+        return result;
+    }
+
+    private static <T> CompletableFuture<T> rejected() {
+        CompletableFuture<T> result = new CompletableFuture<>();
+        result.completeExceptionally(new RejectedExecutionException("Backup is already running"));
+        return result;
+    }
+
+    private static CompletableFuture<?> orDone(CompletableFuture<?> future) {
+        return future == null ? CompletableFuture.completedFuture(null) : future;
+    }
+
+    private static void notifyFinished(BackupResult.Save result) {
+        if (!result.isSuccess()) return;
+        String size = FileUtils.getSizeString(result.bytes);
+
+        LOGGER.info("Backup done in {} ({})!", result.getDoneTime(), size);
+        LOGGER.info("Created {} from {}", result.destination.getAbsolutePath(), result.world.getAbsolutePath());
+
+        if (backups.silent_backup) return;
+
+        if (backups.display_file_size) {
+            String sizeT = FileUtils.getSizeString(BackupRoutine.getDefaultBackupFolder());
+            BACKUP.sendAll(
+                    StringUtils.color(
+                            "cmd.backup_end_2",
+                            EnumChatFormatting.LIGHT_PURPLE,
+                            result.getDoneTime(),
+                            (size.equals(sizeT) ? size : (size + " | " + sizeT))));
+        } else {
+            BACKUP.sendAll(
+                    StringUtils.color("cmd.backup_end_1", EnumChatFormatting.LIGHT_PURPLE, result.getDoneTime()));
+        }
+    }
+
+    private static boolean isBackupBlocked() {
+        return backupActive || stopping;
+    }
+
+    private static boolean isRetentionBlocked() {
+        return backupActive || retentionActive || stopping;
+    }
+
+    private static CompletableFuture<BackupResult.Retention> completeBackup(int gen, boolean success) {
+        synchronized (LOCK) {
+            if (gen != generation) {
+                // abandoned by stop(); state was already reset there
+                return CompletableFuture.completedFuture(null);
+            }
+            backupActive = false;
+            activeBackup = null;
+            backupDone = null;
+            if (!success || stopping) {
+                // run any potential pending jobs that may have been queued while the backup was running
+                runNextRetention();
+                return CompletableFuture.completedFuture(null);
+            }
+            try {
+                RetentionRoutine routine = RetentionRoutine.fromConfig();
+                return startOrQueueRetention(routine, routine::prune);
+            } catch (RuntimeException | Error e) {
+                CompletableFuture<BackupResult.Retention> failed = new CompletableFuture<>();
+                failed.completeExceptionally(e);
+                return failed;
+            }
+        }
+    }
+
+    private static void completePrune(int gen) {
+        synchronized (LOCK) {
+            if (gen != generation) return;
+            retentionActive = false;
+            activeRetention = null;
+            retentionDone = null;
+            runNextRetention();
+        }
+    }
+
+    private static ExecutorService executor(String name, int priority) {
+        return Executors.newSingleThreadExecutor(r -> {
+            Thread thread = new Thread(r, name);
+            thread.setDaemon(true);
+            thread.setPriority(priority);
+            thread.setUncaughtExceptionHandler(
+                    (t, e) -> { ServerUtilities.LOGGER.error("Uncaught exception in backup thread", e); });
+            return thread;
+        });
+    }
+
+    @FunctionalInterface
+    public interface Job<T> {
+
+        T run(RetentionRoutine routine) throws IOException;
+
+    }
+}

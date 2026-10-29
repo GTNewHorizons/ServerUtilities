@@ -1,7 +1,5 @@
 package serverutils.command;
 
-import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -11,6 +9,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+
+import javax.annotation.Nullable;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -25,9 +25,12 @@ import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
+import serverutils.task.backup.BackupCoordinator;
+import serverutils.task.backup.BackupEntry;
+import serverutils.task.backup.BackupResult;
 import serverutils.task.backup.BackupRetention;
-import serverutils.task.backup.BackupTask;
-import serverutils.task.backup.ThreadBackup;
+import serverutils.task.backup.BackupRoutine;
+import serverutils.task.backup.RetentionRoutine;
 
 public class CmdBackup extends CmdTreeBase {
 
@@ -75,11 +78,9 @@ public class CmdBackup extends CmdTreeBase {
     }
 
     /** Timestamp names already show the date, so only custom names get it spelled out. */
-    private static IChatComponent when(BackupRetention.Archive archive, long now) {
-        if (BackupTask.BACKUP_NAME_PATTERN.matcher(archive.file.getName()).matches()) {
-            return age(archive.created, now);
-        }
-        return ServerUtilities.lang("cmd.backup_when", date(archive.created), age(archive.created, now));
+    private static IChatComponent when(BackupEntry entry, long now) {
+        if (!entry.isCustom()) return age(entry.createdAt(), now);
+        return ServerUtilities.lang("cmd.backup_when", date(entry.createdAt()), age(entry.createdAt(), now));
     }
 
     public static class CmdBackupPrune extends CmdBase {
@@ -93,28 +94,41 @@ public class CmdBackup extends CmdTreeBase {
             if (args.length != 1 || !args[0].equals("preview")) {
                 throw new WrongUsageException(getCommandUsage(sender));
             }
-            replyAsync(sender, BackupTask::previewRetentionAsync, (plan, error) -> sendPreview(sender, plan, error));
+            replyAsync(
+                    sender,
+                    CmdBackupPrune::previewRetentionAsync,
+                    (plan, error) -> sendPreview(sender, plan, error));
         }
 
-        private static void sendPreview(ICommandSender sender, BackupRetention.Plan plan, Throwable error) {
+        private static CompletableFuture<BackupRetention.Plan<? extends BackupEntry>> previewRetentionAsync() {
+            return BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::preview);
+        }
+
+        private static <T extends BackupEntry> void sendPreview(ICommandSender sender,
+                @Nullable BackupRetention.Plan<T> plan, @Nullable Throwable error) {
             if (error != null) {
                 sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_error", error.getMessage()));
                 return;
             }
+
+            if (plan == null) {
+                sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_legacy_active"));
+                return;
+            }
+
             long now = System.currentTimeMillis();
             long deletedSize = 0;
             sender.addChatMessage(ServerUtilities.lang("cmd.backup_prune_header"));
-            for (BackupRetention.Archive archive : plan.archives()) {
-                File file = archive.file;
-                boolean delete = plan.delete.containsKey(file);
-                if (delete) deletedSize += archive.size;
+            for (T entry : plan.entries()) {
+                boolean delete = plan.delete.containsKey(entry);
+                if (delete) deletedSize += entry.size();
                 IChatComponent status = ServerUtilities
                         .lang(delete ? "cmd.backup_prune_delete" : "cmd.backup_prune_keep");
                 status.getChatStyle().setColor(
                         delete ? EnumChatFormatting.RED
-                                : plan.isPreserved(file) ? EnumChatFormatting.YELLOW : EnumChatFormatting.GREEN);
-                long until = plan.keptUntil(file);
-                String[] label = plan.label(file);
+                                : plan.isPreserved(entry) ? EnumChatFormatting.YELLOW : EnumChatFormatting.GREEN);
+                long until = plan.keptUntil(entry);
+                String[] label = plan.label(entry);
                 IChatComponent reason = ServerUtilities
                         .lang(label[0], (Object[]) Arrays.copyOfRange(label, 1, label.length));
                 if (until >= 0) reason = ServerUtilities.lang("cmd.backup_prune_until", reason, date(until));
@@ -122,9 +136,9 @@ public class CmdBackup extends CmdTreeBase {
                         ServerUtilities.lang(
                                 "cmd.backup_prune_entry",
                                 status,
-                                file.getName(),
-                                FileUtils.getSizeString(archive.size),
-                                when(archive, now),
+                                entry.toString(),
+                                FileUtils.getSizeString(entry.size()),
+                                when(entry, now),
                                 reason));
             }
             sender.addChatMessage(
@@ -170,25 +184,37 @@ public class CmdBackup extends CmdTreeBase {
             final String target = Arrays.stream(args)
                     .filter(arg -> !arg.equalsIgnoreCase("=oc") && !arg.equalsIgnoreCase("=overwrite")).findFirst()
                     .orElse("");
+
+            BackupRoutine.Options options = BackupRoutine.Options.fromConfig();
+            options.overwrite = overwrite;
+            options.customName = target.isEmpty() ? null : target;
+            options.onlyClaimed |= oc;
+
+            BackupRoutine routine = new BackupRoutine(Universe.get(), options);
+
             try {
-                ThreadBackup.validateBackupName(target);
-                if (!target.isEmpty() || overwrite) ThreadBackup.backupDestination(target, overwrite);
-            } catch (IOException ex) {
-                throw new WrongUsageException(ex.getMessage());
+                routine.verifyBackupName();
+            } catch (IllegalArgumentException e) {
+                throw new WrongUsageException(e.getMessage());
             }
 
-            final BackupTask task = new BackupTask(sender, target, oc, overwrite);
-
-            if (!BackupTask.isBackupRunning()) {
-                task.execute(Universe.get());
-                if (task.isDeferred()) {
-                    sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
-                } else if (task.hasStarted()) sender.addChatMessage(
-                        ServerUtilities
-                                .lang("cmd.backup_manual_launch" + (oc ? "_oc" : ""), sender.getCommandSenderName()));
-                else sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
-            } else {
+            if (!BackupCoordinator.startBackup(routine, result -> outputResult(sender, routine, result))) {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_running"));
+            } else if (routine.isPrepared()) {
+                sender.addChatMessage(
+                        ServerUtilities.lang(
+                                sender,
+                                "cmd.backup_manual_launch" + (oc ? "_oc" : ""),
+                                sender.getCommandSenderName()));
+            }
+        }
+
+        private void outputResult(ICommandSender sender, BackupRoutine routine, BackupResult result) {
+            if (result.isSuccess()) return;
+            // Archive failures are broadcast as cmd.backup_fail and cancellations are quiet, so only a backup
+            // that never started gets this.
+            if (!routine.isPrepared()) {
+                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_manual_failed"));
             }
         }
     }
@@ -201,8 +227,8 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            if (BackupTask.isBackupRunning()) {
-                BackupTask.stopBackupThread();
+            if (BackupCoordinator.isRunning()) {
+                BackupCoordinator.stop();
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_stop"));
             } else {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_not_running"));
@@ -219,7 +245,7 @@ public class CmdBackup extends CmdTreeBase {
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
             String sizeW = FileUtils.getSizeString(sender.getEntityWorld().getSaveHandler().getWorldDirectory());
-            String sizeT = FileUtils.getSizeString(BackupTask.BACKUP_FOLDER);
+            String sizeT = FileUtils.getSizeString(BackupRoutine.getDefaultBackupFolder());
             sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_size", sizeW, sizeT));
         }
     }
@@ -232,10 +258,14 @@ public class CmdBackup extends CmdTreeBase {
 
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
-            replyAsync(sender, BackupTask::listBackupsAsync, (archives, error) -> sendList(sender, archives, error));
+            replyAsync(sender, CmdBackupList::listBackupsAsync, (archives, error) -> sendList(sender, archives, error));
         }
 
-        private static void sendList(ICommandSender sender, List<BackupRetention.Archive> archives, Throwable error) {
+        private static CompletableFuture<List<? extends BackupEntry>> listBackupsAsync() {
+            return BackupCoordinator.execute(RetentionRoutine.fromConfig(), RetentionRoutine::list);
+        }
+
+        private static void sendList(ICommandSender sender, List<? extends BackupEntry> archives, Throwable error) {
             if (error != null) {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_list_error", error.getMessage()));
                 return;
@@ -250,20 +280,17 @@ public class CmdBackup extends CmdTreeBase {
                             sender,
                             "cmd.backup_list_header",
                             archives.size(),
-                            FileUtils.getSizeString(archives.stream().mapToLong(archive -> archive.size).sum())));
+                            FileUtils.getSizeString(archives.stream().mapToLong(BackupEntry::size).sum())));
 
             long now = System.currentTimeMillis();
-            archives.stream()
-                    .sorted(
-                            Comparator.comparingLong((BackupRetention.Archive archive) -> archive.created)
-                                    .thenComparing(archive -> archive.file.getName()))
+            archives.stream().sorted(Comparator.comparingLong(BackupEntry::createdAt).thenComparing(BackupEntry::label))
                     .forEach(
                             archive -> sender.addChatMessage(
                                     ServerUtilities.lang(
                                             sender,
                                             "cmd.backup_list_file",
-                                            archive.file.getName(),
-                                            FileUtils.getSizeString(archive.size),
+                                            archive.toString(),
+                                            FileUtils.getSizeString(archive.size()),
                                             when(archive, now))));
         }
     }

@@ -10,21 +10,35 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemLoopException;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
 
 import net.minecraft.world.storage.ThreadedFileIOBase;
 
 public class FileUtils {
+
+    private static final Pattern NUMBERED_DIMENSION = Pattern.compile("DIM-?\\d+");
 
     public enum SizeUnit {
 
@@ -91,6 +105,20 @@ public class FileUtils {
         } finally {
             Files.deleteIfExists(temporary);
         }
+    }
+
+    public static final Function<Integer, String> INCREMENTAL_APPEND = i -> "-" + i;
+
+    public static File getFileWithoutCollision(File directory, String name, String extension,
+            Function<Integer, String> appender) {
+        int i = 1;
+        File file = new File(directory, name + extension);
+        while (file.exists()) file = new File(directory, name + appender.apply(i++) + extension);
+        return file;
+    }
+
+    public static File getFileWithoutCollision(File directory, String name, Function<Integer, String> appender) {
+        return getFileWithoutCollision(directory, name, "", appender);
     }
 
     public static Path createSaveTemporary(Path target) throws IOException {
@@ -185,11 +213,13 @@ public class FileUtils {
     }
 
     public static String getSizeString(double b) {
-        if (b >= GB.getSize()) {
+        double abs = Math.abs(b);
+
+        if (abs >= GB.getSize()) {
             return String.format("%.1fGB", b / (double) GB.getSize());
-        } else if (b >= MB.getSize()) {
+        } else if (abs >= MB.getSize()) {
             return String.format("%.1fMB", b / (double) MB.getSize());
-        } else if (b >= KB.getSize()) {
+        } else if (abs >= KB.getSize()) {
             return String.format("%.1fKB", b / (double) KB.getSize());
         }
 
@@ -254,6 +284,14 @@ public class FileUtils {
         });
     }
 
+    public static File ensureExists(File directory) {
+        if (directory.exists()) return directory;
+        if (!directory.isDirectory() && !directory.mkdirs()) {
+            throw new RuntimeException("Failed to create directory " + directory);
+        }
+        return directory;
+    }
+
     public static String getBaseName(File file) {
         if (file.isDirectory()) {
             return file.getName();
@@ -262,6 +300,18 @@ public class FileUtils {
             int index = name.lastIndexOf('.');
             return index == -1 ? name : name.substring(0, index);
         }
+    }
+
+    public static boolean isRegionFile(File file) {
+        return file.getName().endsWith(".mca");
+    }
+
+    public static boolean isNumberedDimension(@Nullable String name) {
+        return name != null && NUMBERED_DIMENSION.matcher(name).matches();
+    }
+
+    public static boolean isDimensionFolder(File directory) {
+        return isNumberedDimension(directory.getName()) || new File(directory, "region").isDirectory();
     }
 
     public static String getRelativePath(File file) {
@@ -289,10 +339,125 @@ public class FileUtils {
         return pattern;
     }
 
+    /**
+     * Finds every regular file matched by {@code pattern}, resolved against the run folder. A pattern without wildcards
+     * selects that file or everything below that directory; otherwise it is a glob. Links are followed, directories
+     * whose real path lies under one of {@code excluded} are not entered, and missing paths are ignored. Directories
+     * the glob cannot match anything under are not entered either, so they may be unreadable.
+     */
+    public static List<File> findMatching(String pattern, Path... excluded) throws IOException {
+        pattern = normalizeBackupPattern(pattern);
+        int wildcard = indexOfWildcard(pattern);
+        if (wildcard < 0) return findFiles(Paths.get(pattern), path -> true, path -> true, excluded);
+
+        // Walk from the last directory the pattern names before its first wildcard.
+        String root = pattern.substring(0, pattern.lastIndexOf('/', wildcard) + 1);
+        PathMatcher glob = glob(pattern);
+        return findFiles(
+                Paths.get(root.isEmpty() ? "." : root),
+                path -> glob.matches(path.normalize()),
+                canContainMatch(pattern),
+                excluded);
+    }
+
+    /**
+     * Whether files below a directory could match pattern
+     */
+    private static Predicate<Path> canContainMatch(String pattern) {
+        String[] segments = pattern.split("/", -1);
+        List<PathMatcher> matchers = new ArrayList<>();
+        for (String segment : segments) {
+            if (segment.indexOf('{') >= 0 != segment.indexOf('}') >= 0) return dir -> true;
+            matchers.add(glob(segment));
+        }
+        return dir -> {
+            String[] names = dir.normalize().toString().replace('\\', '/').split("/", -1);
+            for (int i = 0; i < names.length; i++) {
+                if (segments[i].contains("**")) return true;
+                // Only the last segment names files, so nothing below a directory at that depth can match.
+                if (i >= segments.length - 1) return false;
+                boolean matches = indexOfWildcard(segments[i]) < 0 ? names[i].equals(segments[i])
+                        : matchers.get(i).matches(Paths.get(names[i]));
+                if (!matches) return false;
+            }
+            return true;
+        };
+    }
+
+    private static List<File> findFiles(Path start, Predicate<Path> filter, Predicate<Path> descend, Path... excluded)
+            throws IOException {
+        List<File> found = new ArrayList<>();
+        if (Files.notExists(start)) return found;
+        List<Path> skipped = new ArrayList<>();
+        for (Path path : excluded) skipped.add(resolveRealPath(path));
+
+        Files.walkFileTree(
+                start,
+                EnumSet.of(FileVisitOption.FOLLOW_LINKS),
+                Integer.MAX_VALUE,
+                new SimpleFileVisitor<Path>() {
+
+                    @Override
+                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes)
+                            throws IOException {
+                        if (!dir.equals(start) && !descend.test(dir)) return FileVisitResult.SKIP_SUBTREE;
+                        Path real = resolveRealPath(dir);
+                        for (Path skip : skipped) {
+                            if (real.startsWith(skip)) return FileVisitResult.SKIP_SUBTREE;
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult visitFile(Path path, BasicFileAttributes attributes) {
+                        if (attributes.isRegularFile() && filter.test(path)) found.add(path.toFile());
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult visitFileFailed(Path path, IOException failure) throws IOException {
+                        // Link cycles and files removed mid-walk are not worth failing over.
+                        if (failure instanceof FileSystemLoopException || failure instanceof NoSuchFileException) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                        // Paths that could never be selected (e.g. an unreadable unrelated directory) don't matter.
+                        if (!path.equals(start)
+                                && !(Files.isDirectory(path) ? descend.test(path) : filter.test(path))) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                        throw failure;
+                    }
+                });
+        return found;
+    }
+
+    /** Returns the index of the first glob special character in {@code pattern}, or -1 if it is a plain path. */
+    public static int indexOfWildcard(String pattern) {
+        for (int i = 0; i < pattern.length(); i++) {
+            if ("*?[{".indexOf(pattern.charAt(i)) >= 0) return i;
+        }
+        return -1;
+    }
+
     public static boolean matchesBackupPath(Path path, String pattern) {
         pattern = normalizeBackupPattern(pattern);
         path = path.normalize();
-        return FileSystems.getDefault().getPathMatcher("glob:" + pattern).matches(path)
+        return glob(pattern).matches(path)
                 || (!pattern.contains("*") && path.startsWith(Paths.get(pattern).normalize()));
+    }
+
+    public static Predicate<Path> exactBackupMatcher(String pattern) {
+        pattern = normalizeBackupPattern(pattern);
+        if (pattern.isEmpty()) return path -> false;
+        if (indexOfWildcard(pattern) < 0) {
+            Path literal = Paths.get(pattern).normalize();
+            return path -> literal.equals(path.normalize());
+        }
+        PathMatcher glob = glob(pattern);
+        return path -> glob.matches(path.normalize());
+    }
+
+    private static PathMatcher glob(String pattern) {
+        return FileSystems.getDefault().getPathMatcher("glob:" + pattern);
     }
 }
