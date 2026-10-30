@@ -28,6 +28,8 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.compression.ICompress;
 import serverutils.task.backup.BackupTask;
+import serverutils.task.backup.repository.Repository;
+import serverutils.task.backup.repository.RepositoryWriter;
 
 public class GuiRestoreBackupTest {
 
@@ -132,6 +134,64 @@ public class GuiRestoreBackupTest {
             for (File file : recoveryRoot.listFiles()) {
                 if (!previousRecovery.contains(file)) FileUtils.delete(file);
             }
+        }
+    }
+
+    @Test
+    public void incrementalBackupsAreListedAndRestoredLikeTheRepositoryTool() throws Exception {
+        File saves = new File("saves");
+        Files.createDirectories(saves.toPath());
+        File world = Files.createTempDirectory(saves.toPath(), "incremental-restore-").toFile();
+        File preserved = new File(saves, world.getName() + "_old");
+        Field worldsField = GuiRestoreBackup.class.getDeclaredField("worldBackups");
+        worldsField.setAccessible(true);
+        Object previousWorlds = worldsField.get(null);
+        try {
+            write(new File(world, "level.dat"), "original");
+            write(new File(world, "stale.dat"), "stale");
+            File archive;
+            try (Repository repository = Repository.openOrCreate(BackupTask.REPOSITORY_FOLDER, 0);
+                    RepositoryWriter writer = repository.newWriter(1)) {
+                byte[] level = "restored".getBytes(StandardCharsets.UTF_8);
+                java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+                crc.update(level);
+                writer.addStream(
+                        "saves/" + world.getName() + "/level.dat",
+                        1,
+                        new java.io.ByteArrayInputStream(level),
+                        level.length,
+                        (int) crc.getValue());
+                java.util.Properties header = new java.util.Properties();
+                header.setProperty("createdAt", "1");
+                header.setProperty("customName", "false");
+                header.setProperty("worldName", world.getName());
+                archive = repository.archiveFile("gui-" + world.getName());
+                writer.commit(header, archive);
+            }
+            it.unimi.dsi.fastutil.objects.Object2ObjectMap<String, List<File>> worlds = new it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap<>();
+            worldsField.set(null, worlds);
+            Method process = GuiRestoreBackup.class.getDeclaredMethod("preProcess");
+            process.setAccessible(true);
+            process.invoke(null);
+            assertTrue(worlds.get(world.getName()).contains(archive));
+
+            GuiRestoreBackup gui = gui(world.getName());
+            Method restore = GuiRestoreBackup.class.getDeclaredMethod("loadBackup", File.class, boolean.class);
+            restore.setAccessible(true);
+            restore.invoke(gui, archive, false);
+            verify(gui).closeGui();
+            assertEquals(
+                    "restored",
+                    new String(Files.readAllBytes(new File(world, "level.dat").toPath()), StandardCharsets.UTF_8));
+            assertFalse(new File(world, "stale.dat").exists());
+            assertEquals(
+                    "original",
+                    new String(Files.readAllBytes(new File(preserved, "level.dat").toPath()), StandardCharsets.UTF_8));
+        } finally {
+            worldsField.set(null, previousWorlds);
+            FileUtils.delete(world);
+            FileUtils.delete(preserved);
+            FileUtils.delete(BackupTask.REPOSITORY_FOLDER);
         }
     }
 

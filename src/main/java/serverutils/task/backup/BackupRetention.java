@@ -38,7 +38,10 @@ import net.minecraft.nbt.NBTSizeTracker;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.compression.ICompress;
 
-/** Selects complete, independent ZIP backups. Chained archives would also need dependency preservation. */
+/**
+ * Selects backups to keep. ZIP backups are independent; incremental archives share chunks, which
+ * {@link RepositoryRetention} accounts for when applying the size allowance.
+ */
 public final class BackupRetention {
 
     static final Pattern LEGACY_NAME = Pattern.compile("\\d{4}-\\d{2}-\\d{2}-\\d{2}-\\d{2}-\\d{2}(.*)");
@@ -86,14 +89,21 @@ public final class BackupRetention {
         public final long size;
         final boolean custom;
         final String problem;
+        /** An archive in the incremental repository; its size is the original size of its files. */
+        public final boolean incremental;
 
         Archive(File file, String world, long created, long size, boolean custom, String problem) {
+            this(file, world, created, size, custom, problem, false);
+        }
+
+        Archive(File file, String world, long created, long size, boolean custom, String problem, boolean incremental) {
             this.file = file;
             this.world = world;
             this.created = created;
             this.size = size;
             this.custom = custom;
             this.problem = problem;
+            this.incremental = incremental;
         }
     }
 
@@ -109,6 +119,8 @@ public final class BackupRetention {
         final Set<File> preserved = new HashSet<>();
         public long remainingSize;
         public long remainingRotationSize;
+        /** Space the deletions free. */
+        public long deletedSize;
 
         private void keep(File file, String reason) {
             keep.merge(file, reason, (previous, added) -> previous + "; " + added);
@@ -132,6 +144,21 @@ public final class BackupRetention {
         /** Kept regardless of rules: unreadable, future-dated or protected custom archives. */
         public boolean isPreserved(File file) {
             return preserved.contains(file);
+        }
+
+        /** Adds another store's decisions, for previewing ZIP and incremental retention together. */
+        void merge(Plan other) {
+            keep.putAll(other.keep);
+            delete.putAll(other.delete);
+            sizeCandidates.addAll(other.sizeCandidates);
+            sizeExempt.addAll(other.sizeExempt);
+            archives.addAll(other.archives);
+            labels.putAll(other.labels);
+            keptUntil.putAll(other.keptUntil);
+            preserved.addAll(other.preserved);
+            remainingSize += other.remainingSize;
+            remainingRotationSize += other.remainingRotationSize;
+            deletedSize += other.deletedSize;
         }
     }
 
@@ -230,6 +257,7 @@ public final class BackupRetention {
             if (!plan.keep.containsKey(archive.file)) {
                 plan.delete.put(archive.file, "Outside retention policy or superseded in time bucket");
                 plan.remainingSize -= archive.size;
+                plan.deletedSize += archive.size;
             } else if (!plan.sizeExempt.contains(archive.file)) {
                 plan.remainingRotationSize = Math.addExact(plan.remainingRotationSize, archive.size);
             }
@@ -244,6 +272,7 @@ public final class BackupRetention {
             plan.delete.put(archive.file, "Folder size limit");
             plan.remainingSize -= archive.size;
             plan.remainingRotationSize -= archive.size;
+            plan.deletedSize += archive.size;
         }
         for (int i = archives.size() - 1; i >= 0; i--) {
             Archive archive = archives.get(i);
@@ -267,7 +296,7 @@ public final class BackupRetention {
         return plan;
     }
 
-    private static String[] reason(String name, String... args) {
+    static String[] reason(String name, String... args) {
         String[] reason = new String[args.length + 1];
         reason[0] = "cmd.backup_prune_reason_" + name;
         System.arraycopy(args, 0, reason, 1, args.length);

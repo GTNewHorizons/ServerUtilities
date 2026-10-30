@@ -59,6 +59,7 @@ import serverutils.lib.util.FileUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.compression.ICompress;
+import serverutils.task.backup.repository.Repository;
 
 public class ThreadBackup extends Thread {
 
@@ -325,8 +326,9 @@ public class ThreadBackup extends Thread {
         File dstFile = null;
         Path temporary = null;
         boolean published = false;
+        boolean incremental = compressor instanceof IncrementalBackupWriter;
         try {
-            dstFile = backupDestination(customName, overwrite, createdAt);
+            dstFile = backupDestination(customName, overwrite, createdAt, incremental);
             validateBackupSource(src);
             if (onlyClaimed && chunks.isEmpty()) {
                 ServerUtilities.LOGGER
@@ -348,7 +350,9 @@ public class ThreadBackup extends Thread {
             temporary = FileUtils.createSaveTemporary(destination);
             try (compressor) {
                 compressor.createOutputStream(temporary.toFile());
-                if (worldId != null) {
+                if (compressor instanceof IncrementalBackupWriter writer) {
+                    writer.describe(worldId, createdAt, !customName.isEmpty());
+                } else if (worldId != null) {
                     BackupRetention.writeMetadata(compressor, worldId, createdAt, !customName.isEmpty());
                 }
                 int captured = snapshot == null ? 0 : compressSnapshot(snapshot, files, compressor);
@@ -357,7 +361,8 @@ public class ThreadBackup extends Thread {
                 } else {
                     compressFiles(files, compressor, captured);
                 }
-
+                if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup cancelled");
+                compressor.finish();
             }
             if (Thread.currentThread().isInterrupted()) throw new InterruptedIOException("Backup cancelled");
             if (overwrite && Files.exists(destination)
@@ -366,7 +371,7 @@ public class ThreadBackup extends Thread {
             }
             if (overwrite) {
                 // Recheck the destination type after compression before replacing an existing checkpoint.
-                backupDestination(customName, true);
+                backupDestination(customName, true, createdAt, incremental);
                 Files.move(temporary, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             } else {
                 // ATOMIC_MOVE may replace an existing file even without REPLACE_EXISTING.
@@ -374,7 +379,10 @@ public class ThreadBackup extends Thread {
             }
             temporary = null;
             published = true;
-            String backupSize = FileUtils.getSizeString(dstFile);
+            // An incremental archive file is tiny; what it cost is the data it added to the repository.
+            String backupSize = incremental
+                    ? "+" + FileUtils.getSizeString(((IncrementalBackupWriter) compressor).storedBytes())
+                    : FileUtils.getSizeString(dstFile);
             ServerUtilities.LOGGER.info("Backup done in {} seconds ({})!", getDoneTime(start), backupSize);
             ServerUtilities.LOGGER.info("Created {} from {}", dstFile.getAbsolutePath(), src.getAbsolutePath());
 
@@ -413,22 +421,30 @@ public class ThreadBackup extends Thread {
         }
     }
 
+    /** Checks the destination for the configured backup format. */
     public static File backupDestination(String customName, boolean overwrite) throws IOException {
-        return backupDestination(customName, overwrite, System.currentTimeMillis());
+        return backupDestination(customName, overwrite, System.currentTimeMillis(), BackupTask.isIncremental());
+    }
+
+    static File backupDestination(String customName, boolean overwrite, long createdAt) throws IOException {
+        return backupDestination(customName, overwrite, createdAt, false);
     }
 
     /** Automatic names use the creation time stored in the metadata, so both always agree. */
-    static File backupDestination(String customName, boolean overwrite, long createdAt) throws IOException {
+    static File backupDestination(String customName, boolean overwrite, long createdAt, boolean incremental)
+            throws IOException {
         validateBackupName(customName);
         if (overwrite && customName.isEmpty()) throw new IOException("Overwrite requires a custom backup name");
-        String name = (customName.isEmpty()
-                ? new SimpleDateFormat(DATE_PATTERN, Locale.ROOT).format(new Date(createdAt))
-                : customName) + ".zip";
-        Path folder = BackupTask.BACKUP_FOLDER.toPath().toAbsolutePath().normalize();
+        String extension = incremental ? Repository.ARCHIVE_EXTENSION : ".zip";
+        String base = customName.isEmpty() ? new SimpleDateFormat(DATE_PATTERN, Locale.ROOT).format(new Date(createdAt))
+                : customName;
+        String name = base + extension;
+        Path folder = (incremental ? BackupTask.REPOSITORY_ARCHIVES : BackupTask.BACKUP_FOLDER).toPath()
+                .toAbsolutePath().normalize();
         Path destination = folder.resolve(name).normalize();
         if (customName.isEmpty()) {
             for (int suffix = 1; Files.exists(destination, LinkOption.NOFOLLOW_LINKS); suffix++) {
-                destination = folder.resolve(name.substring(0, name.length() - 4) + "-" + suffix + ".zip");
+                destination = folder.resolve(base + "-" + suffix + extension);
             }
         }
         if (!folder.equals(destination.getParent())) throw new IOException("Backup must stay inside backup storage");

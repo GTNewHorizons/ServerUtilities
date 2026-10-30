@@ -25,6 +25,9 @@ public interface ICompress extends AutoCloseable {
 
     void addFileToArchive(File file, String name) throws IOException;
 
+    /** Called after the last entry of a successful backup, before closing. */
+    default void finish() throws IOException {}
+
     /** Consumes exactly the entry size without closing the caller-owned input stream. */
     default void addStreamToArchive(InputStream input, ZipEntry entry) throws IOException {
         throw new IOException("This compressor does not support captured backup streams");
