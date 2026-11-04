@@ -35,7 +35,7 @@ public class BackupRetentionTest {
                 deleteCustom,
                 maxSize,
                 now,
-                BackupStore::sumSizes);
+                (counted, base) -> BackupStore.sumSizes(counted));
     }
 
     private static void assertReason(BackupRetention.Plan<ArchiveEntry> plan, ArchiveEntry entry, String reason,
