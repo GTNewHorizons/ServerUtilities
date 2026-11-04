@@ -58,6 +58,7 @@ public class ServerUtilitiesPlayerEventHandler {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onPlayerLoggedIn(ForgePlayerLoggedInEvent event) {
+        BackupTask.newPlayerActivity();
         EntityPlayerMP player = event.getPlayer().getPlayer();
 
         if (ServerUtils.isFirstLogin(player, "serverutilities_starting_items")) {
@@ -89,13 +90,11 @@ public class ServerUtilitiesPlayerEventHandler {
         if (ServerUtilitiesConfig.chat.replace_tab_names) {
             new MessageUpdateTabName(Universe.get().getOnlinePlayers()).sendTo(player);
         }
-
-        BackupTask.hadPlayer = true;
     }
 
     @SubscribeEvent
     public static void onPlayerLoggedOut(ForgePlayerLoggedOutEvent event) {
-        BackupTask.hadPlayer = true;
+        BackupTask.newPlayerActivity();
         EntityPlayerMP player = event.getPlayer().getPlayer();
 
         if (ClaimedChunks.isActive()) {
