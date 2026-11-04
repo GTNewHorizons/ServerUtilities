@@ -445,6 +445,7 @@ serverutilities.lang.homes.not_set=未知的家：'%s'！
 serverutilities.lang.homes.cooldown=使用 home 传送还需 %s！
 serverutilities.lang.homes.limit=家数量已达到上限！
 serverutilities.lang.homes.spectator=请先退出旁观模式！
+serverutilities.lang.homes.cross_dim=你不能传送至其他维度的家！
 
 # TPA
 

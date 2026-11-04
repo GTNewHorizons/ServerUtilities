@@ -608,6 +608,7 @@ serverutilities.lang.homes.not_set=Unknown Home: '%s'!
 serverutilities.lang.homes.cooldown=You can only use home in %s!
 serverutilities.lang.homes.limit=You can't set any more home locations!
 serverutilities.lang.homes.spectator=Exit spectator mode first!
+serverutilities.lang.homes.cross_dim=You can't teleport to a home located in another dimension!
 
 # TPA
 serverutilities.lang.tpa.from_to=%s -> %s
