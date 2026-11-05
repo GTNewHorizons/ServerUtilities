@@ -5,7 +5,9 @@ import javax.annotation.Nullable;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.play.server.S1FPacketSetExperience;
+import net.minecraft.network.play.server.S21PacketChunkData;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.WorldServer;
 
 import serverutils.ServerUtilities;
@@ -46,6 +48,14 @@ public class TeleporterDimPos {
         entity.fallDistance = 0F;
 
         if (entity instanceof EntityPlayerMP playerMP && playerMP.playerNetServerHandler != null) {
+            // Send collision data first so movement during chunk loading cannot leave the player inside the ground.
+            playerMP.playerNetServerHandler.sendPacket(
+                    new S21PacketChunkData(
+                            entity.worldObj.getChunkFromChunkCoords(
+                                    MathHelper.floor_double(posX) >> 4,
+                                    MathHelper.floor_double(posZ) >> 4),
+                            true,
+                            65535));
             playerMP.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, entity.rotationPitch);
         } else {
             entity.setLocationAndAngles(posX, posY, posZ, yaw, entity.rotationPitch);
