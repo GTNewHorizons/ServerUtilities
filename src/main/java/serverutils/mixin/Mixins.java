@@ -67,7 +67,8 @@ public enum Mixins implements IMixins {
             .setPhase(Phase.LATE)
             .setApplyIf(() -> world.enable_player_sleeping_percentage)
             .addRequiredMod(TargetedMod.WITCHERY)
-            .addServerMixins("witchery.MixinWitchery_CancelWakeUpEvents")),
+            // Integrated servers run on the physical client and need this cancellation too.
+            .addCommonMixins("witchery.MixinWitchery_CancelWakeUpEvents")),
     DISABLE_ENDERMEN_GRIEFING(new MixinBuilder("Disable Endermen Griefing in Claimed Chunks")
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> mixins.endermen)
