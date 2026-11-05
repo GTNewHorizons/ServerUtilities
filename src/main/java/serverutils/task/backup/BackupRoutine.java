@@ -341,7 +341,10 @@ public class BackupRoutine {
                 }
                 claimed.forEach(pos -> {
                     String dimName = dimensionFolders
-                            .getOrDefault(pos.dim, pos.dim == 0 ? BackupCandidates.OVERWORLD : "DIM" + pos.dim);
+                            .getOrDefault(pos.dim, pos.dim == 0 ? BackupCandidates.OVERWORLD : null);
+                    // If the dimension doesn't exist assume that the claim is from a previous dimension and it should
+                    // not be considered known at this point.
+                    if (dimName == null) return;
                     // pre-compute and map chunk positions to their specific regions
                     Map<String, List<ChunkDimPos>> positions = dimToRegionToChunkPos
                             .computeIfAbsent(dimName, dim -> new HashMap<>());
@@ -629,13 +632,24 @@ public class BackupRoutine {
      */
     private void snapshotFiles(BackupCandidates candidates) throws IOException {
         Path world = options.world.toPath().toAbsolutePath().normalize();
+        Path realWorld = world.toRealPath();
+        Map<Path, Boolean> worldDirectories = new HashMap<>();
         File folder = FileUtils.ensureExists(new File(tempFolder, "snapshot"));
 
         Predicate<WorldFile> isSnapshottable = f -> {
             if (f.kind() != WorldFile.Kind.MISC) return false;
-            if (isStableModData(f, world)) return false;
             if (f.dimension == null) return false;
-            return !FileUtils.isRegionFile(f.backing());
+            if (FileUtils.isRegionFile(f.backing())) return false;
+            if (!isStableModData(f, world) || candidates.isLink(f)) return true;
+            // Candidates follow links, so confirm this really is the world's own file and not a link elsewhere
+            return !worldDirectories
+                    .computeIfAbsent(f.backing().toPath().toAbsolutePath().normalize().getParent(), dir -> {
+                        try {
+                            return dir.toRealPath().equals(realWorld.resolve(world.relativize(dir)));
+                        } catch (IOException e) {
+                            return false;
+                        }
+                    });
         };
 
         for (WorldFile file : candidates.getFiles(isSnapshottable)) {
@@ -656,7 +670,8 @@ public class BackupRoutine {
 
     /**
      * Mod files that are only rewritten on world save/shutdown (or migration), so reading them live at archive time is
-     * as consistent as a snapshot. Only the world's own files qualify, never links to somewhere else.
+     * as consistent as a snapshot. This only checks the path, it's the caller's responsibility to rule out links to
+     * somewhere else.
      */
     private static boolean isStableModData(WorldFile file, Path world) {
         Path path = file.backing().toPath().toAbsolutePath().normalize();
@@ -664,26 +679,17 @@ public class BackupRoutine {
         Path relative = world.relativize(path);
         String name = file.name();
 
-        boolean stable;
         if (relative.getNameCount() == 3 && relative.startsWith(Paths.get("AE2", "spawndata"))) {
             // AE2 flushes meteor spawn data on world saves and shutdown, not on ordinary gameplay updates.
             // World saving stays suspended, and a backup cancelled at shutdown never publishes its archive.
-            stable = name.endsWith(".dat");
-        } else if (relative.getNameCount() == 4 && relative.startsWith(Paths.get("betterquesting", "backup"))) {
+            return name.endsWith(".dat");
+        }
+        if (relative.getNameCount() == 4 && relative.startsWith(Paths.get("betterquesting", "backup"))) {
             // BQ's versioned migration copies are written during database loading. Live BQ files remain captured.
             String suffix = "_backup_" + relative.getName(2) + ".json";
-            stable = name.endsWith(suffix) && BQ_DATABASES.contains(name.substring(0, name.length() - suffix.length()));
-        } else {
-            return false;
+            return name.endsWith(suffix) && BQ_DATABASES.contains(name.substring(0, name.length() - suffix.length()));
         }
-        if (!stable) return false;
-
-        // Candidates follow links, so confirm this really is the world's own file and not a link elsewhere.
-        try {
-            return path.toRealPath().equals(world.toRealPath().resolve(relative));
-        } catch (IOException e) {
-            return false;
-        }
+        return false;
     }
 
     /** The claimed chunks inside this region file, or null if it is not a region file or holds no claims. */
@@ -693,9 +699,9 @@ public class BackupRoutine {
         return regions == null ? null : regions.get(file.name().replace(".mca", ""));
     }
 
+    /** A DIM folder is only known if a registered dimension saves there, the name alone says nothing. */
     private boolean isKnownDimension(String dimension) {
-        return BackupCandidates.OVERWORLD.equals(dimension) || FileUtils.isNumberedDimension(dimension)
-                || dimToRegionToChunkPos.containsKey(dimension);
+        return BackupCandidates.OVERWORLD.equals(dimension) || dimToRegionToChunkPos.containsKey(dimension);
     }
 
     /**

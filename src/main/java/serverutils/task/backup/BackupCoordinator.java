@@ -45,6 +45,7 @@ public final class BackupCoordinator {
      * this set once they complete.
      */
     private static final Set<CompletableFuture<?>> abandoned = new HashSet<>();
+    private static CompletableFuture<?> abandonedBackup;
 
     private static BackupRoutine activeBackup;
     private static CompletableFuture<?> backupDone;
@@ -56,7 +57,7 @@ public final class BackupCoordinator {
 
     public static boolean isRunning() {
         synchronized (LOCK) {
-            return backupActive || retentionActive;
+            return backupActive || retentionActive || isBackupAbandoned();
         }
     }
 
@@ -184,7 +185,7 @@ public final class BackupCoordinator {
                 // Anything still running after the timeout is abandoned. Bumping the generation makes its late
                 // completion a no-op, so it can't start a prune or clear the state of work started after this stop.
 
-                abandonIfRunning(backup);
+                if (abandonIfRunning(backup)) abandonedBackup = backup;
                 abandonIfRunning(retention);
 
                 stopped = stopped && abandoned.isEmpty();
@@ -201,8 +202,8 @@ public final class BackupCoordinator {
         return stopped;
     }
 
-    private static void abandonIfRunning(CompletableFuture<?> work) {
-        if (work == null || work.isDone()) return;
+    private static boolean abandonIfRunning(CompletableFuture<?> work) {
+        if (work == null || work.isDone()) return false;
         abandoned.add(work);
         // Runs straight away if the work finished since the check
         work.whenComplete((value, error) -> {
@@ -210,6 +211,7 @@ public final class BackupCoordinator {
                 abandoned.remove(work);
             }
         });
+        return true;
     }
 
     private static void runNextRetention() {
@@ -277,7 +279,11 @@ public final class BackupCoordinator {
     }
 
     private static boolean isBackupBlocked() {
-        return backupActive || stopping;
+        return backupActive || stopping || isBackupAbandoned();
+    }
+
+    private static boolean isBackupAbandoned() {
+        return abandonedBackup != null && !abandonedBackup.isDone();
     }
 
     private static boolean isRetentionBlocked() {
