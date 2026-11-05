@@ -9,6 +9,7 @@ public class OtherMods {
     private static boolean isEnderIOLoaded;
     private static boolean isWitcheryLoaded;
     private static boolean isHodgepodgeLoaded;
+    private static boolean isDashboardLoaded;
 
     public static void init() {
         isNEILoaded = Loader.isModLoaded("NotEnoughItems");
@@ -16,6 +17,7 @@ public class OtherMods {
         isEnderIOLoaded = Loader.isModLoaded("EnderIO");
         isWitcheryLoaded = Loader.isModLoaded("witchery");
         isHodgepodgeLoaded = Loader.isModLoaded("hodgepodge");
+        isDashboardLoaded = Loader.isModLoaded("dashboard");
     }
 
     public static boolean isNEILoaded() {
@@ -36,5 +38,9 @@ public class OtherMods {
 
     public static boolean isHodgepodgeLoaded() {
         return isHodgepodgeLoaded;
+    }
+
+    public static boolean isDashboardLoaded() {
+        return isDashboardLoaded;
     }
 }
