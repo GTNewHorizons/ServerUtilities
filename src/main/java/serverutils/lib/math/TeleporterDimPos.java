@@ -17,6 +17,8 @@ import serverutils.lib.util.misc.EmptyTeleporter;
 
 public class TeleporterDimPos {
 
+    private static final int ALL_CHUNK_SECTIONS_MASK = 0xFFFF;
+
     public final double posX, posY, posZ;
     public final int dim;
 
@@ -55,7 +57,7 @@ public class TeleporterDimPos {
                                     MathHelper.floor_double(posX) >> 4,
                                     MathHelper.floor_double(posZ) >> 4),
                             true,
-                            65535));
+                            ALL_CHUNK_SECTIONS_MASK));
             playerMP.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, entity.rotationPitch);
         } else {
             entity.setLocationAndAngles(posX, posY, posZ, yaw, entity.rotationPitch);
