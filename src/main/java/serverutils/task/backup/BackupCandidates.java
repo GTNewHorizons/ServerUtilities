@@ -4,12 +4,18 @@ import static serverutils.ServerUtilities.LOGGER;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -35,8 +41,9 @@ public class BackupCandidates {
     private final Set<Path> ancestors = new HashSet<>();
     /** Absolute paths of every candidate, so the same file is never introduced twice. */
     private final Set<Path> known = new HashSet<>();
+    /** Candidates that are links to a file, not files of their own. The scan already knows, so nothing re-checks. */
+    private final Set<File> links = new HashSet<>();
 
-    private final File backups;
     private final boolean relativeToWorld;
 
     private File scanRoot;
@@ -48,13 +55,18 @@ public class BackupCandidates {
         if (!new File(dir, "level.dat").exists()) {
             throw new IllegalArgumentException("World is invalid: " + dir);
         }
-        if (isBackupStorage(backups, dir.toPath().toRealPath())) {
+        List<Path> storage = FileUtils.resolveRealPaths(backups.toPath(), BackupRoutine.BACKUP_TEMP_FOLDER.toPath());
+        if (FileUtils.isInsideAny(dir.toPath().toRealPath(), storage)) {
             throw new IOException("Backup and temporary storage must not contain the world directory: " + dir);
         }
-        BackupCandidates candidates = new BackupCandidates(backups, relativeToWorld);
+        BackupCandidates candidates = new BackupCandidates(relativeToWorld);
         candidates.scanRoot = dir;
-        candidates.scan(dir, dir, OVERWORLD);
+        candidates.scan(dir, dir, OVERWORLD, storage);
         return candidates;
+    }
+
+    public boolean isLink(WorldFile file) {
+        return links.contains(file.backing());
     }
 
     /**
@@ -169,41 +181,59 @@ public class BackupCandidates {
         });
     }
 
-    /** Compares real paths, so backup output is recognized however it is reached (other spelling, link, etc.). */
-    private static boolean isBackupStorage(File backups, Path real) throws IOException {
-        return real.startsWith(FileUtils.resolveRealPath(backups.toPath()))
-                || real.startsWith(FileUtils.resolveRealPath(BackupRoutine.BACKUP_TEMP_FOLDER.toPath()));
-    }
-
-    private void scan(File directory, File dimensionRoot, String dimension) throws IOException {
+    private void scan(File directory, File dimensionRoot, String dimension, List<Path> storage) throws IOException {
         Path real = directory.toPath().toRealPath();
-        if (isBackupStorage(backups, real)) return;
+        if (FileUtils.isInsideAny(real, storage)) return;
 
         if (!ancestors.add(real)) return;
 
         try {
             List<WorldFile> files = filesByDimension.computeIfAbsent(dimension, k -> new ArrayList<>());
-            File[] children = directory.listFiles();
-            if (children == null) throw new IOException("Cannot list backup directory: " + directory);
-
             boolean isSaveRoot = directory.equals(dimensionRoot) && dimension.equals(OVERWORLD);
 
-            for (File child : children) {
-                // exists() follows links, so this ignores broken ones.
-                if (!child.exists()) continue;
-                if (!child.isDirectory()) {
-                    // The directory is outside backup storage, skip
-                    if (Files.isSymbolicLink(child.toPath()) && isBackupStorage(backups, child.toPath().toRealPath()))
-                        continue;
-                    WorldFile file = WorldFile
-                            .from(dimension, dimensionRoot, relativeToWorld ? scanRoot : dimensionRoot, child);
-                    if (known.add(child.toPath().toAbsolutePath().normalize())) files.add(file);
-                } else if (isSaveRoot && FileUtils.isDimensionFolder(child)) {
-                    scan(child, child, child.getName());
-                } else {
-                    scan(child, dimensionRoot, dimension);
+            Files.walkFileTree(real, EnumSet.noneOf(FileVisitOption.class), 1, new SimpleFileVisitor<Path>() {
+
+                @Override
+                public FileVisitResult visitFile(Path path, BasicFileAttributes listed) throws IOException {
+                    File child = new File(directory, path.getFileName().toString());
+                    // Windows junctions may be reported as other reparse points rather than symbolic links.
+                    boolean link = listed.isSymbolicLink() || listed.isOther();
+                    BasicFileAttributes attributes = listed;
+                    if (link) {
+                        try {
+                            attributes = Files.readAttributes(path, BasicFileAttributes.class);
+                        } catch (IOException broken) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                    }
+
+                    if (attributes.isDirectory()) {
+                        if (isSaveRoot && FileUtils.isDimensionFolder(child)) {
+                            scan(child, child, child.getName(), storage);
+                        } else {
+                            scan(child, dimensionRoot, dimension, storage);
+                        }
+                    } else if (attributes.isRegularFile()) {
+                        // Only a link can leave this directory, which is already known to be outside backup storage.
+                        if (link && FileUtils.isInsideAny(path.toRealPath(), storage)) return FileVisitResult.CONTINUE;
+                        WorldFile file = WorldFile
+                                .from(dimension, dimensionRoot, relativeToWorld ? scanRoot : dimensionRoot, child);
+                        if (known.add(child.toPath().toAbsolutePath().normalize())) {
+                            files.add(file);
+                            if (link) links.add(child);
+                        }
+                    }
+                    return FileVisitResult.CONTINUE;
                 }
-            }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path path, IOException failure) throws IOException {
+                    if (path.equals(real)) throw new IOException("Cannot list backup directory: " + directory, failure);
+                    // Removed since it was listed
+                    if (failure instanceof NoSuchFileException) return FileVisitResult.CONTINUE;
+                    throw failure;
+                }
+            });
         } finally {
             ancestors.remove(real);
         }
