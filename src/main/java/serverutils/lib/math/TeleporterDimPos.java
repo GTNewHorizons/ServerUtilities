@@ -50,14 +50,17 @@ public class TeleporterDimPos {
         entity.fallDistance = 0F;
 
         if (entity instanceof EntityPlayerMP playerMP && playerMP.playerNetServerHandler != null) {
-            // Send collision data first so movement during chunk loading cannot leave the player inside the ground.
-            playerMP.playerNetServerHandler.sendPacket(
-                    new S21PacketChunkData(
-                            entity.worldObj.getChunkFromChunkCoords(
-                                    MathHelper.floor_double(posX) >> 4,
-                                    MathHelper.floor_double(posZ) >> 4),
-                            true,
-                            ALL_CHUNK_SECTIONS_MASK));
+            WorldServer world = playerMP.getServerForPlayer();
+            int chunkX = MathHelper.floor_double(posX) >> 4;
+            int chunkZ = MathHelper.floor_double(posZ) >> 4;
+            // A full resend replaces client tile entities, so only send collision data if still awaiting the chunk.
+            if (!world.getPlayerManager().isPlayerWatchingChunk(playerMP, chunkX, chunkZ)) {
+                playerMP.playerNetServerHandler.sendPacket(
+                        new S21PacketChunkData(
+                                world.getChunkFromChunkCoords(chunkX, chunkZ),
+                                true,
+                                ALL_CHUNK_SECTIONS_MASK));
+            }
             playerMP.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, entity.rotationPitch);
         } else {
             entity.setLocationAndAngles(posX, posY, posZ, yaw, entity.rotationPitch);
