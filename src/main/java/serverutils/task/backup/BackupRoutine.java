@@ -59,6 +59,7 @@ import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.StringUtils;
 import serverutils.lib.util.WorldRegion;
 import serverutils.lib.util.compression.ICompress;
+import serverutils.task.backup.repository.Repository;
 
 // clear separation of concern - routine is the routine (all the logic) for actually saving the world
 // do not conflate logic
@@ -100,7 +101,7 @@ public class BackupRoutine {
     private File tempFolder;
     private ICompress compressor;
 
-    private Supplier<ICompress> compressorSupplier = ICompress::createCompressor;
+    private final Supplier<ICompress> compressorSupplier;
     private BackupCandidates candidates;
 
     public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
@@ -114,6 +115,11 @@ public class BackupRoutine {
                 : new File(backups.backup_folder_path);
         if (!folder.exists()) folder.mkdirs();
         return folder;
+    }
+
+    /** The incremental backup repository, see {@link Repository}. */
+    public static File getRepositoryFolder() {
+        return new File(getDefaultBackupFolder(), Options.REPOSITORY);
     }
 
     /** Deletes temp folders left by interrupted backups. Only call while no backup can be running. */
@@ -204,8 +210,12 @@ public class BackupRoutine {
     }
 
     public BackupRoutine(Universe universe, Options options) {
-        this.universe = universe;
-        this.options = options;
+        this(
+                universe,
+                options,
+                options.incremental
+                        ? () -> new IncrementalBackupWriter(options.getRepositoryFolder(), options.world.getName())
+                        : ICompress::createCompressor);
     }
 
     public static Instant getLastSuccessTime() {
@@ -395,30 +405,25 @@ public class BackupRoutine {
 
         if (candidates == null) candidates = getCandidates();
         LOGGER.info("Performing {} backup of {} files...", isIncremental ? "incremental" : "full", candidates.count());
-        if (isIncremental) {
-            throw new UnsupportedOperationException("Incremental backups are not supported yet");
-        } else {
-            doArchiveSave(universe, candidates, result);
-        }
+        doArchiveSave(universe, candidates, result);
         recordTiming("save");
         lastSuccessfulBackup = startedAtInstant;
     }
 
-    private void doSnapshotSave(Universe universe) {
-        // implement in future PR
-    }
-
     private void doArchiveSave(Universe universe, BackupCandidates candidates, BackupResult.Save result)
             throws IOException {
-        File destination = prepareDestination(backupName, ".zip");
+        File destination = prepareDestination(backupName, options.extension());
+        FileUtils.ensureExists(destination.getParentFile());
         temporary = FileUtils.createSaveTemporary(destination.toPath().toAbsolutePath()).toFile();
 
         compressor.createOutputStream(temporary);
-        ArchiveStore.writeMetadata(
-                compressor,
-                universe.getUUID().toString(),
-                options.createdAt.toEpochMilli(),
-                options.customName != null);
+        String worldId = universe.getUUID().toString();
+        long createdAt = options.createdAt.toEpochMilli();
+        if (compressor instanceof IncrementalBackupWriter writer) {
+            writer.describe(worldId, createdAt, options.customName != null);
+        } else {
+            ArchiveStore.writeMetadata(compressor, worldId, createdAt, options.customName != null);
+        }
 
         List<WorldFile> files = candidates.getFiles();
         int fileSize = files.size();
@@ -473,6 +478,8 @@ public class BackupRoutine {
             LOGGER.info("Backed up {} regions containing {} claimed chunks", regionCount, chunkCount);
         }
 
+        cancellation.check();
+        compressor.finish();
         try {
             compressor.close();
         } catch (Exception e) {
@@ -501,7 +508,9 @@ public class BackupRoutine {
             Files.move(temporaryPath, destinationPath);
         }
 
-        result.bytes = FileUtils.getSize(destination);
+        // An incremental archive file is tiny; what it cost is the data it added to the repository.
+        result.bytes = compressor instanceof IncrementalBackupWriter writer ? writer.storedBytes()
+                : FileUtils.getSize(destination);
         result.destination = destination;
     }
 
@@ -598,8 +607,7 @@ public class BackupRoutine {
     }
 
     private BackupCandidates getCandidates() throws IOException {
-        BackupCandidates candidates = BackupCandidates
-                .scanWorld(options.world, options.backupsDirectory, !options.incremental);
+        BackupCandidates candidates = BackupCandidates.scanWorld(options.world, options.backupsDirectory, true);
 
         // keep only misc files + region files with claims in them
         if (options.onlyClaimed) {
@@ -785,7 +793,6 @@ public class BackupRoutine {
 
     private static String determineBackupName(Options options) {
         String backupName = options.customName;
-        if (options.incremental) return backupName;
         if (backupName == null) backupName = "";
         boolean overwrite = options.overwrite;
         ZonedDateTime createdAt = options.createdAt.atZone(ZoneId.systemDefault());
@@ -796,7 +803,7 @@ public class BackupRoutine {
             backupName = createdAt.format(DATE_FORMATTER);
         } else {
             validateBackupName(backupName);
-            backupName += ".zip";
+            backupName += options.extension();
             Path destinationPath = getDestinationPath(options, backupName, overwrite);
             if (Files.exists(destinationPath, LinkOption.NOFOLLOW_LINKS)
                     && !Files.isRegularFile(destinationPath, LinkOption.NOFOLLOW_LINKS)) {
@@ -813,7 +820,7 @@ public class BackupRoutine {
             throw new IllegalArgumentException(
                     "Backup already exists: " + backupName + ". Use =overwrite to replace it explicitly");
         }
-        if (!destination.getParentFile().equals(options.backupsDirectory)) {
+        if (!destination.getParentFile().equals(options.getWorldBackupDirectory())) {
             throw new IllegalArgumentException("Backup destination must be in the backups directory");
         }
         return destination.toPath();
@@ -828,6 +835,9 @@ public class BackupRoutine {
 
     @Builder
     public static final class Options {
+
+        /** The repository folder inside the backups directory. */
+        static final String REPOSITORY = "incremental";
 
         public File backupsDirectory;
         public File world;
@@ -850,14 +860,24 @@ public class BackupRoutine {
                     .writeOnlyClaimedChunks(!backups.backup_entire_regions_with_claims)
                     .snapshotMetaFiles(!backups.prefer_speed_over_backup_consistency)
                     .useSeparateThread(backups.use_separate_thread)
+                    .incremental(backups.backup_format == BackupFormat.INCREMENTAL)
                     .additionalBackupFiles(Arrays.asList(backups.additional_backup_files))
                     .excludedBackupFiles(Arrays.asList(backups.excluded_backup_files)).overwrite(false)
                     .silent(backups.silent_backup).createdAt(Instant.now()).build();
         }
 
+        /** Where the backup file goes: the backups directory, or the repository's archives for incremental ones. */
         public File getWorldBackupDirectory() {
-            if (incremental) return new File(backupsDirectory, world.getName());
+            if (incremental) return new File(getRepositoryFolder(), "archives");
             return backupsDirectory;
+        }
+
+        public File getRepositoryFolder() {
+            return new File(backupsDirectory, REPOSITORY);
+        }
+
+        String extension() {
+            return incremental ? Repository.ARCHIVE_EXTENSION : ".zip";
         }
     }
 }

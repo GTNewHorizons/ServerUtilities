@@ -157,7 +157,7 @@ public class CmdBackupTest extends BackupFixtures.Tests {
             BackupRetention.Plan<FakeEntry> plan = BackupRetention
                     .plan(store, Collections.singletonList(policy), false, gb);
             RetentionRoutine routine = mock(RetentionRoutine.class);
-            doReturn(plan).when(routine).preview();
+            doReturn(Collections.singletonList(plan)).when(routine).preview();
             List<ChatComponentTranslation> replies = new ArrayList<>();
             RConConsoleSource rcon = mock(RConConsoleSource.class);
             doAnswer(call -> replies.add(call.getArgument(0))).when(rcon).addChatMessage(any());

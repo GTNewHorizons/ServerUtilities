@@ -363,9 +363,10 @@ public final class BackupFixtures {
         }
 
         @Override
-        public long countedSize(Collection<FakeEntry> entries) {
-            if (!sharedData) return BackupStore.super.countedSize(entries);
-            return entries.stream().mapToLong(FakeEntry::size).max().orElse(0);
+        public long countedSize(Collection<FakeEntry> entries, Collection<FakeEntry> base) {
+            if (!sharedData) return BackupStore.super.countedSize(entries, base);
+            long shared = base.stream().mapToLong(FakeEntry::size).max().orElse(0);
+            return Math.max(0, entries.stream().mapToLong(FakeEntry::size).max().orElse(0) - shared);
         }
 
         @Override

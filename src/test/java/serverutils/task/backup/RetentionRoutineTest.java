@@ -101,7 +101,7 @@ public class RetentionRoutineTest extends BackupFixtures.Tests {
         BackupFixtures.writeArchive(latest, worldId, now);
         RetentionRoutine routine = routine("1h:all");
 
-        BackupRetention.Plan<? extends BackupEntry> plan = routine.preview();
+        BackupRetention.Plan<? extends BackupEntry> plan = routine.preview().get(0);
         assertEquals(Collections.singleton(old), files(plan.delete.keySet()));
         assertEquals(Collections.singleton(latest), files(plan.keep.keySet()));
         assertTrue("Preview must not delete anything", old.exists());
