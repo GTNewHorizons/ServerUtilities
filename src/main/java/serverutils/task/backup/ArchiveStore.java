@@ -183,10 +183,13 @@ public final class ArchiveStore implements BackupStore<ArchiveEntry> {
             if (!filename.equals("level.dat") && !filename.equals("level.dat_old")) continue;
             String prefix = name.substring(0, separator + 1);
             if (hasComment && !prefix.equals(worldName + "/") && !prefix.endsWith("/" + worldName + "/")) continue;
-            if (prefix.startsWith("/") || prefix.contains("\\")
-                    || prefix.contains(":")
-                    || prefix.contains("//")
-                    || prefix.matches("(^|.*/)\\.{1,2}(/.*|$)")) {
+            // Java 8 servers wrote entries as "./World/..."; accept that leading segment.
+            String checked = prefix.startsWith("./") ? prefix.substring(2) : prefix;
+            if (checked.isEmpty() || checked.startsWith("/")
+                    || checked.contains("\\")
+                    || checked.contains(":")
+                    || checked.contains("//")
+                    || checked.matches("(^|.*/)\\.{1,2}(/.*|$)")) {
                 throw new IOException("Unsafe world folder: " + prefix);
             }
             prefixes.add(prefix);

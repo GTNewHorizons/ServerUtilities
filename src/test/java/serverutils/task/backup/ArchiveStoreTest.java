@@ -116,7 +116,8 @@ public class ArchiveStoreTest extends BackupFixtures.Tests {
     public void read_RecognizesWorldFolderLayouts() throws IOException {
         String[][] layouts = { { null, "world/level.dat" }, { null, "worlds/world/level.dat" },
                 { "world", "world/level.dat_old" }, { "world", "saves/world/level.dat_old" },
-                { "world", "worlds/world/level.dat_old" } };
+                { "world", "worlds/world/level.dat_old" }, { "world", "./world/level.dat" },
+                { null, "./world/level.dat" } };
         for (String[] layout : layouts) {
             File file = zip("layout.zip", layout[0], Collections.singletonMap(layout[1], LEVEL));
 
@@ -132,7 +133,7 @@ public class ArchiveStoreTest extends BackupFixtures.Tests {
     public void read_UnsafeOrAmbiguousWorldFolder_HasProblem() throws IOException {
         int index = 0;
         for (String prefix : new String[] { "../world/", "parent/../world/", "/world/", "C:/world/", "parent//world/",
-                "parent/./world/" }) {
+                "parent/./world/", "./../world/", "././world/" }) {
             zip("unsafe-" + index++ + ".zip", "world", Collections.singletonMap(prefix + "level.dat", LEVEL));
         }
         zip("unsafe-uncommented.zip", null, Collections.singletonMap("../world/level.dat", LEVEL));
@@ -141,7 +142,7 @@ public class ArchiveStoreTest extends BackupFixtures.Tests {
 
         List<ArchiveEntry> entries = new ArchiveStore(backups).list();
 
-        assertEquals(9, entries.size());
+        assertEquals(11, entries.size());
         for (ArchiveEntry entry : entries) {
             assertNotNull(entry.id(), entry.problem());
             assertThrows(entry.id(), IOException.class, () -> ArchiveStore.isCustomWorldArchive(entry.file));
