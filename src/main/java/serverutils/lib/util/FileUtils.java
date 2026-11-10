@@ -331,6 +331,22 @@ public class FileUtils {
         }
     }
 
+    public static List<Path> resolveRealPaths(Path... paths) throws IOException {
+        List<Path> real = new ArrayList<>();
+        for (Path path : paths) real.add(resolveRealPath(path));
+        return real;
+    }
+
+    /**
+     * Whether the real path is one of roots or below one. Both must already be real paths.
+     */
+    public static boolean isInsideAny(Path real, List<Path> roots) {
+        for (Path root : roots) {
+            if (real.startsWith(root)) return true;
+        }
+        return false;
+    }
+
     public static String normalizeBackupPattern(String pattern) {
         pattern = pattern.replace('\\', '/');
         while (pattern.startsWith("./")) pattern = pattern.substring(2);
@@ -388,8 +404,7 @@ public class FileUtils {
             throws IOException {
         List<File> found = new ArrayList<>();
         if (Files.notExists(start)) return found;
-        List<Path> skipped = new ArrayList<>();
-        for (Path path : excluded) skipped.add(resolveRealPath(path));
+        List<Path> skipped = resolveRealPaths(excluded);
 
         Files.walkFileTree(
                 start,
@@ -401,11 +416,8 @@ public class FileUtils {
                     public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attributes)
                             throws IOException {
                         if (!dir.equals(start) && !descend.test(dir)) return FileVisitResult.SKIP_SUBTREE;
-                        Path real = resolveRealPath(dir);
-                        for (Path skip : skipped) {
-                            if (real.startsWith(skip)) return FileVisitResult.SKIP_SUBTREE;
-                        }
-                        return FileVisitResult.CONTINUE;
+                        return isInsideAny(resolveRealPath(dir), skipped) ? FileVisitResult.SKIP_SUBTREE
+                                : FileVisitResult.CONTINUE;
                     }
 
                     @Override

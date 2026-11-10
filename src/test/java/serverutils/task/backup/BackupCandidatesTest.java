@@ -115,6 +115,55 @@ public class BackupCandidatesTest extends BackupFixtures.Tests {
     }
 
     @Test
+    public void scan_WhenWorldIsLink_ScansThroughIt() throws IOException {
+        File inside = write(world, "data/inside.dat");
+        File link = new File(saves, "linked-world");
+        try {
+            Files.createSymbolicLink(link.toPath(), world.toPath().toAbsolutePath());
+        } catch (IOException | UnsupportedOperationException | SecurityException unsupported) {
+            Assume.assumeNoException(unsupported);
+        }
+
+        Set<File> files = files(BackupCandidates.scanWorld(link, backups, false));
+
+        // Named through the link, not its target
+        assertTrue(files.contains(new File(link, "data/" + inside.getName())));
+        assertTrue(files.contains(new File(link, "level.dat")));
+    }
+
+    @Test
+    public void scan_WhenLinkIsBroken_IgnoresIt() throws IOException {
+        File broken = new File(world, "broken.dat");
+        try {
+            Files.createSymbolicLink(broken.toPath(), new File(build, "missing.dat").toPath().toAbsolutePath());
+        } catch (IOException | UnsupportedOperationException | SecurityException unsupported) {
+            Assume.assumeNoException(unsupported);
+        }
+
+        Set<File> files = files(BackupCandidates.scanWorld(world, backups, false));
+
+        assertFalse(files.contains(broken));
+        assertTrue(files.contains(new File(world, "level.dat")));
+    }
+
+    @Test
+    public void isLink_OnlyForFilesThatAreThemselvesLinks() throws IOException {
+        File target = write(world, "target.dat");
+        File link = new File(world, "link.dat");
+        try {
+            Files.createSymbolicLink(link.toPath(), target.toPath().toAbsolutePath());
+        } catch (IOException | UnsupportedOperationException | SecurityException unsupported) {
+            Assume.assumeNoException(unsupported);
+        }
+
+        BackupCandidates candidates = BackupCandidates.scanWorld(world, backups, false);
+
+        for (WorldFile file : candidates.getFiles()) {
+            assertEquals(file.backing().toString(), file.backing().equals(link), candidates.isLink(file));
+        }
+    }
+
+    @Test
     public void removeMatching_SupportsLiteralGlobAbsoluteAndWorldNamePatterns() throws IOException {
         File literal = write(world, "literal.dat");
         File similar = write(world, "literal.dat.bak");

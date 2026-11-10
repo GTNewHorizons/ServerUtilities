@@ -346,7 +346,7 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
 
         claim(new ChunkDimPos(-1, -1, 7));
 
-        BackupResult.Save result = routine.save();
+        BackupResult.Save result = saveWithDimensionFolder(7, "DIM7");
         try (ZipFile zip = new ZipFile(result.destination)) {
             assertEquals("claimed", readValue(zip, claimed, 31, 31));
             assertNull(readValue(zip, claimed, 30, 31));
@@ -355,9 +355,7 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
     }
 
     @Test
-    public void claimOnly_NumberedDimensionWithoutClaims_DropsRegions() throws IOException {
-        // The old backup preserved DIM folders whose provider could not resolve its save folder. Dimensions are now
-        // matched by folder name, so an unclaimed DIM folder is dropped like any other unclaimed region.
+    public void claimOnly_RegisteredNumberedDimensionWithoutClaims_DropsRegions() throws IOException {
         options.onlyClaimed = true;
         routine = new BackupRoutine(universe, options);
 
@@ -366,9 +364,47 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
 
         claim(new ChunkDimPos(0, 0, 0));
 
-        BackupResult.Save result = routine.save();
+        BackupResult.Save result = saveWithDimensionFolder(9, "DIM9");
         try (ZipFile zip = new ZipFile(result.destination)) {
             assertNull(zip.getEntry(region.runtimeRelativePath()));
+        }
+    }
+
+    @Test
+    public void claimOnly_UnregisteredNumberedDimension_CopiedUnchanged() throws IOException {
+        options.onlyClaimed = true;
+        routine = new BackupRoutine(universe, options);
+
+        WorldFile region = worldFile("DIM9", "region/r.0.0.mca");
+        writeToRegion(region, 0, 0, "uninstalled");
+
+        claim(new ChunkDimPos(0, 0, 0));
+
+        BackupResult.Save result = routine.save();
+        try (ZipFile zip = new ZipFile(result.destination)) {
+            assertArchivedUnchanged(zip, region);
+        }
+    }
+
+    @Test
+    public void claimOnly_ClaimInUnregisteredDimension_CopiedUnchanged() throws IOException {
+        options.writeOnlyClaimedChunks = true;
+        options.onlyClaimed = true;
+        routine = new BackupRoutine(universe, options);
+
+        WorldFile claimed = worldFile("DIM7", "region/r.-1.-1.mca");
+        WorldFile unclaimed = worldFile("DIM7", "region/r.0.0.mca");
+        writeToRegion(claimed, 31, 31, "claimed");
+        writeToRegion(claimed, 30, 31, "unclaimed");
+        writeToRegion(unclaimed, 0, 0, "unclaimed");
+
+        // Claims outlive an uninstalled dimension, and must not make its folder look known
+        claim(new ChunkDimPos(-1, -1, 7));
+
+        BackupResult.Save result = routine.save();
+        try (ZipFile zip = new ZipFile(result.destination)) {
+            assertArchivedUnchanged(zip, claimed);
+            assertArchivedUnchanged(zip, unclaimed);
         }
     }
 
@@ -501,7 +537,7 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
 
         claim();
 
-        BackupResult.Save result = routine.save();
+        BackupResult.Save result = saveWithDimensionFolder(7, "DIM7");
         try (ZipFile zip = new ZipFile(result.destination)) {
             assertNotNull(zip.getEntry(FileUtils.getRelativePath(new File(world, "level.dat"))));
             assertNull(zip.getEntry(overworld.runtimeRelativePath()));
