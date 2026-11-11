@@ -584,6 +584,35 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
     }
 
     @Test
+    public void snapshotFiles_AdditionalFilesAreScannedOffTheMainThread() throws Exception {
+        options.snapshotMetaFiles = true;
+        options.useSeparateThread = true;
+        File extra = new File(build, "additional/extra.dat");
+        FileUtils.ensureExists(extra.getParentFile());
+        Files.write(extra.toPath(), new byte[] { 1 });
+        options.additionalBackupFiles = Collections.singletonList(FileUtils.getRelativePath(extra));
+
+        long currentThreadId = Thread.currentThread().getId();
+        List<Long> scanThreads = new ArrayList<>();
+        BackupCandidates candidateMock = mock(BackupCandidates.class);
+        doAnswer(call -> scanThreads.add(Thread.currentThread().getId())).when(candidateMock).addFile(any());
+
+        ExecutorService otherThread = Executors.newSingleThreadExecutor();
+        BackupResult.Save result;
+        try (MockedStatic<BackupCandidates> candidates = mockStatic(BackupCandidates.class)) {
+            candidates.when(() -> BackupCandidates.scanWorld(eq(world), eq(backups), anyBoolean()))
+                    .thenReturn(candidateMock);
+            result = routine.save(otherThread).get(5, TimeUnit.SECONDS);
+        } finally {
+            otherThread.shutdown();
+        }
+
+        assertNull(result.error);
+        assertEquals(1, scanThreads.size());
+        assertNotEquals(Long.valueOf(currentThreadId), scanThreads.get(0));
+    }
+
+    @Test
     public void snapshotFiles_WhenFileChangesDuringCopy_FailsBackup() throws Exception {
         options.snapshotMetaFiles = true;
 

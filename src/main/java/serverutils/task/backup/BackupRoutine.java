@@ -365,7 +365,7 @@ public class BackupRoutine {
             recordTiming("setup");
 
             if (options.snapshotMetaFiles && options.useSeparateThread) {
-                candidates = getCandidates();
+                candidates = getWorldCandidates();
                 snapshotFiles(candidates);
                 recordTiming("file snapshot");
             }
@@ -395,7 +395,9 @@ public class BackupRoutine {
         cancellation.enable();
         boolean isIncremental = options.incremental;
 
-        if (candidates == null) candidates = getCandidates();
+        if (candidates == null) candidates = getWorldCandidates();
+        // Globbed here rather than before the snapshot, so large folders don't stall the server thread.
+        addAdditionalFiles(candidates, options.world);
         LOGGER.info("Performing {} backup of {} files...", isIncremental ? "incremental" : "full", candidates.count());
         if (isIncremental) {
             throw new UnsupportedOperationException("Incremental backups are not supported yet");
@@ -569,15 +571,8 @@ public class BackupRoutine {
                 timings);
     }
 
-    /** Adds the ranks files and everything matched by the configured additional_backup_files. */
+    /** Adds everything matched by the configured additional_backup_files, minus the exclusions. */
     private void addAdditionalFiles(BackupCandidates candidates, File world) throws IOException {
-        for (String name : new String[] { "ranks.txt", "players.txt" }) {
-            File file = new File(ServerUtilities.SERVER_FOLDER, name);
-            if (file.isFile()) {
-                candidates.addFile(file);
-                serverFiles.add(file);
-            }
-        }
         for (String pattern : options.additionalBackupFiles) {
             List<File> matchedFiles = FileUtils.findMatching(
                     pattern.replace("$WORLDNAME", world.getName()),
@@ -589,6 +584,7 @@ public class BackupRoutine {
                 candidates.addFile(match);
             }
         }
+        candidates.removeMatching(options.excludedBackupFiles, world.getName());
     }
 
     private File prepareDestination(String filename, String extension) {
@@ -603,7 +599,8 @@ public class BackupRoutine {
                 FileUtils.INCREMENTAL_APPEND);
     }
 
-    private BackupCandidates getCandidates() throws IOException {
+    /** The world's files plus the ranks files: everything a snapshot covers. */
+    private BackupCandidates getWorldCandidates() throws IOException {
         BackupCandidates candidates = BackupCandidates
                 .scanWorld(options.world, options.backupsDirectory, !options.incremental);
 
@@ -627,7 +624,13 @@ public class BackupRoutine {
             }
         }
 
-        addAdditionalFiles(candidates, options.world);
+        for (String name : new String[] { "ranks.txt", "players.txt" }) {
+            File file = new File(ServerUtilities.SERVER_FOLDER, name);
+            if (file.isFile()) {
+                candidates.addFile(file);
+                serverFiles.add(file);
+            }
+        }
         candidates.removeMatching(options.excludedBackupFiles, options.world.getName());
         return candidates;
     }
