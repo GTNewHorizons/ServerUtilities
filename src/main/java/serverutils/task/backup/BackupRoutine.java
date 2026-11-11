@@ -296,7 +296,7 @@ public class BackupRoutine {
     /** Logs the timings, then cleans up even if logging fails. The timings are cleared by cleanup, so log first. */
     private void finish() {
         try {
-            logTiming();
+            logTiming("archive");
         } catch (RuntimeException e) {
             LOGGER.warn("Could not log backup timing", e);
         }
@@ -383,16 +383,18 @@ public class BackupRoutine {
             ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", e);
             result.error = e;
         } finally {
-            if (!prepared) {
-                logTiming();
-                cleanup();
-            }
+            // Logged here, so it only covers the pause before the archive is written.
+            logTiming("server-thread");
+            timings.clear();
+            if (!prepared) cleanup();
         }
         return prepared;
     }
 
     private void doSave(BackupResult.Save result) throws IOException {
         cancellation.enable();
+        startedAt = System.nanoTime();
+        timing = startedAt;
         boolean isIncremental = options.incremental;
 
         if (candidates == null) candidates = getWorldCandidates();
@@ -558,14 +560,15 @@ public class BackupRoutine {
         timing = now;
     }
 
-    private void logTiming() {
+    private void logTiming(String stage) {
         StringBuilder timings = new StringBuilder();
         for (Map.Entry<String, Duration> entry : this.timings.entrySet()) {
             if (timings.length() > 0) timings.append("; ");
             timings.append(entry.getKey()).append('=').append(entry.getValue().toMillis()).append(" ms");
         }
         LOGGER.info(
-                "Backup server-thread timing: started={}; total={} ms; {}",
+                "Backup {} timing: started={}; total={} ms; {}",
+                stage,
                 startedAtInstant,
                 (System.nanoTime() - startedAt) / 1_000_000L,
                 timings);
