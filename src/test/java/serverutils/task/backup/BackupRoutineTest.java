@@ -291,9 +291,10 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             ZipEntry regionEntry = zip.getEntry(region.runtimeRelativePath());
             assertNotNull(regionEntry);
 
-            WorldRegion checkedRegion = uncompressRegion(zip, regionEntry, BackupCandidates.OVERWORLD);
-            checkedRegion.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
-            checkedRegion.read(1, 1, tag -> assertNull(tag.getString("value")));
+            try (WorldRegion checkedRegion = uncompressRegion(zip, regionEntry, BackupCandidates.OVERWORLD)) {
+                checkedRegion.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
+                checkedRegion.read(1, 1, tag -> assertNull(tag.getString("value")));
+            }
 
             ZipEntry unclaimedEntry = zip.getEntry(unclaimed.runtimeRelativePath());
             assertNull(unclaimedEntry);
@@ -320,15 +321,17 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             ZipEntry region1Entry = zip.getEntry(region1.runtimeRelativePath());
             assertNotNull(region1Entry);
 
-            WorldRegion checkedRegion1 = uncompressRegion(zip, region1Entry, BackupCandidates.OVERWORLD);
-            checkedRegion1.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
-            checkedRegion1.read(1, 1, tag -> assertEquals("test1.1", tag.getString("value")));
+            try (WorldRegion checkedRegion1 = uncompressRegion(zip, region1Entry, BackupCandidates.OVERWORLD)) {
+                checkedRegion1.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
+                checkedRegion1.read(1, 1, tag -> assertEquals("test1.1", tag.getString("value")));
+            }
 
             ZipEntry region2Entry = zip.getEntry(region2.runtimeRelativePath());
             assertNotNull(region2Entry);
 
-            WorldRegion checkedRegion2 = uncompressRegion(zip, region2Entry, BackupCandidates.OVERWORLD);
-            checkedRegion2.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
+            try (WorldRegion checkedRegion2 = uncompressRegion(zip, region2Entry, BackupCandidates.OVERWORLD)) {
+                checkedRegion2.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
+            }
         }
     }
 
