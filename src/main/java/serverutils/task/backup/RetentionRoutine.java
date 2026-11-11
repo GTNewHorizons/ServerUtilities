@@ -15,7 +15,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import serverutils.ServerUtilities;
 import serverutils.lib.util.CancellationToken;
@@ -26,14 +28,31 @@ public class RetentionRoutine {
     private final CancellationToken cancellation = new CancellationToken();
     private final BackupStore<?> store;
     private final Options options;
+    /** The settings as they are now, to drop a plan made before they changed. Null when there is nothing to track. */
+    private final Supplier<Options> current;
 
     public RetentionRoutine(BackupStore<?> store, Options options) {
+        this(store, options, null);
+    }
+
+    RetentionRoutine(BackupStore<?> store, Options options, Supplier<Options> current) {
         this.store = store;
         this.options = options;
+        this.current = current;
     }
 
     public static RetentionRoutine fromConfig() {
-        return new RetentionRoutine(new ArchiveStore(BackupRoutine.getDefaultBackupFolder()), Options.fromConfig());
+        return new RetentionRoutine(
+                new ArchiveStore(BackupRoutine.getDefaultBackupFolder()),
+                Options.fromConfig(),
+                Options::fromConfig);
+    }
+
+    /** Scanning takes a while and deletion can't be undone, so recheck the settings before deleting. */
+    private boolean isStale() {
+        if (current == null || options.sameAs(current.get())) return false;
+        ServerUtilities.LOGGER.info("Retention settings changed; skipping stale pruning plan");
+        return true;
     }
 
     /** Deletes archive staging files left by an interrupted backup. Only call while no backup can be running. */
@@ -105,6 +124,7 @@ public class RetentionRoutine {
     private <T extends BackupEntry> void pruneByPolicy(BackupStore<T> store, BackupResult.Retention result)
             throws IOException {
         BackupRetention.Plan<T> plan = getRetentionPlan(store);
+        if (isStale()) return;
         long maxSize = options.maxSize;
 
         List<T> counted = new ArrayList<>();
@@ -151,6 +171,7 @@ public class RetentionRoutine {
         int keepCount = Math.max(1, options.keepCount);
 
         List<T> entries = readLegacyBackups(store);
+        if (isStale()) return;
         Set<T> newest = newestPerWorld(entries);
         long currentSize = store.countedSize(entries);
         int remainingCount = entries.size();
@@ -244,6 +265,12 @@ public class RetentionRoutine {
                     backups.delete_custom_name_backups,
                     backups.max_folder_size,
                     backups.backups_to_keep);
+        }
+
+        boolean sameAs(Options other) {
+            return deleteCustom == other.deleteCustom && maxSize == other.maxSize
+                    && keepCount == other.keepCount
+                    && Objects.equals(policy, other.policy);
         }
 
         public boolean hasPolicy() {

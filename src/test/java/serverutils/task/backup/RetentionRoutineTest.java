@@ -136,6 +136,29 @@ public class RetentionRoutineTest extends BackupFixtures.Tests {
     }
 
     @Test
+    public void prune_WhenSettingsChangedSinceStart_DeletesNothing() {
+        for (List<String> policy : POLICY_AND_LEGACY) {
+            for (boolean changed : new boolean[] { false, true }) {
+                FakeEntry[] entries = { new FakeEntry("latest", "a", now, false, null),
+                        new FakeEntry("old", "a", now - TimeUnit.DAYS.toMillis(400), false, null) };
+                FakeStore baseline = new FakeStore(entries);
+                new RetentionRoutine(baseline, new RetentionRoutine.Options(policy, false, 0, 1)).prune();
+
+                FakeStore store = new FakeStore(entries);
+                RetentionRoutine.Options options = new RetentionRoutine.Options(policy, false, 0, 1);
+                RetentionRoutine.Options current = new RetentionRoutine.Options(policy, false, 0, changed ? 5 : 1);
+                BackupResult.Retention result = new RetentionRoutine(store, options, () -> current).prune();
+
+                assertNull(result.error);
+                assertEquals(
+                        policy + " " + changed,
+                        changed ? Collections.emptyList() : baseline.deleted,
+                        store.deleted);
+            }
+        }
+    }
+
+    @Test
     public void prune_WhenCancelled_DeletesNothing() {
         for (List<String> policy : POLICY_AND_LEGACY) {
             FakeStore store = new FakeStore(
