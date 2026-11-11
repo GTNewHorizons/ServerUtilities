@@ -81,6 +81,8 @@ public class BackupRoutine {
 
     /** Archive entry name -> copy taken while world saving was suspended. */
     private final Map<String, File> snapshot = new HashMap<>();
+    /** ranks.txt and players.txt: outside the world, but snapshotted with it. */
+    private final Set<File> serverFiles = new HashSet<>();
 
     static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN, Locale.ROOT);
 
@@ -539,6 +541,7 @@ public class BackupRoutine {
 
         cancellation.clear();
         snapshot.clear();
+        serverFiles.clear();
         dimToRegionToChunkPos.clear();
         timings.clear();
         candidates = null;
@@ -570,7 +573,10 @@ public class BackupRoutine {
     private void addAdditionalFiles(BackupCandidates candidates, File world) throws IOException {
         for (String name : new String[] { "ranks.txt", "players.txt" }) {
             File file = new File(ServerUtilities.SERVER_FOLDER, name);
-            if (file.isFile()) candidates.addFile(file);
+            if (file.isFile()) {
+                candidates.addFile(file);
+                serverFiles.add(file);
+            }
         }
         for (String pattern : options.additionalBackupFiles) {
             List<File> matchedFiles = FileUtils.findMatching(
@@ -635,10 +641,11 @@ public class BackupRoutine {
         Path realWorld = world.toRealPath();
         Map<Path, Boolean> worldDirectories = new HashMap<>();
         File folder = FileUtils.ensureExists(new File(tempFolder, "snapshot"));
+        File serverFolder = new File(tempFolder, "snapshot-server");
 
         Predicate<WorldFile> isSnapshottable = f -> {
             if (f.kind() != WorldFile.Kind.MISC) return false;
-            if (f.dimension == null) return false;
+            if (f.dimension == null) return serverFiles.contains(f.backing());
             if (FileUtils.isRegionFile(f.backing())) return false;
             if (!isStableModData(f, world) || candidates.isLink(f)) return true;
             // Candidates follow links, so confirm this really is the world's own file and not a link elsewhere
@@ -655,7 +662,8 @@ public class BackupRoutine {
         for (WorldFile file : candidates.getFiles(isSnapshottable)) {
             File source = file.backing();
             // Mirror the world layout, no name is longer than the original, and paths can't collide
-            File copy = new File(folder, world.relativize(source.toPath().toAbsolutePath().normalize()).toString());
+            File copy = file.dimension == null ? new File(serverFolder, source.getName())
+                    : new File(folder, world.relativize(source.toPath().toAbsolutePath().normalize()).toString());
             FileUtils.ensureExists(copy.getParentFile());
             long size = source.length();
             long modified = source.lastModified();

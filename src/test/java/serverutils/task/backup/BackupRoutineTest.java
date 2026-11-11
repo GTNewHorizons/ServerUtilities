@@ -68,6 +68,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 
+import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.FileUtils;
@@ -934,6 +935,44 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             }
         } finally {
             ServerUtilitiesConfig.backups.compression_level = previousLevel;
+        }
+    }
+
+    @Test
+    public void snapshotFiles_RanksAndPlayersComeFromSnapshot() throws Exception {
+        options.snapshotMetaFiles = true;
+        options.useSeparateThread = true;
+        options.world = world;
+
+        File folder = new File(ServerUtilities.SERVER_FOLDER);
+        File[] files = { new File(folder, "ranks.txt"), new File(folder, "players.txt") };
+        for (File file : files) Assume.assumeFalse(file.exists());
+        boolean createdFolder = !folder.exists();
+        FileUtils.ensureExists(folder);
+        try {
+            for (File file : files) Files.write(file.toPath(), new byte[] { 1 });
+
+            ICompress spy = spy(new CommonsCompressor());
+            doAnswer(call -> {
+                for (File file : files) Files.write(file.toPath(), new byte[] { 99 });
+                return call.callRealMethod();
+            }).when(spy).createOutputStream(any());
+
+            BackupResult.Save result = new BackupRoutine(universe, options, () -> spy).save();
+            assertNull(result.error);
+
+            try (ZipFile zip = new ZipFile(result.destination)) {
+                for (File file : files) {
+                    ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(file));
+                    assertNotNull(file.getName(), entry);
+                    try (InputStream in = zip.getInputStream(entry)) {
+                        assertArrayEquals(file.getName(), new byte[] { 1 }, IOUtils.toByteArray(in));
+                    }
+                }
+            }
+        } finally {
+            for (File file : files) Files.deleteIfExists(file.toPath());
+            if (createdFolder) folder.delete();
         }
     }
 
