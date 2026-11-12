@@ -5,6 +5,7 @@ import static serverutils.ServerUtilitiesConfig.backups;
 import static serverutils.ServerUtilitiesNotifications.BACKUP;
 
 import java.io.BufferedOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -721,7 +722,12 @@ public class BackupRoutine {
             // A directory listing can report a stale size while another writer has the file open; ask the handle.
             captured.setSize(channel.size());
             CheckedInputStream input = new CheckedInputStream(Channels.newInputStream(channel), new CRC32());
-            ICompress.copyExactly(input, output, captured.getSize(), buffer);
+            try {
+                ICompress.copyExactly(input, output, captured.getSize(), buffer);
+            } catch (EOFException shrunk) {
+                // copyExactly reports this as a truncated snapshot, but here it is the live file that shrank
+                throw new IOException("File shrank during backup snapshot: " + file, shrunk);
+            }
             if (input.read() != -1) throw new IOException("File grew during backup snapshot: " + file);
             captured.setCrc(input.getChecksum().getValue());
         }

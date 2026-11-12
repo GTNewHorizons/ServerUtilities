@@ -647,10 +647,11 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
                 }
             };
 
-            assertThrows(
+            IOException failure = assertThrows(
                     "size " + size,
                     IOException.class,
                     () -> BackupRoutine.copySnapshotFile(payload, new ZipEntry("player.dat"), output, new byte[1]));
+            if (size == 1) assertEquals("File shrank during backup snapshot: " + payload, failure.getMessage());
         }
     }
 
