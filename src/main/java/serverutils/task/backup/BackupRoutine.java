@@ -787,8 +787,9 @@ public class BackupRoutine {
             return name.equals("forcedchunks.dat") || name.equals("multipart.dat");
         }
         if (local.getNameCount() == 2 && local.startsWith("data")) {
-            // WorldSavedData is only written as part of a world save.
-            return name.endsWith(".dat");
+            // WorldSavedData is only written as part of a world save. The ID counter is not: vanilla rewrites it the
+            // moment a new map (or other unique ID) is handed out.
+            return name.endsWith(".dat") && !name.equals("idcounts.dat");
         }
         if (local.getNameCount() == 2 && local.startsWith("RedstoneEther")) {
             // Wireless Redstone writes these on the world save event; its property files can change at any time.
