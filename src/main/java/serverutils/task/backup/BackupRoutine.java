@@ -78,6 +78,9 @@ public class BackupRoutine {
     private static final Set<String> BQ_DATABASES = new HashSet<>(
             Arrays.asList("QuestDatabase", "QuestProgress", "QuestingParties", "NameCache", "LifeDatabase"));
 
+    private static final Set<String> WIRELESS_ETHER = new HashSet<>(
+            Arrays.asList("fmap.dat", "node1.dat", "node2.dat", "dimMap.dat"));
+
     private static volatile Instant lastSuccessfulBackup = Instant.MIN;
 
     // Use a lock + owner to perform thread-safe tracking of who can restore world saving once it's been suspended
@@ -443,6 +446,7 @@ public class BackupRoutine {
                 options.customName != null);
 
         List<WorldFile> files = candidates.getFiles();
+        Path world = options.world.toPath().toAbsolutePath().normalize();
         int fileSize = files.size();
         long logTimer = System.currentTimeMillis();
 
@@ -496,6 +500,12 @@ public class BackupRoutine {
             SpoolEntry captured = snapshot.get(entry);
             if (captured == null) {
                 compressor.addFileToArchive(file.backing(), entry);
+                // Stable files skip the snapshot on the promise that nothing rewrites them; say so if that was wrong.
+                if (spool != null && file.kind() == WorldFile.Kind.MISC
+                        && isStableModData(file, world)
+                        && file.changedSinceListed()) {
+                    LOGGER.warn("{} changed during the backup; its copy in this backup may be inconsistent", entry);
+                }
             } else {
                 spoolChannel.position(captured.offset);
                 compressor.addStreamToArchive(spoolInput, new ZipEntry(captured.entry));
@@ -764,6 +774,25 @@ public class BackupRoutine {
             // BQ's versioned migration copies are written during database loading. Live BQ files remain captured.
             String suffix = "_backup_" + relative.getName(2) + ".json";
             return name.endsWith(suffix) && BQ_DATABASES.contains(name.substring(0, name.length() - suffix.length()));
+        }
+
+        // The rest exists once per dimension folder, so match below the file's own dimension root.
+        Path local = relative;
+        if (relative.getNameCount() > 1 && relative.getName(0).toString().equals(file.dimension)) {
+            local = relative.subpath(1, relative.getNameCount());
+        }
+        if (local.getNameCount() == 1) {
+            // Forge writes chunk tickets on the world save event only. ForgeMultipart discards what it reads back
+            // from multipart.dat, so its contents never matter.
+            return name.equals("forcedchunks.dat") || name.equals("multipart.dat");
+        }
+        if (local.getNameCount() == 2 && local.startsWith("data")) {
+            // WorldSavedData is only written as part of a world save.
+            return name.endsWith(".dat");
+        }
+        if (local.getNameCount() == 2 && local.startsWith("RedstoneEther")) {
+            // Wireless Redstone writes these on the world save event; its property files can change at any time.
+            return WIRELESS_ETHER.contains(name);
         }
         return false;
     }

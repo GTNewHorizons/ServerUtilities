@@ -1,6 +1,8 @@
 package serverutils.task.backup;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -62,6 +64,12 @@ public final class WorldFile {
     /** The modification time the directory listing reported, when one was kept, so no extra lookup is needed. */
     public long mtime() {
         return listedModified >= 0 ? listedModified : backing.lastModified();
+    }
+
+    /** Whether the file was modified after the listing saw it. False when no listing time was kept. */
+    public boolean changedSinceListed() throws IOException {
+        // Same API as the listing: on Java 8, File.lastModified() can drop the milliseconds.
+        return listedModified >= 0 && Files.getLastModifiedTime(backing.toPath()).toMillis() != listedModified;
     }
 
     public long size() {

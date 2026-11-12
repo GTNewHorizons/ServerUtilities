@@ -391,4 +391,21 @@ public class BackupCandidatesTest extends BackupFixtures.Tests {
     private static Set<File> files(BackupCandidates candidates) {
         return candidates.getFiles().stream().map(WorldFile::backing).collect(Collectors.toSet());
     }
+
+    @Test
+    public void changedSinceListed_OnlyAfterTheFileIsModified() throws IOException {
+        File file = new File(world, "data/villages.dat");
+        FileUtils.ensureExists(file.getParentFile());
+        Files.write(file.toPath(), new byte[] { 1 });
+
+        WorldFile listed = BackupCandidates.scanWorld(world, backups, true).getFiles().stream()
+                .filter(f -> f.backing().equals(file)).findFirst().get();
+        assertFalse(listed.changedSinceListed());
+
+        assertTrue(file.setLastModified(file.lastModified() + 5000));
+        assertTrue(listed.changedSinceListed());
+        // Without a listing there is nothing to compare against
+        assertFalse(WorldFile.from(BackupCandidates.OVERWORLD, world, file).changedSinceListed());
+    }
+
 }
