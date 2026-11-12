@@ -623,7 +623,8 @@ public class BackupRoutine {
                 candidates.addFile(match);
             }
         }
-        candidates.removeMatching(options.excludedBackupFiles, world.getName());
+        // The world was filtered before the snapshot; filtering it again would repeat its warnings
+        candidates.removeMatchingAdditional(options.excludedBackupFiles, world.getName());
     }
 
     private File prepareDestination(String filename, String extension) {

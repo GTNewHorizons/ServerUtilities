@@ -296,6 +296,20 @@ public class BackupCandidatesTest extends BackupFixtures.Tests {
     }
 
     @Test
+    public void removeMatchingAdditional_LeavesWorldFilesAlone() throws IOException {
+        File inWorld = write(world, "excluded.dat");
+        File extra = write(build, "extra/excluded.dat");
+        BackupCandidates candidates = BackupCandidates.scanWorld(world, backups, false);
+        candidates.addFile(extra);
+
+        candidates.removeMatchingAdditional(Collections.singletonList("**/excluded.dat"), world.getName());
+
+        Set<File> files = files(candidates);
+        assertTrue(files.contains(inWorld));
+        assertFalse(files.contains(extra));
+    }
+
+    @Test
     public void findMatching_SelectsOnlyMatchingFiles() throws IOException {
         File selected = write(build, "config/server.cfg");
         File ignored = write(build, "config/private.cfg/hidden.cfg");

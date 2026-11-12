@@ -157,7 +157,15 @@ public class BackupCandidates {
      * ignored. Region files are never removed: which regions are backed up is decided by the chunk selection.
      */
     public void removeMatching(Collection<String> patterns, String worldName) {
-        if (patterns.isEmpty()) return;
+        if (!patterns.isEmpty()) remove(excluded(patterns, worldName));
+    }
+
+    /** Like {@link #removeMatching}, but only for files introduced with {@link #addFile} (the world is left alone). */
+    public void removeMatchingAdditional(Collection<String> patterns, String worldName) {
+        if (!patterns.isEmpty()) additionalFiles.removeIf(excluded(patterns, worldName));
+    }
+
+    private Predicate<WorldFile> excluded(Collection<String> patterns, String worldName) {
         List<Predicate<Path>> matchers = new ArrayList<>();
         for (String pattern : patterns) {
             matchers.add(FileUtils.exactBackupMatcher(pattern.replace("$WORLDNAME", worldName)));
@@ -165,7 +173,7 @@ public class BackupCandidates {
 
         Path runFolder = Paths.get("").toAbsolutePath();
         Path levelDat = scanRoot == null ? null : scanRoot.toPath().resolve("level.dat").toAbsolutePath().normalize();
-        remove(file -> {
+        return file -> {
             if (file.name().equals(ICompress.BACKUP_METADATA_ENTRY)) return true;
             if (file.isRegionFile()) return false;
             Path absolute = file.backing().toPath().toAbsolutePath().normalize();
@@ -179,7 +187,7 @@ public class BackupCandidates {
                 }
             }
             return false;
-        });
+        };
     }
 
     /** {@code real} is the directory's real path, so it is resolved once and only where a link makes it differ. */
