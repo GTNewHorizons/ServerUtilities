@@ -115,6 +115,41 @@ public class BackupCandidatesTest extends BackupFixtures.Tests {
     }
 
     @Test
+    public void scan_FollowsWindowsJunctionsButNotIntoBackupStorage() throws Exception {
+        Assume.assumeTrue(System.getProperty("os.name").toLowerCase().startsWith("windows"));
+        File outside = FileUtils.ensureExists(new File(build, "outside"));
+        File kept = write(outside, "kept.dat");
+        write(backups, "old.zip");
+        File data = new File(world, "data");
+        File storage = new File(world, "storage");
+        // Junctions need no privilege on Windows, unlike symbolic links
+        try {
+            junction(data, outside);
+            junction(storage, backups);
+
+            Set<File> files = files(BackupCandidates.scanWorld(world, backups, false));
+
+            assertTrue(files.contains(new File(data, kept.getName())));
+            assertFalse(files.contains(new File(storage, "old.zip")));
+        } finally {
+            // Removes only the junctions, which the fixture's tree delete can't walk
+            Files.deleteIfExists(data.toPath());
+            Files.deleteIfExists(storage.toPath());
+        }
+    }
+
+    private static void junction(File link, File target) throws Exception {
+        Process process = new ProcessBuilder(
+                "cmd",
+                "/c",
+                "mklink",
+                "/J",
+                link.getAbsolutePath(),
+                target.getAbsolutePath()).redirectErrorStream(true).start();
+        Assume.assumeTrue("mklink /J failed", process.waitFor() == 0);
+    }
+
+    @Test
     public void scan_WhenWorldIsLink_ScansThroughIt() throws IOException {
         File inside = write(world, "data/inside.dat");
         File link = new File(saves, "linked-world");
