@@ -66,10 +66,20 @@ public final class WorldFile {
         return listedModified >= 0 ? listedModified : backing.lastModified();
     }
 
+    /** Whether {@link #mtime()} comes from the directory listing rather than a lookup of its own. */
+    public boolean isListed() {
+        return listedModified >= 0;
+    }
+
+    /** The modification time as it is now, read the same way as {@link #mtime()} so the two can be compared. */
+    public long currentMtime() throws IOException {
+        // On Java 8, File.lastModified() can drop the milliseconds the listing keeps.
+        return isListed() ? Files.getLastModifiedTime(backing.toPath()).toMillis() : backing.lastModified();
+    }
+
     /** Whether the file was modified after the listing saw it. False when no listing time was kept. */
     public boolean changedSinceListed() throws IOException {
-        // Same API as the listing: on Java 8, File.lastModified() can drop the milliseconds.
-        return listedModified >= 0 && Files.getLastModifiedTime(backing.toPath()).toMillis() != listedModified;
+        return isListed() && currentMtime() != listedModified;
     }
 
     public long size() {

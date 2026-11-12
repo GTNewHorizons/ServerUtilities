@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -52,6 +53,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -619,6 +621,85 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         assertNull(result.error);
         assertEquals(1, scanThreads.size());
         assertNotEquals(Long.valueOf(currentThreadId), scanThreads.get(0));
+    }
+
+    @Test
+    public void snapshotFiles_WhenFileChangesDuringCopy_FailsBackup() throws Exception {
+        options.snapshotMetaFiles = true;
+
+        File changing = new File(world, "level.dat") {
+
+            private boolean read;
+
+            @Override
+            public long lastModified() {
+                long modified = super.lastModified();
+                if (!read) {
+                    read = true;
+                    return modified;
+                }
+                return modified + 1000;
+            }
+        };
+
+        mockCandidates(changing);
+        BackupResult.Save result = routine.save();
+
+        assertTrue(result.error instanceof IOException);
+        assertTrue(result.error.getMessage().startsWith("File changed during backup snapshot"));
+        assertNull(result.destination);
+        assertNoTempFolders(null);
+        assertFalse(BackupRoutine.isWorldSavingSuspended());
+        verify(compressor, times(0)).addFileToArchive(any(), any());
+        verify(compressor, times(0)).addStreamToArchive(any(), any());
+    }
+
+    @Test
+    public void captureFile_WhenRewrittenWithSameLengthDuringCopy_NeverKeepsMixedBytes() throws Exception {
+        File payload = new File(world, "player.dat");
+        for (boolean listed : new boolean[] { true, false }) {
+            Files.write(payload.toPath(), new byte[] { 1, 1, 1 });
+            WorldFile file = WorldFile.from(BackupCandidates.OVERWORLD, world, payload);
+            // What a directory listing would have recorded
+            if (listed) file.listedModified = Files.getLastModifiedTime(payload.toPath()).toMillis();
+
+            ByteArrayOutputStream spool = new ByteArrayOutputStream();
+            OutputStream output = new OutputStream() {
+
+                private boolean changed;
+
+                @Override
+                public void write(int value) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public void write(byte[] bytes, int offset, int length) throws IOException {
+                    spool.write(bytes, offset, length);
+                    if (changed) return;
+                    changed = true;
+                    // Same length, so neither the size check nor the checksum can notice
+                    Files.write(payload.toPath(), new byte[] { 9, 9, 9 });
+                    assertTrue(payload.setLastModified(payload.lastModified() + 5000));
+                }
+            };
+
+            ZipEntry captured = new ZipEntry("player.dat");
+            if (!listed) {
+                // The time was read just before the copy, so the change happened during it
+                assertThrows(IOException.class, () -> BackupRoutine.captureFile(file, captured, output, new byte[1]));
+                continue;
+            }
+
+            // Changed since the listing: copied again, and the entry describes the clean second copy
+            long appended = BackupRoutine.captureFile(file, captured, output, new byte[1]);
+            assertEquals(6, appended);
+            assertArrayEquals(new byte[] { 1, 9, 9, 9, 9, 9 }, spool.toByteArray());
+            assertEquals(3, captured.getSize());
+            CRC32 expected = new CRC32();
+            expected.update(new byte[] { 9, 9, 9 });
+            assertEquals(expected.getValue(), captured.getCrc());
+        }
     }
 
     @Test

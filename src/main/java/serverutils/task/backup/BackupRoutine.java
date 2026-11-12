@@ -717,13 +717,33 @@ public class BackupRoutine {
         try (OutputStream output = new BufferedOutputStream(Files.newOutputStream(spoolFile.toPath()), buffer.length)) {
             for (WorldFile file : candidates.getFiles(isSnapshottable)) {
                 ZipEntry captured = new ZipEntry(FileUtils.getRelativePath(file.backing()));
-                captured.setTime(file.mtime());
-                copySnapshotFile(file.backing(), captured, output, buffer);
-                snapshot.put(captured.getName(), new SpoolEntry(captured, offset));
-                offset += captured.getSize();
+                offset += captureFile(file, captured, output, buffer);
+                snapshot.put(captured.getName(), new SpoolEntry(captured, offset - captured.getSize()));
             }
         }
         spool = spoolFile;
+    }
+
+    /**
+     * Appends a copy of the file that did not change while it was read, and returns how many bytes that took. A file
+     * that changed since it was listed is copied once more; the rejected bytes stay behind in the spool, unreferenced.
+     */
+    static long captureFile(WorldFile file, ZipEntry captured, OutputStream output, byte[] buffer) throws IOException {
+        long appended = 0;
+        // The time from the listing costs nothing; looking it up again before each copy would slow the server thread.
+        long before = file.mtime();
+        for (boolean retried = false;; retried = true) {
+            captured.setTime(before);
+            copySnapshotFile(file.backing(), captured, output, buffer);
+            appended += captured.getSize();
+            long after = file.currentMtime();
+            if (after == before) return appended;
+            // Size and checksum cannot tell a same-length rewrite from an untouched file; only the time can.
+            if (retried || !file.isListed()) {
+                throw new IOException("File changed during backup snapshot: " + file.backing());
+            }
+            before = after;
+        }
     }
 
     /** Appends the file to the spool and records its size and checksum on {@code captured}. */
