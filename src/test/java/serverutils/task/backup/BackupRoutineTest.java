@@ -3,9 +3,11 @@ package serverutils.task.backup;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -18,11 +20,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -48,6 +53,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -68,6 +74,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 
+import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.FileUtils;
@@ -290,9 +297,10 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             ZipEntry regionEntry = zip.getEntry(region.runtimeRelativePath());
             assertNotNull(regionEntry);
 
-            WorldRegion checkedRegion = uncompressRegion(zip, regionEntry, BackupCandidates.OVERWORLD);
-            checkedRegion.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
-            checkedRegion.read(1, 1, tag -> assertNull(tag.getString("value")));
+            try (WorldRegion checkedRegion = uncompressRegion(zip, regionEntry, BackupCandidates.OVERWORLD)) {
+                checkedRegion.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
+                checkedRegion.read(1, 1, tag -> assertNull(tag.getString("value")));
+            }
 
             ZipEntry unclaimedEntry = zip.getEntry(unclaimed.runtimeRelativePath());
             assertNull(unclaimedEntry);
@@ -319,15 +327,17 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             ZipEntry region1Entry = zip.getEntry(region1.runtimeRelativePath());
             assertNotNull(region1Entry);
 
-            WorldRegion checkedRegion1 = uncompressRegion(zip, region1Entry, BackupCandidates.OVERWORLD);
-            checkedRegion1.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
-            checkedRegion1.read(1, 1, tag -> assertEquals("test1.1", tag.getString("value")));
+            try (WorldRegion checkedRegion1 = uncompressRegion(zip, region1Entry, BackupCandidates.OVERWORLD)) {
+                checkedRegion1.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
+                checkedRegion1.read(1, 1, tag -> assertEquals("test1.1", tag.getString("value")));
+            }
 
             ZipEntry region2Entry = zip.getEntry(region2.runtimeRelativePath());
             assertNotNull(region2Entry);
 
-            WorldRegion checkedRegion2 = uncompressRegion(zip, region2Entry, BackupCandidates.OVERWORLD);
-            checkedRegion2.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
+            try (WorldRegion checkedRegion2 = uncompressRegion(zip, region2Entry, BackupCandidates.OVERWORLD)) {
+                checkedRegion2.read(0, 0, tag -> assertEquals("test0.0", tag.getString("value")));
+            }
         }
     }
 
@@ -561,6 +571,8 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             assertEquals(currentThreadId, threadId);
             return Collections.singletonList(WorldFile.from(BackupCandidates.OVERWORLD, world, metadataFile));
         });
+        when(candidateMock.getFiles())
+                .thenReturn(Collections.singletonList(WorldFile.from(BackupCandidates.OVERWORLD, world, metadataFile)));
 
         ExecutorService otherThread = Executors.newSingleThreadExecutor();
 
@@ -580,6 +592,35 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         }
 
         assertNull(result.error);
+    }
+
+    @Test
+    public void snapshotFiles_AdditionalFilesAreScannedOffTheMainThread() throws Exception {
+        options.snapshotMetaFiles = true;
+        options.useSeparateThread = true;
+        File extra = new File(build, "additional/extra.dat");
+        FileUtils.ensureExists(extra.getParentFile());
+        Files.write(extra.toPath(), new byte[] { 1 });
+        options.additionalBackupFiles = Collections.singletonList(FileUtils.getRelativePath(extra));
+
+        long currentThreadId = Thread.currentThread().getId();
+        List<Long> scanThreads = new ArrayList<>();
+        BackupCandidates candidateMock = mock(BackupCandidates.class);
+        doAnswer(call -> scanThreads.add(Thread.currentThread().getId())).when(candidateMock).addFile(any());
+
+        ExecutorService otherThread = Executors.newSingleThreadExecutor();
+        BackupResult.Save result;
+        try (MockedStatic<BackupCandidates> candidates = mockStatic(BackupCandidates.class)) {
+            candidates.when(() -> BackupCandidates.scanWorld(eq(world), eq(backups), anyBoolean()))
+                    .thenReturn(candidateMock);
+            result = routine.save(otherThread).get(5, TimeUnit.SECONDS);
+        } finally {
+            otherThread.shutdown();
+        }
+
+        assertNull(result.error);
+        assertEquals(1, scanThreads.size());
+        assertNotEquals(Long.valueOf(currentThreadId), scanThreads.get(0));
     }
 
     @Test
@@ -610,6 +651,89 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         assertNoTempFolders(null);
         assertFalse(BackupRoutine.isWorldSavingSuspended());
         verify(compressor, times(0)).addFileToArchive(any(), any());
+        verify(compressor, times(0)).addStreamToArchive(any(), any());
+    }
+
+    @Test
+    public void captureFile_WhenRewrittenWithSameLengthDuringCopy_NeverKeepsMixedBytes() throws Exception {
+        File payload = new File(world, "player.dat");
+        for (boolean listed : new boolean[] { true, false }) {
+            Files.write(payload.toPath(), new byte[] { 1, 1, 1 });
+            WorldFile file = WorldFile.from(BackupCandidates.OVERWORLD, world, payload);
+            // What a directory listing would have recorded
+            if (listed) file.listedModified = Files.getLastModifiedTime(payload.toPath()).toMillis();
+
+            ByteArrayOutputStream spool = new ByteArrayOutputStream();
+            OutputStream output = new OutputStream() {
+
+                private boolean changed;
+
+                @Override
+                public void write(int value) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public void write(byte[] bytes, int offset, int length) throws IOException {
+                    spool.write(bytes, offset, length);
+                    if (changed) return;
+                    changed = true;
+                    // Same length, so neither the size check nor the checksum can notice
+                    Files.write(payload.toPath(), new byte[] { 9, 9, 9 });
+                    assertTrue(payload.setLastModified(payload.lastModified() + 5000));
+                }
+            };
+
+            ZipEntry captured = new ZipEntry("player.dat");
+            if (!listed) {
+                // The time was read just before the copy, so the change happened during it
+                assertThrows(IOException.class, () -> BackupRoutine.captureFile(file, captured, output, new byte[1]));
+                continue;
+            }
+
+            // Changed since the listing: copied again, and the entry describes the clean second copy
+            long appended = BackupRoutine.captureFile(file, captured, output, new byte[1]);
+            assertEquals(6, appended);
+            assertArrayEquals(new byte[] { 1, 9, 9, 9, 9, 9 }, spool.toByteArray());
+            assertEquals(3, captured.getSize());
+            CRC32 expected = new CRC32();
+            expected.update(new byte[] { 9, 9, 9 });
+            assertEquals(expected.getValue(), captured.getCrc());
+        }
+    }
+
+    @Test
+    public void copySnapshotFile_WhenFileChangesDuringCopyOrIsMissing_Throws() throws Exception {
+        File payload = new File(world, "player.dat");
+        // Shrinks to 1 byte, grows to 8 bytes, or is gone before the copy starts
+        for (int size : new int[] { 1, 8, -1 }) {
+            Files.write(payload.toPath(), new byte[] { 1, 2, 3 });
+            if (size < 0) Files.delete(payload.toPath());
+            OutputStream output = new OutputStream() {
+
+                private boolean changed;
+
+                @Override
+                public void write(int value) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public void write(byte[] bytes, int offset, int length) throws IOException {
+                    if (changed) return;
+                    changed = true;
+                    try (RandomAccessFile writer = new RandomAccessFile(payload, "rw")) {
+                        writer.setLength(size);
+                    }
+                }
+            };
+
+            IOException failure = assertThrows(
+                    "size " + size,
+                    IOException.class,
+                    () -> BackupRoutine.copySnapshotFile(payload, new ZipEntry("player.dat"), output, new byte[1]));
+            if (size == 1) assertEquals("File shrank during backup snapshot: " + payload, failure.getMessage());
+        }
     }
 
     @Test
@@ -839,11 +963,13 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             BackupResult.Save result = new BackupRoutine(universe, options, () -> spy).save();
             assertNull(result.error);
 
-            // The level.dat snapshot and the trimmed region, both from one folder belonging to this run
-            assertEquals(fromTemp.toString(), 2, fromTemp.size());
+            // The trimmed region comes from this run's own folder; level.dat is streamed from its spool
+            assertEquals(fromTemp.toString(), 1, fromTemp.size());
             Path run = fromTemp.get(0).getName(0);
-            assertEquals(run, fromTemp.get(1).getName(0));
             assertNotEquals(Paths.get("backup-abandoned"), run);
+            verify(spy).addStreamToArchive(
+                    any(),
+                    argThat(entry -> entry.getName().equals(FileUtils.getRelativePath(new File(world, "level.dat")))));
 
             assertFalse(tempRoot.resolve(run).toFile().exists());
             assertTrue(abandoned.isFile());
@@ -891,11 +1017,16 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
         options.world = world;
 
         String[] stable = { "AE2/spawndata/0_0_0.dat",
-                "betterquesting/backup/3.8.75-GTNH/QuestDatabase_backup_3.8.75-GTNH.json" };
+                "betterquesting/backup/3.8.75-GTNH/QuestDatabase_backup_3.8.75-GTNH.json", "forcedchunks.dat",
+                "multipart.dat", "RedstoneEther/node1.dat", "RedstoneEther/dimMap.dat", "DIM7/forcedchunks.dat",
+                "DIM7/multipart.dat", "DIM7/RedstoneEther/fmap.dat", "buildcraft/zonemap/world/r0,0.nbt" };
         // Includes near misses of the stable patterns, which must still be snapshotted
-        String[] live = { "AE2/compass/0_0_0.dat", "AE2/settings.cfg", "buildcraft/zonemap/world/r0,0.nbt",
+        String[] live = { "AE2/compass/0_0_0.dat", "AE2/settings.cfg", "buildcraft/zonemap/r0,0.nbt",
                 "betterquesting/QuestDatabase.json", "QuestLoot.json", "AE2/spawndata/nested/unrecognized.dat",
-                "AE2/spawndata-extra/0_0_0.dat", "betterquesting/backup/3.8.75-GTNH/other.json" };
+                "AE2/spawndata-extra/0_0_0.dat", "betterquesting/backup/3.8.75-GTNH/other.json", "data/notes.txt",
+                "data/nested/villages.dat", "data/idcounts.dat", "data/villages.dat", "data/TG-SaveData.dat",
+                "DIM7/data/villages.dat", "RedstoneEther/fprop.dat", "AE2/forcedchunks.dat", "DIM7/extra/multipart.dat",
+                "DIM7/DIM7/forcedchunks.dat", "playerdata/player.dat" };
 
         int previousLevel = ServerUtilitiesConfig.backups.compression_level;
         try {
@@ -934,6 +1065,44 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             }
         } finally {
             ServerUtilitiesConfig.backups.compression_level = previousLevel;
+        }
+    }
+
+    @Test
+    public void snapshotFiles_RanksAndPlayersComeFromSnapshot() throws Exception {
+        options.snapshotMetaFiles = true;
+        options.useSeparateThread = true;
+        options.world = world;
+
+        File folder = new File(ServerUtilities.SERVER_FOLDER);
+        File[] files = { new File(folder, "ranks.txt"), new File(folder, "players.txt") };
+        for (File file : files) Assume.assumeFalse(file.exists());
+        boolean createdFolder = !folder.exists();
+        FileUtils.ensureExists(folder);
+        try {
+            for (File file : files) Files.write(file.toPath(), new byte[] { 1 });
+
+            ICompress spy = spy(new CommonsCompressor());
+            doAnswer(call -> {
+                for (File file : files) Files.write(file.toPath(), new byte[] { 99 });
+                return call.callRealMethod();
+            }).when(spy).createOutputStream(any());
+
+            BackupResult.Save result = new BackupRoutine(universe, options, () -> spy).save();
+            assertNull(result.error);
+
+            try (ZipFile zip = new ZipFile(result.destination)) {
+                for (File file : files) {
+                    ZipEntry entry = zip.getEntry(FileUtils.getRelativePath(file));
+                    assertNotNull(file.getName(), entry);
+                    try (InputStream in = zip.getInputStream(entry)) {
+                        assertArrayEquals(file.getName(), new byte[] { 1 }, IOUtils.toByteArray(in));
+                    }
+                }
+            }
+        } finally {
+            for (File file : files) Files.deleteIfExists(file.toPath());
+            if (createdFolder) folder.delete();
         }
     }
 
@@ -995,13 +1164,13 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             doAnswer(i -> {
                 File[] runs = tempFolders();
                 assertEquals(1, runs.length);
-                File snapshotFolder = new File(runs[0], "snapshot");
-                assertTrue(snapshotFolder.exists());
+                assertTrue(new File(runs[0], "snapshot/world-data.bin").isFile());
 
-                Path worldPath = world.toPath().toAbsolutePath().normalize();
+                // Snapshotted files reach the archive from the spool, never from the live file
                 for (File f : files.get()) {
-                    Path relative = worldPath.relativize(f.toPath().toAbsolutePath().normalize());
-                    assertTrue(new File(snapshotFolder, relative.toString()).exists());
+                    String name = FileUtils.getRelativePath(f);
+                    verify(compressor).addStreamToArchive(any(), argThat(entry -> entry.getName().equals(name)));
+                    verify(compressor, times(0)).addFileToArchive(any(), eq(name));
                 }
                 return null;
             }).when(compressor).close();

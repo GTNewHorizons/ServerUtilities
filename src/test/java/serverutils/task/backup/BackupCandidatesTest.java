@@ -115,6 +115,41 @@ public class BackupCandidatesTest extends BackupFixtures.Tests {
     }
 
     @Test
+    public void scan_FollowsWindowsJunctionsButNotIntoBackupStorage() throws Exception {
+        Assume.assumeTrue(System.getProperty("os.name").toLowerCase().startsWith("windows"));
+        File outside = FileUtils.ensureExists(new File(build, "outside"));
+        File kept = write(outside, "kept.dat");
+        write(backups, "old.zip");
+        File data = new File(world, "data");
+        File storage = new File(world, "storage");
+        // Junctions need no privilege on Windows, unlike symbolic links
+        try {
+            junction(data, outside);
+            junction(storage, backups);
+
+            Set<File> files = files(BackupCandidates.scanWorld(world, backups, false));
+
+            assertTrue(files.contains(new File(data, kept.getName())));
+            assertFalse(files.contains(new File(storage, "old.zip")));
+        } finally {
+            // Removes only the junctions, which the fixture's tree delete can't walk
+            Files.deleteIfExists(data.toPath());
+            Files.deleteIfExists(storage.toPath());
+        }
+    }
+
+    private static void junction(File link, File target) throws Exception {
+        Process process = new ProcessBuilder(
+                "cmd",
+                "/c",
+                "mklink",
+                "/J",
+                link.getAbsolutePath(),
+                target.getAbsolutePath()).redirectErrorStream(true).start();
+        Assume.assumeTrue("mklink /J failed", process.waitFor() == 0);
+    }
+
+    @Test
     public void scan_WhenWorldIsLink_ScansThroughIt() throws IOException {
         File inside = write(world, "data/inside.dat");
         File link = new File(saves, "linked-world");
@@ -261,6 +296,20 @@ public class BackupCandidatesTest extends BackupFixtures.Tests {
     }
 
     @Test
+    public void removeMatchingAdditional_LeavesWorldFilesAlone() throws IOException {
+        File inWorld = write(world, "excluded.dat");
+        File extra = write(build, "extra/excluded.dat");
+        BackupCandidates candidates = BackupCandidates.scanWorld(world, backups, false);
+        candidates.addFile(extra);
+
+        candidates.removeMatchingAdditional(Collections.singletonList("**/excluded.dat"), world.getName());
+
+        Set<File> files = files(candidates);
+        assertTrue(files.contains(inWorld));
+        assertFalse(files.contains(extra));
+    }
+
+    @Test
     public void findMatching_SelectsOnlyMatchingFiles() throws IOException {
         File selected = write(build, "config/server.cfg");
         File ignored = write(build, "config/private.cfg/hidden.cfg");
@@ -342,4 +391,21 @@ public class BackupCandidatesTest extends BackupFixtures.Tests {
     private static Set<File> files(BackupCandidates candidates) {
         return candidates.getFiles().stream().map(WorldFile::backing).collect(Collectors.toSet());
     }
+
+    @Test
+    public void changedSinceListed_OnlyAfterTheFileIsModified() throws IOException {
+        File file = new File(world, "data/villages.dat");
+        FileUtils.ensureExists(file.getParentFile());
+        Files.write(file.toPath(), new byte[] { 1 });
+
+        WorldFile listed = BackupCandidates.scanWorld(world, backups, true).getFiles().stream()
+                .filter(f -> f.backing().equals(file)).findFirst().get();
+        assertFalse(listed.changedSinceListed());
+
+        assertTrue(file.setLastModified(file.lastModified() + 5000));
+        assertTrue(listed.changedSinceListed());
+        // Without a listing there is nothing to compare against
+        assertFalse(WorldFile.from(BackupCandidates.OVERWORLD, world, file).changedSinceListed());
+    }
+
 }

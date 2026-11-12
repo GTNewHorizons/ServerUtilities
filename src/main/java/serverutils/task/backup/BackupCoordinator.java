@@ -209,6 +209,7 @@ public final class BackupCoordinator {
         work.whenComplete((value, error) -> {
             synchronized (LOCK) {
                 abandoned.remove(work);
+                if (abandonedBackup == work) abandonedBackup = null;
             }
         });
         return true;
@@ -282,7 +283,15 @@ public final class BackupCoordinator {
         return backupActive || stopping || isBackupAbandoned();
     }
 
+    /** Whether a backup worker that an earlier stop() gave up on is still running, which blocks new backups. */
+    public static boolean hasAbandonedBackup() {
+        synchronized (LOCK) {
+            return isBackupAbandoned();
+        }
+    }
+
     private static boolean isBackupAbandoned() {
+        // The field is cleared on completion, but that runs after the future is done
         return abandonedBackup != null && !abandonedBackup.isDone();
     }
 

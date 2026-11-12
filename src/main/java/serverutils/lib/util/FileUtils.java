@@ -315,8 +315,9 @@ public class FileUtils {
     }
 
     public static String getRelativePath(File file) {
-        Path filePath = file.toPath().toAbsolutePath();
-        return Paths.get("").toAbsolutePath().relativize(filePath).toString().replace('\\', '/');
+        // Java 8 relativize keeps "." segments, e.g. "./World" on dedicated servers.
+        Path filePath = file.toPath().toAbsolutePath().normalize();
+        return Paths.get("").toAbsolutePath().normalize().relativize(filePath).toString().replace('\\', '/');
     }
 
     /** Resolves links and Windows junctions, including existing ancestors of a not-yet-created file. */

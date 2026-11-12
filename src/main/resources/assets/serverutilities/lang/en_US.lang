@@ -636,6 +636,7 @@ commands.tree_base.available_subcommands=Available SubCommands: %s
 # Backup
 cmd.backup_start=Server Backup started!
 cmd.backup_stop=Server Backup stopped!
+cmd.backup_stop_pending=Backup work was cancelled, but some of it is still finishing in the background.
 cmd.backup_end_1=Server backup done in %s!
 cmd.backup_end_2=Server backup done in %s! (%s)
 cmd.backup_fail=Failed to save world! (%s)

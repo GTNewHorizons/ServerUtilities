@@ -16,8 +16,10 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -41,6 +43,8 @@ public final class ArchiveStore implements BackupStore<ArchiveEntry> {
             .withResolverStyle(ResolverStyle.STRICT);
 
     private final File folder;
+    /** When each listed archive was last modified, to tell a later replacement from the archive that was scanned. */
+    private final Map<File, Long> listedModified = new HashMap<>();
 
     public ArchiveStore(File folder) {
         this.folder = folder;
@@ -56,6 +60,8 @@ public final class ArchiveStore implements BackupStore<ArchiveEntry> {
             if (!file.getName().endsWith(".zip") || !Files.isRegularFile(file.toPath(), LinkOption.NOFOLLOW_LINKS))
                 continue;
             long size = Files.size(file.toPath());
+            // Before reading, so a replacement that lands mid-read cannot pass for the scanned archive
+            listedModified.put(file, Files.getLastModifiedTime(file.toPath()).toMillis());
             try {
                 archives.add(read(file, size));
             } catch (IOException | RuntimeException e) {
@@ -78,6 +84,13 @@ public final class ArchiveStore implements BackupStore<ArchiveEntry> {
         for (ArchiveEntry entry : entries) {
             long size = entry.file.length();
             try {
+                // Backups may run during retention, and one started with =overwrite reuses the name
+                Long listed = listedModified.get(entry.file);
+                if (listed != null && (size != entry.size()
+                        || Files.getLastModifiedTime(entry.file.toPath()).toMillis() != listed)) {
+                    ServerUtilities.LOGGER.info("Keeping {}: it was replaced after the retention scan", entry.file);
+                    continue;
+                }
                 Files.delete(entry.file.toPath());
                 ServerUtilities.LOGGER.info("Deleted old backup: {}", entry.file);
                 result.filesRemoved++;
@@ -183,10 +196,13 @@ public final class ArchiveStore implements BackupStore<ArchiveEntry> {
             if (!filename.equals("level.dat") && !filename.equals("level.dat_old")) continue;
             String prefix = name.substring(0, separator + 1);
             if (hasComment && !prefix.equals(worldName + "/") && !prefix.endsWith("/" + worldName + "/")) continue;
-            if (prefix.startsWith("/") || prefix.contains("\\")
-                    || prefix.contains(":")
-                    || prefix.contains("//")
-                    || prefix.matches("(^|.*/)\\.{1,2}(/.*|$)")) {
+            // Java 8 servers wrote entries as "./World/..."; accept that leading segment.
+            String checked = prefix.startsWith("./") ? prefix.substring(2) : prefix;
+            if (checked.isEmpty() || checked.startsWith("/")
+                    || checked.contains("\\")
+                    || checked.contains(":")
+                    || checked.contains("//")
+                    || checked.matches("(^|.*/)\\.{1,2}(/.*|$)")) {
                 throw new IOException("Unsafe world folder: " + prefix);
             }
             prefixes.add(prefix);

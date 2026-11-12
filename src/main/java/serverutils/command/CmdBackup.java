@@ -228,8 +228,10 @@ public class CmdBackup extends CmdTreeBase {
         @Override
         public void processCommand(ICommandSender sender, String[] args) {
             if (BackupCoordinator.isRunning()) {
-                BackupCoordinator.stop();
-                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_stop"));
+                // false when a worker outlived the timeout, so saying it stopped would be wrong
+                boolean stopped = BackupCoordinator.stop();
+                sender.addChatMessage(
+                        ServerUtilities.lang(sender, stopped ? "cmd.backup_stop" : "cmd.backup_stop_pending"));
             } else {
                 sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_not_running"));
             }

@@ -17,12 +17,15 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.io.File;
+import java.io.InterruptedIOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
@@ -44,10 +47,13 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
+import serverutils.task.backup.BackupCoordinator;
 import serverutils.task.backup.BackupFixtures;
 import serverutils.task.backup.BackupFixtures.FakeEntry;
 import serverutils.task.backup.BackupFixtures.FakeStore;
+import serverutils.task.backup.BackupResult;
 import serverutils.task.backup.BackupRetention;
+import serverutils.task.backup.BackupRoutine;
 import serverutils.task.backup.RetentionRoutine;
 
 public class CmdBackupTest extends BackupFixtures.Tests {
@@ -186,6 +192,33 @@ public class CmdBackupTest extends BackupFixtures.Tests {
     private static ChatComponentTranslation reply(List<ChatComponentTranslation> replies, String prefix) {
         return replies.stream().filter(reply -> reply.getKey().startsWith(prefix)).findFirst()
                 .orElseThrow(() -> new AssertionError("No reply " + prefix));
+    }
+
+    @Test
+    public void stop_WhenWorkerOutlivesTimeout_SaysItIsStillFinishing() throws Exception {
+        BackupFixtures.setStatic(BackupCoordinator.class, "STOP_TIMEOUT_SECONDS", 1L);
+        CompletableFuture<BackupResult.Save> stuck = new CompletableFuture<>();
+        BackupRoutine routine = mock(BackupRoutine.class);
+        doReturn(stuck).when(routine).save(any());
+        List<String> keys = new ArrayList<>();
+        ICommandSender sender = recordingSender(keys);
+        CmdBackup.CmdBackupStop stop = new CmdBackup.CmdBackupStop("stop");
+
+        try {
+            assertTrue(BackupCoordinator.startBackup(routine));
+            stop.processCommand(sender, new String[0]);
+            // Asked again while the abandoned worker still runs
+            stop.processCommand(sender, new String[0]);
+            stuck.complete(BackupResult.Save.failed(new InterruptedIOException("cancelled")));
+            stop.processCommand(sender, new String[0]);
+
+            assertEquals(
+                    Arrays.asList("cmd.backup_stop_pending", "cmd.backup_stop_pending", "cmd.backup_not_running"),
+                    keys);
+        } finally {
+            stuck.complete(BackupResult.Save.failed(new InterruptedIOException("cancelled")));
+            BackupFixtures.setStatic(BackupCoordinator.class, "STOP_TIMEOUT_SECONDS", 30L);
+        }
     }
 
     private static ICommandSender recordingSender(List<String> keys) {

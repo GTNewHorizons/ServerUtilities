@@ -1,6 +1,8 @@
 package serverutils.task.backup;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -16,6 +18,8 @@ public final class WorldFile {
     private final Kind kind;
     @Nullable
     public final String dimension;
+
+    long listedModified = -1;
 
     public WorldFile(@Nullable String dimension, String relativePath, File backing, Kind kind) {
         this.dimension = dimension;
@@ -57,8 +61,25 @@ public final class WorldFile {
         return kind == Kind.REGION;
     }
 
+    /** The modification time the directory listing reported, when one was kept, so no extra lookup is needed. */
     public long mtime() {
-        return backing.lastModified();
+        return listedModified >= 0 ? listedModified : backing.lastModified();
+    }
+
+    /** Whether {@link #mtime()} comes from the directory listing rather than a lookup of its own. */
+    public boolean isListed() {
+        return listedModified >= 0;
+    }
+
+    /** The modification time as it is now, read the same way as {@link #mtime()} so the two can be compared. */
+    public long currentMtime() throws IOException {
+        // On Java 8, File.lastModified() can drop the milliseconds the listing keeps.
+        return isListed() ? Files.getLastModifiedTime(backing.toPath()).toMillis() : backing.lastModified();
+    }
+
+    /** Whether the file was modified after the listing saw it. False when no listing time was kept. */
+    public boolean changedSinceListed() throws IOException {
+        return isListed() && currentMtime() != listedModified;
     }
 
     public long size() {

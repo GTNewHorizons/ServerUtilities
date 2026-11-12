@@ -36,7 +36,13 @@ public class BackupTask extends Task {
         BackupRoutine routine = new BackupRoutine(universe, options);
 
         if (!BackupCoordinator.startBackup(routine)) {
-            ServerUtilities.LOGGER.info("Did not execute scheduled backup, another backup was in progress.");
+            if (BackupCoordinator.hasAbandonedBackup()) {
+                // Can last until restart if the worker is stuck, so this must not go unnoticed
+                ServerUtilities.LOGGER.warn(
+                        "Did not execute scheduled backup: a backup stopped earlier is still running and blocks new ones until it finishes. Check the backup storage if this persists.");
+            } else {
+                ServerUtilities.LOGGER.info("Did not execute scheduled backup, another backup was in progress.");
+            }
         }
     }
 

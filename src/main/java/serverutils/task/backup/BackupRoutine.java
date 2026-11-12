@@ -4,17 +4,24 @@ import static serverutils.ServerUtilities.LOGGER;
 import static serverutils.ServerUtilitiesConfig.backups;
 import static serverutils.ServerUtilitiesNotifications.BACKUP;
 
+import java.io.BufferedOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.channels.Channels;
 import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.time.Duration;
 import java.time.Instant;
@@ -36,6 +43,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedInputStream;
+import java.util.zip.ZipEntry;
 
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
@@ -68,6 +78,9 @@ public class BackupRoutine {
     private static final Set<String> BQ_DATABASES = new HashSet<>(
             Arrays.asList("QuestDatabase", "QuestProgress", "QuestingParties", "NameCache", "LifeDatabase"));
 
+    private static final Set<String> WIRELESS_ETHER = new HashSet<>(
+            Arrays.asList("fmap.dat", "node1.dat", "node2.dat", "dimMap.dat"));
+
     private static volatile Instant lastSuccessfulBackup = Instant.MIN;
 
     // Use a lock + owner to perform thread-safe tracking of who can restore world saving once it's been suspended
@@ -79,8 +92,16 @@ public class BackupRoutine {
     private final CancellationToken cancellation = new CancellationToken();
     private final Map<String, Map<String, List<ChunkDimPos>>> dimToRegionToChunkPos = new HashMap<>();
 
-    /** Archive entry name -> copy taken while world saving was suspended. */
-    private final Map<String, File> snapshot = new HashMap<>();
+    /** Archive entry name -> where its bytes, captured while world saving was suspended, sit in the spool. */
+    private final Map<String, SpoolEntry> snapshot = new HashMap<>();
+    /**
+     * One file holding every snapshotted file back to back. Creating a copy per file is far slower, above all on
+     * Windows, and this runs on the server thread.
+     */
+    private File spool;
+    private FileChannel spoolChannel;
+    /** ranks.txt and players.txt: outside the world, but snapshotted with it. */
+    private final Set<File> serverFiles = new HashSet<>();
 
     static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN, Locale.ROOT);
 
@@ -294,7 +315,7 @@ public class BackupRoutine {
     /** Logs the timings, then cleans up even if logging fails. The timings are cleared by cleanup, so log first. */
     private void finish() {
         try {
-            logTiming();
+            logTiming("archive");
         } catch (RuntimeException e) {
             LOGGER.warn("Could not log backup timing", e);
         }
@@ -363,7 +384,7 @@ public class BackupRoutine {
             recordTiming("setup");
 
             if (options.snapshotMetaFiles && options.useSeparateThread) {
-                candidates = getCandidates();
+                candidates = getWorldCandidates();
                 snapshotFiles(candidates);
                 recordTiming("file snapshot");
             }
@@ -381,19 +402,23 @@ public class BackupRoutine {
             ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", e);
             result.error = e;
         } finally {
-            if (!prepared) {
-                logTiming();
-                cleanup();
-            }
+            // Logged here, so it only covers the pause before the archive is written.
+            logTiming("server-thread");
+            timings.clear();
+            if (!prepared) cleanup();
         }
         return prepared;
     }
 
     private void doSave(BackupResult.Save result) throws IOException {
         cancellation.enable();
+        startedAt = System.nanoTime();
+        timing = startedAt;
         boolean isIncremental = options.incremental;
 
-        if (candidates == null) candidates = getCandidates();
+        if (candidates == null) candidates = getWorldCandidates();
+        // Globbed here rather than before the snapshot, so large folders don't stall the server thread.
+        addAdditionalFiles(candidates, options.world);
         LOGGER.info("Performing {} backup of {} files...", isIncremental ? "incremental" : "full", candidates.count());
         if (isIncremental) {
             throw new UnsupportedOperationException("Incremental backups are not supported yet");
@@ -421,11 +446,18 @@ public class BackupRoutine {
                 options.customName != null);
 
         List<WorldFile> files = candidates.getFiles();
+        Path world = options.world.toPath().toAbsolutePath().normalize();
         int fileSize = files.size();
         long logTimer = System.currentTimeMillis();
 
         int regionCount = 0;
         int chunkCount = 0;
+
+        InputStream spoolInput = null;
+        if (spool != null) {
+            spoolChannel = FileChannel.open(spool.toPath(), StandardOpenOption.READ);
+            spoolInput = Channels.newInputStream(spoolChannel);
+        }
 
         for (int i = 0; i < fileSize; i++) {
             WorldFile file = files.get(i);
@@ -465,7 +497,19 @@ public class BackupRoutine {
                 continue;
             }
 
-            compressor.addFileToArchive(snapshot.getOrDefault(entry, file.backing()), entry);
+            SpoolEntry captured = snapshot.get(entry);
+            if (captured == null) {
+                compressor.addFileToArchive(file.backing(), entry);
+                // Stable files skip the snapshot on the promise that nothing rewrites them; say so if that was wrong.
+                if (spool != null && file.kind() == WorldFile.Kind.MISC
+                        && isStableModData(file, world)
+                        && file.changedSinceListed()) {
+                    LOGGER.warn("{} changed during the backup; its copy in this backup may be inconsistent", entry);
+                }
+            } else {
+                spoolChannel.position(captured.offset);
+                compressor.addStreamToArchive(spoolInput, new ZipEntry(captured.entry));
+            }
             result.newFiles++;
         }
 
@@ -525,6 +569,13 @@ public class BackupRoutine {
         }
 
         try {
+            // Before the temp folder goes: Windows cannot delete an open file.
+            if (spoolChannel != null) spoolChannel.close();
+        } catch (IOException e) {
+            LOGGER.warn("Could not close backup snapshot {}", spool, e);
+        }
+
+        try {
             if (tempFolder != null) FileUtils.delete(tempFolder);
         } catch (RuntimeException e) {
             LOGGER.warn("Could not delete temporary backup folder {}", tempFolder, e);
@@ -539,6 +590,9 @@ public class BackupRoutine {
 
         cancellation.clear();
         snapshot.clear();
+        spool = null;
+        spoolChannel = null;
+        serverFiles.clear();
         dimToRegionToChunkPos.clear();
         timings.clear();
         candidates = null;
@@ -553,25 +607,22 @@ public class BackupRoutine {
         timing = now;
     }
 
-    private void logTiming() {
+    private void logTiming(String stage) {
         StringBuilder timings = new StringBuilder();
         for (Map.Entry<String, Duration> entry : this.timings.entrySet()) {
             if (timings.length() > 0) timings.append("; ");
             timings.append(entry.getKey()).append('=').append(entry.getValue().toMillis()).append(" ms");
         }
         LOGGER.info(
-                "Backup server-thread timing: started={}; total={} ms; {}",
+                "Backup {} timing: started={}; total={} ms; {}",
+                stage,
                 startedAtInstant,
                 (System.nanoTime() - startedAt) / 1_000_000L,
                 timings);
     }
 
-    /** Adds the ranks files and everything matched by the configured additional_backup_files. */
+    /** Adds everything matched by the configured additional_backup_files, minus the exclusions. */
     private void addAdditionalFiles(BackupCandidates candidates, File world) throws IOException {
-        for (String name : new String[] { "ranks.txt", "players.txt" }) {
-            File file = new File(ServerUtilities.SERVER_FOLDER, name);
-            if (file.isFile()) candidates.addFile(file);
-        }
         for (String pattern : options.additionalBackupFiles) {
             List<File> matchedFiles = FileUtils.findMatching(
                     pattern.replace("$WORLDNAME", world.getName()),
@@ -583,6 +634,8 @@ public class BackupRoutine {
                 candidates.addFile(match);
             }
         }
+        // The world was filtered before the snapshot; filtering it again would repeat its warnings
+        candidates.removeMatchingAdditional(options.excludedBackupFiles, world.getName());
     }
 
     private File prepareDestination(String filename, String extension) {
@@ -597,7 +650,8 @@ public class BackupRoutine {
                 FileUtils.INCREMENTAL_APPEND);
     }
 
-    private BackupCandidates getCandidates() throws IOException {
+    /** The world's files plus the ranks files: everything a snapshot covers. */
+    private BackupCandidates getWorldCandidates() throws IOException {
         BackupCandidates candidates = BackupCandidates
                 .scanWorld(options.world, options.backupsDirectory, !options.incremental);
 
@@ -621,7 +675,13 @@ public class BackupRoutine {
             }
         }
 
-        addAdditionalFiles(candidates, options.world);
+        for (String name : new String[] { "ranks.txt", "players.txt" }) {
+            File file = new File(ServerUtilities.SERVER_FOLDER, name);
+            if (file.isFile()) {
+                candidates.addFile(file);
+                serverFiles.add(file);
+            }
+        }
         candidates.removeMatching(options.excludedBackupFiles, options.world.getName());
         return candidates;
     }
@@ -634,13 +694,12 @@ public class BackupRoutine {
         Path world = options.world.toPath().toAbsolutePath().normalize();
         Path realWorld = world.toRealPath();
         Map<Path, Boolean> worldDirectories = new HashMap<>();
-        File folder = FileUtils.ensureExists(new File(tempFolder, "snapshot"));
 
         Predicate<WorldFile> isSnapshottable = f -> {
             if (f.kind() != WorldFile.Kind.MISC) return false;
-            if (f.dimension == null) return false;
+            if (f.dimension == null) return serverFiles.contains(f.backing());
             if (FileUtils.isRegionFile(f.backing())) return false;
-            if (!isStableModData(f, world) || candidates.isLink(f)) return true;
+            if (!(isStableModData(f, world) || isRebuiltCache(f, world)) || candidates.isLink(f)) return true;
             // Candidates follow links, so confirm this really is the world's own file and not a link elsewhere
             return !worldDirectories
                     .computeIfAbsent(f.backing().toPath().toAbsolutePath().normalize().getParent(), dir -> {
@@ -652,19 +711,66 @@ public class BackupRoutine {
                     });
         };
 
-        for (WorldFile file : candidates.getFiles(isSnapshottable)) {
-            File source = file.backing();
-            // Mirror the world layout, no name is longer than the original, and paths can't collide
-            File copy = new File(folder, world.relativize(source.toPath().toAbsolutePath().normalize()).toString());
-            FileUtils.ensureExists(copy.getParentFile());
-            long size = source.length();
-            long modified = source.lastModified();
-            Files.copy(source.toPath(), copy.toPath(), StandardCopyOption.COPY_ATTRIBUTES);
-            if (source.length() != size || source.lastModified() != modified || copy.length() != size) {
-                throw new IOException("File changed during backup snapshot: " + source);
+        File spoolFile = new File(FileUtils.ensureExists(new File(tempFolder, "snapshot")), "world-data.bin");
+        byte[] buffer = new byte[64 * 1024];
+        long offset = 0;
+        try (OutputStream output = new BufferedOutputStream(Files.newOutputStream(spoolFile.toPath()), buffer.length)) {
+            for (WorldFile file : candidates.getFiles(isSnapshottable)) {
+                ZipEntry captured = new ZipEntry(FileUtils.getRelativePath(file.backing()));
+                offset += captureFile(file, captured, output, buffer);
+                snapshot.put(captured.getName(), new SpoolEntry(captured, offset - captured.getSize()));
             }
-            // store a reference to the new file based on its candidate path
-            snapshot.put(FileUtils.getRelativePath(file.backing()), copy);
+        }
+        spool = spoolFile;
+    }
+
+    /**
+     * Appends a copy of the file that did not change while it was read, and returns how many bytes that took. A file
+     * that changed since it was listed is copied once more; the rejected bytes stay behind in the spool, unreferenced.
+     */
+    static long captureFile(WorldFile file, ZipEntry captured, OutputStream output, byte[] buffer) throws IOException {
+        long appended = 0;
+        // The time from the listing costs nothing; looking it up again before each copy would slow the server thread.
+        long before = file.mtime();
+        for (boolean retried = false;; retried = true) {
+            captured.setTime(before);
+            copySnapshotFile(file.backing(), captured, output, buffer);
+            appended += captured.getSize();
+            long after = file.currentMtime();
+            if (after == before) return appended;
+            // Size and checksum cannot tell a same-length rewrite from an untouched file; only the time can.
+            if (retried || !file.isListed()) {
+                throw new IOException("File changed during backup snapshot: " + file.backing());
+            }
+            before = after;
+        }
+    }
+
+    /** Appends the file to the spool and records its size and checksum on {@code captured}. */
+    static void copySnapshotFile(File file, ZipEntry captured, OutputStream output, byte[] buffer) throws IOException {
+        try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
+            // A directory listing can report a stale size while another writer has the file open; ask the handle.
+            captured.setSize(channel.size());
+            CheckedInputStream input = new CheckedInputStream(Channels.newInputStream(channel), new CRC32());
+            try {
+                ICompress.copyExactly(input, output, captured.getSize(), buffer);
+            } catch (EOFException shrunk) {
+                // copyExactly reports this as a truncated snapshot, but here it is the live file that shrank
+                throw new IOException("File shrank during backup snapshot: " + file, shrunk);
+            }
+            if (input.read() != -1) throw new IOException("File grew during backup snapshot: " + file);
+            captured.setCrc(input.getChecksum().getValue());
+        }
+    }
+
+    private static final class SpoolEntry {
+
+        final ZipEntry entry;
+        final long offset;
+
+        SpoolEntry(ZipEntry entry, long offset) {
+            this.entry = entry;
+            this.offset = offset;
         }
     }
 
@@ -689,7 +795,36 @@ public class BackupRoutine {
             String suffix = "_backup_" + relative.getName(2) + ".json";
             return name.endsWith(suffix) && BQ_DATABASES.contains(name.substring(0, name.length() - suffix.length()));
         }
+
+        // The rest exists once per dimension folder, so match below the file's own dimension root.
+        Path local = relative;
+        if (relative.getNameCount() > 1 && relative.getName(0).toString().equals(file.dimension)) {
+            local = relative.subpath(1, relative.getNameCount());
+        }
+        if (local.getNameCount() == 1) {
+            // Forge writes chunk tickets on the world save event only. ForgeMultipart discards what it reads back
+            // from multipart.dat, so its contents never matter.
+            return name.equals("forcedchunks.dat") || name.equals("multipart.dat");
+        }
+        // Not the data folders: saved data is only written by a world save, but anything may keep its own file
+        // there. Vanilla rewrites idcounts.dat on demand, Hodgepodge rewrites or deletes TG-SaveData.dat on login.
+        if (local.getNameCount() == 2 && local.startsWith("RedstoneEther")) {
+            // Wireless Redstone writes these on the world save event; its property files can change at any time.
+            return WIRELESS_ETHER.contains(name);
+        }
         return false;
+    }
+
+    /**
+     * Caches a mod rebuilds by itself, so a copy caught mid-write costs nothing. BuildCraft saves its zone maps from
+     * its own thread at any time, redraws them as chunks load and drops any it cannot read.
+     */
+    private static boolean isRebuiltCache(WorldFile file, Path world) {
+        Path path = file.backing().toPath().toAbsolutePath().normalize();
+        if (!path.startsWith(world)) return false;
+        Path relative = world.relativize(path);
+        return relative.getNameCount() == 4 && relative.startsWith(Paths.get("buildcraft", "zonemap"))
+                && file.name().endsWith(".nbt");
     }
 
     /** The claimed chunks inside this region file, or null if it is not a region file or holds no claims. */
