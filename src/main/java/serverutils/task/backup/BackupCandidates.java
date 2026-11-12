@@ -219,10 +219,15 @@ public class BackupCandidates {
                     }
 
                     if (attributes.isDirectory()) {
-                        if (isSaveRoot && FileUtils.isDimensionFolder(child)) {
-                            scan(child, child, child.getName(), storage);
-                        } else {
-                            scan(child, dimensionRoot, dimension, storage);
+                        try {
+                            if (isSaveRoot && FileUtils.isDimensionFolder(child)) {
+                                scan(child, child, child.getName(), storage);
+                            } else {
+                                scan(child, dimensionRoot, dimension, storage);
+                            }
+                        } catch (NoSuchFileException gone) {
+                            // Removed since it was listed. Something missing further down must still fail the scan.
+                            if (Files.exists(path)) throw gone;
                         }
                     } else if (attributes.isRegularFile()) {
                         // Only a link can leave this directory, which is already known to be outside backup storage.
@@ -240,7 +245,11 @@ public class BackupCandidates {
 
                 @Override
                 public FileVisitResult visitFileFailed(Path path, IOException failure) throws IOException {
-                    if (path.equals(real)) throw new IOException("Cannot list backup directory: " + directory, failure);
+                    if (path.equals(real)) {
+                        // Left as is, so the parent directory's scan can tell this directory was removed
+                        if (failure instanceof NoSuchFileException) throw failure;
+                        throw new IOException("Cannot list backup directory: " + directory, failure);
+                    }
                     // Removed since it was listed
                     if (failure instanceof NoSuchFileException) return FileVisitResult.CONTINUE;
                     throw failure;
