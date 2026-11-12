@@ -699,7 +699,7 @@ public class BackupRoutine {
             if (f.kind() != WorldFile.Kind.MISC) return false;
             if (f.dimension == null) return serverFiles.contains(f.backing());
             if (FileUtils.isRegionFile(f.backing())) return false;
-            if (!isStableModData(f, world) || candidates.isLink(f)) return true;
+            if (!(isStableModData(f, world) || isRebuiltCache(f, world)) || candidates.isLink(f)) return true;
             // Candidates follow links, so confirm this really is the world's own file and not a link elsewhere
             return !worldDirectories
                     .computeIfAbsent(f.backing().toPath().toAbsolutePath().normalize().getParent(), dir -> {
@@ -795,6 +795,18 @@ public class BackupRoutine {
             return WIRELESS_ETHER.contains(name);
         }
         return false;
+    }
+
+    /**
+     * Caches a mod rebuilds by itself, so a copy caught mid-write costs nothing. BuildCraft saves its zone maps from
+     * its own thread at any time, redraws them as chunks load and drops any it cannot read.
+     */
+    private static boolean isRebuiltCache(WorldFile file, Path world) {
+        Path path = file.backing().toPath().toAbsolutePath().normalize();
+        if (!path.startsWith(world)) return false;
+        Path relative = world.relativize(path);
+        return relative.getNameCount() == 4 && relative.startsWith(Paths.get("buildcraft", "zonemap"))
+                && file.name().endsWith(".nbt");
     }
 
     /** The claimed chunks inside this region file, or null if it is not a region file or holds no claims. */
