@@ -101,6 +101,27 @@ public class ArchiveStoreTest extends BackupFixtures.Tests {
     }
 
     @Test
+    public void delete_WhenArchiveReplacedSinceList_KeepsReplacement() throws IOException {
+        File replaced = new File(backups, "custom.zip");
+        File old = new File(backups, "old.zip");
+        BackupFixtures.writeArchive(replaced, WORLD, 1_000);
+        BackupFixtures.writeArchive(old, WORLD, 2_000);
+        ArchiveStore store = new ArchiveStore(backups);
+        List<ArchiveEntry> entries = store.list();
+
+        // A backup started with =overwrite publishes under the name retention has already scanned
+        BackupFixtures.writeArchive(replaced, WORLD, 3_000);
+        assertTrue(replaced.setLastModified(replaced.lastModified() + 5000));
+
+        BackupResult.Retention result = new BackupResult.Retention();
+        store.delete(entries, result);
+
+        assertTrue(replaced.isFile());
+        assertFalse(old.exists());
+        assertEquals(1, result.filesRemoved);
+    }
+
+    @Test
     public void list_WhenInterrupted_Throws() throws IOException {
         BackupFixtures.writeArchive(new File(backups, "archive.zip"), WORLD, 1_000);
 
