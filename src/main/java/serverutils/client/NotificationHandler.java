@@ -35,6 +35,7 @@ import cpw.mods.fml.relauncher.Side;
 import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesNotifications;
 import serverutils.lib.EnumMessageLocation;
+import serverutils.lib.OtherMods;
 import serverutils.lib.client.GlStateManager;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.ConfigString;
@@ -272,6 +273,9 @@ public class NotificationHandler {
             if (alpha <= 2) {
                 return;
             }
+            if (OtherMods.isDashboardLoaded() && !DashboardHud.beginNotification(screen)) {
+                return;
+            }
 
             GlStateManager.pushMatrix();
             GlStateManager.disableDepth();
@@ -298,6 +302,9 @@ public class NotificationHandler {
             GlStateManager.enableLighting();
             GlStateManager.popMatrix();
             GlStateManager.enableDepth();
+            if (OtherMods.isDashboardLoaded()) {
+                DashboardHud.endNotification();
+            }
         }
 
         private boolean tick() {

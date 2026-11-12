@@ -30,7 +30,7 @@ import serverutils.lib.command.CommandUtils;
         modid = ServerUtilities.MOD_ID,
         name = ServerUtilities.MOD_NAME,
         version = ServerUtilities.VERSION,
-        dependencies = "required-after:gtnhlib;" + "after:navigator;")
+        dependencies = "required-after:gtnhlib;" + "after:navigator;" + "after:dashboard@[1.0.12,);")
 public class ServerUtilities {
 
     public static final String MOD_ID = "serverutilities";
