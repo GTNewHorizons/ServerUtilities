@@ -17,6 +17,8 @@ public final class WorldFile {
     @Nullable
     public final String dimension;
 
+    long listedModified = -1;
+
     public WorldFile(@Nullable String dimension, String relativePath, File backing, Kind kind) {
         this.dimension = dimension;
         this.relativePath = relativePath;
@@ -57,8 +59,9 @@ public final class WorldFile {
         return kind == Kind.REGION;
     }
 
+    /** The modification time the directory listing reported, when one was kept, so no extra lookup is needed. */
     public long mtime() {
-        return backing.lastModified();
+        return listedModified >= 0 ? listedModified : backing.lastModified();
     }
 
     public long size() {

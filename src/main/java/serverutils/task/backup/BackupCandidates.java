@@ -218,6 +218,7 @@ public class BackupCandidates {
                         if (link && FileUtils.isInsideAny(path.toRealPath(), storage)) return FileVisitResult.CONTINUE;
                         WorldFile file = WorldFile
                                 .from(dimension, dimensionRoot, relativeToWorld ? scanRoot : dimensionRoot, child);
+                        file.listedModified = attributes.lastModifiedTime().toMillis();
                         if (known.add(child.toPath().toAbsolutePath().normalize())) {
                             files.add(file);
                             if (link) links.add(child);

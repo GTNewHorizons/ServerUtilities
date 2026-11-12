@@ -3,9 +3,11 @@ package serverutils.task.backup;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -23,6 +25,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -565,6 +569,8 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             assertEquals(currentThreadId, threadId);
             return Collections.singletonList(WorldFile.from(BackupCandidates.OVERWORLD, world, metadataFile));
         });
+        when(candidateMock.getFiles())
+                .thenReturn(Collections.singletonList(WorldFile.from(BackupCandidates.OVERWORLD, world, metadataFile)));
 
         ExecutorService otherThread = Executors.newSingleThreadExecutor();
 
@@ -616,33 +622,36 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
     }
 
     @Test
-    public void snapshotFiles_WhenFileChangesDuringCopy_FailsBackup() throws Exception {
-        options.snapshotMetaFiles = true;
+    public void copySnapshotFile_WhenFileChangesDuringCopyOrIsMissing_Throws() throws Exception {
+        File payload = new File(world, "player.dat");
+        // Shrinks to 1 byte, grows to 8 bytes, or is gone before the copy starts
+        for (int size : new int[] { 1, 8, -1 }) {
+            Files.write(payload.toPath(), new byte[] { 1, 2, 3 });
+            if (size < 0) Files.delete(payload.toPath());
+            OutputStream output = new OutputStream() {
 
-        File changing = new File(world, "level.dat") {
+                private boolean changed;
 
-            private boolean read;
-
-            @Override
-            public long lastModified() {
-                long modified = super.lastModified();
-                if (!read) {
-                    read = true;
-                    return modified;
+                @Override
+                public void write(int value) {
+                    throw new UnsupportedOperationException();
                 }
-                return modified + 1000;
-            }
-        };
 
-        mockCandidates(changing);
-        BackupResult.Save result = routine.save();
+                @Override
+                public void write(byte[] bytes, int offset, int length) throws IOException {
+                    if (changed) return;
+                    changed = true;
+                    try (RandomAccessFile writer = new RandomAccessFile(payload, "rw")) {
+                        writer.setLength(size);
+                    }
+                }
+            };
 
-        assertTrue(result.error instanceof IOException);
-        assertTrue(result.error.getMessage().startsWith("File changed during backup snapshot"));
-        assertNull(result.destination);
-        assertNoTempFolders(null);
-        assertFalse(BackupRoutine.isWorldSavingSuspended());
-        verify(compressor, times(0)).addFileToArchive(any(), any());
+            assertThrows(
+                    "size " + size,
+                    IOException.class,
+                    () -> BackupRoutine.copySnapshotFile(payload, new ZipEntry("player.dat"), output, new byte[1]));
+        }
     }
 
     @Test
@@ -872,11 +881,13 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             BackupResult.Save result = new BackupRoutine(universe, options, () -> spy).save();
             assertNull(result.error);
 
-            // The level.dat snapshot and the trimmed region, both from one folder belonging to this run
-            assertEquals(fromTemp.toString(), 2, fromTemp.size());
+            // The trimmed region comes from this run's own folder; level.dat is streamed from its spool
+            assertEquals(fromTemp.toString(), 1, fromTemp.size());
             Path run = fromTemp.get(0).getName(0);
-            assertEquals(run, fromTemp.get(1).getName(0));
             assertNotEquals(Paths.get("backup-abandoned"), run);
+            verify(spy).addStreamToArchive(
+                    any(),
+                    argThat(entry -> entry.getName().equals(FileUtils.getRelativePath(new File(world, "level.dat")))));
 
             assertFalse(tempRoot.resolve(run).toFile().exists());
             assertTrue(abandoned.isFile());
@@ -1066,13 +1077,13 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
             doAnswer(i -> {
                 File[] runs = tempFolders();
                 assertEquals(1, runs.length);
-                File snapshotFolder = new File(runs[0], "snapshot");
-                assertTrue(snapshotFolder.exists());
+                assertTrue(new File(runs[0], "snapshot/world-data.bin").isFile());
 
-                Path worldPath = world.toPath().toAbsolutePath().normalize();
+                // Snapshotted files reach the archive from the spool, never from the live file
                 for (File f : files.get()) {
-                    Path relative = worldPath.relativize(f.toPath().toAbsolutePath().normalize());
-                    assertTrue(new File(snapshotFolder, relative.toString()).exists());
+                    String name = FileUtils.getRelativePath(f);
+                    verify(compressor).addStreamToArchive(any(), argThat(entry -> entry.getName().equals(name)));
+                    verify(compressor, times(0)).addFileToArchive(any(), eq(name));
                 }
                 return null;
             }).when(compressor).close();
