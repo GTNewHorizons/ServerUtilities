@@ -236,6 +236,7 @@ public class BackupCoordinatorTest extends BackupFixtures.Tests {
             assertFalse(BackupCoordinator.startBackup(next));
             verify(next, never()).save(any());
             assertTrue(BackupCoordinator.isRunning());
+            assertTrue(BackupCoordinator.hasAbandonedBackup());
 
             // A later stop has nothing of its own to wait for, and must not forget the abandoned worker
             assertFalse(BackupCoordinator.stop());
@@ -243,6 +244,7 @@ public class BackupCoordinatorTest extends BackupFixtures.Tests {
             verify(next, never()).save(any());
 
             stuck.complete(BackupResult.Save.failed(new InterruptedIOException("cancelled")));
+            assertFalse(BackupCoordinator.hasAbandonedBackup());
             assertFalse(BackupCoordinator.isRunning());
             assertTrue(BackupCoordinator.startBackup(next));
             verify(next).save(any());
