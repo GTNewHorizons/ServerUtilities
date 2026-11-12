@@ -786,11 +786,8 @@ public class BackupRoutine {
             // from multipart.dat, so its contents never matter.
             return name.equals("forcedchunks.dat") || name.equals("multipart.dat");
         }
-        if (local.getNameCount() == 2 && local.startsWith("data")) {
-            // WorldSavedData is only written as part of a world save. The ID counter is not: vanilla rewrites it the
-            // moment a new map (or other unique ID) is handed out.
-            return name.endsWith(".dat") && !name.equals("idcounts.dat");
-        }
+        // Not the data folders: saved data is only written by a world save, but anything may keep its own file
+        // there. Vanilla rewrites idcounts.dat on demand, Hodgepodge rewrites or deletes TG-SaveData.dat on login.
         if (local.getNameCount() == 2 && local.startsWith("RedstoneEther")) {
             // Wireless Redstone writes these on the world save event; its property files can change at any time.
             return WIRELESS_ETHER.contains(name);

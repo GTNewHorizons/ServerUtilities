@@ -937,16 +937,15 @@ public class BackupRoutineTest extends BackupFixtures.Tests {
 
         String[] stable = { "AE2/spawndata/0_0_0.dat",
                 "betterquesting/backup/3.8.75-GTNH/QuestDatabase_backup_3.8.75-GTNH.json", "forcedchunks.dat",
-                "multipart.dat", "data/villages.dat", "RedstoneEther/node1.dat", "RedstoneEther/dimMap.dat",
-                "DIM7/forcedchunks.dat", "DIM7/multipart.dat", "DIM7/data/villages.dat", "DIM7/RedstoneEther/fmap.dat",
-                "buildcraft/zonemap/world/r0,0.nbt" };
+                "multipart.dat", "RedstoneEther/node1.dat", "RedstoneEther/dimMap.dat", "DIM7/forcedchunks.dat",
+                "DIM7/multipart.dat", "DIM7/RedstoneEther/fmap.dat", "buildcraft/zonemap/world/r0,0.nbt" };
         // Includes near misses of the stable patterns, which must still be snapshotted
         String[] live = { "AE2/compass/0_0_0.dat", "AE2/settings.cfg", "buildcraft/zonemap/r0,0.nbt",
                 "betterquesting/QuestDatabase.json", "QuestLoot.json", "AE2/spawndata/nested/unrecognized.dat",
                 "AE2/spawndata-extra/0_0_0.dat", "betterquesting/backup/3.8.75-GTNH/other.json", "data/notes.txt",
-                "data/nested/villages.dat", "data/idcounts.dat", "DIM7/data/idcounts.dat", "RedstoneEther/fprop.dat",
-                "AE2/forcedchunks.dat", "DIM7/extra/multipart.dat", "DIM7/DIM7/forcedchunks.dat",
-                "playerdata/player.dat" };
+                "data/nested/villages.dat", "data/idcounts.dat", "data/villages.dat", "data/TG-SaveData.dat",
+                "DIM7/data/villages.dat", "RedstoneEther/fprop.dat", "AE2/forcedchunks.dat", "DIM7/extra/multipart.dat",
+                "DIM7/DIM7/forcedchunks.dat", "playerdata/player.dat" };
 
         int previousLevel = ServerUtilitiesConfig.backups.compression_level;
         try {
