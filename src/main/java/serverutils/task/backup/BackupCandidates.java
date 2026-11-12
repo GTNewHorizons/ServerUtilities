@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -196,6 +197,16 @@ public class BackupCandidates {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes listed) throws IOException {
                     File child = new File(directory, path.getFileName().toString());
+                    try {
+                        // A name the platform charset can't decode (e.g. non-ASCII under LANG=C) can't be read back
+                        child.toPath();
+                    } catch (InvalidPathException undecodable) {
+                        LOGGER.warn(
+                                "Skipping {} in backup: its name cannot be decoded ({})",
+                                path,
+                                undecodable.getMessage());
+                        return FileVisitResult.CONTINUE;
+                    }
                     // Windows junctions may be reported as other reparse points rather than symbolic links.
                     boolean link = listed.isSymbolicLink() || listed.isOther();
                     BasicFileAttributes attributes = listed;
