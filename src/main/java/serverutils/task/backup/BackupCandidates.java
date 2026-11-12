@@ -62,7 +62,7 @@ public class BackupCandidates {
         }
         BackupCandidates candidates = new BackupCandidates(relativeToWorld);
         candidates.scanRoot = dir;
-        candidates.scan(dir, dir, OVERWORLD, storage);
+        candidates.scan(dir, dir.toPath().toRealPath(), dir, OVERWORLD, storage);
         return candidates;
     }
 
@@ -182,8 +182,9 @@ public class BackupCandidates {
         });
     }
 
-    private void scan(File directory, File dimensionRoot, String dimension, List<Path> storage) throws IOException {
-        Path real = directory.toPath().toRealPath();
+    /** {@code real} is the directory's real path, so it is resolved once and only where a link makes it differ. */
+    private void scan(File directory, Path real, File dimensionRoot, String dimension, List<Path> storage)
+            throws IOException {
         if (FileUtils.isInsideAny(real, storage)) return;
 
         if (!ancestors.add(real)) return;
@@ -220,10 +221,12 @@ public class BackupCandidates {
 
                     if (attributes.isDirectory()) {
                         try {
+                            // The walk starts from the real path, so only a link's target needs resolving
+                            Path childReal = link ? path.toRealPath() : path;
                             if (isSaveRoot && FileUtils.isDimensionFolder(child)) {
-                                scan(child, child, child.getName(), storage);
+                                scan(child, childReal, child, child.getName(), storage);
                             } else {
-                                scan(child, dimensionRoot, dimension, storage);
+                                scan(child, childReal, dimensionRoot, dimension, storage);
                             }
                         } catch (NoSuchFileException gone) {
                             // Removed since it was listed. Something missing further down must still fail the scan.
