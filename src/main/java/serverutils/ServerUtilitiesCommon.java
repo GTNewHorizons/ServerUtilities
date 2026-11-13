@@ -44,6 +44,7 @@ import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
 import serverutils.lib.net.MessageToClient;
 import serverutils.lib.util.ServerUtils;
+import serverutils.lib.util.TextVariables;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.ServerUtilitiesNetHandler;
 import serverutils.ranks.ICommandWithPermission;
@@ -146,6 +147,7 @@ public class ServerUtilitiesCommon {
 
     public void onServerStarted(FMLServerStartedEvent event) {
         Universe.onServerStarted(event);
+        TextVariables.serverStarted();
         registerTasks();
 
         if (ranks.enabled && ranks.command_permissions) {
