@@ -21,6 +21,7 @@ public class TeleporterDimPos {
 
     public final double posX, posY, posZ;
     public final int dim;
+    private final Float yaw, pitch;
 
     public static TeleporterDimPos of(double x, double y, double z, int dim) {
         return new TeleporterDimPos(x, y, z, dim);
@@ -35,10 +36,20 @@ public class TeleporterDimPos {
     }
 
     private TeleporterDimPos(double x, double y, double z, int d) {
+        this(x, y, z, d, null, null);
+    }
+
+    private TeleporterDimPos(double x, double y, double z, int d, Float yaw, Float pitch) {
         posX = x;
         posY = y;
         posZ = z;
         dim = d;
+        this.yaw = yaw;
+        this.pitch = pitch;
+    }
+
+    public TeleporterDimPos withRotation(float yaw, float pitch) {
+        return new TeleporterDimPos(posX, posY, posZ, dim, yaw, pitch);
     }
 
     public BlockDimPos block() {
@@ -46,6 +57,8 @@ public class TeleporterDimPos {
     }
 
     public void placeEntity(Entity entity, float yaw) {
+        if (this.yaw != null) yaw = this.yaw;
+        float pitch = this.pitch == null ? entity.rotationPitch : this.pitch;
         entity.motionX = entity.motionY = entity.motionZ = 0D;
         entity.fallDistance = 0F;
 
@@ -61,9 +74,9 @@ public class TeleporterDimPos {
                                 true,
                                 ALL_CHUNK_SECTIONS_MASK));
             }
-            playerMP.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, entity.rotationPitch);
+            playerMP.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, pitch);
         } else {
-            entity.setLocationAndAngles(posX, posY, posZ, yaw, entity.rotationPitch);
+            entity.setLocationAndAngles(posX, posY, posZ, yaw, pitch);
         }
 
         entity.worldObj.updateEntityWithOptionalForce(entity, false);
