@@ -37,6 +37,7 @@ import serverutils.command.ServerUtilitiesCommands;
 import serverutils.data.ServerUtilitiesLoadedChunkManager;
 import serverutils.events.ServerReloadEvent;
 import serverutils.handlers.ServerUtilitiesServerEventHandler;
+import serverutils.handlers.TabProfileTracker;
 import serverutils.lib.OtherMods;
 import serverutils.lib.config.ConfigGroup;
 import serverutils.lib.config.IConfigCallback;
@@ -182,6 +183,7 @@ public class ServerUtilitiesCommon {
         MinecraftForge.EVENT_BUS.unregister(oldUniverse);
         FMLCommonHandler.instance().bus().unregister(oldUniverse);
         ServerUtilitiesServerEventHandler.clearServerTasks();
+        TabProfileTracker.clear();
     }
 
     public void registerTasks() {
