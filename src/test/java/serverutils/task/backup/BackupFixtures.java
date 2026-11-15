@@ -57,7 +57,7 @@ public final class BackupFixtures {
 
     static final UUID UUID = java.util.UUID.randomUUID();
 
-    static void setupDefaultOptions() {
+    public static void setupDefaultOptions() {
         ServerUtilitiesConfig.backups.backup_folder_path = "build/test-backups";
         ServerUtilitiesConfig.backups.additional_backup_files = new String[0];
         ServerUtilitiesConfig.backups.excluded_backup_files = new String[0];
