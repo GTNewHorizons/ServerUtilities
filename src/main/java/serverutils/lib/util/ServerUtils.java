@@ -18,8 +18,10 @@ import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import crazypants.enderio.machine.farm.FakeFarmPlayer;
+import serverutils.ServerUtilitiesPermissions;
 import serverutils.client.NotificationHandler;
 import serverutils.lib.OtherMods;
+import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageNotification;
 
 public class ServerUtils {
@@ -117,5 +119,10 @@ public class ServerUtils {
     public static boolean isVanished(Entity entity) {
         if (!(entity instanceof EntityPlayerMP player)) return false;
         return NBTUtils.getPersistedData(player, true).getBoolean("vanish");
+    }
+
+    public static boolean canSee(EntityPlayerMP viewer, @Nullable EntityPlayerMP subject) {
+        return viewer == subject || !isVanished(subject)
+                || PermissionAPI.hasPermission(viewer, ServerUtilitiesPermissions.SEE_VANISH);
     }
 }

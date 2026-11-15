@@ -30,12 +30,18 @@ import net.minecraft.world.WorldServer;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class BackupRoutineWorldSavingTest {
 
     private WorldServer world;
     private final Object owner = new Object();
+
+    @BeforeClass
+    public static void beforeAll() {
+        BackupFixtures.setupDefaultOptions();
+    }
 
     @Before
     public void beforeEach() throws ReflectiveOperationException {

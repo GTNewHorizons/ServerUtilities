@@ -240,6 +240,8 @@ public class ServerUtilitiesServerEventHandler {
                 ClaimedChunks.instance.update(universe, now);
             }
         } else {
+            TabProfileTracker.tick(universe.server);
+
             EntityPlayerMP playerToKickForAfk = null; // Do one at time, easier
             boolean afkEnabled = ServerUtilitiesConfig.afk.isEnabled(universe.server);
 
@@ -272,7 +274,7 @@ public class ServerUtilitiesServerEventHandler {
 
                     if (prevIsAfk != isAFK) {
                         if (ServerUtilitiesConfig.chat.replace_tab_names) {
-                            new MessageUpdateTabName(Collections.singleton(forgePlayer)).sendToAll();
+                            new MessageUpdateTabName(Collections.singleton(forgePlayer)).sendToViewers(forgePlayer);
                         }
 
                         if (!forgePlayer.isVanished()) {

@@ -21,11 +21,17 @@ import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.world.WorldEvent;
 
 import org.junit.After;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import serverutils.task.backup.BackupFixtures;
 
 public class ServerUtilitiesServerEventHandlerTest {
+
+    @BeforeClass
+    public static void beforeAll() {
+        BackupFixtures.setupDefaultOptions();
+    }
 
     @After
     public void afterEach() {
