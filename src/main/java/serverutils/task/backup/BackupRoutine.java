@@ -1,0 +1,998 @@
+package serverutils.task.backup;
+
+import static serverutils.ServerUtilities.LOGGER;
+import static serverutils.ServerUtilitiesConfig.backups;
+import static serverutils.ServerUtilitiesNotifications.BACKUP;
+
+import java.io.BufferedOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.channels.Channels;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedInputStream;
+import java.util.zip.ZipEntry;
+
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.world.MinecraftException;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.storage.ThreadedFileIOBase;
+import net.minecraftforge.common.DimensionManager;
+
+import org.jetbrains.annotations.NotNull;
+
+import lombok.Builder;
+import lombok.Getter;
+import serverutils.ServerUtilities;
+import serverutils.data.ClaimedChunks;
+import serverutils.lib.OtherMods;
+import serverutils.lib.data.Universe;
+import serverutils.lib.math.ChunkDimPos;
+import serverutils.lib.util.CancellationToken;
+import serverutils.lib.util.FileUtils;
+import serverutils.lib.util.ServerUtils;
+import serverutils.lib.util.StringUtils;
+import serverutils.lib.util.WorldRegion;
+import serverutils.lib.util.compression.ICompress;
+
+// clear separation of concern - routine is the routine (all the logic) for actually saving the world
+// do not conflate logic
+public class BackupRoutine {
+
+    private static final String DATE_PATTERN = "yyyy-MM-dd-HH-mm-ss";
+    private static final Set<String> BQ_DATABASES = new HashSet<>(
+            Arrays.asList("QuestDatabase", "QuestProgress", "QuestingParties", "NameCache", "LifeDatabase"));
+
+    private static final Set<String> WIRELESS_ETHER = new HashSet<>(
+            Arrays.asList("fmap.dat", "node1.dat", "node2.dat", "dimMap.dat"));
+
+    private static volatile Instant lastSuccessfulBackup = Instant.MIN;
+
+    // Use a lock + owner to perform thread-safe tracking of who can restore world saving once it's been suspended
+    private static final Object WORLD_SAVING_LOCK = new Object();
+    private static final IdentityHashMap<WorldServer, Boolean> worldSaveStates = new IdentityHashMap<>();
+    private static Object worldSavingOwner;
+
+    private final Map<String, Duration> timings = new LinkedHashMap<>();
+    private final CancellationToken cancellation = new CancellationToken();
+    private final Map<String, Map<String, List<ChunkDimPos>>> dimToRegionToChunkPos = new HashMap<>();
+
+    /** Archive entry name -> where its bytes, captured while world saving was suspended, sit in the spool. */
+    private final Map<String, SpoolEntry> snapshot = new HashMap<>();
+    /**
+     * One file holding every snapshotted file back to back. Creating a copy per file is far slower, above all on
+     * Windows, and this runs on the server thread.
+     */
+    private File spool;
+    private FileChannel spoolChannel;
+    /** ranks.txt and players.txt: outside the world, but snapshotted with it. */
+    private final Set<File> serverFiles = new HashSet<>();
+
+    static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern(DATE_PATTERN, Locale.ROOT);
+
+    private long timing;
+
+    private final Universe universe;
+    private final Options options;
+
+    private String backupName;
+
+    @Getter
+    private boolean prepared;
+    private Instant startedAtInstant;
+    private long startedAt;
+    private File temporary;
+    /** This run's own folder under BACKUP_TEMP_FOLDER, so cleanup never deletes another backup's files. */
+    private File tempFolder;
+    private ICompress compressor;
+
+    private Supplier<ICompress> compressorSupplier = ICompress::createCompressor;
+    private BackupCandidates candidates;
+
+    public static final File BACKUP_TEMP_FOLDER = new File("serverutilities/temp/");
+
+    static {
+        ServerUtilities.LOGGER.info("Backups folder - {}", getDefaultBackupFolder().getAbsolutePath());
+    }
+
+    public static File getDefaultBackupFolder() {
+        File folder = backups.backup_folder_path.isEmpty() ? new File("/backups/")
+                : new File(backups.backup_folder_path);
+        if (!folder.exists()) folder.mkdirs();
+        return folder;
+    }
+
+    /** Deletes temp folders left by interrupted backups. Only call while no backup can be running. */
+    public static void deleteAbandonedTempFolders() {
+        try {
+            FileUtils.delete(BACKUP_TEMP_FOLDER);
+        } catch (RuntimeException e) {
+            LOGGER.warn("Could not delete abandoned temporary backup folders", e);
+        }
+    }
+
+    public static boolean isWorldSavingSuspended() {
+        synchronized (WORLD_SAVING_LOCK) {
+            return !worldSaveStates.isEmpty();
+        }
+    }
+
+    /** Keeps a dimension that loads during a backup from saving until the backup finishes. */
+    public static void suspendLoadedWorld(WorldServer world) {
+        synchronized (WORLD_SAVING_LOCK) {
+            if (worldSaveStates.isEmpty()) return;
+            if (worldSaveStates.putIfAbsent(world, world.levelSaving) == null) {
+                LOGGER.info(
+                        "Dimension {} loaded during a backup; world saving suspended there until it finishes",
+                        world.provider.dimensionId);
+            }
+            world.levelSaving = true;
+        }
+    }
+
+    /**
+     * Flushes every world to disk and keeps it from saving until it is resumed. Only one routine can hold the
+     * suspension at a time, so this throws if another already does.
+     */
+    static void suspendWorldSaving(Object owner, WorldServer[] worlds) throws MinecraftException {
+        synchronized (WORLD_SAVING_LOCK) {
+            if (!worldSaveStates.isEmpty()) {
+                // Must not resume: the suspension belongs to the other backup.
+                throw new IllegalStateException(
+                        "World saving is already suspended, likely because another backup is running or has just completed");
+            }
+            worldSavingOwner = owner;
+            try {
+                for (WorldServer world : worlds) {
+                    if (world == null) continue;
+                    worldSaveStates.putIfAbsent(world, world.levelSaving);
+                    world.levelSaving = false;
+                    world.saveAllChunks(true, null);
+                    world.levelSaving = true;
+                }
+                LOGGER.info("Suspended world saving in {} dimensions for backup", worldSaveStates.size());
+            } catch (Exception e) {
+                resumeWorldSaving();
+                throw e;
+            }
+        }
+    }
+
+    /** Resumes saving, unless the suspension is held by someone else (for example after a rejected suspend). */
+    static void resumeWorldSaving(Object owner) {
+        synchronized (WORLD_SAVING_LOCK) {
+            if (owner == worldSavingOwner) resumeWorldSaving();
+        }
+    }
+
+    /** Resumes saving whoever suspended it, for shutdown and failure paths. */
+    static void resumeWorldSaving() {
+        synchronized (WORLD_SAVING_LOCK) {
+            if (!worldSaveStates.isEmpty()) {
+                LOGGER.info(
+                        "Restored previous world-saving states in {} dimensions after backup",
+                        worldSaveStates.size());
+            }
+            try {
+                worldSaveStates.forEach((world, levelSaving) -> world.levelSaving = levelSaving);
+            } finally {
+                // A failed restore must not leave the suspension held, or every later backup would be refused.
+                worldSaveStates.clear();
+                worldSavingOwner = null;
+            }
+        }
+    }
+
+    public BackupRoutine(Universe universe, Options options, Supplier<ICompress> compressorSupplier) {
+        this.universe = universe;
+        this.compressorSupplier = compressorSupplier;
+        this.options = options;
+    }
+
+    public BackupRoutine(Universe universe, Options options) {
+        this.universe = universe;
+        this.options = options;
+    }
+
+    public static Instant getLastSuccessTime() {
+        return lastSuccessfulBackup;
+    }
+
+    public void verifyBackupName() {
+        if (backupName == null) {
+            backupName = determineBackupName(options);
+        }
+    }
+
+    public BackupResult.Save save() {
+        try {
+            return save(Runnable::run).get();
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException rte) throw rte;
+            throw new RuntimeException(e.getCause());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public CompletableFuture<BackupResult.Save> save(Executor executor) {
+        BackupResult.Save result = new BackupResult.Save(options.world, options.incremental);
+
+        verifyBackupName();
+
+        startedAtInstant = Instant.now();
+        startedAt = System.nanoTime();
+        timing = System.nanoTime();
+        compressor = compressorSupplier.get();
+
+        prepared = preroutine(result);
+        if (!prepared) {
+            return CompletableFuture.completedFuture(result.finished());
+        }
+
+        if (!options.useSeparateThread) {
+            executor = Runnable::run;
+        }
+
+        try {
+            return CompletableFuture.supplyAsync(() -> doSaveAndFinish(result), executor);
+        } catch (RuntimeException | Error e) {
+            cleanup();
+            throw e;
+        }
+    }
+
+    public void cancel() {
+        cancellation.cancel();
+    }
+
+    /** The backup worker. Failures are recorded on the result rather than thrown, and cleanup always runs. */
+    private BackupResult.Save doSaveAndFinish(BackupResult.Save result) {
+        try {
+            doSave(result);
+        } catch (Throwable t) {
+            result.error = t;
+            reportFailure(t);
+        } finally {
+            finish();
+        }
+        return result.finished();
+    }
+
+    private void reportFailure(Throwable t) {
+        if (isCancellation(t)) {
+            LOGGER.info("Backup cancelled, deleting partial archive");
+            return;
+        }
+
+        LOGGER.error("An error occurred while saving backup", t);
+        try {
+            ServerUtils.notifyChat(
+                    universe.server,
+                    null,
+                    StringUtils.color("cmd.backup_fail", EnumChatFormatting.RED, t.getMessage()));
+        } catch (RuntimeException e) {
+            LOGGER.warn("Could not report the backup failure", e);
+        }
+    }
+
+    /** Logs the timings, then cleans up even if logging fails. The timings are cleared by cleanup, so log first. */
+    private void finish() {
+        try {
+            logTiming("archive");
+        } catch (RuntimeException e) {
+            LOGGER.warn("Could not log backup timing", e);
+        }
+        cleanup();
+    }
+
+    private boolean isCancellation(Throwable t) {
+        return cancellation.isCancelled() || t instanceof InterruptedIOException
+                || t instanceof ClosedByInterruptException;
+    }
+
+    private boolean preroutine(BackupResult.Save result) {
+        boolean prepared = false;
+        try {
+            // Must run before saveAllChunks so level.dat is written with the current host inventory, otherwise
+            // the single-player host's inventory in the backup is stale and items can dupe/vanish on restore.
+            universe.server.getConfigurationManager().saveAllPlayerData();
+            recordTiming("player save");
+
+            suspendWorldSaving(this, universe.server.worldServers);
+
+            recordTiming("world save");
+
+            // reordered because flushing chunks takes time and world saving has already been disabled
+            if (!options.silent) {
+                BACKUP.sendAll(StringUtils.color("cmd.backup_start", EnumChatFormatting.LIGHT_PURPLE));
+            }
+
+            flushChunkSaves(universe.server.worldServers);
+            recordTiming("chunk flush");
+
+            // unique folder per backup to ensure that an abandoned backup cannot cleanup another run's files
+            tempFolder = Files.createTempDirectory(FileUtils.ensureExists(BACKUP_TEMP_FOLDER).toPath(), "backup-")
+                    .toFile();
+
+            if (options.onlyClaimed) {
+                if (!ClaimedChunks.isActive()) throw new IllegalStateException("Chunk claiming is not active");
+                ClaimedChunks.instance.processQueue();
+                Set<ChunkDimPos> claimed = ClaimedChunks.instance.getAllClaimedPositions();
+                Map<Integer, String> dimensionFolders = resolveDimensionFolders();
+                // Every registered dimension gets an entry even without claims, so its unclaimed regions are dropped.
+                for (String folder : dimensionFolders.values()) {
+                    dimToRegionToChunkPos.computeIfAbsent(folder, dim -> new HashMap<>());
+                }
+                claimed.forEach(pos -> {
+                    String dimName = dimensionFolders
+                            .getOrDefault(pos.dim, pos.dim == 0 ? BackupCandidates.OVERWORLD : null);
+                    // If the dimension doesn't exist assume that the claim is from a previous dimension and it should
+                    // not be considered known at this point.
+                    if (dimName == null) return;
+                    // pre-compute and map chunk positions to their specific regions
+                    Map<String, List<ChunkDimPos>> positions = dimToRegionToChunkPos
+                            .computeIfAbsent(dimName, dim -> new HashMap<>());
+                    String region = "r." + (pos.posX >> 5) + "." + (pos.posZ >> 5);
+                    positions.computeIfAbsent(region, r -> new ArrayList<>()).add(pos);
+                });
+                if (claimed.isEmpty()) {
+                    LOGGER.warn("Claim-only backup has no claimed chunks; known dimension regions will be omitted");
+                }
+            }
+
+            universe.saveForBackup();
+            recordTiming("SU data save");
+            drainQueuedWrites();
+            recordTiming("queued data flush");
+            recordTiming("setup");
+
+            if (options.snapshotMetaFiles && options.useSeparateThread) {
+                candidates = getWorldCandidates();
+                snapshotFiles(candidates);
+                recordTiming("file snapshot");
+            }
+
+            prepared = true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            result.error = e;
+        } catch (Exception e) {
+            ServerUtils.notifyChat(
+                    universe.server,
+                    null,
+                    new ChatComponentText(
+                            EnumChatFormatting.RED + "An error occurred while preparing backup. " + e.getMessage()));
+            ServerUtilities.LOGGER.info("An error occurred while preparing backup, Aborting!", e);
+            result.error = e;
+        } finally {
+            // Logged here, so it only covers the pause before the archive is written.
+            logTiming("server-thread");
+            timings.clear();
+            if (!prepared) cleanup();
+        }
+        return prepared;
+    }
+
+    private void doSave(BackupResult.Save result) throws IOException {
+        cancellation.enable();
+        startedAt = System.nanoTime();
+        timing = startedAt;
+        boolean isIncremental = options.incremental;
+
+        if (candidates == null) candidates = getWorldCandidates();
+        // Globbed here rather than before the snapshot, so large folders don't stall the server thread.
+        addAdditionalFiles(candidates, options.world);
+        LOGGER.info("Performing {} backup of {} files...", isIncremental ? "incremental" : "full", candidates.count());
+        if (isIncremental) {
+            throw new UnsupportedOperationException("Incremental backups are not supported yet");
+        } else {
+            doArchiveSave(universe, candidates, result);
+        }
+        recordTiming("save");
+        lastSuccessfulBackup = startedAtInstant;
+    }
+
+    private void doSnapshotSave(Universe universe) {
+        // implement in future PR
+    }
+
+    private void doArchiveSave(Universe universe, BackupCandidates candidates, BackupResult.Save result)
+            throws IOException {
+        File destination = prepareDestination(backupName, ".zip");
+        temporary = FileUtils.createSaveTemporary(destination.toPath().toAbsolutePath()).toFile();
+
+        compressor.createOutputStream(temporary);
+        ArchiveStore.writeMetadata(
+                compressor,
+                universe.getUUID().toString(),
+                options.createdAt.toEpochMilli(),
+                options.customName != null);
+
+        List<WorldFile> files = candidates.getFiles();
+        Path world = options.world.toPath().toAbsolutePath().normalize();
+        int fileSize = files.size();
+        long logTimer = System.currentTimeMillis();
+
+        int regionCount = 0;
+        int chunkCount = 0;
+
+        InputStream spoolInput = null;
+        if (spool != null) {
+            spoolChannel = FileChannel.open(spool.toPath(), StandardOpenOption.READ);
+            spoolInput = Channels.newInputStream(spoolChannel);
+        }
+
+        for (int i = 0; i < fileSize; i++) {
+            WorldFile file = files.get(i);
+            cancellation.check();
+            // Restore expects run-folder-relative entries i.e. saves/<world>/level.dat
+            // not world-relative ones, so the world name prefix must be kept.
+            String entry = FileUtils.getRelativePath(file.backing());
+
+            if (i == fileSize - 1 || System.currentTimeMillis() >= logTimer) {
+                logTimer = System.currentTimeMillis() + 5000;
+                LOGGER.info(
+                        "[{} | {}%]: {}",
+                        i,
+                        StringUtils.formatDouble00((i / (double) fileSize) * 100D),
+                        file.backing().getAbsolutePath());
+            }
+
+            List<ChunkDimPos> claims = options.onlyClaimed && options.writeOnlyClaimedChunks ? getClaims(file) : null;
+            if (claims != null && canTrimRegion(file)) {
+                File tempRegionFile = Files.createTempFile(tempFolder.toPath(), "claimed-", ".mca").toFile();
+                try {
+                    int chunks;
+                    try (WorldRegion region = new WorldRegion(file);
+                            WorldRegion tempRegion = new WorldRegion(tempRegionFile, region.dimension)) {
+                        chunks = region.copyTo(tempRegion, claims);
+                    }
+
+                    if (chunks > 0) {
+                        compressor.addFileToArchive(tempRegionFile, entry);
+                        result.newFiles++;
+                        regionCount++;
+                        chunkCount += chunks;
+                    }
+                } finally {
+                    Files.deleteIfExists(tempRegionFile.toPath());
+                }
+                continue;
+            }
+
+            SpoolEntry captured = snapshot.get(entry);
+            if (captured == null) {
+                compressor.addFileToArchive(file.backing(), entry);
+                // Stable files skip the snapshot on the promise that nothing rewrites them; say so if that was wrong.
+                if (spool != null && file.kind() == WorldFile.Kind.MISC
+                        && isStableModData(file, world)
+                        && file.changedSinceListed()) {
+                    LOGGER.warn("{} changed during the backup; its copy in this backup may be inconsistent", entry);
+                }
+            } else {
+                spoolChannel.position(captured.offset);
+                compressor.addStreamToArchive(spoolInput, new ZipEntry(captured.entry));
+            }
+            result.newFiles++;
+        }
+
+        if (options.onlyClaimed) {
+            LOGGER.info("Backed up {} regions containing {} claimed chunks", regionCount, chunkCount);
+        }
+
+        try {
+            compressor.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        Path temporaryPath = temporary.toPath();
+        Path destinationPath = destination.toPath();
+
+        cancellation.check();
+        if (options.overwrite) {
+            if (destination.exists()
+                    && Files.getFileAttributeView(destinationPath, PosixFileAttributeView.class) != null) {
+                if (!Files.isRegularFile(destinationPath))
+                    throw new IllegalStateException("Destination is not a regular file");
+                Files.setPosixFilePermissions(temporaryPath, Files.getPosixFilePermissions(destinationPath));
+            }
+
+            Files.move(
+                    temporaryPath,
+                    destinationPath,
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        } else {
+            // ATOMIC_MOVE may replace an existing file even without REPLACE_EXISTING.
+            Files.move(temporaryPath, destinationPath);
+        }
+
+        result.bytes = FileUtils.getSize(destination);
+        result.destination = destination;
+    }
+
+    private void cleanup() {
+        try {
+            cancellation.disable();
+        } catch (Exception e) {
+            LOGGER.error("Failed to disable cancellation", e);
+        }
+
+        try {
+            compressor.close();
+        } catch (Exception e) {
+            LOGGER.error("Failed to close compressor", e);
+        }
+
+        try {
+            if (temporary != null) Files.deleteIfExists(temporary.toPath());
+        } catch (IOException e) {
+            LOGGER.warn("Could not delete partial archive {}", temporary, e);
+        }
+
+        try {
+            // Before the temp folder goes: Windows cannot delete an open file.
+            if (spoolChannel != null) spoolChannel.close();
+        } catch (IOException e) {
+            LOGGER.warn("Could not close backup snapshot {}", spool, e);
+        }
+
+        try {
+            if (tempFolder != null) FileUtils.delete(tempFolder);
+        } catch (RuntimeException e) {
+            LOGGER.warn("Could not delete temporary backup folder {}", tempFolder, e);
+        }
+
+        try {
+            // A no-op when a newer backup has suspended saving since, which restores the original states itself.
+            resumeWorldSaving(this);
+        } catch (RuntimeException e) {
+            LOGGER.warn("Could not restore world saving", e);
+        }
+
+        cancellation.clear();
+        snapshot.clear();
+        spool = null;
+        spoolChannel = null;
+        serverFiles.clear();
+        dimToRegionToChunkPos.clear();
+        timings.clear();
+        candidates = null;
+        backupName = null;
+        tempFolder = null;
+    }
+
+    private void recordTiming(String phase) {
+        long now = System.nanoTime();
+        long deltaTime = now - timing;
+        timings.put(phase, Duration.ofNanos(deltaTime));
+        timing = now;
+    }
+
+    private void logTiming(String stage) {
+        StringBuilder timings = new StringBuilder();
+        for (Map.Entry<String, Duration> entry : this.timings.entrySet()) {
+            if (timings.length() > 0) timings.append("; ");
+            timings.append(entry.getKey()).append('=').append(entry.getValue().toMillis()).append(" ms");
+        }
+        LOGGER.info(
+                "Backup {} timing: started={}; total={} ms; {}",
+                stage,
+                startedAtInstant,
+                (System.nanoTime() - startedAt) / 1_000_000L,
+                timings);
+    }
+
+    /** Adds everything matched by the configured additional_backup_files, minus the exclusions. */
+    private void addAdditionalFiles(BackupCandidates candidates, File world) throws IOException {
+        for (String pattern : options.additionalBackupFiles) {
+            List<File> matchedFiles = FileUtils.findMatching(
+                    pattern.replace("$WORLDNAME", world.getName()),
+                    options.backupsDirectory.toPath(),
+                    BACKUP_TEMP_FOLDER.toPath());
+
+            for (File match : matchedFiles) {
+                if (match.getName().equals(ICompress.BACKUP_METADATA_ENTRY)) continue;
+                candidates.addFile(match);
+            }
+        }
+        // The world was filtered before the snapshot; filtering it again would repeat its warnings
+        candidates.removeMatchingAdditional(options.excludedBackupFiles, world.getName());
+    }
+
+    private File prepareDestination(String filename, String extension) {
+        // when the filename ends with an extension
+        // it's already been verified (custom names) and therefore we can just return a new file at the destination
+        if (filename.endsWith(extension)) return new File(options.getWorldBackupDirectory(), filename);
+
+        return FileUtils.getFileWithoutCollision(
+                options.getWorldBackupDirectory(),
+                filename,
+                extension,
+                FileUtils.INCREMENTAL_APPEND);
+    }
+
+    /** The world's files plus the ranks files: everything a snapshot covers. */
+    private BackupCandidates getWorldCandidates() throws IOException {
+        BackupCandidates candidates = BackupCandidates
+                .scanWorld(options.world, options.backupsDirectory, !options.incremental);
+
+        // keep only misc files + region files with claims in them
+        if (options.onlyClaimed) {
+            Set<String> unknownDimensions = new HashSet<>();
+            candidates.keep(f -> {
+                // don't remove misc files
+                if (f.kind() == WorldFile.Kind.MISC) return true;
+                // Claims are keyed by dimension folder, so a folder that no registered dimension resolves to can't be
+                // matched to its claims. Keep its regions whole rather than dropping claimed chunks.
+                if (!isKnownDimension(f.dimension)) {
+                    unknownDimensions.add(f.dimension);
+                    return true;
+                }
+                return getClaims(f) != null;
+            });
+
+            for (String dimension : unknownDimensions) {
+                LOGGER.warn("Cannot identify dimension for region files in {}; copying them unchanged", dimension);
+            }
+        }
+
+        for (String name : new String[] { "ranks.txt", "players.txt" }) {
+            File file = new File(ServerUtilities.SERVER_FOLDER, name);
+            if (file.isFile()) {
+                candidates.addFile(file);
+                serverFiles.add(file);
+            }
+        }
+        candidates.removeMatching(options.excludedBackupFiles, options.world.getName());
+        return candidates;
+    }
+
+    /**
+     * Copies the files mods may rewrite while the archive is being written, so the backup sees them as they were while
+     * world saving was suspended. Region files and stable mod data are read live instead.
+     */
+    private void snapshotFiles(BackupCandidates candidates) throws IOException {
+        Path world = options.world.toPath().toAbsolutePath().normalize();
+        Path realWorld = world.toRealPath();
+        Map<Path, Boolean> worldDirectories = new HashMap<>();
+
+        Predicate<WorldFile> isSnapshottable = f -> {
+            if (f.kind() != WorldFile.Kind.MISC) return false;
+            if (f.dimension == null) return serverFiles.contains(f.backing());
+            if (FileUtils.isRegionFile(f.backing())) return false;
+            if (!(isStableModData(f, world) || isRebuiltCache(f, world)) || candidates.isLink(f)) return true;
+            // Candidates follow links, so confirm this really is the world's own file and not a link elsewhere
+            return !worldDirectories
+                    .computeIfAbsent(f.backing().toPath().toAbsolutePath().normalize().getParent(), dir -> {
+                        try {
+                            return dir.toRealPath().equals(realWorld.resolve(world.relativize(dir)));
+                        } catch (IOException e) {
+                            return false;
+                        }
+                    });
+        };
+
+        File spoolFile = new File(FileUtils.ensureExists(new File(tempFolder, "snapshot")), "world-data.bin");
+        byte[] buffer = new byte[64 * 1024];
+        long offset = 0;
+        try (OutputStream output = new BufferedOutputStream(Files.newOutputStream(spoolFile.toPath()), buffer.length)) {
+            for (WorldFile file : candidates.getFiles(isSnapshottable)) {
+                ZipEntry captured = new ZipEntry(FileUtils.getRelativePath(file.backing()));
+                offset += captureFile(file, captured, output, buffer);
+                snapshot.put(captured.getName(), new SpoolEntry(captured, offset - captured.getSize()));
+            }
+        }
+        spool = spoolFile;
+    }
+
+    /**
+     * Appends a copy of the file that did not change while it was read, and returns how many bytes that took. A file
+     * that changed since it was listed is copied once more; the rejected bytes stay behind in the spool, unreferenced.
+     */
+    static long captureFile(WorldFile file, ZipEntry captured, OutputStream output, byte[] buffer) throws IOException {
+        long appended = 0;
+        // The time from the listing costs nothing; looking it up again before each copy would slow the server thread.
+        long before = file.mtime();
+        for (boolean retried = false;; retried = true) {
+            captured.setTime(before);
+            copySnapshotFile(file.backing(), captured, output, buffer);
+            appended += captured.getSize();
+            long after = file.currentMtime();
+            if (after == before) return appended;
+            // Size and checksum cannot tell a same-length rewrite from an untouched file; only the time can.
+            if (retried || !file.isListed()) {
+                throw new IOException("File changed during backup snapshot: " + file.backing());
+            }
+            before = after;
+        }
+    }
+
+    /** Appends the file to the spool and records its size and checksum on {@code captured}. */
+    static void copySnapshotFile(File file, ZipEntry captured, OutputStream output, byte[] buffer) throws IOException {
+        try (FileChannel channel = FileChannel.open(file.toPath(), StandardOpenOption.READ)) {
+            // A directory listing can report a stale size while another writer has the file open; ask the handle.
+            captured.setSize(channel.size());
+            CheckedInputStream input = new CheckedInputStream(Channels.newInputStream(channel), new CRC32());
+            try {
+                ICompress.copyExactly(input, output, captured.getSize(), buffer);
+            } catch (EOFException shrunk) {
+                // copyExactly reports this as a truncated snapshot, but here it is the live file that shrank
+                throw new IOException("File shrank during backup snapshot: " + file, shrunk);
+            }
+            if (input.read() != -1) throw new IOException("File grew during backup snapshot: " + file);
+            captured.setCrc(input.getChecksum().getValue());
+        }
+    }
+
+    private static final class SpoolEntry {
+
+        final ZipEntry entry;
+        final long offset;
+
+        SpoolEntry(ZipEntry entry, long offset) {
+            this.entry = entry;
+            this.offset = offset;
+        }
+    }
+
+    /**
+     * Mod files that are only rewritten on world save/shutdown (or migration), so reading them live at archive time is
+     * as consistent as a snapshot. This only checks the path, it's the caller's responsibility to rule out links to
+     * somewhere else.
+     */
+    private static boolean isStableModData(WorldFile file, Path world) {
+        Path path = file.backing().toPath().toAbsolutePath().normalize();
+        if (!path.startsWith(world)) return false;
+        Path relative = world.relativize(path);
+        String name = file.name();
+
+        if (relative.getNameCount() == 3 && relative.startsWith(Paths.get("AE2", "spawndata"))) {
+            // AE2 flushes meteor spawn data on world saves and shutdown, not on ordinary gameplay updates.
+            // World saving stays suspended, and a backup cancelled at shutdown never publishes its archive.
+            return name.endsWith(".dat");
+        }
+        if (relative.getNameCount() == 4 && relative.startsWith(Paths.get("betterquesting", "backup"))) {
+            // BQ's versioned migration copies are written during database loading. Live BQ files remain captured.
+            String suffix = "_backup_" + relative.getName(2) + ".json";
+            return name.endsWith(suffix) && BQ_DATABASES.contains(name.substring(0, name.length() - suffix.length()));
+        }
+
+        // The rest exists once per dimension folder, so match below the file's own dimension root.
+        Path local = relative;
+        if (relative.getNameCount() > 1 && relative.getName(0).toString().equals(file.dimension)) {
+            local = relative.subpath(1, relative.getNameCount());
+        }
+        if (local.getNameCount() == 1) {
+            // Forge writes chunk tickets on the world save event only. ForgeMultipart discards what it reads back
+            // from multipart.dat, so its contents never matter.
+            return name.equals("forcedchunks.dat") || name.equals("multipart.dat");
+        }
+        // Not the data folders: saved data is only written by a world save, but anything may keep its own file
+        // there. Vanilla rewrites idcounts.dat on demand, Hodgepodge rewrites or deletes TG-SaveData.dat on login.
+        if (local.getNameCount() == 2 && local.startsWith("RedstoneEther")) {
+            // Wireless Redstone writes these on the world save event; its property files can change at any time.
+            return WIRELESS_ETHER.contains(name);
+        }
+        return false;
+    }
+
+    /**
+     * Caches a mod rebuilds by itself, so a copy caught mid-write costs nothing. BuildCraft saves its zone maps from
+     * its own thread at any time, redraws them as chunks load and drops any it cannot read.
+     */
+    private static boolean isRebuiltCache(WorldFile file, Path world) {
+        Path path = file.backing().toPath().toAbsolutePath().normalize();
+        if (!path.startsWith(world)) return false;
+        Path relative = world.relativize(path);
+        return relative.getNameCount() == 4 && relative.startsWith(Paths.get("buildcraft", "zonemap"))
+                && file.name().endsWith(".nbt");
+    }
+
+    /** The claimed chunks inside this region file, or null if it is not a region file or holds no claims. */
+    private List<ChunkDimPos> getClaims(WorldFile file) {
+        if (file.kind() != WorldFile.Kind.REGION) return null;
+        Map<String, List<ChunkDimPos>> regions = dimToRegionToChunkPos.get(file.dimension);
+        return regions == null ? null : regions.get(file.name().replace(".mca", ""));
+    }
+
+    /** A DIM folder is only known if a registered dimension saves there, the name alone says nothing. */
+    private boolean isKnownDimension(String dimension) {
+        return BackupCandidates.OVERWORLD.equals(dimension) || dimToRegionToChunkPos.containsKey(dimension);
+    }
+
+    /**
+     * Maps every registered dimension to the folder its provider saves in
+     */
+    private static Map<Integer, String> resolveDimensionFolders() {
+        Map<Integer, String> folders = new HashMap<>();
+        for (int dimension : DimensionManager.getStaticDimensionIDs()) {
+            try {
+                String folder = DimensionManager.createProviderFor(dimension).getSaveFolder();
+                folders.put(dimension, folder == null ? BackupCandidates.OVERWORLD : folder);
+            } catch (RuntimeException e) {
+                // Leave it unresolved rather than failing every claim-only backup; its regions are kept whole.
+                LOGGER.warn("Cannot resolve save folder for dimension {}; keeping its regions unchanged", dimension, e);
+            }
+        }
+        return folders;
+    }
+
+    /** RegionFile opens read-write and pads malformed files in its constructor, so those are never opened. */
+    private static boolean canTrimRegion(WorldFile file) {
+        long size = file.size();
+        if (size >= 8192 && size % 4096 == 0) return true;
+        LOGGER.warn("Cannot trim malformed region {}; copying it unchanged", file.backing());
+        return false;
+    }
+
+    static void flushChunkSaves(WorldServer[] worlds) throws InterruptedException {
+        // Let the worker finish first: concurrent writers can commit older chunk data last.
+        ThreadedFileIOBase.threadedIOInstance.waitForFinish();
+        for (WorldServer world : worlds) {
+            if (world == null) continue;
+            boolean suspended = world.levelSaving;
+            try {
+                world.levelSaving = false;
+                // Vanilla can remove a loader just after new work is submitted to it. Drain that stranded work too.
+                world.saveChunkData();
+            } finally {
+                world.levelSaving = suspended;
+            }
+        }
+        ThreadedFileIOBase.threadedIOInstance.waitForFinish();
+    }
+
+    /** Reports retained Hodgepodge failures without requiring that mod, or its newer flush API. */
+    private static void drainQueuedWrites() throws Exception {
+        ThreadedFileIOBase.threadedIOInstance.waitForFinish();
+        if (!OtherMods.isHodgepodgeLoaded()) return;
+        Class<?> tweaks;
+        try {
+            tweaks = Class.forName("com.mitchej123.hodgepodge.config.TweaksConfig");
+        } catch (ClassNotFoundException e) {
+            return;
+        }
+        try {
+            if (!tweaks.getField("threadedWorldDataSaving").getBoolean(null)) return;
+        } catch (NoSuchFieldException e) {
+            return;
+        }
+        flushWorldDataSaver(Class.forName("com.mitchej123.hodgepodge.util.WorldDataSaver"));
+    }
+
+    static void flushWorldDataSaver(Class<?> saver) throws Exception {
+        Method flush;
+        try {
+            flush = saver.getMethod("flush");
+        } catch (NoSuchMethodException e) {
+            LOGGER.warn(
+                    "Hodgepodge WorldDataSaver has no flush(); queued writes drained, but write failures cannot be confirmed");
+            return;
+        }
+        try {
+            flush.invoke(saver.getField("INSTANCE").get(null));
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Exception) throw (Exception) cause;
+            if (cause instanceof Error) throw (Error) cause;
+            throw new IllegalStateException(cause);
+        }
+    }
+
+    private static String determineBackupName(Options options) {
+        String backupName = options.customName;
+        if (options.incremental) return backupName;
+        if (backupName == null) backupName = "";
+        boolean overwrite = options.overwrite;
+        ZonedDateTime createdAt = options.createdAt.atZone(ZoneId.systemDefault());
+
+        if (backupName.isEmpty()) {
+            if (overwrite) throw new IllegalArgumentException("Overwrite requires a custom backup name");
+            // set the backup name without extension so that prepareDestination can find a non-conflicting destination
+            backupName = createdAt.format(DATE_FORMATTER);
+        } else {
+            validateBackupName(backupName);
+            backupName += ".zip";
+            Path destinationPath = getDestinationPath(options, backupName, overwrite);
+            if (Files.exists(destinationPath, LinkOption.NOFOLLOW_LINKS)
+                    && !Files.isRegularFile(destinationPath, LinkOption.NOFOLLOW_LINKS)) {
+                throw new IllegalArgumentException("Backup destination must be a regular file");
+            }
+        }
+
+        return backupName;
+    }
+
+    private static @NotNull Path getDestinationPath(Options options, String backupName, boolean overwrite) {
+        File destination = new File(options.getWorldBackupDirectory(), backupName);
+        if (!overwrite && destination.exists()) {
+            throw new IllegalArgumentException(
+                    "Backup already exists: " + backupName + ". Use =overwrite to replace it explicitly");
+        }
+        if (!destination.getParentFile().equals(options.backupsDirectory)) {
+            throw new IllegalArgumentException("Backup destination must be in the backups directory");
+        }
+        return destination.toPath();
+    }
+
+    private static void validateBackupName(String name) {
+        if (name == null || name.chars().anyMatch(c -> c < 32 || c == 127 || "\\/:*?\"<>|".indexOf(c) >= 0)) {
+            throw new IllegalArgumentException(
+                    "Backup name must be a filename without path separators or reserved characters");
+        }
+    }
+
+    @Builder
+    public static final class Options {
+
+        public File backupsDirectory;
+        public File world;
+        public boolean onlyClaimed;
+        public boolean writeOnlyClaimedChunks;
+        public boolean incremental;
+        public boolean snapshotMetaFiles;
+        public boolean useSeparateThread;
+        public boolean silent;
+        public String customName;
+        public boolean overwrite;
+        public Instant createdAt;
+        public List<String> additionalBackupFiles;
+        public List<String> excludedBackupFiles;
+
+        public static Options fromConfig() {
+            return Options.builder().backupsDirectory(getDefaultBackupFolder())
+                    .world(DimensionManager.getCurrentSaveRootDirectory())
+                    .onlyClaimed(backups.only_backup_claimed_chunks)
+                    .writeOnlyClaimedChunks(!backups.backup_entire_regions_with_claims)
+                    .snapshotMetaFiles(!backups.prefer_speed_over_backup_consistency)
+                    .useSeparateThread(backups.use_separate_thread)
+                    .additionalBackupFiles(Arrays.asList(backups.additional_backup_files))
+                    .excludedBackupFiles(Arrays.asList(backups.excluded_backup_files)).overwrite(false)
+                    .silent(backups.silent_backup).createdAt(Instant.now()).build();
+        }
+
+        public File getWorldBackupDirectory() {
+            if (incremental) return new File(backupsDirectory, world.getName());
+            return backupsDirectory;
+        }
+    }
+}

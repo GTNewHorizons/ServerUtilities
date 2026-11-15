@@ -239,7 +239,7 @@ public class ServerUtilitiesPlayerData extends PlayerData {
 
         if (ServerUtilitiesConfig.chat.replace_tab_names
                 && !cachedNameForChat.getUnformattedText().equals(player.getName())) {
-            new MessageUpdateTabName(player, cachedNameForChat).sendToAll();
+            new MessageUpdateTabName(player, cachedNameForChat).sendToViewers(player);
         }
 
         cachedNameForChat.appendText(" ");

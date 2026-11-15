@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiPlayerInfo;
 import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
@@ -19,10 +20,12 @@ import serverutils.ServerUtilitiesConfig;
 import serverutils.client.gui.misc.GuiPlayerInfoWrapper;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.lib.data.ForgePlayer;
+import serverutils.lib.data.Universe;
 import serverutils.lib.io.DataIn;
 import serverutils.lib.io.DataOut;
 import serverutils.lib.net.MessageToClient;
 import serverutils.lib.net.NetworkWrapper;
+import serverutils.lib.util.ServerUtils;
 
 public class MessageUpdateTabName extends MessageToClient {
 
@@ -35,6 +38,23 @@ public class MessageUpdateTabName extends MessageToClient {
             ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(player);
             boolean afk = data.afkTime >= ServerUtilitiesConfig.afk.getNotificationTimer();
             entries.add(new TabNameEntry(player.getName(), data.getNameForChat(), afk));
+        }
+    }
+
+    /** Sends the online players' names to {@code viewer}, skipping vanished players it can't see. */
+    public static void sendOnlinePlayersTo(EntityPlayerMP viewer) {
+        List<ForgePlayer> visible = new ArrayList<>();
+        for (ForgePlayer player : Universe.get().getOnlinePlayers()) {
+            if (ServerUtils.canSee(viewer, player.getNullablePlayer())) visible.add(player);
+        }
+        if (!visible.isEmpty()) new MessageUpdateTabName(visible).sendTo(viewer);
+    }
+
+    /** Sends to every online player that can see {@code subject}. */
+    public void sendToViewers(ForgePlayer subject) {
+        EntityPlayerMP subjectMP = subject.getNullablePlayer();
+        for (EntityPlayerMP viewer : Universe.get().server.getConfigurationManager().playerEntityList) {
+            if (ServerUtils.canSee(viewer, subjectMP)) sendTo(viewer);
         }
     }
 
@@ -72,7 +92,7 @@ public class MessageUpdateTabName extends MessageToClient {
         for (TabNameEntry entry : entries) {
             String name = entry.name;
             GuiPlayerInfo info = infoMap.get(name);
-            if (info == null || entry.displayComponent == null) return;
+            if (info == null || entry.displayComponent == null) continue;
 
             String displayName = entry.displayComponent.getFormattedText().replaceAll("[<>]", "");
 
