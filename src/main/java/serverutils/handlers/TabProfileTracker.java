@@ -1,8 +1,11 @@
 package serverutils.handlers;
 
+import static serverutils.ServerUtilitiesPermissions.SEE_VANISH;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -14,6 +17,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
 import serverutils.lib.util.ServerUtils;
+import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageTabProfiles;
 
 /**
@@ -23,7 +27,7 @@ import serverutils.net.MessageTabProfiles;
 public class TabProfileTracker {
 
     private static final int CHECK_INTERVAL = 20;
-    private static final Map<UUID, String> SENT_LIST_NAMES = new HashMap<>();
+    private static final Map<UUID, String> SENT_STATES = new HashMap<>();
     private static final Field LIST_NAME_FIELD = findListNameField();
     private static int ticks = 0;
 
@@ -60,11 +64,19 @@ public class TabProfileTracker {
         return new MessageTabProfiles.Entry(listName, profile.getId(), profile.getName(), textures, signature);
     }
 
+    private static boolean canSee(EntityPlayerMP viewer, EntityPlayerMP subject) {
+        return viewer == subject || !ServerUtils.isVanished(subject) || PermissionAPI.hasPermission(viewer, SEE_VANISH);
+    }
+
+    private static String getState(EntityPlayerMP player, MessageTabProfiles.Entry entry) {
+        return entry.listName + '\n' + entry.textures + '\n' + entry.signature + '\n' + ServerUtils.isVanished(player);
+    }
+
     public static void sendAllTo(MinecraftServer server, EntityPlayerMP target) {
         if (server == null) return;
         List<MessageTabProfiles.Entry> entries = new ArrayList<>();
         for (EntityPlayerMP player : server.getConfigurationManager().playerEntityList) {
-            if (ServerUtils.isFake(player)) continue;
+            if (ServerUtils.isFake(player) || !canSee(target, player)) continue;
             entries.add(createEntry(player, getListName(player)));
         }
         if (!entries.isEmpty()) {
@@ -76,26 +88,36 @@ public class TabProfileTracker {
         if (++ticks < CHECK_INTERVAL) return;
         ticks = 0;
 
-        List<MessageTabProfiles.Entry> changed = new ArrayList<>();
-        for (EntityPlayerMP player : server.getConfigurationManager().playerEntityList) {
+        List<EntityPlayerMP> players = server.getConfigurationManager().playerEntityList;
+        Map<EntityPlayerMP, MessageTabProfiles.Entry> changed = new LinkedHashMap<>();
+        for (EntityPlayerMP player : players) {
             if (ServerUtils.isFake(player)) continue;
-            String listName = getListName(player);
-            String previous = SENT_LIST_NAMES.put(player.getUniqueID(), listName);
-            if (!listName.equals(previous)) {
-                changed.add(createEntry(player, listName));
+            MessageTabProfiles.Entry entry = createEntry(player, getListName(player));
+            String state = getState(player, entry);
+            if (!state.equals(SENT_STATES.put(player.getUniqueID(), state))) {
+                changed.put(player, entry);
             }
         }
-        if (!changed.isEmpty()) {
-            new MessageTabProfiles(changed).sendToAll();
+        if (changed.isEmpty()) return;
+
+        for (EntityPlayerMP recipient : players) {
+            if (ServerUtils.isFake(recipient)) continue;
+            List<MessageTabProfiles.Entry> visible = new ArrayList<>();
+            for (Map.Entry<EntityPlayerMP, MessageTabProfiles.Entry> e : changed.entrySet()) {
+                if (canSee(recipient, e.getKey())) visible.add(e.getValue());
+            }
+            if (!visible.isEmpty()) {
+                new MessageTabProfiles(visible).sendTo(recipient);
+            }
         }
     }
 
     public static void remove(UUID id) {
-        SENT_LIST_NAMES.remove(id);
+        SENT_STATES.remove(id);
     }
 
     public static void clear() {
-        SENT_LIST_NAMES.clear();
+        SENT_STATES.clear();
         ticks = 0;
     }
 }
