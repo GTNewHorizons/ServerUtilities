@@ -240,6 +240,8 @@ public class ServerUtilitiesServerEventHandler {
                 ClaimedChunks.instance.update(universe, now);
             }
         } else {
+            TabProfileTracker.tick(universe.server);
+
             EntityPlayerMP playerToKickForAfk = null; // Do one at time, easier
             boolean afkEnabled = ServerUtilitiesConfig.afk.isEnabled(universe.server);
 

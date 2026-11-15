@@ -90,6 +90,8 @@ public class ServerUtilitiesPlayerEventHandler {
         if (ServerUtilitiesConfig.chat.replace_tab_names) {
             new MessageUpdateTabName(Universe.get().getOnlinePlayers()).sendTo(player);
         }
+
+        TabProfileTracker.sendAllTo(player.mcServer, player);
     }
 
     @SubscribeEvent
@@ -102,6 +104,7 @@ public class ServerUtilitiesPlayerEventHandler {
         }
 
         player.getEntityData().removeTag(ServerUtilitiesPlayerData.TAG_LAST_CHUNK);
+        TabProfileTracker.remove(player.getUniqueID());
     }
 
     @SubscribeEvent

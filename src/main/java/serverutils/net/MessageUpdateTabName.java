@@ -72,7 +72,7 @@ public class MessageUpdateTabName extends MessageToClient {
         for (TabNameEntry entry : entries) {
             String name = entry.name;
             GuiPlayerInfo info = infoMap.get(name);
-            if (info == null || entry.displayComponent == null) return;
+            if (info == null || entry.displayComponent == null) continue;
 
             String displayName = entry.displayComponent.getFormattedText().replaceAll("[<>]", "");
 
