@@ -61,6 +61,7 @@ public class TabProfileTracker {
     }
 
     public static void sendAllTo(MinecraftServer server, EntityPlayerMP target) {
+        if (server == null) return;
         List<MessageTabProfiles.Entry> entries = new ArrayList<>();
         for (EntityPlayerMP player : server.getConfigurationManager().playerEntityList) {
             if (ServerUtils.isFake(player)) continue;
