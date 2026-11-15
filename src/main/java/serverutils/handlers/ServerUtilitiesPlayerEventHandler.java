@@ -88,7 +88,7 @@ public class ServerUtilitiesPlayerEventHandler {
         }
 
         if (ServerUtilitiesConfig.chat.replace_tab_names) {
-            new MessageUpdateTabName(Universe.get().getOnlinePlayers()).sendTo(player);
+            MessageUpdateTabName.sendOnlinePlayersTo(player);
         }
 
         TabProfileTracker.sendAllTo(player.mcServer, player);

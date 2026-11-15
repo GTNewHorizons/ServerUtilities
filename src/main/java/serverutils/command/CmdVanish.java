@@ -2,6 +2,8 @@ package serverutils.command;
 
 import static serverutils.ServerUtilitiesPermissions.SEE_VANISH;
 
+import java.util.Collections;
+
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.EntityCreature;
@@ -14,6 +16,7 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 
+import serverutils.ServerUtilitiesConfig;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.VanishData;
 import serverutils.lib.command.CmdBase;
@@ -26,6 +29,7 @@ import serverutils.lib.data.Universe;
 import serverutils.lib.util.NBTUtils;
 import serverutils.lib.util.ServerUtils;
 import serverutils.lib.util.permission.PermissionAPI;
+import serverutils.net.MessageUpdateTabName;
 
 public class CmdVanish extends CmdTreeBase {
 
@@ -73,6 +77,9 @@ public class CmdVanish extends CmdTreeBase {
                 player.capabilities.disableDamage = false;
                 player.addChatMessage(new ChatComponentTranslation("commands.vanish.off"));
                 updateVanishStatus(player, false);
+                if (ServerUtilitiesConfig.chat.replace_tab_names) {
+                    new MessageUpdateTabName(Collections.singleton(forgePlayer)).sendToViewers(forgePlayer);
+                }
             }
         }
     }

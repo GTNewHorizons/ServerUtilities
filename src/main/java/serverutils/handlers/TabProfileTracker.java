@@ -1,7 +1,5 @@
 package serverutils.handlers;
 
-import static serverutils.ServerUtilitiesPermissions.SEE_VANISH;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,7 +15,6 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
 import serverutils.lib.util.ServerUtils;
-import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.net.MessageTabProfiles;
 
 /**
@@ -64,10 +61,6 @@ public class TabProfileTracker {
         return new MessageTabProfiles.Entry(listName, profile.getId(), profile.getName(), textures, signature);
     }
 
-    private static boolean canSee(EntityPlayerMP viewer, EntityPlayerMP subject) {
-        return viewer == subject || !ServerUtils.isVanished(subject) || PermissionAPI.hasPermission(viewer, SEE_VANISH);
-    }
-
     private static String getState(EntityPlayerMP player, MessageTabProfiles.Entry entry) {
         return entry.listName + '\n' + entry.textures + '\n' + entry.signature + '\n' + ServerUtils.isVanished(player);
     }
@@ -76,7 +69,7 @@ public class TabProfileTracker {
         if (server == null) return;
         List<MessageTabProfiles.Entry> entries = new ArrayList<>();
         for (EntityPlayerMP player : server.getConfigurationManager().playerEntityList) {
-            if (ServerUtils.isFake(player) || !canSee(target, player)) continue;
+            if (ServerUtils.isFake(player) || !ServerUtils.canSee(target, player)) continue;
             entries.add(createEntry(player, getListName(player)));
         }
         if (!entries.isEmpty()) {
@@ -104,7 +97,7 @@ public class TabProfileTracker {
             if (ServerUtils.isFake(recipient)) continue;
             List<MessageTabProfiles.Entry> visible = new ArrayList<>();
             for (Map.Entry<EntityPlayerMP, MessageTabProfiles.Entry> e : changed.entrySet()) {
-                if (canSee(recipient, e.getKey())) visible.add(e.getValue());
+                if (ServerUtils.canSee(recipient, e.getKey())) visible.add(e.getValue());
             }
             if (!visible.isEmpty()) {
                 new MessageTabProfiles(visible).sendTo(recipient);

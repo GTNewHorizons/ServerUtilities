@@ -274,7 +274,7 @@ public class ServerUtilitiesServerEventHandler {
 
                     if (prevIsAfk != isAFK) {
                         if (ServerUtilitiesConfig.chat.replace_tab_names) {
-                            new MessageUpdateTabName(Collections.singleton(forgePlayer)).sendToAll();
+                            new MessageUpdateTabName(Collections.singleton(forgePlayer)).sendToViewers(forgePlayer);
                         }
 
                         if (!forgePlayer.isVanished()) {
