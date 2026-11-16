@@ -51,7 +51,7 @@ public class CmdSetHome extends CmdBase {
             }
         }
 
-        data.homes.set(args[0], new BlockDimPos(sender));
+        data.homes.set(args[0], new BlockDimPos(sender), player.rotationYaw, player.rotationPitch);
         sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.homes.set", args[0]));
         data.player.markDirty();
     }

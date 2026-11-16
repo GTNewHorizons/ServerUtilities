@@ -158,6 +158,7 @@ serverutilities.world.spawn_dimension=Spawn Dimension
 serverutilities.world.unload_erroring_chunks=Unload Erroring Chunks
 serverutilities.world.rtp_min_distance=Min /rtp Distance
 serverutilities.world.rtp_max_distance=Max /rtp Distance
+serverutilities.world.restore_home_warp_rotation=Restore Home/Warp saved player rotation
 serverutilities.world.forced_spawn_dimension_time=Forced Spawn Dimension Time
 serverutilities.world.forced_spawn_dimension_weather=Forced Spawn Dimension Weather
 serverutilities.world.disable_player_suffocation_damage=Disable Player Suffocation Damage
