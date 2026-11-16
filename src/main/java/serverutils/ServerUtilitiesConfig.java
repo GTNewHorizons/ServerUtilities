@@ -651,6 +651,10 @@ public class ServerUtilitiesConfig {
         @Config.DefaultInt(200)
         public int rtp_max_tries;
 
+        @Config.Comment("Restore the saved yaw and pitch when using /home or /warp. Disabling this preserves the player's current orientation without deleting saved rotations.")
+        @Config.DefaultBoolean(true)
+        public boolean restore_home_warp_rotation;
+
         @Config.Comment("""
                 List of items that will have right-click function disabled on both sides.
                 You can use '/inv disable_right_click' command to do with from in-game.

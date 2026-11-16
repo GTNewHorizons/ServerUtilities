@@ -12,6 +12,7 @@ import net.minecraft.util.ChatComponentText;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
@@ -61,7 +62,8 @@ public class CmdWarp extends CmdBase {
             throw new CommandException("commands.generic.permission");
         }
 
-        TeleporterDimPos p = ServerUtilitiesUniverseData.WARPS.getTeleporter(args[0]);
+        TeleporterDimPos p = ServerUtilitiesUniverseData.WARPS
+                .getTeleporter(args[0], ServerUtilitiesConfig.world.restore_home_warp_rotation);
 
         if (p == null) {
             throw ServerUtilities.error(sender, "serverutilities.lang.warps.not_set", args[0]);

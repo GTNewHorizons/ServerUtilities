@@ -15,6 +15,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.TeleportType;
@@ -99,7 +100,8 @@ public class CmdHome extends CmdBase {
         }
 
         ForgePlayer p = CommandUtils.getSelfOrOther(sender, args, 1, ServerUtilitiesPermissions.HOMES_TELEPORT_OTHER);
-        TeleporterDimPos pos = ServerUtilitiesPlayerData.get(p).homes.getTeleporter(args[0]);
+        TeleporterDimPos pos = ServerUtilitiesPlayerData.get(p).homes
+                .getTeleporter(args[0], ServerUtilitiesConfig.world.restore_home_warp_rotation);
 
         if (pos == null) {
             throw ServerUtilities.error(sender, "serverutilities.lang.homes.not_set", args[0]);
