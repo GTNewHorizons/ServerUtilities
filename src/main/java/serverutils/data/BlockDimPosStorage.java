@@ -36,7 +36,8 @@ public final class BlockDimPosStorage implements INBTSerializable<NBTTagCompound
         StoredPosition position = map.get(name);
         if (position == null) return null;
         TeleporterDimPos teleporter = position.pos.teleporter();
-        return restoreRotation && position.yaw != null ? teleporter.withRotation(position.yaw, position.pitch) : teleporter;
+        return restoreRotation && position.yaw != null ? teleporter.withRotation(position.yaw, position.pitch)
+                : teleporter;
     }
 
     public boolean set(String name, @Nullable BlockDimPos pos) {
