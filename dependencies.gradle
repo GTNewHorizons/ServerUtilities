@@ -16,6 +16,7 @@ dependencies {
     compileOnly('com.github.GTNewHorizons:AdventureBackpack2:1.4.26-GTNH:dev') {transitive = false}
     compileOnly('com.github.GTNewHorizons:Minecraft-Backpack-Mod:2.6.17-GTNH:dev') {transitive = false}
     compileOnly(rfg.deobf("curse.maven:witchery-69673:2234410")) {transitive = false}
+    compileOnly("com.github.GTNewHorizons:Dashboard:1.0.2:api")
 
     compileOnly('org.projectlombok:lombok:1.18.48')
     annotationProcessor('org.projectlombok:lombok:1.18.48')
