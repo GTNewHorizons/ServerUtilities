@@ -39,8 +39,14 @@ public class GuiInvseeContainer extends GuiBase {
     private TextField textField;
 
     public GuiInvseeContainer(Map<IModdedInventory, IInventory> inventories, String playerName, String playerId) {
+        this(inventories, playerName, playerId, InvSeeRegistry.getMainInventory());
+    }
+
+    public GuiInvseeContainer(Map<IModdedInventory, IInventory> inventories, String playerName, String playerId,
+            IModdedInventory activeInventory) {
         this.inventories = inventories;
         this.container = new InvseeContainer(inventories, Minecraft.getMinecraft().thePlayer, null);
+        this.container.setActiveInventory(activeInventory);
         this.playerName = playerName;
         this.playerIcon = new PlayerHeadIcon(StringUtils.fromString(playerId));
         this.wrapper = new GuiWrapper(this, container);
@@ -48,7 +54,7 @@ public class GuiInvseeContainer extends GuiBase {
         this.inventoryName = StatCollector.translateToLocalFormatted(
                 "serverutilities.invsee.title",
                 playerName,
-                InvSeeRegistry.getMainInventory().getInventoryName());
+                activeInventory.getInventoryName());
     }
 
     @Override
@@ -163,11 +169,7 @@ public class GuiInvseeContainer extends GuiBase {
 
     public void switchInventory(IModdedInventory inventory) {
         if (container.getActiveInventory() == inventory) return;
-        container.setActiveInventory(inventory);
-        inventoryName = StatCollector
-                .translateToLocalFormatted("serverutilities.invsee.title", playerName, inventory.getInventoryName());
-        alignWidgets();
-        new MessageInvseeSwitch(inventory).sendToServer();
+        new MessageInvseeSwitch(inventory, container.windowId).sendToServer();
     }
 
     private static class GuiWrapper extends GuiContainerWrapper {
