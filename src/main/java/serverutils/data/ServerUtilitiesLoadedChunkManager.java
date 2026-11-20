@@ -2,6 +2,7 @@ package serverutils.data;
 
 import static serverutils.ServerUtilitiesPermissions.CHUNKLOADER_LOAD_OFFLINE;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,10 +21,11 @@ import serverutils.ServerUtilities;
 import serverutils.ServerUtilitiesConfig;
 import serverutils.lib.data.ForgeTeam;
 import serverutils.lib.data.TeamType;
+import serverutils.lib.data.Universe;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.ServerUtils;
 
-public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.LoadingCallback {
+public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.OrderedLoadingCallback {
 
     public static final ServerUtilitiesLoadedChunkManager INSTANCE = new ServerUtilitiesLoadedChunkManager();
 
@@ -33,6 +35,36 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
     public void clear() {
         ticketMap.clear();
         chunkTickets.clear();
+    }
+
+    /**
+     * Forge 1.7.10 saves a ticket without its chunk list, so a saved ticket comes back empty and requestTicket makes a
+     * new one. Keep only the tickets that force chunks for a team that exists. Forge then drops the others from the
+     * world save. Without this, forcedchunks.dat gets one more ticket per team and dimension at each boot. The claims
+     * force their chunks again from the claim data after the universe loads.
+     */
+    @Override
+    public List<ForgeChunkManager.Ticket> ticketsLoaded(List<ForgeChunkManager.Ticket> tickets, World world,
+            int maxTicketCount) {
+        List<ForgeChunkManager.Ticket> keep = new ArrayList<>();
+
+        for (ForgeChunkManager.Ticket ticket : tickets) {
+            String team = ticket.getModData().getString("Team");
+
+            if (!team.isEmpty() && !ticket.getChunkList().isEmpty()
+                    && (!Universe.loaded() || Universe.get().getTeam(team).isValid())) {
+                keep.add(ticket);
+            }
+        }
+
+        if (keep.size() < tickets.size()) {
+            ServerUtilities.LOGGER.info(
+                    "Dropped " + (tickets.size() - keep.size())
+                            + " unused chunk loading tickets in dimension "
+                            + world.provider.dimensionId);
+        }
+
+        return keep;
     }
 
     @Override
