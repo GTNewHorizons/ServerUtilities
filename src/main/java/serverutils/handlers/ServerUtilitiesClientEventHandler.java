@@ -163,8 +163,7 @@ public class ServerUtilitiesClientEventHandler {
 
                     break;
                 case "claims_gui":
-                    GuiClaimedChunks.instance = new GuiClaimedChunks();
-                    GuiClaimedChunks.instance.openGui();
+                    new GuiClaimedChunks().openGui();
                     break;
                 case "leaderboards_gui":
                     new MessageLeaderboardList().sendToServer();

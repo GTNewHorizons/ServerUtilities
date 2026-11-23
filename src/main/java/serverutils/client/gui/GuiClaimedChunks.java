@@ -34,15 +34,14 @@ import serverutils.net.MessageClaimedChunksUpdate;
 
 public class GuiClaimedChunks extends GuiChunkSelectorBase {
 
-    public static final ClientClaimedChunks.ChunkData[] chunkData = new ClientClaimedChunks.ChunkData[ChunkSelectorMap.TILES_GUI
+    private static final ClientClaimedChunks.ChunkData[] chunkData = new ClientClaimedChunks.ChunkData[ChunkSelectorMap.TILES_GUI
             * ChunkSelectorMap.TILES_GUI];
     private static final ClientClaimedChunks.ChunkData NULL_CHUNK_DATA = new ClientClaimedChunks.ChunkData(
             new ClientClaimedChunks.Team((short) 0),
             0);
-    public static final CachedVertexData AREA = new CachedVertexData(GL11.GL_QUADS, false, true, false);
-    public static final CachedVertexData LINES = new CachedVertexData(GL11.GL_LINES, false, true, false);
-    public static GuiClaimedChunks instance;
-    public static int claimedChunks, loadedChunks, maxClaimedChunks, maxLoadedChunks;
+    private static final CachedVertexData AREA = new CachedVertexData(GL11.GL_QUADS, false, true, false);
+    private static final CachedVertexData LINES = new CachedVertexData(GL11.GL_LINES, false, true, false);
+    private static int claimedChunks, loadedChunks, maxClaimedChunks, maxLoadedChunks;
     private final String currentDimName;
 
     public GuiClaimedChunks() {
@@ -51,12 +50,12 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
     }
 
     @Nullable
-    public static ClientClaimedChunks.ChunkData getAt(int x, int y) {
+    private static ClientClaimedChunks.ChunkData getAt(int x, int y) {
         int i = x + y * ChunkSelectorMap.TILES_GUI;
         return i < 0 || i >= chunkData.length ? null : chunkData[i];
     }
 
-    public static boolean hasBorder(ClientClaimedChunks.ChunkData data, @Nullable ClientClaimedChunks.ChunkData with) {
+    private static boolean hasBorder(ClientClaimedChunks.ChunkData data, @Nullable ClientClaimedChunks.ChunkData with) {
         if (with == null) {
             with = NULL_CHUNK_DATA;
         }
