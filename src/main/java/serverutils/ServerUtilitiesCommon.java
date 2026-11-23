@@ -176,6 +176,9 @@ public class ServerUtilitiesCommon {
 
     public void onServerStopping(FMLServerStoppingEvent event) {
         BackupCoordinator.stop();
+        // If the player leaves a single player world, make sure backups are resumed when they join (possibly a
+        // different) one
+        BackupTask.resumeBackups();
         // Save the universe since onServerStopping clears the instance variable
         Universe oldUniverse = Universe.get();
         Universe.onServerStopping(event);

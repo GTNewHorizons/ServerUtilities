@@ -54,6 +54,7 @@ import serverutils.task.backup.BackupFixtures.FakeStore;
 import serverutils.task.backup.BackupResult;
 import serverutils.task.backup.BackupRetention;
 import serverutils.task.backup.BackupRoutine;
+import serverutils.task.backup.BackupTask;
 import serverutils.task.backup.RetentionRoutine;
 
 public class CmdBackupTest extends BackupFixtures.Tests {
@@ -68,6 +69,7 @@ public class CmdBackupTest extends BackupFixtures.Tests {
     public void afterEach() throws ReflectiveOperationException {
         ServerUtilitiesServerEventHandler.clearServerTasks();
         BackupFixtures.setStatic(Universe.class, "INSTANCE", null);
+        BackupFixtures.setStatic(BackupTask.class, "pausedUntil", null); // was "paused", false
         testReset();
     }
 
@@ -239,5 +241,28 @@ public class CmdBackupTest extends BackupFixtures.Tests {
             ServerUtilitiesServerEventHandler.onServerTick(new TickEvent.ServerTickEvent(TickEvent.Phase.START));
             Thread.sleep(10);
         }
+    }
+
+    @Test
+    public void pause_WithDuration_ReportsEndTime() {
+        List<String> keys = new ArrayList<>();
+        ICommandSender sender = recordingSender(keys);
+
+        new CmdBackup.CmdBackupPause().processCommand(sender, new String[] { "6h" });
+
+        assertTrue(BackupTask.isPaused());
+        assertEquals(Collections.singletonList("cmd.backup_paused_until"), keys);
+    }
+
+    @Test
+    public void pause_WithInvalidDuration_ThrowsUsageAndStaysUnpaused() {
+        CmdBackup.CmdBackupPause pause = new CmdBackup.CmdBackupPause();
+        ICommandSender sender = recordingSender(new ArrayList<>());
+
+        for (String bad : new String[] { "6x", "0h", "1.5h", "-1h", "999999999999w" }) {
+            assertThrows(bad, WrongUsageException.class, () -> pause.processCommand(sender, new String[] { bad }));
+        }
+        assertThrows(WrongUsageException.class, () -> pause.processCommand(sender, new String[] { "1h", "extra" }));
+        assertFalse(BackupTask.isPaused());
     }
 }

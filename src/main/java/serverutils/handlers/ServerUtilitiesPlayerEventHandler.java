@@ -98,6 +98,7 @@ public class ServerUtilitiesPlayerEventHandler {
     public static void onPlayerLoggedOut(ForgePlayerLoggedOutEvent event) {
         BackupTask.newPlayerActivity();
         EntityPlayerMP player = event.getPlayer().getPlayer();
+        BackupTask.onPlayerLoggedOut(player.mcServer, player);
 
         if (ClaimedChunks.isActive()) {
             ClaimedChunks.instance.markDirty();
