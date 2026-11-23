@@ -858,19 +858,28 @@ public class ServerUtilitiesConfig {
 
     public static class MOTD {
 
-        @Config.Comment("Enable custom configurable SERVER MOTD with color codes and variables")
+        @Config.Comment("Whether the custom configurable server MotD, with color codes and variable support, is enabled")
         @Config.DefaultBoolean(false)
-        @Config.LangKey("serverutilities.config.enabled")
+        @Config.LangKey("serverutilities.motd.enabled")
         public boolean enabled;
+
+        @Config.Comment("The rate at which the custom, configurable, server MotD updates (in milliseconds between updates)")
+        @Config.RangeInt(min = 50)
+        @Config.DefaultInt(5000)
+        @Config.Reloadable("server_motd")
+        @Config.LangKey("serverutilities.motd.update_frequency")
+        public int updateFrequency;
 
         @Config.Comment("First line of MOTD. Supports color codes (§) and variables; see https://github.com/GTNewHorizons/ServerUtilities/wiki/Variables for the full list.")
         @Config.DefaultString("§6§lMy Minecraft Server")
         @Config.Reloadable("server_motd")
+        @Config.LangKey("serverutilities.motd.line1")
         public String line1;
 
         @Config.Comment("Second line of MOTD. Supports color codes (§) and variables; see https://github.com/GTNewHorizons/ServerUtilities/wiki/Variables for the full list.")
         @Config.DefaultString("§aUptime: §f{uptime} §7| §bTPS: §f{tps}")
         @Config.Reloadable("server_motd")
+        @Config.LangKey("serverutilities.motd.line2")
         public String line2;
     }
 

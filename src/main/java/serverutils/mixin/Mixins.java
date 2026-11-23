@@ -76,10 +76,6 @@ public enum Mixins implements IMixins {
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> mixins.bypassPlayerLimit)
             .addCommonMixins("minecraft.MixinNetHandlerLoginServer")),
-    CUSTOM_MOTD(new MixinBuilder("Custom configurable MOTD with color codes and variables")
-            .setPhase(Phase.EARLY)
-            .setApplyIf(() -> motd.enabled)
-            .addServerMixins("minecraft.MixinMinecraftServer_CustomMotd")),
     TOGGLE_CHEATS(new MixinBuilder("Helper method for toggling cheats in the world selection menu")
             .setPhase(Phase.EARLY)
             .setApplyIf(() -> general.enable_toggle_cheats_button)
