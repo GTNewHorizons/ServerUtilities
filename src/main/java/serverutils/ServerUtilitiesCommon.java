@@ -2,6 +2,7 @@ package serverutils;
 
 import static serverutils.ServerUtilitiesConfig.auto_shutdown;
 import static serverutils.ServerUtilitiesConfig.backups;
+import static serverutils.ServerUtilitiesConfig.motd;
 import static serverutils.ServerUtilitiesConfig.ranks;
 import static serverutils.ServerUtilitiesConfig.tasks;
 import static serverutils.ServerUtilitiesConfig.world;
@@ -13,6 +14,7 @@ import java.util.function.Function;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.IChatComponent;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
@@ -54,6 +56,7 @@ import serverutils.ranks.ServerUtilitiesPermissionHandler;
 import serverutils.task.CleanupTask;
 import serverutils.task.DecayTask;
 import serverutils.task.ShutdownTask;
+import serverutils.task.UpdateMOTDTask;
 import serverutils.task.backup.BackupCoordinator;
 import serverutils.task.backup.BackupRoutine;
 import serverutils.task.backup.BackupTask;
@@ -64,6 +67,9 @@ public class ServerUtilitiesCommon {
     public static final Map<String, String> KAOMOJIS = new HashMap<>();
     public static final Map<UUID, ServerUtilitiesCommon.EditingConfig> TEMP_SERVER_CONFIG = new HashMap<>();
     private static final Map<String, Function<ForgePlayer, IChatComponent>> CHAT_FORMATTING_SUBSTITUTES = new HashMap<>();
+
+    @Nullable
+    private static UpdateMOTDTask updateMotDTask;
 
     public static Function<String, IChatComponent> chatFormattingSubstituteFunction(ForgePlayer player) {
         return s -> {
@@ -139,10 +145,14 @@ public class ServerUtilitiesCommon {
     }
 
     public void onServerStarting(FMLServerStartingEvent event) {
+        MinecraftServer server = event.getServer();
         ServerUtilitiesCommands.registerCommands(event);
-
-        if (AuroraConfig.general.enable) {
-            Aurora.start(event.getServer());
+        // -- Initial MOTD setup
+        if (server != null && server.isDedicatedServer()) {
+            updateMotDTask = new UpdateMOTDTask();
+        }
+        if (AuroraConfig.general.enable && server != null) {
+            Aurora.start(server);
         }
     }
 
@@ -205,6 +215,9 @@ public class ServerUtilitiesCommon {
                         ex.getMessage());
             }
         }
+        if (updateMotDTask != null) {
+            universe.scheduleTask(updateMotDTask, motd.enabled);
+        }
         if (auto_shutdown.enabled && auto_shutdown.times.length > 0
                 && (auto_shutdown.enabled_singleplayer || universe.server.isDedicatedServer())) {
             universe.scheduleTask(new ShutdownTask());
@@ -223,6 +236,9 @@ public class ServerUtilitiesCommon {
 
                 if (ServerUtilitiesConfig.motd.enabled) {
                     ConfigurationManager.reloadConfig(ServerUtilitiesConfig.class, "server_motd");
+                    if (updateMotDTask != null) {
+                        updateMotDTask.onConfigReload();
+                    }
                 }
             }
         }
