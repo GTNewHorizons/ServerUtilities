@@ -41,7 +41,6 @@ public class GuiClaimedChunks extends GuiChunkSelectorBase {
             0);
     public static final CachedVertexData AREA = new CachedVertexData(GL11.GL_QUADS, false, true, false);
     public static final CachedVertexData LINES = new CachedVertexData(GL11.GL_LINES, false, true, false);
-    public static GuiClaimedChunks instance;
     public static int claimedChunks, loadedChunks, maxClaimedChunks, maxLoadedChunks;
     private final String currentDimName;
 
