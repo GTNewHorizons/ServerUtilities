@@ -117,6 +117,7 @@ serverutilities.world.spawn_dimension=重生维度
 serverutilities.world.unload_erroring_chunks=卸载出错的区块
 serverutilities.world.rtp_min_distance=最小随机传送（/rtp）距离
 serverutilities.world.rtp_max_distance=最大随机传送（/rtp）距离
+serverutilities.world.restore_home_warp_rotation=Home/Warp保存视角
 serverutilities.world.forced_spawn_dimension_time=强制重生维度日夜更替
 serverutilities.world.forced_spawn_dimension_weather=强制重生维度天气
 serverutilities.world.disable_player_suffocation_damage=禁用玩家窒息伤害

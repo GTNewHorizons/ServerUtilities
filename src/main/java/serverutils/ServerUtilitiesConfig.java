@@ -651,6 +651,10 @@ public class ServerUtilitiesConfig {
         @Config.DefaultInt(200)
         public int rtp_max_tries;
 
+        @Config.Comment("Restore the saved yaw and pitch when using /home or /warp. Disabling this preserves the player's current orientation without deleting saved rotations.")
+        @Config.DefaultBoolean(true)
+        public boolean restore_home_warp_rotation;
+
         @Config.Comment("""
                 List of items that will have right-click function disabled on both sides.
                 You can use '/inv disable_right_click' command to do with from in-game.
@@ -866,13 +870,13 @@ public class ServerUtilitiesConfig {
         @Config.LangKey("serverutilities.motd.update_frequency")
         public int updateFrequency;
 
-        @Config.Comment("First line of the MotD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
+        @Config.Comment("First line of MOTD. Supports color codes (§) and variables; see https://github.com/GTNewHorizons/ServerUtilities/wiki/Variables for the full list.")
         @Config.DefaultString("§6§lMy Minecraft Server")
         @Config.Reloadable("server_motd")
         @Config.LangKey("serverutilities.motd.line1")
         public String line1;
 
-        @Config.Comment("Second line of the MotD. Supports color codes (§), variables ({players}, {maxPlayers}, {tps}, {memory}, {uptime})")
+        @Config.Comment("Second line of MOTD. Supports color codes (§) and variables; see https://github.com/GTNewHorizons/ServerUtilities/wiki/Variables for the full list.")
         @Config.DefaultString("§aUptime: §f{uptime} §7| §bTPS: §f{tps}")
         @Config.Reloadable("server_motd")
         @Config.LangKey("serverutilities.motd.line2")
@@ -907,12 +911,12 @@ public class ServerUtilitiesConfig {
         @Config.Sync
         public boolean showPingBars;
 
-        @Config.Comment("Header text for the modern tab overlay. Use & for color/format codes, \\n for line breaks. Overridden by proxy plugin channel.")
+        @Config.Comment("Header text for the modern tab overlay. Use & for color/format codes, \\n for line breaks. Supports variables, updated once a second; see https://github.com/GTNewHorizons/ServerUtilities/wiki/Variables for the full list. Overridden by proxy plugin channel.")
         @Config.DefaultString("&b&lGTNH Server\\n&7A modern tab list for 1.7.10")
         @Config.Sync
         public String headerText;
 
-        @Config.Comment("Footer text for the modern tab overlay. Use & for color/format codes, \\n for line breaks. Overridden by proxy plugin channel.")
+        @Config.Comment("Footer text for the modern tab overlay. Use & for color/format codes, \\n for line breaks. Supports the same variables as the header. Overridden by proxy plugin channel.")
         @Config.DefaultString("&7Ping: &a< 150ms &e< 300ms &c< 600ms &4< 1000ms &8>= 1000ms\\n&8Powered by &dServerUtilities")
         @Config.Sync
         public String footerText;

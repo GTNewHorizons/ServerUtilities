@@ -15,6 +15,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IChatComponent;
 
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.TeleportType;
@@ -22,7 +23,7 @@ import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
 import serverutils.lib.data.ForgePlayer;
 import serverutils.lib.data.Universe;
-import serverutils.lib.math.BlockDimPos;
+import serverutils.lib.math.TeleporterDimPos;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.task.NotifyTask;
 import serverutils.task.Task;
@@ -99,7 +100,8 @@ public class CmdHome extends CmdBase {
         }
 
         ForgePlayer p = CommandUtils.getSelfOrOther(sender, args, 1, ServerUtilitiesPermissions.HOMES_TELEPORT_OTHER);
-        BlockDimPos pos = ServerUtilitiesPlayerData.get(p).homes.get(args[0]);
+        TeleporterDimPos pos = ServerUtilitiesPlayerData.get(p).homes
+                .getTeleporter(args[0], ServerUtilitiesConfig.world.restore_home_warp_rotation);
 
         if (pos == null) {
             throw ServerUtilities.error(sender, "serverutilities.lang.homes.not_set", args[0]);
@@ -115,6 +117,6 @@ public class CmdHome extends CmdBase {
         Task task = new NotifyTask(-1, player, TELEPORT.createNotification("serverutilities.lang.warps.tp", args[0]));
         ServerUtilitiesPlayerData data = ServerUtilitiesPlayerData.get(sender);
         data.checkTeleportCooldown(sender, TeleportType.HOME);
-        data.teleport(pos.teleporter(), TeleportType.HOME, task);
+        data.teleport(pos, TeleportType.HOME, task);
     }
 }

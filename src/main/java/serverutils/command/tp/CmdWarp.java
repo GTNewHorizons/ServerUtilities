@@ -12,13 +12,14 @@ import net.minecraft.util.ChatComponentText;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import serverutils.ServerUtilities;
+import serverutils.ServerUtilitiesConfig;
 import serverutils.ServerUtilitiesPermissions;
 import serverutils.data.ServerUtilitiesPlayerData;
 import serverutils.data.ServerUtilitiesUniverseData;
 import serverutils.data.TeleportType;
 import serverutils.lib.command.CmdBase;
 import serverutils.lib.command.CommandUtils;
-import serverutils.lib.math.BlockDimPos;
+import serverutils.lib.math.TeleporterDimPos;
 import serverutils.lib.util.StringJoiner;
 import serverutils.lib.util.permission.PermissionAPI;
 import serverutils.ranks.Rank;
@@ -61,7 +62,8 @@ public class CmdWarp extends CmdBase {
             throw new CommandException("commands.generic.permission");
         }
 
-        BlockDimPos p = ServerUtilitiesUniverseData.WARPS.get(args[0]);
+        TeleporterDimPos p = ServerUtilitiesUniverseData.WARPS
+                .getTeleporter(args[0], ServerUtilitiesConfig.world.restore_home_warp_rotation);
 
         if (p == null) {
             throw ServerUtilities.error(sender, "serverutilities.lang.warps.not_set", args[0]);
@@ -76,6 +78,6 @@ public class CmdWarp extends CmdBase {
         }
 
         Task task = new NotifyTask(-1, player, TELEPORT.createNotification("serverutilities.lang.warps.tp", args[0]));
-        data.teleport(p.teleporter(), TeleportType.WARP, task);
+        data.teleport(p, TeleportType.WARP, task);
     }
 }

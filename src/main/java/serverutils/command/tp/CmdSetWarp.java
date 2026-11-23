@@ -32,12 +32,14 @@ public class CmdSetWarp extends CmdBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         checkArgs(sender, args, 1);
         BlockDimPos pos;
+        EntityPlayerMP rotationSource = null;
 
         args[0] = args[0].toLowerCase();
 
         if (args.length == 2) {
             EntityPlayerMP targetPlayer = CommandUtils.getForgePlayer(sender, args[1]).getCommandPlayer(sender);
             pos = new BlockDimPos(targetPlayer);
+            rotationSource = targetPlayer;
         } else if (args.length >= 4) {
             int x = parseInt(sender, args[1]);
             int y = parseInt(sender, args[2]);
@@ -49,9 +51,15 @@ public class CmdSetWarp extends CmdBase {
                     args.length >= 5 ? parseInt(sender, args[4]) : sender.getEntityWorld().provider.dimensionId);
         } else {
             pos = new BlockDimPos(sender);
+            if (sender instanceof EntityPlayerMP player) rotationSource = player;
         }
 
-        ServerUtilitiesUniverseData.WARPS.set(args[0], pos);
+        if (rotationSource == null) {
+            ServerUtilitiesUniverseData.WARPS.set(args[0], pos);
+        } else {
+            ServerUtilitiesUniverseData.WARPS
+                    .set(args[0], pos, rotationSource.rotationYaw, rotationSource.rotationPitch);
+        }
         sender.addChatMessage(ServerUtilities.lang(sender, "serverutilities.lang.warps.set", args[0]));
         Universe.get().markDirty();
     }

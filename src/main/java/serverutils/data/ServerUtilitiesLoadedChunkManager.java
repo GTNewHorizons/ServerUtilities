@@ -2,6 +2,7 @@ package serverutils.data;
 
 import static serverutils.ServerUtilitiesPermissions.CHUNKLOADER_LOAD_OFFLINE;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,6 @@ import java.util.Objects;
 import javax.annotation.Nullable;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.DimensionManager;
@@ -23,7 +23,7 @@ import serverutils.lib.data.TeamType;
 import serverutils.lib.math.ChunkDimPos;
 import serverutils.lib.util.ServerUtils;
 
-public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.LoadingCallback {
+public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.OrderedLoadingCallback {
 
     public static final ServerUtilitiesLoadedChunkManager INSTANCE = new ServerUtilitiesLoadedChunkManager();
 
@@ -35,23 +35,29 @@ public class ServerUtilitiesLoadedChunkManager implements ForgeChunkManager.Load
         chunkTickets.clear();
     }
 
+    /**
+     * Forge 1.7.10 saves a ticket without its chunk list (only Type, ChunkListDepth and ModData), so every saved SU
+     * ticket comes back empty and requestTicket makes a new one next to it. Release all of them here: forge leaves them
+     * out of its ticket map and they are gone at the next save. The claims force their chunks again from the claim data
+     * after the universe loads. Without this, forcedchunks.dat gets one more ticket per team and dimension at each
+     * boot.
+     */
+    @Override
+    public List<ForgeChunkManager.Ticket> ticketsLoaded(List<ForgeChunkManager.Ticket> tickets, World world,
+            int maxTicketCount) {
+        if (!tickets.isEmpty()) {
+            ServerUtilities.LOGGER.debug(
+                    "Released " + tickets.size()
+                            + " saved chunk loading tickets in dimension "
+                            + world.provider.dimensionId);
+        }
+
+        return Collections.emptyList();
+    }
+
     @Override
     public void ticketsLoaded(List<ForgeChunkManager.Ticket> tickets, World world) {
-        final int dim = world.provider.dimensionId;
-        for (ForgeChunkManager.Ticket ticket : tickets) {
-            TicketKey key = new TicketKey(dim, ticket.getModData().getString("Team"));
-
-            if (!key.teamId.isEmpty()) {
-                if (!ticket.getChunkList().isEmpty()) {
-                    ticketMap.put(key, ticket);
-                }
-
-                for (ChunkCoordIntPair pos : ticket.getChunkList()) {
-                    chunkTickets.put(new ChunkDimPos(pos, key.dimension), ticket);
-                    ForgeChunkManager.forceChunk(ticket, pos);
-                }
-            }
-        }
+        // Nothing to restore: the ordered ticketsLoaded above releases every saved ticket.
     }
 
     @Nullable
