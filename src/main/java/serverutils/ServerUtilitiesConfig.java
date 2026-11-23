@@ -863,12 +863,12 @@ public class ServerUtilitiesConfig {
         @Config.LangKey("serverutilities.config.enabled")
         public boolean enabled;
 
-        @Config.Comment("First line of MOTD. Supports color codes (§) and variables such as {players}, {maxPlayers}, {tps}, {memory}, {uptime}; the wiki page \"Variables\" lists all of them.")
+        @Config.Comment("First line of MOTD. Supports color codes (§) and variables; see https://github.com/GTNewHorizons/ServerUtilities/wiki/Variables for the full list.")
         @Config.DefaultString("§6§lMy Minecraft Server")
         @Config.Reloadable("server_motd")
         public String line1;
 
-        @Config.Comment("Second line of MOTD. Supports color codes (§) and variables such as {players}, {maxPlayers}, {tps}, {memory}, {uptime}; the wiki page \"Variables\" lists all of them.")
+        @Config.Comment("Second line of MOTD. Supports color codes (§) and variables; see https://github.com/GTNewHorizons/ServerUtilities/wiki/Variables for the full list.")
         @Config.DefaultString("§aUptime: §f{uptime} §7| §bTPS: §f{tps}")
         @Config.Reloadable("server_motd")
         public String line2;
@@ -902,7 +902,7 @@ public class ServerUtilitiesConfig {
         @Config.Sync
         public boolean showPingBars;
 
-        @Config.Comment("Header text for the modern tab overlay. Use & for color/format codes, \\n for line breaks. Supports variables such as {players}, {tps}, {mspt}, {ping}, updated once a second; the wiki page \"Variables\" lists all of them. Overridden by proxy plugin channel.")
+        @Config.Comment("Header text for the modern tab overlay. Use & for color/format codes, \\n for line breaks. Supports variables, updated once a second; see https://github.com/GTNewHorizons/ServerUtilities/wiki/Variables for the full list. Overridden by proxy plugin channel.")
         @Config.DefaultString("&b&lGTNH Server\\n&7A modern tab list for 1.7.10")
         @Config.Sync
         public String headerText;
