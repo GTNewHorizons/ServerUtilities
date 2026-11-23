@@ -64,6 +64,8 @@ All commands require operator permissions, or singleplayer.
 | `/backup getsize` | Show the world size and the backup folder size. |
 | `/backup list` | List backups, oldest first, with their size and age. |
 | `/backup prune preview` | Show, oldest first, which backups policy mode would keep or delete, the rule responsible and how long finite rules keep each one. Nothing is deleted. |
+| `/backup pause [duration]` | Pause automatic backups, optionally with a duration such as `30m`, `1h`, or `5d` (see [units](#duration-units)). Manual backups still work when automatic ones are paused. Backups are resumed automatically when re-entering a single player world, on a server restart, or when everyone leaves the server. |
+| `/backup resume` | Resume automatic backups. |
 
 `list` and `prune preview` run in the background and report "busy" while a backup is running.
 

@@ -2,8 +2,10 @@ package serverutils.task.backup;
 
 import static serverutils.ServerUtilitiesConfig.backups;
 
+import java.time.Clock;
 import java.time.Instant;
 
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 
 import serverutils.ServerUtilities;
@@ -14,6 +16,8 @@ import serverutils.task.Task;
 public class BackupTask extends Task {
 
     private static Instant lastPlayerActivity = Instant.MIN;
+    private static volatile Instant pausedUntil = null;
+    static Clock clock = Clock.systemUTC();
 
     public BackupTask() {
         super(Ticks.getFromMillis(BackupDuration.parse(BackupDuration.normalizeTimer(backups.backup_timer))));
@@ -23,6 +27,11 @@ public class BackupTask extends Task {
     @Override
     public void execute(Universe universe) {
         if (!backups.enable_backups) return;
+
+        if (isPaused()) {
+            ServerUtilities.LOGGER.debug("Backup skipped, because it's currently paused.");
+            return;
+        }
 
         MinecraftServer server = universe.server;
         if (hasOnlinePlayers(server)) lastPlayerActivity = Instant.now();
@@ -52,5 +61,50 @@ public class BackupTask extends Task {
 
     private boolean hasOnlinePlayers(MinecraftServer server) {
         return !server.getConfigurationManager().playerEntityList.isEmpty();
+    }
+
+    public static boolean pauseBackups() {
+        if (Instant.MAX.equals(pausedUntil)) {
+            return false;
+        }
+        pausedUntil = Instant.MAX;
+        return true;
+    }
+
+    public static Instant pauseBackupsFor(long millis) {
+        pausedUntil = Instant.ofEpochMilli(Math.addExact(clock.millis(), millis));
+        return pausedUntil;
+    }
+
+    public static boolean resumeBackups() {
+        if (!isPaused()) {
+            return false;
+        }
+        pausedUntil = null;
+        return true;
+    }
+
+    public static boolean isPaused() {
+        if (pausedUntil != null && !clock.instant().isBefore(pausedUntil)) {
+            pausedUntil = null;
+            ServerUtilities.LOGGER.info("Automatic backups resumed, the pause expired.");
+        }
+        return pausedUntil != null;
+    }
+
+    public static void onPlayerLoggedOut(MinecraftServer server, EntityPlayerMP leavingPlayer) {
+        if (isPaused() && isLastPlayer(server, leavingPlayer)) {
+            resumeBackups();
+            ServerUtilities.LOGGER.info("The last player logged out, resuming automatic backups");
+        }
+    }
+
+    private static boolean isLastPlayer(MinecraftServer server, EntityPlayerMP leavingPlayer) {
+        for (Object player : server.getConfigurationManager().playerEntityList) {
+            if (player != leavingPlayer) {
+                return false;
+            }
+        }
+        return true;
     }
 }

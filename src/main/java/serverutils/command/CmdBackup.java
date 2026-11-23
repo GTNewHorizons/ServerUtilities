@@ -1,6 +1,7 @@
 package serverutils.command;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
@@ -26,10 +27,12 @@ import serverutils.lib.command.CmdTreeBase;
 import serverutils.lib.data.Universe;
 import serverutils.lib.util.FileUtils;
 import serverutils.task.backup.BackupCoordinator;
+import serverutils.task.backup.BackupDuration;
 import serverutils.task.backup.BackupEntry;
 import serverutils.task.backup.BackupResult;
 import serverutils.task.backup.BackupRetention;
 import serverutils.task.backup.BackupRoutine;
+import serverutils.task.backup.BackupTask;
 import serverutils.task.backup.RetentionRoutine;
 
 public class CmdBackup extends CmdTreeBase {
@@ -41,6 +44,8 @@ public class CmdBackup extends CmdTreeBase {
         addSubcommand(new CmdBackupGetSize("getsize"));
         addSubcommand(new CmdBackupPrune());
         addSubcommand(new CmdBackupList());
+        addSubcommand(new CmdBackupPause());
+        addSubcommand(new CmdBackupResume());
     }
 
     private static String date(long millis) {
@@ -294,6 +299,61 @@ public class CmdBackup extends CmdTreeBase {
                                             archive.toString(),
                                             FileUtils.getSizeString(archive.size()),
                                             when(archive, now))));
+        }
+    }
+
+    public static class CmdBackupPause extends CmdBase {
+
+        public CmdBackupPause() {
+            super("pause", Level.OP_OR_SP);
+        }
+
+        @Override
+        public void processCommand(ICommandSender sender, String[] args) {
+            if (args.length > 1) {
+                throw new WrongUsageException(getCommandUsage(sender));
+            }
+
+            if (args.length == 0) {
+                if (!BackupTask.pauseBackups()) {
+                    sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_paused"));
+                    return;
+                }
+
+                ServerUtilities.LOGGER.info("Automatic backups paused by {}", sender.getCommandSenderName());
+                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_paused"));
+                return;
+            }
+
+            Instant until;
+
+            try {
+                until = BackupTask.pauseBackupsFor(BackupDuration.parse(args[0]));
+            } catch (IllegalArgumentException | ArithmeticException e) {
+                throw new WrongUsageException(getCommandUsage(sender));
+            }
+
+            ServerUtilities.LOGGER
+                    .info("Automatic backups paused by {} until {}", sender.getCommandSenderName(), until);
+            sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_paused_until", date(until.toEpochMilli())));
+        }
+    }
+
+    public static class CmdBackupResume extends CmdBase {
+
+        public CmdBackupResume() {
+            super("resume", Level.OP_OR_SP);
+        }
+
+        @Override
+        public void processCommand(ICommandSender sender, String[] args) {
+            if (!BackupTask.resumeBackups()) {
+                sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_already_resumed"));
+                return;
+            }
+
+            ServerUtilities.LOGGER.info("Automatic backups resumed by {}", sender.getCommandSenderName());
+            sender.addChatMessage(ServerUtilities.lang(sender, "cmd.backup_resumed"));
         }
     }
 }
