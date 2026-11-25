@@ -320,6 +320,10 @@ public class Universe {
                                 playerNBT.put(uuid, nbt);
                                 ForgePlayer player = new ForgePlayer(this, uuid, nbt.getString("Name"));
                                 players.put(uuid, player);
+
+                                if (nbt.getString("UUID").isEmpty()) {
+                                    player.markDirty();
+                                }
                             }
                         }
                     }
@@ -354,7 +358,7 @@ public class Universe {
                                     TeamType.NAME_MAP.get(nbt.getString("Type")));
                             addTeam(team);
 
-                            if (uid == 0) {
+                            if (team.getUID() != uid) {
                                 team.markDirty();
                             }
                         }
@@ -379,6 +383,23 @@ public class Universe {
 
         new UniverseLoadedEvent.CreateServerTeams(this).post();
 
+        // Reading players and teams marks them dirty (team statuses, claimed chunks), and the first save would then
+        // write every record again. A record that is clean before this point stays clean after the load.
+        List<ForgePlayer> cleanPlayers = new ArrayList<>();
+        List<ForgeTeam> cleanTeams = new ArrayList<>();
+
+        for (ForgePlayer player : players.values()) {
+            if (!player.needsSaving) {
+                cleanPlayers.add(player);
+            }
+        }
+
+        for (ForgeTeam team : getTeams()) {
+            if (!team.needsSaving) {
+                cleanTeams.add(team);
+            }
+        }
+
         for (ForgePlayer player : players.values()) {
             NBTTagCompound nbt = playerNBT.get(player.getId());
 
@@ -402,6 +423,14 @@ public class Universe {
             }
 
             new ForgeTeamLoadedEvent(team).post();
+        }
+
+        for (ForgePlayer player : cleanPlayers) {
+            player.needsSaving = false;
+        }
+
+        for (ForgeTeam team : cleanTeams) {
+            team.needsSaving = false;
         }
 
         if (universeData.hasKey("FakePlayer")) {
