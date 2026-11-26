@@ -4,6 +4,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.nbt.NBTTagCompound;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,6 +30,16 @@ public interface IModdedInventory {
     String getButtonText();
 
     void saveInventory(ForgePlayer player, IInventory inventory);
+
+    default NBTTagCompound getContainerData(IInventory inventory) {
+        return new NBTTagCompound();
+    }
+
+    default void readContainerData(IInventory inventory, NBTTagCompound data) {}
+
+    default Object getLayoutIdentity(IInventory inventory) {
+        return inventory.getSizeInventory();
+    }
 
     @Nullable
     default Slot getSlot(EntityPlayer player, IInventory inventory, int index, int x, int y) {
